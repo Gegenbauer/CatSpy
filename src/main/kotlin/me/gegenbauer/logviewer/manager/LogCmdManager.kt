@@ -15,7 +15,7 @@ class LogCmdManager private constructor() {
     var logCmd: String = ""
     var devices = ArrayList<String>()
     private val eventListeners = ArrayList<AdbEventListener>()
-    private var mMainUI: MainUI? = null
+    private var mainUI: MainUI? = null
 
     companion object {
         const val DEFAULT_PREFIX = NAME
@@ -37,15 +37,15 @@ class LogCmdManager private constructor() {
         const val TYPE_LOGCAT = 0
         const val TYPE_CMD = 1
 
-        private val mInstance: LogCmdManager = LogCmdManager()
+        private val instance: LogCmdManager = LogCmdManager()
 
         fun getInstance(): LogCmdManager {
-            return mInstance
+            return instance
         }
     }
 
     fun setMainUI(mainUI: MainUI) {
-        mMainUI = mainUI
+        this.mainUI = mainUI
     }
 
     fun getDevices() {
@@ -79,10 +79,10 @@ class LogCmdManager private constructor() {
 
     fun stop() {
         println("Stop all processes ++")
-        mProcessLogcat?.destroy()
-        mProcessLogcat = null
-        mCurrentExecuter?.interrupt()
-        mCurrentExecuter = null
+        processLogcat?.destroy()
+        processLogcat = null
+        currentExecutor?.interrupt()
+        currentExecutor = null
         println("Stop all processes --")
     }
 
@@ -96,8 +96,8 @@ class LogCmdManager private constructor() {
         }
     }
 
-    private var mCurrentExecuter: Thread? = null
-    var mProcessLogcat: Process? = null
+    private var currentExecutor: Thread? = null
+    var processLogcat: Process? = null
     private fun execute(cmd: Runnable?) {
         cmd?.run()
     }
@@ -115,7 +115,7 @@ class LogCmdManager private constructor() {
                     } catch (e: IOException) {
                         println("Failed run $cmd")
                         e.printStackTrace()
-                        JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
+                        JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
                         sendEvent(adbEvent)
                         return@run
@@ -165,10 +165,10 @@ class LogCmdManager private constructor() {
                         if (line.contains("List of devices")) {
                             continue
                         }
-                        val textSplited = line.trim().split(Regex("\\s+"))
-                        if (textSplited.size >= 2) {
-                            println("device : ${textSplited[0]}")
-                            devices.add(textSplited[0])
+                        val textSplit = line.trim().split(Regex("\\s+"))
+                        if (textSplit.size >= 2) {
+                            println("device : ${textSplit[0]}")
+                            devices.add(textSplit[0])
                         }
                     }
                     val adbEvent = AdbEvent(CMD_GET_DEVICES, EVENT_SUCCESS)
@@ -178,7 +178,7 @@ class LogCmdManager private constructor() {
 
             CMD_LOGCAT -> executor = Runnable {
                 run {
-                    mProcessLogcat?.destroy()
+                    processLogcat?.destroy()
 
                     val cmd = if (targetDevice.isNotBlank()) {
                         if (getType() == TYPE_CMD) {
@@ -196,8 +196,8 @@ class LogCmdManager private constructor() {
                     println("Start : $cmd")
                     val runtime = Runtime.getRuntime()
                     try {
-                        mProcessLogcat = runtime.exec(cmd)
-                        val processExitDetector = ProcessExitDetector(mProcessLogcat!!)
+                        processLogcat = runtime.exec(cmd)
+                        val processExitDetector = ProcessExitDetector(processLogcat!!)
                         processExitDetector.addProcessListener(object : ProcessListener {
                             override fun processFinished(process: Process?) {
                                 println("The subprocess has finished")
@@ -207,8 +207,8 @@ class LogCmdManager private constructor() {
                     } catch (e: IOException) {
                         println("Failed run $cmd")
                         e.printStackTrace()
-                        JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
-                        mProcessLogcat = null
+                        JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
+                        processLogcat = null
                         return@run
                     }
                     println("End : $cmd")
@@ -224,7 +224,7 @@ class LogCmdManager private constructor() {
                     } catch (e: IOException) {
                         println("Failed run $cmd")
                         e.printStackTrace()
-                        JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
+                        JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         val adbEvent = AdbEvent(CMD_DISCONNECT, EVENT_FAIL)
                         sendEvent(adbEvent)
                         return@run

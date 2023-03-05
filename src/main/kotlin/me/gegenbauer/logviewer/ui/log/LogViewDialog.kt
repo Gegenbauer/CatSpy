@@ -12,40 +12,40 @@ import javax.swing.*
 
 class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent, "Log", false) {
 
-    val mTextArea = JTextArea()
-    private val mScrollPane = JScrollPane(mTextArea)
-    private val mMainUI = parent as MainUI
-    private val mPopupMenu = PopUpLogViewDialog()
+    val textArea = JTextArea()
+    private val scrollPane = JScrollPane(textArea)
+    private val mainUI = parent as MainUI
+    private val popupMenu = PopUpLogViewDialog()
 
     init {
         isUndecorated = true
-        mTextArea.isEditable = false
-        mTextArea.caret.isVisible = true
-        mTextArea.lineWrap = true
+        textArea.isEditable = false
+        textArea.caret.isVisible = true
+        textArea.lineWrap = true
         if (ConfigManager.LaF != MainUI.FLAT_DARK_LAF) {
-            mTextArea.background = Color(0xFF, 0xFA, 0xE3)
+            textArea.background = Color(0xFF, 0xFA, 0xE3)
         }
-        mTextArea.font = mMainUI.mFont
+        textArea.font = mainUI.customFont
 
-        mTextArea.addKeyListener(KeyHandler())
-        mTextArea.addMouseListener(MouseHandler())
-        mTextArea.addFocusListener(FocusHandler())
-        mTextArea.text = log
-        mTextArea.caretPosition = caretPos
+        textArea.addKeyListener(KeyHandler())
+        textArea.addMouseListener(MouseHandler())
+        textArea.addFocusListener(FocusHandler())
+        textArea.text = log
+        textArea.caretPosition = caretPos
         var width = parent.width - 100
         if (width < 960) {
             width = 960
         }
-        mTextArea.setSize(width, 100)
-        mTextArea.border = BorderFactory.createEmptyBorder(7, 7, 7, 7)
+        textArea.setSize(width, 100)
+        textArea.border = BorderFactory.createEmptyBorder(7, 7, 7, 7)
 
         var height = parent.height - 100
-        if (height > mTextArea.preferredSize.height) {
-            height = mTextArea.preferredSize.height + 2
+        if (height > textArea.preferredSize.height) {
+            height = textArea.preferredSize.height + 2
         }
-        mScrollPane.preferredSize = Dimension(width, height)
+        scrollPane.preferredSize = Dimension(width, height)
 
-        contentPane.add(mScrollPane)
+        contentPane.add(scrollPane)
         pack()
 
         Utils.installKeyStrokeEscClosing(this)
@@ -63,7 +63,7 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
 
         override fun keyReleased(p0: KeyEvent?) {
             if (p0?.keyCode == KeyEvent.VK_ENTER && pressedKeyCode == KeyEvent.VK_ENTER) {
-                mTextArea.copy()
+                textArea.copy()
                 dispose()
             }
         }
@@ -72,70 +72,70 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
     internal inner class FocusHandler: FocusAdapter() {
         override fun focusLost(p0: FocusEvent?) {
             super.focusLost(p0)
-            if (!mPopupMenu.isVisible) {
+            if (!popupMenu.isVisible) {
                 dispose()
             }
         }
     }
 
     internal inner class PopUpLogViewDialog : JPopupMenu() {
-        var mIncludeItem = JMenuItem(Strings.ADD_INCLUDE)
-        var mExcludeItem = JMenuItem(Strings.ADD_EXCLUDE)
-        var mSearchAddItem = JMenuItem(Strings.ADD_SEARCH)
-        var mSearchSetItem = JMenuItem(Strings.SET_SEARCH)
-        var mCopyItem = JMenuItem(Strings.COPY)
-        var mCloseItem = JMenuItem(Strings.CLOSE)
-        private val mActionHandler = ActionHandler()
+        var includeItem = JMenuItem(Strings.ADD_INCLUDE)
+        var excludeItem = JMenuItem(Strings.ADD_EXCLUDE)
+        var searchAddItem = JMenuItem(Strings.ADD_SEARCH)
+        var searchSetItem = JMenuItem(Strings.SET_SEARCH)
+        var copyItem = JMenuItem(Strings.COPY)
+        var closeItem = JMenuItem(Strings.CLOSE)
+        private val actionHandler = ActionHandler()
 
         init {
-            mIncludeItem.addActionListener(mActionHandler)
-            add(mIncludeItem)
-            mExcludeItem.addActionListener(mActionHandler)
-            add(mExcludeItem)
-            mSearchAddItem.addActionListener(mActionHandler)
-            add(mSearchAddItem)
-            mSearchSetItem.addActionListener(mActionHandler)
-            add(mSearchSetItem)
-            mCopyItem.addActionListener(mActionHandler)
-            add(mCopyItem)
-            mCloseItem.addActionListener(mActionHandler)
-            add(mCloseItem)
+            includeItem.addActionListener(actionHandler)
+            add(includeItem)
+            excludeItem.addActionListener(actionHandler)
+            add(excludeItem)
+            searchAddItem.addActionListener(actionHandler)
+            add(searchAddItem)
+            searchSetItem.addActionListener(actionHandler)
+            add(searchSetItem)
+            copyItem.addActionListener(actionHandler)
+            add(copyItem)
+            closeItem.addActionListener(actionHandler)
+            add(closeItem)
             addFocusListener(FocusHandler())
         }
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
                 when (p0?.source) {
-                    mIncludeItem -> {
-                        var text = mMainUI.getTextShowLogCombo()
-                        text += "|" + mTextArea.selectedText
-                        mMainUI.setTextShowLogCombo(text)
-                        mMainUI.applyShowLogCombo()
+                    includeItem -> {
+                        var text = mainUI.getTextShowLogCombo()
+                        text += "|" + textArea.selectedText
+                        mainUI.setTextShowLogCombo(text)
+                        mainUI.applyShowLogCombo()
                     }
-                    mExcludeItem -> {
-                        if (!mTextArea.selectedText.isNullOrEmpty()) {
-                            var text = mMainUI.getTextShowLogCombo()
-                            text += "|-" + mTextArea.selectedText
-                            mMainUI.setTextShowLogCombo(text)
-                            mMainUI.applyShowLogCombo()
+                    excludeItem -> {
+                        if (!textArea.selectedText.isNullOrEmpty()) {
+                            var text = mainUI.getTextShowLogCombo()
+                            text += "|-" + textArea.selectedText
+                            mainUI.setTextShowLogCombo(text)
+                            mainUI.applyShowLogCombo()
                         }
                     }
-                    mSearchAddItem -> {
-                        if (!mTextArea.selectedText.isNullOrEmpty()) {
-                            var text = mMainUI.getTextSearchCombo()
-                            text += "|" + mTextArea.selectedText
-                            mMainUI.setTextSearchCombo(text)
+                    searchAddItem -> {
+                        if (!textArea.selectedText.isNullOrEmpty()) {
+                            var text = mainUI.getTextSearchCombo()
+                            text += "|" + textArea.selectedText
+                            mainUI.setTextSearchCombo(text)
                         }
                     }
-                    mSearchSetItem -> {
-                        if (!mTextArea.selectedText.isNullOrEmpty()) {
-                            mMainUI.setTextSearchCombo(mTextArea.selectedText)
+                    searchSetItem -> {
+                        if (!textArea.selectedText.isNullOrEmpty()) {
+                            mainUI.setTextSearchCombo(textArea.selectedText)
                         }
                     }
-                    mCopyItem -> {
-                        mTextArea.copy()
+                    copyItem -> {
+                        textArea.copy()
                     }
-                    mCloseItem -> {
+                    closeItem -> {
                         dispose()
                     }
                 }
@@ -153,23 +153,18 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
     }
 
     internal inner class MouseHandler : MouseAdapter() {
-        override fun mousePressed(p0: MouseEvent?) {
-            super.mousePressed(p0)
+        override fun mousePressed(event: MouseEvent) {
+            super.mousePressed(event)
         }
 
-        override fun mouseReleased(p0: MouseEvent?) {
-            if (p0 == null) {
-                super.mouseReleased(p0)
-                return
-            }
-
-            if (SwingUtilities.isRightMouseButton(p0)) {
-                mPopupMenu.show(p0.component, p0.x, p0.y)
+        override fun mouseReleased(event: MouseEvent) {
+            if (SwingUtilities.isRightMouseButton(event)) {
+                popupMenu.show(event.component, event.x, event.y)
             } else {
-                mPopupMenu.isVisible = false
+                popupMenu.isVisible = false
             }
 
-            super.mouseReleased(p0)
+            super.mouseReleased(event)
         }
 
     }

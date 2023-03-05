@@ -60,20 +60,20 @@ class ConfigManager private constructor() {
         const val ITEM_VIEW_FULL = "VIEW_FULL"
         const val ITEM_FILTER_INCREMENTAL = "FILTER_INCREMENTAL"
 
-        const val ITEM_SCROLLBACK = "SCROLLBACK"
-        const val ITEM_SCROLLBACK_SPLIT_FILE = "SCROLLBACK_SPLIT_FILE"
+        const val ITEM_SCROLL_BACK = "SCROLL_BACK"
+        const val ITEM_SCROLL_BACK_SPLIT_FILE = "SCROLL_BACK_SPLIT_FILE"
         const val ITEM_MATCH_CASE = "MATCH_CASE"
 
         const val ITEM_FILTERS_TITLE = "FILTERS_TITLE_"
         const val ITEM_FILTERS_FILTER = "FILTERS_FILTER_"
-        const val ITEM_FILTERS_TABLEBAR = "FILTERS_TABLEBAR_"
+        const val ITEM_FILTERS_TABLE_BAR = "FILTERS_TABLE_BAR"
 
-        const val ITEM_CMDS_TITLE = "CMDS_TITLE_"
-        const val ITEM_CMDS_CMD = "CMDS_CMD_"
-        const val ITEM_CMDS_TABLEBAR = "CMDS_TABLEBAR_"
+        const val ITEM_CMD_TITLE = "CMD_TITLE_"
+        const val ITEM_CMD_CMD = "CMD_CMD_"
+        const val ITEM_CMD_TABLE_BAR = "CMD_TABLE_BAR"
 
         const val ITEM_COLOR_MANAGER = "COLOR_MANAGER_"
-        const val ITEM_COLOR_FILTER_STYLE = "COLOR_FILTER_STYLE_"
+        const val ITEM_COLOR_FILTER_STYLE = "COLOR_FILTER_STYLE"
 
         const val ITEM_RETRY_ADB = "RETRY_ADB"
 
@@ -90,39 +90,39 @@ class ConfigManager private constructor() {
 
         var LaF = ""
 
-        private val mInstance: ConfigManager = ConfigManager()
+        private val instance: ConfigManager = ConfigManager()
 
         fun getInstance(): ConfigManager {
-            return mInstance
+            return instance
         }
     }
 
-    private val mProperties = Properties()
-    private var mConfigPath = CONFIG_FILE
+    private val properties = Properties()
+    private var configPath = CONFIG_FILE
 
     init {
         if (APP_HOME != null) {
-            mConfigPath = "$APP_HOME${File.separator}$CONFIG_FILE"
+            configPath = "$APP_HOME${File.separator}$CONFIG_FILE"
         }
-        println("Config Path : $mConfigPath")
+        println("Config Path : $configPath")
         manageVersion()
     }
 
     private fun setDefaultConfig() {
-        mProperties[ITEM_LOG_LEVEL] = MainUI.VERBOSE
-        mProperties[ITEM_SHOW_LOG_CHECK] = "true"
-        mProperties[ITEM_SHOW_TAG_CHECK] = "true"
-        mProperties[ITEM_SHOW_PID_CHECK] = "true"
-        mProperties[ITEM_SHOW_TID_CHECK] = "true"
-        mProperties[ITEM_HIGHLIGHT_LOG_CHECK] = "true"
+        properties[ITEM_LOG_LEVEL] = MainUI.VERBOSE
+        properties[ITEM_SHOW_LOG_CHECK] = "true"
+        properties[ITEM_SHOW_TAG_CHECK] = "true"
+        properties[ITEM_SHOW_PID_CHECK] = "true"
+        properties[ITEM_SHOW_TID_CHECK] = "true"
+        properties[ITEM_HIGHLIGHT_LOG_CHECK] = "true"
     }
 
     fun loadConfig() {
         var fileInput: FileInputStream? = null
 
         try {
-            fileInput = FileInputStream(mConfigPath)
-            mProperties.loadFromXML(fileInput)
+            fileInput = FileInputStream(configPath)
+            properties.loadFromXML(fileInput)
         } catch (ex: Exception) {
             ex.printStackTrace()
             setDefaultConfig()
@@ -140,8 +140,8 @@ class ConfigManager private constructor() {
     fun saveConfig() {
         var fileOutput: FileOutputStream? = null
         try {
-            fileOutput = FileOutputStream(mConfigPath)
-            mProperties.storeToXML(fileOutput, "")
+            fileOutput = FileOutputStream(configPath)
+            properties.storeToXML(fileOutput, "")
         } catch (ex: Exception) {
             ex.printStackTrace()
         } finally {
@@ -168,11 +168,11 @@ class ConfigManager private constructor() {
     }
 
     fun getItem(key: String): String? {
-        return mProperties[key] as String?
+        return properties[key] as String?
     }
 
     fun setItem(key: String, value: String) {
-        mProperties[key] = value
+        properties[key] = value
     }
 
     private fun setItems(keys: Array<String>, values: Array<String>) {
@@ -181,21 +181,21 @@ class ConfigManager private constructor() {
             return
         }
         for (idx in keys.indices) {
-            mProperties[keys[idx]] = values[idx]
+            properties[keys[idx]] = values[idx]
         }
     }
 
     fun removeConfigItem(key: String) {
-        mProperties.remove(key)
+        properties.remove(key)
     }
 
     fun saveFontColors(family: String, size: Int) {
         loadConfig()
 
-        mProperties[ITEM_FONT_NAME] = family
-        mProperties[ITEM_FONT_SIZE] = size.toString()
-        ColorManager.getInstance().mFullTableColor.putConfig()
-        ColorManager.getInstance().mFilterTableColor.putConfig()
+        properties[ITEM_FONT_NAME] = family
+        properties[ITEM_FONT_SIZE] = size.toString()
+        ColorManager.getInstance().fullTableColor.putConfig()
+        ColorManager.getInstance().filterTableColor.putConfig()
 
         saveConfig()
     }
@@ -215,16 +215,16 @@ class ConfigManager private constructor() {
         var check: String?
         var tableBar: Boolean
         for (i in 0 until FiltersManager.MAX_FILTERS) {
-            title = mProperties[ITEM_FILTERS_TITLE + i] as? String
+            title = properties[ITEM_FILTERS_TITLE + i] as? String
             if (title == null) {
                 break
             }
-            filter = mProperties[ITEM_FILTERS_FILTER + i] as? String
+            filter = properties[ITEM_FILTERS_FILTER + i] as? String
             if (filter == null) {
                 filter = "null"
             }
 
-            check = mProperties[ITEM_FILTERS_TABLEBAR + i] as? String
+            check = properties[ITEM_FILTERS_TABLE_BAR + i] as? String
             tableBar = if (!check.isNullOrEmpty()) {
                 check.toBoolean()
             } else {
@@ -245,76 +245,76 @@ class ConfigManager private constructor() {
         }
 
         for (i in 0 until FiltersManager.MAX_FILTERS) {
-            val title = mProperties[ITEM_FILTERS_TITLE + i] as? String
+            val title = properties[ITEM_FILTERS_TITLE + i] as? String
             if (title == null) {
                 break
             }
-            mProperties.remove(ITEM_FILTERS_TITLE + i)
-            mProperties.remove(ITEM_FILTERS_FILTER + i)
-            mProperties.remove(ITEM_FILTERS_TABLEBAR + i)
+            properties.remove(ITEM_FILTERS_TITLE + i)
+            properties.remove(ITEM_FILTERS_FILTER + i)
+            properties.remove(ITEM_FILTERS_TABLE_BAR + i)
         }
 
         for (i in 0 until nCount) {
-            mProperties[ITEM_FILTERS_TITLE + i] = filters[i].title
-            mProperties[ITEM_FILTERS_FILTER + i] = filters[i].value
-            mProperties[ITEM_FILTERS_TABLEBAR + i] = filters[i].tableBar.toString()
+            properties[ITEM_FILTERS_TITLE + i] = filters[i].title
+            properties[ITEM_FILTERS_FILTER + i] = filters[i].value
+            properties[ITEM_FILTERS_TABLE_BAR + i] = filters[i].tableBar.toString()
         }
 
         saveConfig()
         return
     }
 
-    fun loadCmds() : ArrayList<CustomListManager.CustomElement> {
-        val cmds = ArrayList<CustomListManager.CustomElement>()
+    fun loadCmd() : ArrayList<CustomListManager.CustomElement> {
+        val commands = ArrayList<CustomListManager.CustomElement>()
 
         var title: String?
         var cmd: String?
         var check: String?
         var tableBar: Boolean
-        for (i in 0 until CmdsManager.MAX_CMD_COUNT) {
-            title = mProperties[ITEM_CMDS_TITLE + i] as? String
+        for (i in 0 until CmdManager.MAX_CMD_COUNT) {
+            title = properties[ITEM_CMD_TITLE + i] as? String
             if (title == null) {
                 break
             }
-            cmd = mProperties[ITEM_CMDS_CMD + i] as? String
+            cmd = properties[ITEM_CMD_CMD + i] as? String
             if (cmd == null) {
                 cmd = "null"
             }
 
-            check = mProperties[ITEM_CMDS_TABLEBAR + i] as? String
+            check = properties[ITEM_CMD_TABLE_BAR + i] as? String
             tableBar = if (!check.isNullOrEmpty()) {
                 check.toBoolean()
             } else {
                 false
             }
-            cmds.add(CustomListManager.CustomElement(title, cmd, tableBar))
+            commands.add(CustomListManager.CustomElement(title, cmd, tableBar))
         }
 
-        return cmds
+        return commands
     }
 
-    fun saveCmds(cmds : ArrayList<CustomListManager.CustomElement>) {
+    fun saveCommands(commands : ArrayList<CustomListManager.CustomElement>) {
         loadConfig()
 
-        var nCount = cmds.size
-        if (nCount > CmdsManager.MAX_CMD_COUNT) {
-            nCount = CmdsManager.MAX_CMD_COUNT
+        var nCount = commands.size
+        if (nCount > CmdManager.MAX_CMD_COUNT) {
+            nCount = CmdManager.MAX_CMD_COUNT
         }
 
-        for (i in 0 until CmdsManager.MAX_CMD_COUNT) {
-            val title = mProperties[ITEM_CMDS_TITLE + i] as? String
+        for (i in 0 until CmdManager.MAX_CMD_COUNT) {
+            val title = properties[ITEM_CMD_TITLE + i] as? String
             if (title == null) {
                 break
             }
-            mProperties.remove(ITEM_CMDS_TITLE + i)
-            mProperties.remove(ITEM_CMDS_CMD + i)
-            mProperties.remove(ITEM_CMDS_TABLEBAR + i)
+            properties.remove(ITEM_CMD_TITLE + i)
+            properties.remove(ITEM_CMD_CMD + i)
+            properties.remove(ITEM_CMD_TABLE_BAR + i)
         }
 
         for (i in 0 until nCount) {
-            mProperties[ITEM_CMDS_TITLE + i] = cmds[i].title
-            mProperties[ITEM_CMDS_CMD + i] = cmds[i].value
-            mProperties[ITEM_CMDS_TABLEBAR + i] = cmds[i].tableBar.toString()
+            properties[ITEM_CMD_TITLE + i] = commands[i].title
+            properties[ITEM_CMD_CMD + i] = commands[i].value
+            properties[ITEM_CMD_TABLE_BAR + i] = commands[i].tableBar.toString()
         }
 
         saveConfig()
@@ -323,10 +323,10 @@ class ConfigManager private constructor() {
 
     private fun manageVersion() {
         loadConfig()
-        var confVer = mProperties[ITEM_CONFIG_VERSION] as String?
+        var confVer = properties[ITEM_CONFIG_VERSION] as String?
         if (confVer == null) {
             updateConfigFromV0ToV1()
-            confVer = mProperties[ITEM_CONFIG_VERSION] as String?
+            confVer = properties[ITEM_CONFIG_VERSION] as String?
             println("manageVersion : $confVer applied")
         }
 
@@ -340,25 +340,25 @@ class ConfigManager private constructor() {
     private fun updateConfigFromV0ToV1() {
         println("updateConfigFromV0ToV1 : change color manager properties ++")
         for (idx: Int in 0..22) {
-            val item = mProperties["$ITEM_COLOR_MANAGER$idx"] as String?
+            val item = properties["$ITEM_COLOR_MANAGER$idx"] as String?
             if (item != null) {
                 when (idx) {
                     2 -> {
-                        mProperties["$ITEM_COLOR_MANAGER${ColorManager.TableColorType.FULL_LOG_TABLE}_${ColorManager.TableColorIdx.LOG_BG.value}"] = item
+                        properties["$ITEM_COLOR_MANAGER${ColorManager.TableColorType.FULL_LOG_TABLE}_${ColorManager.TableColorIdx.LOG_BG.value}"] = item
                     }
                     3 -> {
-                        mProperties["$ITEM_COLOR_MANAGER${ColorManager.TableColorType.FILTER_LOG_TABLE}_${ColorManager.TableColorIdx.LOG_BG.value}"] = item
+                        properties["$ITEM_COLOR_MANAGER${ColorManager.TableColorType.FILTER_LOG_TABLE}_${ColorManager.TableColorIdx.LOG_BG.value}"] = item
                     }
                     else -> {
-                        mProperties["$ITEM_COLOR_MANAGER${ColorManager.TableColorType.FULL_LOG_TABLE}_$idx"] = item
-                        mProperties["$ITEM_COLOR_MANAGER${ColorManager.TableColorType.FILTER_LOG_TABLE}_$idx"] = item
+                        properties["$ITEM_COLOR_MANAGER${ColorManager.TableColorType.FULL_LOG_TABLE}_$idx"] = item
+                        properties["$ITEM_COLOR_MANAGER${ColorManager.TableColorType.FILTER_LOG_TABLE}_$idx"] = item
                     }
                 }
 
-                mProperties.remove("$ITEM_COLOR_MANAGER$idx")
+                properties.remove("$ITEM_COLOR_MANAGER$idx")
             }
         }
-        mProperties[ITEM_CONFIG_VERSION] = "1"
+        properties[ITEM_CONFIG_VERSION] = "1"
         println("updateConfigFromV0ToV1 : --")
     }
 }

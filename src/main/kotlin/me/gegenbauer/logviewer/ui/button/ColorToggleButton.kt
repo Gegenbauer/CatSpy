@@ -11,10 +11,10 @@ import javax.swing.JToggleButton
 
 
 class ColorToggleButton(title:String) : JToggleButton(title){
-    var mSelectedFg: Color? = null
-    var mSelectedBg: Color? = null
-    var mUnselectedFg: Color? = null
-    var mUnselectedBg: Color? = null
+    var selectedFg: Color? = null
+    var selectedBg: Color? = null
+    var unselectedFg: Color? = null
+    var unselectedBg: Color? = null
 
     init {
         icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
@@ -39,8 +39,8 @@ class ColorToggleButton(title:String) : JToggleButton(title){
 
         val thickness = 2
         if (isSelected || model.isPressed) {
-            if (mSelectedBg != null) {
-                graphics2D.color = mSelectedBg
+            if (selectedBg != null) {
+                graphics2D.color = selectedBg
             } else {
                 graphics2D.color = Color(0x85, 0x85, 0x85)
             }
@@ -50,8 +50,8 @@ class ColorToggleButton(title:String) : JToggleButton(title){
             graphics2D.fillRect(0, 0, thickness, height)
             graphics2D.fillRect(0, 0, width, thickness)
 
-            if (mSelectedFg != null) {
-                graphics2D.color = mSelectedFg
+            if (selectedFg != null) {
+                graphics2D.color = selectedFg
             } else {
                 graphics2D.color = Color(0xFF, 0xFF, 0xFF)
             }
@@ -72,16 +72,16 @@ class ColorToggleButton(title:String) : JToggleButton(title){
                 )
             }
         } else {
-            if (mUnselectedBg != null) {
-                graphics2D.color = mUnselectedBg
+            if (unselectedBg != null) {
+                graphics2D.color = unselectedBg
             } else {
                 graphics2D.color = Color(0xFA, 0xFA, 0xFF)
             }
 
             graphics2D.fillRect(0, 0, width, height)
 
-            if (mUnselectedFg != null) {
-                graphics2D.color = mUnselectedFg
+            if (unselectedFg != null) {
+                graphics2D.color = unselectedFg
             } else {
                 graphics2D.color = Color(0xBB, 0x84, 0x4C)
             }

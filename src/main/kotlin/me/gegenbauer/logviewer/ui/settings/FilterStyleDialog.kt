@@ -15,7 +15,8 @@ import java.awt.FlowLayout
 import java.awt.event.*
 import javax.swing.*
 
-class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STYLE} ${Strings.SETTING}", true), ActionListener {
+class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${Strings.FILTER_STYLE} ${Strings.SETTING}", true),
+    ActionListener {
     enum class ComboIdx(val value: Int) {
         LOG(0),
         TAG(1),
@@ -28,36 +29,36 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
             fun fromInt(value: Int) = values().first { it.value == value }
         }
     }
-    private var mExampleLabel: JLabel
-    private var mExampleCombo: FilterComboBox
-    private var mParent = parent
 
-    private val mComboLabelArray = arrayOfNulls<ColorLabel>(ComboIdx.SIZE.value)
-    private val mStyleComboArray = arrayOfNulls<ColorComboBox<String>>(ComboIdx.SIZE.value)
+    private var exampleLabel: JLabel
+    private var exampleCombo: FilterComboBox
 
-    private var mConfirmLabel: JLabel
-    private var mOkBtn: ColorButton
-    private var mCancelBtn: ColorButton
+    private val comboLabelArray = arrayOfNulls<ColorLabel>(ComboIdx.SIZE.value)
+    private val styleComboArray = arrayOfNulls<ColorComboBox<String>>(ComboIdx.SIZE.value)
 
-    private val mColorManager = ColorManager.getInstance()
-    private val mTitleLabelArray = arrayOfNulls<ColorLabel>(mColorManager.mFilterStyle.size)
-    private val mColorLabelArray = arrayOfNulls<ColorLabel>(mColorManager.mFilterStyle.size)
-    private val mMouseHandler = MouseHandler()
-    private val mPrevColorArray = arrayOfNulls<String>(mColorManager.mFilterStyle.size)
-    private var mIsNeedRestore = true
+    private var confirmLabel: JLabel
+    private var okBtn: ColorButton
+    private var cancelBtn: ColorButton
+
+    private val colorManager = ColorManager.getInstance()
+    private val titleLabelArray = arrayOfNulls<ColorLabel>(colorManager.filterStyle.size)
+    private val colorLabelArray = arrayOfNulls<ColorLabel>(colorManager.filterStyle.size)
+    private val mouseHandler = MouseHandler()
+    private val prevColorArray = arrayOfNulls<String>(colorManager.filterStyle.size)
+    private var isNeedRestore = true
 
     init {
-        mConfirmLabel = JLabel("To apply \"Style\" need to restart")
-        mOkBtn = ColorButton(Strings.OK)
-        mOkBtn.addActionListener(this)
-        mCancelBtn = ColorButton(Strings.CANCEL)
-        mCancelBtn.addActionListener(this)
+        confirmLabel = JLabel("To apply \"Style\" need to restart")
+        okBtn = ColorButton(Strings.OK)
+        okBtn.addActionListener(this)
+        cancelBtn = ColorButton(Strings.CANCEL)
+        cancelBtn.addActionListener(this)
 
-        mExampleLabel = JLabel("Ex : ")
-        mExampleCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, true)
-        mExampleCombo.isEditable = true
-        mExampleCombo.preferredSize = Dimension(250, 30)
-        mExampleCombo.addItem("ABC|DEF|-GHI|JKL")
+        exampleLabel = JLabel("Ex : ")
+        exampleCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, true)
+        exampleCombo.isEditable = true
+        exampleCombo.preferredSize = Dimension(250, 30)
+        exampleCombo.addItem("ABC|DEF|-GHI|JKL")
 
         val styleLabelPanel = JPanel()
         styleLabelPanel.layout = BoxLayout(styleLabelPanel, BoxLayout.Y_AXIS)
@@ -66,46 +67,46 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
         styleComboPanel.layout = BoxLayout(styleComboPanel, BoxLayout.Y_AXIS)
 
         val rightWidth = 270
-        for (idx in mComboLabelArray.indices) {
-            mComboLabelArray[idx] = ColorLabel(idx)
-            mComboLabelArray[idx]!!.isOpaque = true
-            mComboLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
-            mComboLabelArray[idx]!!.foreground = Color.DARK_GRAY
-            mComboLabelArray[idx]!!.background = Color.WHITE
+        for (idx in comboLabelArray.indices) {
+            comboLabelArray[idx] = ColorLabel(idx)
+            comboLabelArray[idx]!!.isOpaque = true
+            comboLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
+            comboLabelArray[idx]!!.foreground = Color.DARK_GRAY
+            comboLabelArray[idx]!!.background = Color.WHITE
 
-            mComboLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
-            mComboLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
-            mComboLabelArray[idx]!!.minimumSize = Dimension(200, 20)
-            mComboLabelArray[idx]!!.preferredSize = Dimension(200, 20)
-            mComboLabelArray[idx]!!.maximumSize = Dimension(200, 20)
+            comboLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
+            comboLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
+            comboLabelArray[idx]!!.minimumSize = Dimension(200, 20)
+            comboLabelArray[idx]!!.preferredSize = Dimension(200, 20)
+            comboLabelArray[idx]!!.maximumSize = Dimension(200, 20)
 
-            mStyleComboArray[idx] = ColorComboBox()
-            mStyleComboArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
-            mStyleComboArray[idx]!!.minimumSize = Dimension(rightWidth, 20)
-            mStyleComboArray[idx]!!.preferredSize = Dimension(rightWidth, 20)
-            mStyleComboArray[idx]!!.maximumSize = Dimension(rightWidth, 20)
-            mStyleComboArray[idx]!!.addItem("SINGLE LINE")
-            mStyleComboArray[idx]!!.addItem("SINGLE LINE / HIGHLIGHT")
-            mStyleComboArray[idx]!!.addItem("MULTI LINE")
-            mStyleComboArray[idx]!!.addItem("MULTI LINE / HIGHLIGHT")
+            styleComboArray[idx] = ColorComboBox()
+            styleComboArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
+            styleComboArray[idx]!!.minimumSize = Dimension(rightWidth, 20)
+            styleComboArray[idx]!!.preferredSize = Dimension(rightWidth, 20)
+            styleComboArray[idx]!!.maximumSize = Dimension(rightWidth, 20)
+            styleComboArray[idx]!!.addItem("SINGLE LINE")
+            styleComboArray[idx]!!.addItem("SINGLE LINE / HIGHLIGHT")
+            styleComboArray[idx]!!.addItem("MULTI LINE")
+            styleComboArray[idx]!!.addItem("MULTI LINE / HIGHLIGHT")
         }
 
-        mComboLabelArray[ComboIdx.LOG.value]!!.text = "Combo Style : Log"
-        mStyleComboArray[ComboIdx.LOG.value]!!.selectedIndex = mParent.mShowLogComboStyle.value
-        mComboLabelArray[ComboIdx.TAG.value]!!.text = "Combo Style : Tag"
-        mStyleComboArray[ComboIdx.TAG.value]!!.selectedIndex = mParent.mShowTagComboStyle.value
-        mComboLabelArray[ComboIdx.PID.value]!!.text = "Combo Style : PID"
-        mStyleComboArray[ComboIdx.PID.value]!!.selectedIndex = mParent.mShowPidComboStyle.value
-        mComboLabelArray[ComboIdx.TID.value]!!.text = "Combo Style : TID"
-        mStyleComboArray[ComboIdx.TID.value]!!.selectedIndex = mParent.mShowTidComboStyle.value
-        mComboLabelArray[ComboIdx.BOLD.value]!!.text = "Combo Style : BOLD"
-        mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex = mParent.mBoldLogComboStyle.value
-//            mComboLabelArray[idx]!!.toolTipText = mColorLabelArray[idx]!!.text
+        comboLabelArray[ComboIdx.LOG.value]!!.text = "Combo Style : Log"
+        styleComboArray[ComboIdx.LOG.value]!!.selectedIndex = parent.showLogComboStyle.value
+        comboLabelArray[ComboIdx.TAG.value]!!.text = "Combo Style : Tag"
+        styleComboArray[ComboIdx.TAG.value]!!.selectedIndex = parent.showTagComboStyle.value
+        comboLabelArray[ComboIdx.PID.value]!!.text = "Combo Style : PID"
+        styleComboArray[ComboIdx.PID.value]!!.selectedIndex = parent.showPidComboStyle.value
+        comboLabelArray[ComboIdx.TID.value]!!.text = "Combo Style : TID"
+        styleComboArray[ComboIdx.TID.value]!!.selectedIndex = parent.showTidComboStyle.value
+        comboLabelArray[ComboIdx.BOLD.value]!!.text = "Combo Style : BOLD"
+        styleComboArray[ComboIdx.BOLD.value]!!.selectedIndex = parent.boldLogComboStyle.value
+//            comboLabelArray[idx]!!.toolTipText = colorLabelArray[idx]!!.text
 
-        for (idx in mComboLabelArray.indices) {
-            styleLabelPanel.add(mComboLabelArray[idx])
+        for (idx in comboLabelArray.indices) {
+            styleLabelPanel.add(comboLabelArray[idx])
             styleLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
-            styleComboPanel.add(mStyleComboArray[idx])
+            styleComboPanel.add(styleComboArray[idx])
             styleComboPanel.add(Box.createRigidArea(Dimension(5, 3)))
         }
 
@@ -119,44 +120,45 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
 
         val titleLabelPanel = JPanel()
         titleLabelPanel.layout = BoxLayout(titleLabelPanel, BoxLayout.Y_AXIS)
-        
-        for (idx in mColorLabelArray.indices) {
-            mPrevColorArray[idx] = mColorManager.mFilterStyle[idx].mStrColor
-            mColorLabelArray[idx] = ColorLabel(idx)
-            mColorLabelArray[idx]!!.text = " ${mColorManager.mFilterStyle[idx].mName} ${mColorManager.mFilterStyle[idx].mStrColor} "
-            mColorLabelArray[idx]!!.toolTipText = mColorLabelArray[idx]!!.text
-            mColorLabelArray[idx]!!.isOpaque = true
-            mColorLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
 
-            mColorLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
-            mColorLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
-            mColorLabelArray[idx]!!.minimumSize = Dimension(rightWidth, 20)
-            mColorLabelArray[idx]!!.preferredSize = Dimension(rightWidth, 20)
-            mColorLabelArray[idx]!!.maximumSize = Dimension(rightWidth, 20)
-            mColorLabelArray[idx]!!.addMouseListener(mMouseHandler)
+        for (idx in colorLabelArray.indices) {
+            prevColorArray[idx] = colorManager.filterStyle[idx].strColor
+            colorLabelArray[idx] = ColorLabel(idx)
+            colorLabelArray[idx]!!.text =
+                " ${colorManager.filterStyle[idx].name} ${colorManager.filterStyle[idx].strColor} "
+            colorLabelArray[idx]!!.toolTipText = colorLabelArray[idx]!!.text
+            colorLabelArray[idx]!!.isOpaque = true
+            colorLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
 
-            mTitleLabelArray[idx] = ColorLabel(idx)
-            mTitleLabelArray[idx]!!.text = " ${mColorManager.mFilterStyle[idx].mName}"
-            mTitleLabelArray[idx]!!.toolTipText = mColorLabelArray[idx]!!.text
-            mTitleLabelArray[idx]!!.isOpaque = true
-            mTitleLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
-            mTitleLabelArray[idx]!!.foreground = Color.DARK_GRAY
-            mTitleLabelArray[idx]!!.background = Color.WHITE
+            colorLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
+            colorLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
+            colorLabelArray[idx]!!.minimumSize = Dimension(rightWidth, 20)
+            colorLabelArray[idx]!!.preferredSize = Dimension(rightWidth, 20)
+            colorLabelArray[idx]!!.maximumSize = Dimension(rightWidth, 20)
+            colorLabelArray[idx]!!.addMouseListener(mouseHandler)
 
-            mTitleLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
-            mTitleLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
-            mTitleLabelArray[idx]!!.minimumSize = Dimension(200, 20)
-            mTitleLabelArray[idx]!!.preferredSize = Dimension(200, 20)
-            mTitleLabelArray[idx]!!.maximumSize = Dimension(200, 20)
-            mTitleLabelArray[idx]!!.addMouseListener(mMouseHandler)
+            titleLabelArray[idx] = ColorLabel(idx)
+            titleLabelArray[idx]!!.text = " ${colorManager.filterStyle[idx].name}"
+            titleLabelArray[idx]!!.toolTipText = colorLabelArray[idx]!!.text
+            titleLabelArray[idx]!!.isOpaque = true
+            titleLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
+            titleLabelArray[idx]!!.foreground = Color.DARK_GRAY
+            titleLabelArray[idx]!!.background = Color.WHITE
+
+            titleLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
+            titleLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
+            titleLabelArray[idx]!!.minimumSize = Dimension(200, 20)
+            titleLabelArray[idx]!!.preferredSize = Dimension(200, 20)
+            titleLabelArray[idx]!!.maximumSize = Dimension(200, 20)
+            titleLabelArray[idx]!!.addMouseListener(mouseHandler)
         }
 
-        for (order in mColorLabelArray.indices) {
-            for (idx in mColorLabelArray.indices) {
-                if (order == mColorManager.mFilterStyle[idx].mOrder) {
-                    colorLabelPanel.add(mColorLabelArray[idx])
+        for (order in colorLabelArray.indices) {
+            for (idx in colorLabelArray.indices) {
+                if (order == colorManager.filterStyle[idx].order) {
+                    colorLabelPanel.add(colorLabelArray[idx])
                     colorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
-                    titleLabelPanel.add(mTitleLabelArray[idx])
+                    titleLabelPanel.add(titleLabelArray[idx])
                     titleLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
                     break
                 }
@@ -171,8 +173,8 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
         updateLabelColor()
 
         val sizePanel = JPanel()
-        sizePanel.add(mExampleLabel)
-        sizePanel.add(mExampleCombo)
+        sizePanel.add(exampleLabel)
+        sizePanel.add(exampleCombo)
 
         val topPanel = JPanel(BorderLayout())
         topPanel.add(stylePanel, BorderLayout.CENTER)
@@ -181,9 +183,9 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
         val confirmPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
         confirmPanel.preferredSize = Dimension(300, 40)
         confirmPanel.alignmentX = JPanel.RIGHT_ALIGNMENT
-        confirmPanel.add(mConfirmLabel)
-        confirmPanel.add(mOkBtn)
-        confirmPanel.add(mCancelBtn)
+        confirmPanel.add(confirmLabel)
+        confirmPanel.add(okBtn)
+        confirmPanel.add(cancelBtn)
 
         val bottomPanel = JPanel(BorderLayout())
         bottomPanel.add(topPanel, BorderLayout.NORTH)
@@ -196,15 +198,14 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
 
         addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent?) {
-                println("exit Filter Style dialog, restore $mIsNeedRestore")
+                println("exit Filter Style dialog, restore $isNeedRestore")
 
-                if (mIsNeedRestore) {
-                    for (idx in mColorLabelArray.indices) {
-                        mColorManager.mFilterStyle[idx].mStrColor = mPrevColorArray[idx]!!
+                if (isNeedRestore) {
+                    for (idx in colorLabelArray.indices) {
+                        colorManager.filterStyle[idx].strColor = prevColorArray[idx]!!
                     }
-                    mColorManager.applyFilterStyle()
-                }
-                else {
+                    colorManager.applyFilterStyle()
+                } else {
                     val keys = arrayOf(
                         ConfigManager.ITEM_SHOW_LOG_STYLE,
                         ConfigManager.ITEM_SHOW_TAG_STYLE,
@@ -212,13 +213,15 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
                         ConfigManager.ITEM_SHOW_TID_STYLE,
                         ConfigManager.ITEM_BOLD_LOG_STYLE
                     )
-                    val values = arrayOf(mStyleComboArray[ComboIdx.LOG.value]!!.selectedIndex.toString(),
-                            mStyleComboArray[ComboIdx.TAG.value]!!.selectedIndex.toString(),
-                            mStyleComboArray[ComboIdx.PID.value]!!.selectedIndex.toString(),
-                            mStyleComboArray[ComboIdx.TID.value]!!.selectedIndex.toString(),
-                            mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex.toString())
+                    val values = arrayOf(
+                        styleComboArray[ComboIdx.LOG.value]!!.selectedIndex.toString(),
+                        styleComboArray[ComboIdx.TAG.value]!!.selectedIndex.toString(),
+                        styleComboArray[ComboIdx.PID.value]!!.selectedIndex.toString(),
+                        styleComboArray[ComboIdx.TID.value]!!.selectedIndex.toString(),
+                        styleComboArray[ComboIdx.BOLD.value]!!.selectedIndex.toString()
+                    )
 
-                    mParent.mConfigManager.saveFilterStyle(keys, values)
+                    parent.configManager.saveFilterStyle(keys, values)
                 }
             }
         })
@@ -230,30 +233,28 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
     fun updateLabelColor() {
         val commonFg = Color.BLACK
 
-        for (idx in mColorLabelArray.indices) {
-            mColorLabelArray[idx]!!.foreground = commonFg
-            mColorLabelArray[idx]!!.background = Color.decode(mColorManager.mFilterStyle[idx].mStrColor)
+        for (idx in colorLabelArray.indices) {
+            colorLabelArray[idx]!!.foreground = commonFg
+            colorLabelArray[idx]!!.background = Color.decode(colorManager.filterStyle[idx].strColor)
         }
     }
 
-    class ColorLabel(idx: Int) :JLabel() {
-        val mIdx: Int = idx
-    }
+    class ColorLabel(val idx: Int) : JLabel()
 
     override fun actionPerformed(e: ActionEvent?) {
-        if (e?.source == mOkBtn) {
-            mIsNeedRestore = false
+        if (e?.source == okBtn) {
+            isNeedRestore = false
             this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
-        } else if (e?.source == mCancelBtn) {
+        } else if (e?.source == cancelBtn) {
             this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
         }
     }
 
-    internal inner class MouseHandler: MouseAdapter() {
+    internal inner class MouseHandler : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent?) {
             val colorChooser = JColorChooser()
             val panels = colorChooser.chooserPanels
-            var rgbPanel:JPanel? = null
+            var rgbPanel: JPanel? = null
             for (panel in panels) {
                 if (panel.displayName.contains("RGB", true)) {
                     rgbPanel = panel
@@ -262,21 +263,27 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
 
             if (rgbPanel != null) {
                 val tmpColorLabel = e!!.source as ColorLabel
-                val idx = tmpColorLabel.mIdx
-                val colorLabel = mColorLabelArray[idx]!!
+                val idx = tmpColorLabel.idx
+                val colorLabel = colorLabelArray[idx]!!
                 colorChooser.color = colorLabel.background
 
-                val ret = JOptionPane.showConfirmDialog(this@FilterStyleDialog, rgbPanel, "Color Chooser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+                val ret = JOptionPane.showConfirmDialog(
+                    this@FilterStyleDialog,
+                    rgbPanel,
+                    "Color Chooser",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE
+                )
                 if (ret == JOptionPane.OK_OPTION) {
                     val hex = "#" + Integer.toHexString(colorChooser.color.rgb).substring(2).uppercase()
-                    colorLabel.text = " ${mColorManager.mFilterStyle[idx].mName} $hex "
-                    mColorManager.mFilterStyle[idx].mStrColor = hex
+                    colorLabel.text = " ${colorManager.filterStyle[idx].name} $hex "
+                    colorManager.filterStyle[idx].strColor = hex
                     colorLabel.background = colorChooser.color
-                    mColorManager.applyFilterStyle()
+                    colorManager.applyFilterStyle()
                     updateLabelColor()
-                    val selectedItem = mExampleCombo.selectedItem
-                    mExampleCombo.selectedItem = ""
-                    mExampleCombo.selectedItem = selectedItem
+                    val selectedItem = exampleCombo.selectedItem
+                    exampleCombo.selectedItem = ""
+                    exampleCombo.selectedItem = selectedItem
                 }
             }
 

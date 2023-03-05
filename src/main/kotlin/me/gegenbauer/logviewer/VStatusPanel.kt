@@ -14,9 +14,8 @@ import javax.swing.BorderFactory
 import javax.swing.JPanel
 
 
-class VStatusPanel(logTable: LogTable) : JPanel() {
-    private val mLogTable = logTable
-    private val mBookmarkManager = BookmarkManager.getInstance()
+class VStatusPanel(private val logTable: LogTable) : JPanel() {
+    private val bookmarkManager = BookmarkManager.getInstance()
 
     companion object {
         const val VIEW_RECT_WIDTH = 20
@@ -42,23 +41,23 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
         else {
             g?.color = Color(0x000000)
         }
-        for (row in 0 until mLogTable.rowCount) {
-            val num = mLogTable.getValueAt(row, 0).toString().trim().toInt()
-            if (mBookmarkManager.bookmarks.contains(num)) {
-                g?.fillRect(0, row * height / mLogTable.rowCount, width, 1)
+        for (row in 0 until logTable.rowCount) {
+            val num = logTable.getValueAt(row, 0).toString().trim().toInt()
+            if (bookmarkManager.bookmarks.contains(num)) {
+                g?.fillRect(0, row * height / logTable.rowCount, width, 1)
             }
         }
 
-        val visibleY:Long = (mLogTable.visibleRect.y).toLong()
-        val totalHeight:Long = (mLogTable.rowHeight * mLogTable.rowCount).toLong()
-        if (mLogTable.rowCount != 0 && height != 0) {
+        val visibleY:Long = (logTable.visibleRect.y).toLong()
+        val totalHeight:Long = (logTable.rowHeight * logTable.rowCount).toLong()
+        if (logTable.rowCount != 0 && height != 0) {
             if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
                 g?.color = Color(0xC0, 0xC0, 0xC0, 0x50)
             }
             else {
                 g?.color = Color(0xA0, 0xA0, 0xA0, 0x50)
             }
-            var viewHeight = mLogTable.visibleRect.height * height / totalHeight
+            var viewHeight = logTable.visibleRect.height * height / totalHeight
             if (viewHeight < VIEW_RECT_HEIGHT) {
                 viewHeight = VIEW_RECT_HEIGHT.toLong()
             }
@@ -73,10 +72,10 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
 
     internal inner class MouseHandler : MouseAdapter() {
         override fun mouseClicked(p0: MouseEvent?) {
-            val row = p0!!.point.y * mLogTable.rowCount / height
+            val row = p0!!.point.y * logTable.rowCount / height
             try {
-                // mLogTable.setRowSelectionInterval(row, row)
-                mLogTable.scrollRectToVisible(Rectangle(mLogTable.getCellRect(row, 0, true)))
+                // logTable.setRowSelectionInterval(row, row)
+                logTable.scrollRectToVisible(Rectangle(logTable.getCellRect(row, 0, true)))
             } catch (e: IllegalArgumentException) {
                 println("e : $e")
             }

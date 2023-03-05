@@ -53,14 +53,14 @@ class Strings private constructor() {
         private val IDX_INCREMENTAL = idx++
         private val IDX_HIGHLIGHT = idx++
         private val IDX_LOGLEVEL = idx++
-        private val IDX_SCROLLBACK = idx++
+        private val IDX_SCROLL_BACK = idx++
         private val IDX_CLEAR_SAVE = idx++
         private val IDX_LOGFILE = idx++
         private val IDX_CONNECT = idx++
         private val IDX_REFRESH = idx++
         private val IDX_DISCONNECT = idx++
         private val IDX_APPLY = idx++
-        private val IDX_SCROLLBACK_LINES = idx++
+        private val IDX_SCROLL_BACK_LINES = idx++
         private val IDX_SPLIT_FILE = idx++
         private val IDX_COLOR = idx++
         private val IDX_FILTERS = idx++
@@ -83,7 +83,7 @@ class Strings private constructor() {
         private val IDX_NONE = idx++
         private val IDX_ADD_FILTER = idx++
         private val IDX_ADD_CMD = idx++
-        private val IDX_CMDS = idx++
+        private val IDX_COMMANDS = idx++
         private val IDX_RETRY_ADB = idx++
         private val IDX_FILTER_STYLE = idx++
         private val IDX_LOOK_AND_FEEL = idx++
@@ -174,8 +174,8 @@ class Strings private constructor() {
             get() { return currStrings[IDX_HIGHLIGHT] }
         val LOGLEVEL: String
             get() { return currStrings[IDX_LOGLEVEL] }
-        val SCROLLBACK: String
-            get() { return currStrings[IDX_SCROLLBACK] }
+        val SCROLL_BACK: String
+            get() { return currStrings[IDX_SCROLL_BACK] }
         val CLEAR_SAVE: String
             get() { return currStrings[IDX_CLEAR_SAVE] }
         val LOGFILE: String
@@ -188,8 +188,8 @@ class Strings private constructor() {
             get() { return currStrings[IDX_DISCONNECT] }
         val APPLY: String
             get() { return currStrings[IDX_APPLY] }
-        val SCROLLBACK_LINES: String
-            get() { return currStrings[IDX_SCROLLBACK_LINES] }
+        val SCROLL_BACK_LINES: String
+            get() { return currStrings[IDX_SCROLL_BACK_LINES] }
         val SPLIT_FILE: String
             get() { return currStrings[IDX_SPLIT_FILE] }
         val COLOR: String
@@ -234,8 +234,8 @@ class Strings private constructor() {
             get() { return currStrings[IDX_ADD_FILTER] }
         val ADD_CMD: String
             get() { return currStrings[IDX_ADD_CMD] }
-        val CMDS: String
-            get() { return currStrings[IDX_CMDS] }
+        val COMMANDS: String
+            get() { return currStrings[IDX_COMMANDS] }
         val RETRY_ADB: String
             get() { return currStrings[IDX_RETRY_ADB] }
         val FILTER_STYLE: String

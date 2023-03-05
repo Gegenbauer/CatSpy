@@ -11,25 +11,24 @@ import javax.swing.*
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 class HelpDialog(parent: JFrame) : JDialog(parent, Strings.HELP, true), ActionListener {
-    private var mHelpTextPane: JTextPane
-    private var mCloseBtn : ColorButton
+    private var helpTextPane: JTextPane
+    private var closeBtn : ColorButton = ColorButton(Strings.CLOSE)
 
     init {
-        mCloseBtn = ColorButton(Strings.CLOSE)
-        mCloseBtn.addActionListener(this)
+        closeBtn.addActionListener(this)
 
-        mHelpTextPane = JTextPane()
-        mHelpTextPane.contentType = "text/html"
+        helpTextPane = JTextPane()
+        helpTextPane.contentType = "text/html"
 
         if (Strings.lang == Strings.KO) {
-            mHelpTextPane.text = HelpText.textKo
+            helpTextPane.text = HelpText.textKo
         }
         else {
-            mHelpTextPane.text = HelpText.textEn
+            helpTextPane.text = HelpText.textEn
         }
 
-        mHelpTextPane.caretPosition = 0
-        val scrollPane = JScrollPane(mHelpTextPane)
+        helpTextPane.caretPosition = 0
+        val scrollPane = JScrollPane(helpTextPane)
         val aboutPanel = JPanel()
         scrollPane.preferredSize = Dimension(850, 800)
         scrollPane.verticalScrollBar.setUI(BasicScrollBarUI())
@@ -41,7 +40,7 @@ class HelpDialog(parent: JFrame) : JDialog(parent, Strings.HELP, true), ActionLi
         panel.add(aboutPanel, BorderLayout.CENTER)
 
         val btnPanel = JPanel()
-        btnPanel.add(mCloseBtn)
+        btnPanel.add(closeBtn)
         panel.add(btnPanel, BorderLayout.SOUTH)
 
         contentPane.add(panel)
@@ -51,7 +50,7 @@ class HelpDialog(parent: JFrame) : JDialog(parent, Strings.HELP, true), ActionLi
     }
 
     override fun actionPerformed(e: ActionEvent?) {
-        if (e?.source == mCloseBtn) {
+        if (e?.source == closeBtn) {
             dispose()
         }
     }

@@ -36,7 +36,7 @@ class HelpText {
 //            <font size=5>adb reconnect and show log</font><br>
 //            <font size=4>1. set focus to address combobox, and "enter" key</font><br>
 //            <font size=4>2. "Ctrl-r" key</font><br>
-//            <font size=5>Scrollback setting</font><br>
+//            <font size=5>ScrollBack setting</font><br>
 //            <font size=4>set max scrollback to textfield and "apply" button(0 : unlimited, but use many system resource</font><br>
 //            <font size=4>set "split file", If the saved line is greater than the scrollback textfield value, create a new file</font><br>
 //            <font size=5>Rotation</font><br>
@@ -104,7 +104,7 @@ class HelpText {
             adb reconnect and show log
                     1. set focus to address combobox, and "enter" key
                     2. "Ctrl-r" key
-            Scrollback setting
+            ScrollBack setting
                     set max scrollback to textfield and "apply" button(0 : unlimited, but use many system resource
                     set "split file", If the saved line is greater than the scrollback textfield value, create a new file
             Rotation

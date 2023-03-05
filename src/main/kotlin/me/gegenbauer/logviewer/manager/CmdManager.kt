@@ -8,7 +8,7 @@ import javax.swing.JOptionPane
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
-class CmdsManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI, logPanel){
+class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI, logPanel){
     private val configManager = ConfigManager.getInstance()
     private val listSelectionHandler = ListSelectionHandler()
     private val mouseHandler = MouseHandler()
@@ -19,19 +19,19 @@ class CmdsManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI
     }
 
     init {
-        dialogTitle = "Cmds Manager"
+        dialogTitle = "Cmd Manager"
     }
 
     override fun loadList(): ArrayList<CustomElement> {
-        return configManager.loadCmds()
+        return configManager.loadCmd()
     }
 
     override fun saveList(list: ArrayList<CustomElement>) {
-        configManager.saveCmds(list)
+        configManager.saveCommands(list)
     }
 
     override fun getFirstElement(): CustomElement {
-        return CustomElement("Example", "adb shell input keyevent POWER", false)
+        return CustomElement("Example", "adb shell input key event POWER", false)
     }
 
     override fun getListSelectionListener(): ListSelectionListener {

@@ -24,7 +24,7 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, Strings.APP
 
     private var okBtn: ColorButton = ColorButton(Strings.OK)
     private var cancelBtn: ColorButton
-    private val frevDividerSize = parent.mLogSplitPane.dividerSize
+    private val freDividerSize = parent.logSplitPane.dividerSize
 
     init {
         okBtn.addActionListener(this)
@@ -63,8 +63,8 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, Strings.APP
         val sliderPanel = JPanel()
         val sliderLabel = JLabel("UI Size(%)")
         sliderPanel.add(sliderLabel)
-        baseFontSize = exampleLabel.font.size * 100 / parent.mUIFontPercent
-        fontSlider = JSlider(MIN_FONT_POS, MAX_FONT_POS, parent.mUIFontPercent)
+        baseFontSize = exampleLabel.font.size * 100 / parent.uiFontPercent
+        fontSlider = JSlider(MIN_FONT_POS, MAX_FONT_POS, parent.uiFontPercent)
         fontSlider.majorTickSpacing = 50
         fontSlider.minorTickSpacing = 10
         fontSlider.paintTicks = true
@@ -87,9 +87,9 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, Strings.APP
         lafSizePanel.add(sizePanel, BorderLayout.CENTER)
 
         val dividerPanel = JPanel()
-        val dividerLabel = JLabel("Divider Size(1 ~ 20) [${parent.mLogSplitPane.dividerSize}]")
+        val dividerLabel = JLabel("Divider Size(1 ~ 20) [${parent.logSplitPane.dividerSize}]")
         dividerPanel.add(dividerLabel)
-        dividerSlider = JSlider(0, MAX_DIVIDER_POS, parent.mLogSplitPane.dividerSize)
+        dividerSlider = JSlider(0, MAX_DIVIDER_POS, parent.logSplitPane.dividerSize)
         dividerSlider.majorTickSpacing = 5
         dividerSlider.minorTickSpacing = 1
         dividerSlider.paintTicks = true
@@ -98,8 +98,8 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, Strings.APP
             if (dividerSlider.value == 0) {
                 dividerSlider.value = MIN_DIVIDER_POS
             }
-            parent.mLogSplitPane.dividerSize = dividerSlider.value
-            dividerLabel.text = "Divider Size(1 ~ 20) [${parent.mLogSplitPane.dividerSize}]"
+            parent.logSplitPane.dividerSize = dividerSlider.value
+            dividerLabel.text = "Divider Size(1 ~ 20) [${parent.logSplitPane.dividerSize}]"
         }
         dividerPanel.add(dividerSlider)
 
@@ -134,14 +134,14 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, Strings.APP
                     ConfigManager.getInstance().saveItem(ConfigManager.ITEM_UI_FONT_SIZE, fontSlider.value.toString())
                     ConfigManager.getInstance().saveItem(
                         ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE,
-                        parent.mLogSplitPane.dividerSize.toString()
+                        parent.logSplitPane.dividerSize.toString()
                     )
                     break
                 }
             }
             this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
         } else if (e?.source == cancelBtn) {
-            parent.mLogSplitPane.dividerSize = frevDividerSize
+            parent.logSplitPane.dividerSize = freDividerSize
             this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
         }
     }

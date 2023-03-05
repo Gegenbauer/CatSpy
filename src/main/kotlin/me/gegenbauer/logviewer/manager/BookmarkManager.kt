@@ -14,18 +14,18 @@ interface BookmarkEventListener {
 
 class BookmarkManager private constructor(){
     companion object {
-        private val mInstance: BookmarkManager = BookmarkManager()
+        private val instance: BookmarkManager = BookmarkManager()
 
         fun getInstance(): BookmarkManager {
-            return mInstance
+            return instance
         }
     }
 
     val bookmarks = ArrayList<Int>()
-    private val mEventListeners = ArrayList<BookmarkEventListener>()
+    private val eventListeners = ArrayList<BookmarkEventListener>()
 
     fun addBookmarkEventListener(listener: BookmarkEventListener) {
-        mEventListeners.add(listener)
+        eventListeners.add(listener)
     }
 
     fun isBookmark(bookmark:Int): Boolean {
@@ -44,7 +44,7 @@ class BookmarkManager private constructor(){
         bookmarks.add(bookmark)
         bookmarks.sort()
 
-        for (listener in mEventListeners) {
+        for (listener in eventListeners) {
             listener.bookmarkChanged(BookmarkEvent(BookmarkEvent.ADDED))
         }
     }
@@ -52,7 +52,7 @@ class BookmarkManager private constructor(){
     fun removeBookmark(bookmark:Int) {
         bookmarks.remove(bookmark)
 
-        for (listener in mEventListeners) {
+        for (listener in eventListeners) {
             listener.bookmarkChanged(BookmarkEvent(BookmarkEvent.REMOVED))
         }
     }
@@ -60,7 +60,7 @@ class BookmarkManager private constructor(){
     fun clear() {
         bookmarks.clear()
 
-        for (listener in mEventListeners) {
+        for (listener in eventListeners) {
             listener.bookmarkChanged(BookmarkEvent(BookmarkEvent.REMOVED))
         }
     }

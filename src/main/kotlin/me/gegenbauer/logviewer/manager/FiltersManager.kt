@@ -47,8 +47,8 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mai
             if (p0?.valueIsAdjusting == false) {
 //                val list = p0?.source as JList<CustomElement>
 //                val selection = list.selectedValue
-//                mMainUI.setTextShowLogCombo(selection.mValue)
-//                mMainUI.applyShowLogCombo()
+//                mainUI.setTextShowLogCombo(selection.mValue)
+//                mainUI.applyShowLogCombo()
             }
         }
     }

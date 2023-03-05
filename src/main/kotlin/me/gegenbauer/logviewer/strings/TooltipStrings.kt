@@ -24,10 +24,10 @@ class TooltipStrings private constructor() {
         private val IDX_CONNECT_BTN = idx++
         private val IDX_REFRESH_BTN = idx++
         private val IDX_DISCONNECT_BTN = idx++
-        private val IDX_SCROLLBACK_TF = idx++
-        private val IDX_SCROLLBACK_SPLIT_CHK = idx++
-        private val IDX_SCROLLBACK_APPLY_BTN = idx++
-        private val IDX_SCROLLBACK_KEEP_TOGGLE = idx++
+        private val IDX_SCROLL_BACK_TF = idx++
+        private val IDX_SCROLL_BACK_SPLIT_CHK = idx++
+        private val IDX_SCROLL_BACK_APPLY_BTN = idx++
+        private val IDX_SCROLL_BACK_KEEP_TOGGLE = idx++
         private val IDX_ROTATION_BTN = idx++
         private val IDX_CASE_TOGGLE = idx++
         private val IDX_FILTER_LIST_BTN = idx++
@@ -83,14 +83,14 @@ class TooltipStrings private constructor() {
             get() { return currStrings[IDX_REFRESH_BTN] }
         val DISCONNECT_BTN: String
             get() { return currStrings[IDX_DISCONNECT_BTN] }
-        val SCROLLBACK_TF: String
-            get() { return currStrings[IDX_SCROLLBACK_TF] }
-        val SCROLLBACK_SPLIT_CHK: String
-            get() { return currStrings[IDX_SCROLLBACK_SPLIT_CHK] }
-        val SCROLLBACK_APPLY_BTN: String
-            get() { return currStrings[IDX_SCROLLBACK_APPLY_BTN] }
-        val SCROLLBACK_KEEP_TOGGLE: String
-            get() { return currStrings[IDX_SCROLLBACK_KEEP_TOGGLE] }
+        val SCROLL_BACK_TF: String
+            get() { return currStrings[IDX_SCROLL_BACK_TF] }
+        val SCROLL_BACK_SPLIT_CHK: String
+            get() { return currStrings[IDX_SCROLL_BACK_SPLIT_CHK] }
+        val SCROLL_BACK_APPLY_BTN: String
+            get() { return currStrings[IDX_SCROLL_BACK_APPLY_BTN] }
+        val SCROLL_BACK_KEEP_TOGGLE: String
+            get() { return currStrings[IDX_SCROLL_BACK_KEEP_TOGGLE] }
         val ROTATION_BTN: String
             get() { return currStrings[IDX_ROTATION_BTN] }
         val CASE_TOGGLE: String
