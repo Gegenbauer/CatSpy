@@ -623,25 +623,25 @@ class MainUI(title: String) : JFrame() {
         contentPane.addMouseListener(frameMouseListener)
 
         addWindowListener(object : WindowAdapter() {
-            override fun windowClosing(e: WindowEvent?) {
+            override fun windowClosing(e: WindowEvent) {
                 exit()
             }
         })
 
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher { p0 ->
-            if (p0?.keyCode == KeyEvent.VK_PAGE_DOWN && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher { event ->
+            if (event.keyCode == KeyEvent.VK_PAGE_DOWN && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
                 filteredLogPanel.goToLast()
                 fullLogPanel.goToLast()
-            } else if (p0?.keyCode == KeyEvent.VK_PAGE_UP && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
+            } else if (event.keyCode == KeyEvent.VK_PAGE_UP && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
                 filteredLogPanel.goToFirst()
                 fullLogPanel.goToFirst()
-//                } else if (p0?.keyCode == KeyEvent.VK_N && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
+//                } else if (event.keyCode == KeyEvent.VK_N && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
 
-            } else if (p0?.keyCode == KeyEvent.VK_L && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
+            } else if (event.keyCode == KeyEvent.VK_L && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
                 deviceCombo.requestFocus()
-            } else if (p0?.keyCode == KeyEvent.VK_R && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
+            } else if (event.keyCode == KeyEvent.VK_R && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
                 reconnectAdb()
-            } else if (p0?.keyCode == KeyEvent.VK_G && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
+            } else if (event.keyCode == KeyEvent.VK_G && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
                 val goToDialog = GoToDialog(this@MainUI)
                 goToDialog.setLocationRelativeTo(this@MainUI)
                 goToDialog.isVisible = true
@@ -1306,7 +1306,7 @@ class MainUI(title: String) : JFrame() {
         } else {
             searchPanel.searchMatchCaseToggle.isSelected = false
         }
-        filteredTableModel.SearchMatchCase = searchPanel.searchMatchCaseToggle.isSelected
+        filteredTableModel.searchMatchCase = searchPanel.searchMatchCaseToggle.isSelected
 
         check = configManager.getItem(ConfigManager.ITEM_RETRY_ADB)
         if (!check.isNullOrEmpty()) {
@@ -1434,20 +1434,20 @@ class MainUI(title: String) : JFrame() {
 
     inner class StatusChangeListener : PropertyChangeListener, DocumentListener {
         private var method = ""
-        override fun propertyChange(evt: PropertyChangeEvent?) {
+        override fun propertyChange(evt: PropertyChangeEvent) {
             if (evt?.source == statusMethod && evt.propertyName == "text") {
                 method = evt.newValue.toString().trim()
             }
         }
 
-        override fun insertUpdate(evt: DocumentEvent?) {
+        override fun insertUpdate(evt: DocumentEvent) {
             updateTitleBar(method)
         }
 
-        override fun removeUpdate(e: DocumentEvent?) {
+        override fun removeUpdate(e: DocumentEvent) {
         }
 
-        override fun changedUpdate(evt: DocumentEvent?) {
+        override fun changedUpdate(evt: DocumentEvent) {
         }
     }
 
@@ -1793,8 +1793,8 @@ class MainUI(title: String) : JFrame() {
     }
 
     internal inner class ActionHandler : ActionListener {
-        override fun actionPerformed(p0: ActionEvent?) {
-            when (p0?.source) {
+        override fun actionPerformed(event: ActionEvent) {
+            when (event.source) {
                 itemFileOpen -> {
                     val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN, FileDialog.LOAD)
                     fileDialog.isMultipleMode = false
@@ -1925,7 +1925,7 @@ class MainUI(title: String) : JFrame() {
                 stopBtn -> {
                     stopAdbScan()
                     logCmdManager.stop()
-    //            } else if (p0?.source == pauseBtn) {
+    //            } else if (event.source == pauseBtn) {
                 }
                 clearViewsBtn -> {
                     filteredTableModel.clearItems()
@@ -2010,8 +2010,8 @@ class MainUI(title: String) : JFrame() {
             add(itemText)
         }
         internal inner class ActionHandler : ActionListener {
-            override fun actionPerformed(p0: ActionEvent?) {
-                when (p0?.source) {
+            override fun actionPerformed(event: ActionEvent) {
+                when (event.source) {
                    itemIconText -> {
                         setBtnIcons(true)
                         setBtnTexts(true)
@@ -2060,31 +2060,27 @@ class MainUI(title: String) : JFrame() {
     }
 
     internal inner class PopUpCombobox(combo: JComboBox<String>?) : JPopupMenu() {
-        var selectAllItem: JMenuItem
-        var copyItem: JMenuItem
-        var pasteItem: JMenuItem
-        var reconnectItem: JMenuItem
-        var combo: JComboBox<String>?
+        val selectAllItem: JMenuItem = JMenuItem("Select All")
+        val copyItem: JMenuItem = JMenuItem("Copy")
+        val pasteItem: JMenuItem = JMenuItem("Paste")
+        val reconnectItem: JMenuItem = JMenuItem("Reconnect " + deviceCombo.selectedItem?.toString())
+        val combo: JComboBox<String>?
         private val actionHandler = ActionHandler()
 
         init {
-            selectAllItem = JMenuItem("Select All")
             selectAllItem.addActionListener(actionHandler)
             add(selectAllItem)
-            copyItem = JMenuItem("Copy")
             copyItem.addActionListener(actionHandler)
             add(copyItem)
-            pasteItem = JMenuItem("Paste")
             pasteItem.addActionListener(actionHandler)
             add(pasteItem)
-            reconnectItem = JMenuItem("Reconnect " + deviceCombo.selectedItem?.toString())
             reconnectItem.addActionListener(actionHandler)
             add(reconnectItem)
             this.combo = combo
         }
         internal inner class ActionHandler : ActionListener {
-            override fun actionPerformed(p0: ActionEvent?) {
-                when (p0?.source) {
+            override fun actionPerformed(event: ActionEvent) {
+                when (event.source) {
                     selectAllItem -> {
                         combo?.editor?.selectAll()
                     }
@@ -2150,8 +2146,8 @@ class MainUI(title: String) : JFrame() {
             }
         }
         internal inner class ActionHandler : ActionListener {
-            override fun actionPerformed(p0: ActionEvent?) {
-                when (p0?.source) {
+            override fun actionPerformed(event: ActionEvent) {
+                when (event.source) {
                     selectAllItem -> {
                         combo.editor?.selectAll()
                     }
@@ -2178,7 +2174,7 @@ class MainUI(title: String) : JFrame() {
                         }
                     }
                     else -> {
-                        val item = p0?.source as JMenuItem
+                        val item = event.source as JMenuItem
                         if (addColorTagItems.contains(item)) {
                             val textSplit = item.text.split(":")
                             if (textSplit.size == 2) {
@@ -2195,8 +2191,8 @@ class MainUI(title: String) : JFrame() {
     }
 
     internal inner class MouseHandler : MouseAdapter() {
-        override fun mouseClicked(p0: MouseEvent?) {
-            super.mouseClicked(p0)
+        override fun mouseClicked(event: MouseEvent) {
+            super.mouseClicked(event)
         }
 
         private var popupMenu: JPopupMenu? = null
@@ -2231,7 +2227,7 @@ class MainUI(title: String) : JFrame() {
                     }
                     else -> {
                         val compo = event.source as JComponent
-                        val event = MouseEvent(compo.parent, event.id, event.`when`, event.modifiers, event.x + compo.x, event.y + compo.y, event.clickCount, event.isPopupTrigger)
+                        val event = MouseEvent(compo.parent, event.id, event.`when`, event.modifiersEx, event.x + compo.x, event.y + compo.y, event.clickCount, event.isPopupTrigger)
 
                         compo.parent.dispatchEvent(event)
                     }
@@ -2391,44 +2387,44 @@ class MainUI(title: String) : JFrame() {
     }
 
     internal inner class KeyHandler : KeyAdapter() {
-        override fun keyReleased(p0: KeyEvent?) {
-            if (KeyEvent.VK_ENTER != p0?.keyCode && p0?.source == logCmdCombo.editor.editorComponent) {
+        override fun keyReleased(event: KeyEvent) {
+            if (KeyEvent.VK_ENTER != event.keyCode && event.source == logCmdCombo.editor.editorComponent) {
                 updateLogCmdCombo(false)
             }
 
-            if (KeyEvent.VK_ENTER == p0?.keyCode) {
+            if (KeyEvent.VK_ENTER == event.keyCode) {
                 when {
-                    p0.source == showLogCombo.editor.editorComponent && showLogToggle.isSelected -> {
+                    event.source == showLogCombo.editor.editorComponent && showLogToggle.isSelected -> {
                         val combo = showLogCombo
                         val item = combo.selectedItem!!.toString()
                         resetComboItem(combo, item)
                         filteredTableModel.filterLog = item
                     }
-                    p0.source == boldLogCombo.editor.editorComponent && boldLogToggle.isSelected -> {
+                    event.source == boldLogCombo.editor.editorComponent && boldLogToggle.isSelected -> {
                         val combo = boldLogCombo
                         val item = combo.selectedItem!!.toString()
                         resetComboItem(combo, item)
                         filteredTableModel.filterHighlightLog = item
                     }
-                    p0.source == showTagCombo.editor.editorComponent && showTagToggle.isSelected -> {
+                    event.source == showTagCombo.editor.editorComponent && showTagToggle.isSelected -> {
                         val combo = showTagCombo
                         val item = combo.selectedItem!!.toString()
                         resetComboItem(combo, item)
                         filteredTableModel.filterTag = item
                     }
-                    p0.source == showPidCombo.editor.editorComponent && showPidToggle.isSelected -> {
+                    event.source == showPidCombo.editor.editorComponent && showPidToggle.isSelected -> {
                         val combo = showPidCombo
                         val item = combo.selectedItem!!.toString()
                         resetComboItem(combo, item)
                         filteredTableModel.filterPid = item
                     }
-                    p0.source == showTidCombo.editor.editorComponent && showTidToggle.isSelected -> {
+                    event.source == showTidCombo.editor.editorComponent && showTidToggle.isSelected -> {
                         val combo = showTidCombo
                         val item = combo.selectedItem!!.toString()
                         resetComboItem(combo, item)
                         filteredTableModel.filterTid = item
                     }
-                    p0.source == logCmdCombo.editor.editorComponent -> {
+                    event.source == logCmdCombo.editor.editorComponent -> {
                         if (logCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
                             reconnectAdb()
                         }
@@ -2442,44 +2438,44 @@ class MainUI(title: String) : JFrame() {
                             updateLogCmdCombo(false)
                         }
                     }
-                    p0.source == deviceCombo.editor.editorComponent -> {
+                    event.source == deviceCombo.editor.editorComponent -> {
                         reconnectAdb()
                     }
-                    p0.source == scrollBackTF -> {
+                    event.source == scrollBackTF -> {
                         scrollBackApplyBtn.doClick()
                     }
                 }
-            } else if (p0 != null && itemfilterIncremental.state) {
+            } else if (event != null && itemfilterIncremental.state) {
                 when {
-                    p0.source == showLogCombo.editor.editorComponent && showLogToggle.isSelected -> {
+                    event.source == showLogCombo.editor.editorComponent && showLogToggle.isSelected -> {
                         val item = showLogCombo.editor.item.toString()
                         filteredTableModel.filterLog = item
                     }
-                    p0.source == boldLogCombo.editor.editorComponent && boldLogToggle.isSelected -> {
+                    event.source == boldLogCombo.editor.editorComponent && boldLogToggle.isSelected -> {
                         val item = boldLogCombo.editor.item.toString()
                         filteredTableModel.filterHighlightLog = item
                     }
-                    p0.source == showTagCombo.editor.editorComponent && showTagToggle.isSelected -> {
+                    event.source == showTagCombo.editor.editorComponent && showTagToggle.isSelected -> {
                         val item = showTagCombo.editor.item.toString()
                         filteredTableModel.filterTag = item
                     }
-                    p0.source == showPidCombo.editor.editorComponent && showPidToggle.isSelected -> {
+                    event.source == showPidCombo.editor.editorComponent && showPidToggle.isSelected -> {
                         val item = showPidCombo.editor.item.toString()
                         filteredTableModel.filterPid = item
                     }
-                    p0.source == showTidCombo.editor.editorComponent && showTidToggle.isSelected -> {
+                    event.source == showTidCombo.editor.editorComponent && showTidToggle.isSelected -> {
                         val item = showTidCombo.editor.item.toString()
                         filteredTableModel.filterTid = item
                     }
                 }
             }
-            super.keyReleased(p0)
+            super.keyReleased(event)
         }
     }
 
     internal inner class ItemHandler : ItemListener {
-        override fun itemStateChanged(p0: ItemEvent?) {
-            when (p0?.source) {
+        override fun itemStateChanged(event: ItemEvent) {
+            when (event.source) {
                 showLogToggle -> {
                     showLogCombo.setEnabledFilter(showLogToggle.isSelected)
                 }
@@ -2500,7 +2496,7 @@ class MainUI(title: String) : JFrame() {
             if (IsCreatingUI) {
                 return
             }
-            when (p0?.source) {
+            when (event.source) {
                 showLogToggle -> {
                     if (showLogToggle.isSelected && showLogCombo.selectedItem != null) {
                         filteredTableModel.filterLog = showLogCombo.selectedItem!!.toString()
@@ -2562,8 +2558,8 @@ class MainUI(title: String) : JFrame() {
     }
 
     internal inner class LevelItemHandler : ItemListener {
-        override fun itemStateChanged(p0: ItemEvent?) {
-            val item = p0?.source as JRadioButtonMenuItem
+        override fun itemStateChanged(event: ItemEvent) {
+            val item = event.source as JRadioButtonMenuItem
             when (item.text) {
                 VERBOSE ->filteredTableModel.filterLevel = LEVEL_VERBOSE
                 DEBUG ->filteredTableModel.filterLevel = LEVEL_DEBUG
@@ -2627,12 +2623,12 @@ class MainUI(title: String) : JFrame() {
 
     internal inner class PopupMenuHandler : PopupMenuListener {
         private var isCanceled = false
-        override fun popupMenuWillBecomeInvisible(p0: PopupMenuEvent?) {
+        override fun popupMenuWillBecomeInvisible(event: PopupMenuEvent) {
             if (isCanceled) {
                 isCanceled = false
                 return
             }
-            when (p0?.source) {
+            when (event.source) {
                 showLogCombo -> {
                     if (showLogCombo.selectedIndex < 0) {
                         return
@@ -2699,12 +2695,12 @@ class MainUI(title: String) : JFrame() {
             }
         }
 
-        override fun popupMenuCanceled(p0: PopupMenuEvent?) {
+        override fun popupMenuCanceled(event: PopupMenuEvent) {
             isCanceled = true
         }
 
-        override fun popupMenuWillBecomeVisible(p0: PopupMenuEvent?) {
-            val box = p0?.source as JComboBox<*>
+        override fun popupMenuWillBecomeVisible(event: PopupMenuEvent) {
+            val box = event.source as JComboBox<*>
             val comp = box.ui.getAccessibleChild(box, 0) as? JPopupMenu ?: return
             val scrollPane = comp.getComponent(0) as JScrollPane
             scrollPane.verticalScrollBar?.setUI(BasicScrollBarUI())
@@ -2714,9 +2710,9 @@ class MainUI(title: String) : JFrame() {
     }
 
     internal inner class ComponentHandler : ComponentAdapter() {
-        override fun componentResized(p0: ComponentEvent?) {
+        override fun componentResized(event: ComponentEvent) {
             revalidate()
-            super.componentResized(p0)
+            super.componentResized(event)
         }
     }
 
@@ -2823,7 +2819,7 @@ class MainUI(title: String) : JFrame() {
 
     internal inner class StatusTextField(text: String?) : JTextField(text) {
         private var prevText = ""
-        override fun getToolTipText(event: MouseEvent?): String? {
+        override fun getToolTipText(event: MouseEvent): String? {
             val textTrimmed = text.trim()
             if (prevText != textTrimmed && textTrimmed.isNotEmpty()) {
                 prevText = textTrimmed
@@ -2844,12 +2840,12 @@ class MainUI(title: String) : JFrame() {
     }
 
     inner class SearchPanel : JPanel() {
-        var searchCombo: FilterComboBox
-        var searchMatchCaseToggle: ColorToggleButton
+        val closeBtn: ColorButton = ColorButton("X")
+        val searchCombo: FilterComboBox = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, false)
+        val searchMatchCaseToggle: ColorToggleButton = ColorToggleButton("Aa")
         private var targetLabel: JLabel
         private var upBtn: ColorButton
         private var downBtn: ColorButton
-        var closeBtn: ColorButton
 
         var isInternalTargetView = true  // true : filter view, false : full view
 
@@ -2858,7 +2854,6 @@ class MainUI(title: String) : JFrame() {
         private val searchPopupMenuHandler = SearchPopupMenuHandler()
 
         init {
-            searchCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, false)
             searchCombo.preferredSize = Dimension(700, searchCombo.preferredSize.height)
             if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
                 searchCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
@@ -2871,7 +2866,6 @@ class MainUI(title: String) : JFrame() {
             searchCombo.editor.editorComponent.addKeyListener(searchKeyHandler)
             searchCombo.addPopupMenuListener(searchPopupMenuHandler)
 
-            searchMatchCaseToggle = ColorToggleButton("Aa")
             searchMatchCaseToggle.toolTipText = TooltipStrings.SEARCH_CASE_TOGGLE
             searchMatchCaseToggle.margin = Insets(0, 0, 0, 0)
             searchMatchCaseToggle.addItemListener(SearchItemHandler())
@@ -2899,7 +2893,6 @@ class MainUI(title: String) : JFrame() {
             }
             targetLabel.toolTipText = TooltipStrings.SEARCH_TARGET_LABEL
 
-            closeBtn = ColorButton("X")
             closeBtn.toolTipText = TooltipStrings.SEARCH_CLOSE_BTN
             closeBtn.margin = Insets(0, 0, 0, 0)
             closeBtn.addActionListener(searchActionHandler)
@@ -2965,8 +2958,8 @@ class MainUI(title: String) : JFrame() {
         }
 
         internal inner class SearchActionHandler : ActionListener {
-            override fun actionPerformed(p0: ActionEvent?) {
-                when (p0?.source) {
+            override fun actionPerformed(event: ActionEvent) {
+                when (event.source) {
                     upBtn -> {
                         moveToPrev()
                     }
@@ -2982,14 +2975,14 @@ class MainUI(title: String) : JFrame() {
         }
 
         internal inner class SearchKeyHandler : KeyAdapter() {
-            override fun keyReleased(p0: KeyEvent?) {
-                if (KeyEvent.VK_ENTER == p0?.keyCode) {
-                    when (p0.source) {
+            override fun keyReleased(event: KeyEvent) {
+                if (KeyEvent.VK_ENTER == event.keyCode) {
+                    when (event.source) {
                         searchCombo.editor.editorComponent -> {
                             val item = searchCombo.selectedItem!!.toString()
                             resetComboItem(searchCombo, item)
                             filteredTableModel.filterSearchLog = item
-                            if (KeyEvent.SHIFT_MASK == p0.modifiers) {
+                            if (KeyEvent.SHIFT_MASK == event.modifiersEx) {
                                 moveToPrev()
                             }
                             else {
@@ -2998,17 +2991,17 @@ class MainUI(title: String) : JFrame() {
                         }
                     }
                 }
-                super.keyReleased(p0)
+                super.keyReleased(event)
             }
         }
         internal inner class SearchPopupMenuHandler : PopupMenuListener {
             private var isCanceled = false
-            override fun popupMenuWillBecomeInvisible(p0: PopupMenuEvent?) {
+            override fun popupMenuWillBecomeInvisible(event: PopupMenuEvent) {
                 if (isCanceled) {
                     isCanceled = false
                     return
                 }
-                when (p0?.source) {
+                when (event.source) {
                     searchCombo -> {
                         if (searchCombo.selectedIndex < 0) {
                             return
@@ -3021,12 +3014,12 @@ class MainUI(title: String) : JFrame() {
                 }
             }
 
-            override fun popupMenuCanceled(p0: PopupMenuEvent?) {
+            override fun popupMenuCanceled(event: PopupMenuEvent) {
                 isCanceled = true
             }
 
-            override fun popupMenuWillBecomeVisible(p0: PopupMenuEvent?) {
-                val box = p0?.source as JComboBox<*>
+            override fun popupMenuWillBecomeVisible(event: PopupMenuEvent) {
+                val box = event.source as JComboBox<*>
                 val comp = box.ui.getAccessibleChild(box, 0) as? JPopupMenu ?: return
                 val scrollPane = comp.getComponent(0) as JScrollPane
                 scrollPane.verticalScrollBar?.setUI(BasicScrollBarUI())
@@ -3036,13 +3029,13 @@ class MainUI(title: String) : JFrame() {
         }
 
         internal inner class SearchItemHandler : ItemListener {
-            override fun itemStateChanged(p0: ItemEvent?) {
+            override fun itemStateChanged(event: ItemEvent) {
                 if (IsCreatingUI) {
                     return
                 }
-                when (p0?.source) {
+                when (event.source) {
                     searchMatchCaseToggle -> {
-                        filteredTableModel.SearchMatchCase = searchMatchCaseToggle.isSelected
+                        filteredTableModel.searchMatchCase = searchMatchCaseToggle.isSelected
                         configManager.saveItem(ConfigManager.ITEM_SEARCH_MATCH_CASE, searchMatchCaseToggle.isSelected.toString())
                     }
                 }
@@ -3062,7 +3055,7 @@ class MainUI(title: String) : JFrame() {
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
         rootPane.actionMap.put(actionMapKey, action)
 
-        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_MASK)
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK)
         actionMapKey = javaClass.name + ":SEARCH_OPENING"
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
@@ -3128,7 +3121,7 @@ class MainUI(title: String) : JFrame() {
 
     inner class FocusHandler(isFilter: Boolean) : FocusAdapter() {
         val isFilter = isFilter
-        override fun focusGained(e: FocusEvent?) {
+        override fun focusGained(e: FocusEvent) {
             super.focusGained(e)
             searchPanel.setTargetView(isFilter)
         }

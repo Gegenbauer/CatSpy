@@ -71,15 +71,15 @@ class VStatusPanel(private val logTable: LogTable) : JPanel() {
     }
 
     internal inner class MouseHandler : MouseAdapter() {
-        override fun mouseClicked(p0: MouseEvent?) {
-            val row = p0!!.point.y * logTable.rowCount / height
+        override fun mouseClicked(event: MouseEvent) {
+            val row = event!!.point.y * logTable.rowCount / height
             try {
                 // logTable.setRowSelectionInterval(row, row)
                 logTable.scrollRectToVisible(Rectangle(logTable.getCellRect(row, 0, true)))
             } catch (e: IllegalArgumentException) {
                 println("e : $e")
             }
-            super.mouseClicked(p0)
+            super.mouseClicked(event)
         }
     }
 }

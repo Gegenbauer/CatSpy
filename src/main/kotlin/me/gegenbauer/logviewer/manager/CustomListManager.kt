@@ -223,8 +223,8 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             }
         }
 
-        override fun actionPerformed(e: ActionEvent?) {
-            if (e?.source == firstBtn) {
+        override fun actionPerformed(event: ActionEvent) {
+            if (event.source == firstBtn) {
                 val startIdx = if (firstElement == null) 0 else 1
                 jList.valueIsAdjusting = true
                 val selectedIdx = jList.selectedIndex
@@ -237,7 +237,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                     }
                 }
                 jList.valueIsAdjusting = false
-            } else if (e?.source == prevBtn) {
+            } else if (event.source == prevBtn) {
                 val startIdx = if (firstElement == null) 0 else 1
                 jList.valueIsAdjusting = true
                 val selectedIdx = jList.selectedIndex
@@ -250,7 +250,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                     }
                 }
                 jList.valueIsAdjusting = false
-            } else if (e?.source == nextBtn) {
+            } else if (event.source == nextBtn) {
                 val startIdx = if (firstElement == null) 0 else 1
                 jList.valueIsAdjusting = true
                 val selectedIdx = jList.selectedIndex
@@ -263,7 +263,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                     }
                 }
                 jList.valueIsAdjusting = false
-            } else if (e?.source == lastBtn) {
+            } else if (event.source == lastBtn) {
                 val startIdx = if (firstElement == null) 0 else 1
                 jList.valueIsAdjusting = true
                 val selectedIdx = jList.selectedIndex
@@ -276,18 +276,18 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                     }
                 }
                 jList.valueIsAdjusting = false
-            } else if (e?.source == newBtn) {
+            } else if (event.source == newBtn) {
                 val editDialog = EditDialog(this, CMD_NEW, "", "", false)
                 editDialog.setLocationRelativeTo(this)
                 editDialog.isVisible = true
-            } else if (e?.source == copyBtn) {
+            } else if (event.source == copyBtn) {
                 if (jList.selectedIndex >= 0) {
                     val selection = jList.selectedValue
                     val editDialog = EditDialog(this, CMD_COPY, selection.title, selection.value, selection.tableBar)
                     editDialog.setLocationRelativeTo(this)
                     editDialog.isVisible = true
                 }
-            } else if (e?.source == editBtn) {
+            } else if (event.source == editBtn) {
                 if (jList.selectedIndex >= 0) {
                     val selection = jList.selectedValue
                     val cmd = if (firstElement == null || firstElement!!.title != selection.title) {
@@ -299,7 +299,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                     editDialog.setLocationRelativeTo(this)
                     editDialog.isVisible = true
                 }
-            } else if (e?.source == deleteBtn) {
+            } else if (event.source == deleteBtn) {
                 if (jList.selectedIndex >= 0) {
                     jList.valueIsAdjusting = true
                     val selectedIdx = jList.selectedIndex
@@ -309,7 +309,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                     }
                     jList.valueIsAdjusting = false
                 }
-            } else if (e?.source == saveBtn) {
+            } else if (event.source == saveBtn) {
                 val customListArray = ArrayList<CustomElement>()
                 for (item in model.elements()) {
                     if (firstElement == null || firstElement!!.title != item.title) {
@@ -320,7 +320,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                 saveList(customListArray)
 
                 logPanel.updateTableBar(customListArray)
-            } else if (e?.source == closeBtn) {
+            } else if (event.source == closeBtn) {
                 dispose()
             }
         }
@@ -472,33 +472,33 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                 Utils.installKeyStrokeEscClosing(this)
             }
 
-            override fun actionPerformed(e: ActionEvent?) {
-                if (e?.source == okBtn) {
+            override fun actionPerformed(e: ActionEvent) {
+                if (e.source == okBtn) {
                     parent.updateElement(
                         cmd,
                         prevTitle,
                         CustomElement(titleTF.text, valueTF.text, tableBarCheck.isSelected)
                     )
                     dispose()
-                } else if (e?.source == cancelBtn) {
+                } else if (e.source == cancelBtn) {
                     dispose()
                 }
             }
 
             internal inner class TitleDocumentHandler : DocumentListener {
-                override fun insertUpdate(e: DocumentEvent?) {
-                    checkText(e)
+                override fun insertUpdate(event: DocumentEvent) {
+                    checkText(event)
                 }
 
-                override fun removeUpdate(e: DocumentEvent?) {
-                    checkText(e)
+                override fun removeUpdate(event: DocumentEvent) {
+                    checkText(event)
                 }
 
-                override fun changedUpdate(e: DocumentEvent?) {
-                    checkText(e)
+                override fun changedUpdate(event: DocumentEvent) {
+                    checkText(event)
                 }
 
-                private fun checkText(e: DocumentEvent?) {
+                private fun checkText(event: DocumentEvent) {
                     var isValid = true
                     val title = titleTF.text.trim()
                     if (title.isEmpty()) {
@@ -526,19 +526,19 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             }
 
             internal inner class ValueDocumentHandler : DocumentListener {
-                override fun insertUpdate(e: DocumentEvent?) {
+                override fun insertUpdate(e: DocumentEvent) {
                     checkText(e)
                 }
 
-                override fun removeUpdate(e: DocumentEvent?) {
+                override fun removeUpdate(e: DocumentEvent) {
                     checkText(e)
                 }
 
-                override fun changedUpdate(e: DocumentEvent?) {
+                override fun changedUpdate(e: DocumentEvent) {
                     checkText(e)
                 }
 
-                private fun checkText(e: DocumentEvent?) {
+                private fun checkText(e: DocumentEvent) {
                     var isValid = true
 
                     val value = valueTF.text.trim()

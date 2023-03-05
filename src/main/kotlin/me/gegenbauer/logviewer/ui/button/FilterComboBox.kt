@@ -129,11 +129,10 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                         result += "|"
                     }
 
-                    if (2 < item.length && item[0] == '#' && item[1].isDigit()) {
-                        result += item.substring(2)
-                    }
-                    else {
-                        result += item
+                    result += if (2 < item.length && item[0] == '#' && item[1].isDigit()) {
+                        item.substring(2)
+                    } else {
+                        item
                     }
 
                     if (item.substring(item.length - 1) == "\\") {
@@ -144,11 +143,10 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                         result += "|"
                     }
 
-                    if (3 < item.length && item[1] == '#' && item[2].isDigit()) {
-                        result += item.substring(3)
-                    }
-                    else {
-                        result += item.substring(1)
+                    result += if (3 < item.length && item[1] == '#' && item[2].isDigit()) {
+                        item.substring(3)
+                    } else {
+                        item.substring(1)
                     }
 
                     if (item.substring(item.length - 1) == "\\") {
@@ -346,21 +344,21 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
     }
 
     internal inner class DocumentHandler: DocumentListener {
-        override fun insertUpdate(e: DocumentEvent?) {
+        override fun insertUpdate(e: DocumentEvent) {
             if (enabledTfTooltip && !isPopupVisible) {
                 updateTooltip()
 //                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(editorComponent, 0, 0, 0, 0, preferredSize.height / 3, 0, false))
             }
         }
 
-        override fun removeUpdate(e: DocumentEvent?) {
+        override fun removeUpdate(e: DocumentEvent) {
             if (enabledTfTooltip && !isPopupVisible) {
                 updateTooltip()
 //                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(editorComponent, 0, 0, 0, 0, preferredSize.height / 3, 0, false))
             }
         }
 
-        override fun changedUpdate(e: DocumentEvent?) {
+        override fun changedUpdate(e: DocumentEvent) {
         }
 
     }
@@ -467,12 +465,12 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 (highlighter as DefaultHighlighter).drawsLayeredHighlights = false
 
                 addKeyListener(object : KeyListener {
-                    override fun keyTyped(e: KeyEvent?) {
+                    override fun keyTyped(e: KeyEvent) {
                     }
-                    override fun keyPressed(e: KeyEvent?) {
+                    override fun keyPressed(e: KeyEvent) {
                         setUpdateHighlighter(true)
                     }
-                    override fun keyReleased(e: KeyEvent?) {
+                    override fun keyReleased(e: KeyEvent) {
                     }
                 })
                 addFocusListener(object : FocusListener {
@@ -483,7 +481,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 })
 
                 val colorEventListener = object: ColorManager.ColorEventListener {
-                    override fun colorChanged(event: ColorManager.ColorEvent?) {
+                    override fun colorChanged(event: ColorManager.ColorEvent) {
                         setUpdateHighlighter(true)
                         repaint()
                     }
@@ -500,15 +498,14 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
             private var enableHighlighter = false
             private var updateHighlighter = false
             override fun paint(g: Graphics?) {
-                if (errorMsg.isNotEmpty()) {
-                    foreground = if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                foreground = if (errorMsg.isNotEmpty()) {
+                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
                         Color(0xC0, 0x70, 0x70)
                     } else {
                         Color(0xFF, 0x00, 0x00)
                     }
-                }
-                else {
-                    foreground = fgColor
+                } else {
+                    fgColor
                 }
                 
                 if (enableHighlighter && updateHighlighter) {
@@ -568,10 +565,10 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
 
                 (highlighter as DefaultHighlighter).drawsLayeredHighlights = false
                 addKeyListener(object : KeyListener {
-                    override fun keyTyped(e: KeyEvent?) {
+                    override fun keyTyped(e: KeyEvent) {
                     }
-                    override fun keyPressed(e: KeyEvent?) {
-                        when (e?.keyCode) {
+                    override fun keyPressed(e: KeyEvent) {
+                        when (e.keyCode) {
                             KeyEvent.VK_ENTER -> {
                                 e.consume()
                             }
@@ -586,7 +583,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                                 return
                             }
                             KeyEvent.VK_TAB -> {
-                                if (e.modifiers > 0) {
+                                if (e.modifiersEx > 0) {
                                     transferFocusBackward()
                                 }
                                 else {
@@ -599,8 +596,8 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
 
                         setUpdateHighlighter(true)
                     }
-                    override fun keyReleased(e: KeyEvent?) {
-                        when (e?.keyCode) {
+                    override fun keyReleased(e: KeyEvent) {
+                        when (e.keyCode) {
                             KeyEvent.VK_ENTER -> {
                                 e.consume()
                                 for (listener in actionListeners) {
@@ -648,7 +645,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 })
 
                 val colorEventListener = object: ColorManager.ColorEventListener {
-                    override fun colorChanged(event: ColorManager.ColorEvent?) {
+                    override fun colorChanged(event: ColorManager.ColorEvent) {
                         setUpdateHighlighter(true)
                         repaint()
                     }
@@ -671,15 +668,14 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
             }
 
             override fun paint(g: Graphics?) {
-                if (errorMsg.isNotEmpty()) {
-                    foreground = if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                foreground = if (errorMsg.isNotEmpty()) {
+                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
                         Color(0xC0, 0x70, 0x70)
                     } else {
                         Color(0xFF, 0x00, 0x00)
                     }
-                }
-                else {
-                    foreground = fgColor
+                } else {
+                    fgColor
                 }
 
                 if (enableHighlighter && updateHighlighter) {

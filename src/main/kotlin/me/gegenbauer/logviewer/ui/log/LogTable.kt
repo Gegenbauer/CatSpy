@@ -11,7 +11,7 @@ import javax.swing.border.AbstractBorder
 import javax.swing.table.DefaultTableCellRenderer
 
 
-class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
+class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
     private val tableColor: ColorManager.TableColor
     private val bookmarkManager = BookmarkManager.getInstance()
 
@@ -47,8 +47,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
 
         tableColor = if (this.tableModel.isFullDataModel()) {
             ColorManager.getInstance().fullTableColor
-        }
-        else {
+        } else {
             ColorManager.getInstance().filterTableColor
         }
     }
@@ -72,8 +71,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
         if (columnNum.preferredWidth != column0Width) {
             columnNum.preferredWidth = column0Width
             columnLog.preferredWidth = preferredLogWidth
-        }
-        else {
+        } else {
             if (columnLog.preferredWidth != preferredLogWidth) {
                 columnLog.preferredWidth = preferredLogWidth
             }
@@ -85,7 +83,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
             field = value
             val columnLog = columnModel.getColumn(1)
 //            if (value == true) {
-                columnLog.cellRenderer = LogCellRenderer()
+            columnLog.cellRenderer = LogCellRenderer()
 //            }
 //            else {
 //                if (viewMode == VIEW_LINE_ONE) {
@@ -102,7 +100,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
             field = value
             val columnLog = columnModel.getColumn(1)
 //            if (value == VIEW_LINE_ONE) {
-                columnLog.cellRenderer = LogCellRenderer()
+            columnLog.cellRenderer = LogCellRenderer()
 //            }
 //            else if (value == VIEW_LINE_WRAP) {
 //                columnLog.cellRenderer = LogWrapCellRenderer()
@@ -116,7 +114,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
             if (width > 0) {
                 g?.color = color
                 for (i in 1..thickness) {
-                    g?.drawLine(width - i , y, width - i, height)
+                    g?.drawLine(width - i, y, width - i, height)
                 }
             }
         }
@@ -137,11 +135,13 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
             return true
         }
     }
+
     internal inner class NumCellRenderer : DefaultTableCellRenderer() {
         init {
             horizontalAlignment = JLabel.RIGHT
             verticalAlignment = JLabel.CENTER
         }
+
         override fun getTableCellRendererComponent(
             table: JTable?,
             value: Any?,
@@ -161,18 +161,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
             label.border = LineNumBorder(tableColor.numLogSeparatorBG, 1)
 
             foreground = tableColor.lineNumFG
-            background = if (bookmarkManager.bookmarks.contains(num)) {
-                if (isRowSelected(row)) {
-                    tableColor.numBookmarkSelectedBG
-                }
-                else {
-                    tableColor.numBookmarkBG
-                }
-            } else if (isRowSelected(row)) {
-                tableColor.numSelectedBG
-            } else {
-                tableColor.lineNumBG
-            }
+            background = getNewBackground(num, row)
 
             return label
         }
@@ -189,40 +178,42 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
         ): Component {
 //            println("LogCellRenderer getTableCellRendererComponent $isSelected, $hasFocus, $row, $col, ${isRowSelected(row)}")
 
-            val newValue:String = if (value != null) {
+            val newValue: String = if (value != null) {
                 this@LogTable.tableModel.getPrintValue(value.toString(), row, isSelected)
             } else {
                 ""
             }
-            val label:JLabel
+            val label: JLabel
             if (newValue.isEmpty()) {
                 label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
                 foreground = this@LogTable.tableModel.getFgColor(row)
-            }
-            else {
+            } else {
                 label = super.getTableCellRendererComponent(table, newValue, isSelected, hasFocus, row, col) as JLabel
             }
 
             label.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
             val numValue = this@LogTable.tableModel.getValueAt(row, 0)
             val num = numValue.toString().trim().toInt()
-            if (bookmarkManager.bookmarks.contains(num)) {
-                if (isRowSelected(row)) {
-                    background = tableColor.bookmarkSelectedBG
-                }
-                else {
-                    background = tableColor.bookmarkBG
-                }
-            } else if (isRowSelected(row)) {
-                background = tableColor.selectedBG
-            } else {
-                background = tableColor.logBG
-            }
-
+            background = getNewBackground(num, row)
             return label
 
         }
     }
+
+    private fun getNewBackground(num: Int, row: Int): Color {
+        return if (bookmarkManager.bookmarks.contains(num)) {
+            if (isRowSelected(row)) {
+                tableColor.bookmarkSelectedBG
+            } else {
+                tableColor.bookmarkBG
+            }
+        } else if (isRowSelected(row)) {
+            tableColor.selectedBG
+        } else {
+            tableColor.logBG
+        }
+    }
+
 
 //    internal inner class LogWrapCellRenderer : JTextArea(), TableCellRenderer {
 //        init {
@@ -305,18 +296,17 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
         return
     }
 
-    private fun showSelected(targetRow:Int) {
+    private fun showSelected(targetRow: Int) {
         val log = StringBuilder("")
         var caretPos = 0
-        var value:String
+        var value: String
 
         if (selectedRowCount > 1) {
             for (row in selectedRows) {
                 value = this.tableModel.getValueAt(row, 1).toString() + "\n"
                 log.append(value)
             }
-        }
-        else {
+        } else {
             var startIdx = targetRow - 2
             if (startIdx < 0) {
                 startIdx = 0
@@ -341,7 +331,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
         logViewDialog.isVisible = true
     }
 
-    private fun updateBookmark(targetRow:Int) {
+    private fun updateBookmark(targetRow: Int) {
         if (selectedRowCount > 1) {
             var isAdd = false
             for (row in selectedRows) {
@@ -368,8 +358,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
                     }
                 }
             }
-        }
-        else {
+        } else {
             val value = this.tableModel.getValueAt(targetRow, 0)
             val bookmark = value.toString().trim().toInt()
             bookmarkManager.updateBookmark(bookmark)
@@ -384,7 +373,8 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
         var startItem = JMenuItem("Start")
         var stopItem = JMenuItem("Stop")
         var clearItem = JMenuItem("Clear")
-//        var clearSaveItem = JMenuItem("Clear/Save")
+
+        //        var clearSaveItem = JMenuItem("Clear/Save")
         private val actionHandler = ActionHandler()
 
         init {
@@ -406,30 +396,46 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
 //            clearSaveItem.addActionListener(mActionHandler)
 //            add(clearSaveItem)
         }
+
         internal inner class ActionHandler : ActionListener {
-            override fun actionPerformed(p0: ActionEvent?) {
-                when (p0?.source) {
+            override fun actionPerformed(event: ActionEvent) {
+                when (event.source) {
                     copyItem -> {
-                        this@LogTable.processKeyEvent(KeyEvent(this@LogTable, KeyEvent.KEY_PRESSED, p0.`when`, KeyEvent.CTRL_MASK, KeyEvent.VK_C, 'C'))
+                        this@LogTable.processKeyEvent(
+                            KeyEvent(
+                                this@LogTable,
+                                KeyEvent.KEY_PRESSED,
+                                event.`when`,
+                                KeyEvent.CTRL_DOWN_MASK,
+                                KeyEvent.VK_C,
+                                'C'
+                            )
+                        )
                     }
+
                     showEntireItem -> {
                         showSelected(selectedRow)
                     }
+
                     bookmarkItem -> {
                         updateBookmark(selectedRow)
                     }
+
                     reconnectItem -> {
                         val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
                         frame.reconnectAdb()
                     }
+
                     startItem -> {
                         val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
                         frame.startAdbLog()
                     }
+
                     stopItem -> {
                         val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
                         frame.stopAdbLog()
                     }
+
                     clearItem -> {
                         val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
                         frame.clearAdbLog()
@@ -447,8 +453,8 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
         var firstClickRow = 0
         var secondClickRow = 0
 
-        override fun mousePressed(p0: MouseEvent?) {
-            super.mousePressed(p0)
+        override fun mousePressed(event: MouseEvent) {
+            super.mousePressed(event)
         }
 
         private var popupMenu: JPopupMenu? = null
@@ -456,59 +462,59 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel){
             if (SwingUtilities.isRightMouseButton(event)) {
                 popupMenu = PopUpTable()
                 popupMenu?.show(event.component, event.x, event.y)
-            }
-            else {
+            } else {
                 popupMenu?.isVisible = false
             }
 
             super.mouseReleased(event)
         }
 
-        override fun mouseClicked(p0: MouseEvent?) {
-            if (SwingUtilities.isLeftMouseButton(p0)) {
-                if (p0?.clickCount == 2) {
+        override fun mouseClicked(event: MouseEvent) {
+            if (SwingUtilities.isLeftMouseButton(event)) {
+                if (event.clickCount == 2) {
                     secondClickRow = selectedRow
                     val targetRow = if (firstClickRow > secondClickRow) {
                         firstClickRow
                     } else {
                         secondClickRow
                     }
-                    if (columnAtPoint(p0.point) == 0) {
+                    if (columnAtPoint(event.point) == 0) {
                         updateBookmark(targetRow)
                     } else {
                         showSelected(targetRow)
                     }
                 }
-                if (p0?.clickCount == 1) {
+                if (event.clickCount == 1) {
                     firstClickRow = selectedRow
                 }
             }
 
-            super.mouseClicked(p0)
+            super.mouseClicked(event)
         }
     }
+
     internal inner class TableKeyHandler : KeyAdapter() {
-//        override fun keyReleased(p0: KeyEvent?) {
-//            if (KeyEvent.VK_ENTER == p0?.keyCode) {
+//        override fun keyReleased(event: KeyEvent) {
+//            if (KeyEvent.VK_ENTER == event.keyCode) {
 //            }
-//            super.keyReleased(p0)
+//            super.keyReleased(event)
 //        }
 
-        override fun keyPressed(p0: KeyEvent?) {
-            if (p0?.keyCode == KeyEvent.VK_B && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
+        override fun keyPressed(event: KeyEvent) {
+            if (event.keyCode == KeyEvent.VK_B && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
                 updateBookmark(selectedRow)
-            } else if (p0?.keyCode == KeyEvent.VK_PAGE_DOWN) {
+            } else if (event.keyCode == KeyEvent.VK_PAGE_DOWN) {
                 downPage()
-            } else if (p0?.keyCode == KeyEvent.VK_PAGE_UP) {
+            } else if (event.keyCode == KeyEvent.VK_PAGE_UP) {
                 upPage()
-            } else if (p0?.keyCode == KeyEvent.VK_DOWN) {
+            } else if (event.keyCode == KeyEvent.VK_DOWN) {
                 downLine()
-            } else if (p0?.keyCode == KeyEvent.VK_UP) {
+            } else if (event.keyCode == KeyEvent.VK_UP) {
                 upLine()
-            } else if (p0?.keyCode == KeyEvent.VK_ENTER) {
+            } else if (event.keyCode == KeyEvent.VK_ENTER) {
                 showSelected(selectedRow)
             }
-            super.keyPressed(p0)
+            super.keyPressed(event)
         }
     }
 }

@@ -30,10 +30,10 @@ class ScrollBackSettingsDialog(parent: MainUI) : JDialog(parent, "ScrollBack set
         pack()
     }
 
-    override fun actionPerformed(e: ActionEvent?) {
-        if (e?.source == okBtn) {
+    override fun actionPerformed(e: ActionEvent) {
+        if (e.source == okBtn) {
             dispose()
-        } else if (e?.source == cancelBtn) {
+        } else if (e.source == cancelBtn) {
             dispose()
         }
     }

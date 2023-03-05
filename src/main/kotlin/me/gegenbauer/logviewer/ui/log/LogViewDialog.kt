@@ -53,16 +53,16 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
 
     internal inner class KeyHandler: KeyAdapter() {
         private var pressedKeyCode: Int = 0
-        override fun keyPressed(p0: KeyEvent?) {
-            if (p0 != null) {
-                pressedKeyCode = p0.keyCode
+        override fun keyPressed(event: KeyEvent) {
+            if (event != null) {
+                pressedKeyCode = event.keyCode
             }
 
-            super.keyPressed(p0)
+            super.keyPressed(event)
         }
 
-        override fun keyReleased(p0: KeyEvent?) {
-            if (p0?.keyCode == KeyEvent.VK_ENTER && pressedKeyCode == KeyEvent.VK_ENTER) {
+        override fun keyReleased(event: KeyEvent) {
+            if (event.keyCode == KeyEvent.VK_ENTER && pressedKeyCode == KeyEvent.VK_ENTER) {
                 textArea.copy()
                 dispose()
             }
@@ -70,8 +70,8 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
     }
 
     internal inner class FocusHandler: FocusAdapter() {
-        override fun focusLost(p0: FocusEvent?) {
-            super.focusLost(p0)
+        override fun focusLost(event: FocusEvent) {
+            super.focusLost(event)
             if (!popupMenu.isVisible) {
                 dispose()
             }
@@ -104,8 +104,8 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         }
 
         internal inner class ActionHandler : ActionListener {
-            override fun actionPerformed(p0: ActionEvent?) {
-                when (p0?.source) {
+            override fun actionPerformed(event: ActionEvent) {
+                when (event.source) {
                     includeItem -> {
                         var text = mainUI.getTextShowLogCombo()
                         text += "|" + textArea.selectedText
@@ -143,8 +143,8 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         }
 
         internal inner class FocusHandler: FocusAdapter() {
-            override fun focusLost(p0: FocusEvent?) {
-                super.focusLost(p0)
+            override fun focusLost(event: FocusEvent) {
+                super.focusLost(event)
                 if (!this@LogViewDialog.hasFocus()) {
                     dispose()
                 }

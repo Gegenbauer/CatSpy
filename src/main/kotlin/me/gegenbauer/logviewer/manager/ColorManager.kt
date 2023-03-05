@@ -8,7 +8,7 @@ class ColorManager private constructor(){
     }
 
     interface ColorEventListener {
-        fun colorChanged(event: ColorEvent?)
+        fun colorChanged(event: ColorEvent)
     }
 
     companion object {

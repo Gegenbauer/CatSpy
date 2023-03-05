@@ -5,6 +5,7 @@ import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.ui.MainUI
+import me.gegenbauer.logviewer.ui.addHSeparator
 import me.gegenbauer.logviewer.ui.button.ColorButton
 import me.gegenbauer.logviewer.ui.button.ColorComboBox
 import me.gegenbauer.logviewer.ui.button.FilterComboBox
@@ -65,32 +66,19 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
         Utils.installKeyStrokeEscClosing(this)
     }
 
-    private fun addHSeparator(target:JPanel, title: String) {
-        val titleHtml = title.replace(" ", "&nbsp;")
-        val separator = JSeparator(SwingConstants.HORIZONTAL)
-        val label = JLabel("<html><b>$titleHtml</b></html>")
-        val panel = JPanel(BorderLayout())
-        val separatePanel = JPanel(BorderLayout())
-        separatePanel.add(Box.createVerticalStrut(label.font.size / 2), BorderLayout.NORTH)
-        separatePanel.add(separator, BorderLayout.CENTER)
-        panel.add(label, BorderLayout.WEST)
-        panel.add(separatePanel, BorderLayout.CENTER)
-        target.add(panel)
-    }
-
     private fun addHEmptySeparator(target:JPanel, height: Int) {
         val panel = JPanel()
         panel.preferredSize = Dimension(1, height)
         target.add(panel)
     }
 
-    override fun actionPerformed(e: ActionEvent?) {
-        if (e?.source == okBtn) {
+    override fun actionPerformed(e: ActionEvent) {
+        if (e.source == okBtn) {
             lnFPanel.actionBtn(true)
             filterComboPanel.actionBtn(true)
             fontColorPanel.actionBtn(true)
             this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
-        } else if (e?.source == cancelBtn) {
+        } else if (e.source == cancelBtn) {
             lnFPanel.actionBtn(false)
             filterComboPanel.actionBtn(false)
             fontColorPanel.actionBtn(false)
@@ -214,14 +202,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
 
         fun actionBtn(isOK: Boolean) {
             if (isOK) {
-                for (item in laFGroup.elements) {
-                    if (item.isSelected) {
-                        ConfigManager.getInstance().saveItem(ConfigManager.ITEM_LOOK_AND_FEEL, item.text)
-                        ConfigManager.getInstance().saveItem(ConfigManager.ITEM_UI_FONT_SIZE, fontSlider.value.toString())
-                        ConfigManager.getInstance().saveItem(ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE, mainUI.logSplitPane.dividerSize.toString())
-                        break
-                    }
-                }
+                AppearanceDialog.saveConfiguration(laFGroup, mainUI, fontSlider)
             } else {
                 mainUI.logSplitPane.dividerSize = prevDividerSize
             }
@@ -418,7 +399,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
             add(panel)
         }
 
-        override fun windowClosing(e: WindowEvent?) {
+        override fun windowClosing(e: WindowEvent) {
             println("exit Filter Style, restore $isNeedRestore")
 
             if (isNeedRestore) {
@@ -426,8 +407,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
                     colorManager.filterStyle[idx].strColor = prevColorArray[idx]!!
                 }
                 colorManager.applyFilterStyle()
-            }
-            else {
+            } else {
                 val keys = arrayOf(
                     ConfigManager.ITEM_SHOW_LOG_STYLE,
                     ConfigManager.ITEM_SHOW_TAG_STYLE,
@@ -445,27 +425,27 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
             }
         }
 
-        override fun windowOpened(e: WindowEvent?) {
+        override fun windowOpened(e: WindowEvent) {
             // nothing
         }
 
-        override fun windowClosed(e: WindowEvent?) {
+        override fun windowClosed(e: WindowEvent) {
             // nothing
         }
 
-        override fun windowIconified(e: WindowEvent?) {
+        override fun windowIconified(e: WindowEvent) {
             // nothing
         }
 
-        override fun windowDeiconified(e: WindowEvent?) {
+        override fun windowDeiconified(e: WindowEvent) {
             // nothing
         }
 
-        override fun windowActivated(e: WindowEvent?) {
+        override fun windowActivated(e: WindowEvent) {
             // nothing
         }
 
-        override fun windowDeactivated(e: WindowEvent?) {
+        override fun windowDeactivated(e: WindowEvent) {
             // nothing
         }
 
@@ -501,7 +481,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
         }
 
         internal inner class MouseHandler: MouseAdapter() {
-            override fun mouseClicked(e: MouseEvent?) {
+            override fun mouseClicked(e: MouseEvent) {
                 val colorChooser = JColorChooser()
                 val panels = colorChooser.chooserPanels
                 var rgbPanel: JPanel? = null
@@ -774,7 +754,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
             add(panel)
         }
 
-        override fun windowClosing(e: WindowEvent?) {
+        override fun windowClosing(e: WindowEvent) {
             println("exit Font Color, restore $isNeedRestore")
 
             if (isNeedRestore) {
@@ -791,27 +771,27 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
             }
         }
 
-        override fun windowOpened(e: WindowEvent?) {
+        override fun windowOpened(e: WindowEvent) {
             // nothing
         }
 
-        override fun windowClosed(e: WindowEvent?) {
+        override fun windowClosed(e: WindowEvent) {
             // nothing
         }
 
-        override fun windowIconified(e: WindowEvent?) {
+        override fun windowIconified(e: WindowEvent) {
             // nothing
         }
 
-        override fun windowDeiconified(e: WindowEvent?) {
+        override fun windowDeiconified(e: WindowEvent) {
             // nothing
         }
 
-        override fun windowActivated(e: WindowEvent?) {
+        override fun windowActivated(e: WindowEvent) {
             // nothing
         }
 
-        override fun windowDeactivated(e: WindowEvent?) {
+        override fun windowDeactivated(e: WindowEvent) {
             // nothing
         }
 
@@ -995,14 +975,14 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
         }
 
         internal inner class ChangeHandler: ChangeListener {
-            override fun stateChanged(e: ChangeEvent?) {
+            override fun stateChanged(e: ChangeEvent) {
                 setFont()
             }
         }
 
         internal inner class ListSelectionHandler : ListSelectionListener {
-            override fun valueChanged(p0: ListSelectionEvent?) {
-                if (p0?.source == nameList) {
+            override fun valueChanged(event: ListSelectionEvent) {
+                if (event.source == nameList) {
                     setFont()
                 }
             }
@@ -1011,7 +991,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
         val optionFullCheckbox = JCheckBox(Strings.FULL_LOG_TABLE)
         val optionFilterCheckbox = JCheckBox(Strings.FILTER_LOG_TABLE)
         internal inner class MouseHandler: MouseAdapter() {
-            override fun mouseClicked(e: MouseEvent?) {
+            override fun mouseClicked(e: MouseEvent) {
                 val colorChooser = JColorChooser()
                 val panels = colorChooser.chooserPanels
                 var rgbPanel:JPanel? = null

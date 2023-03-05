@@ -5,6 +5,7 @@ import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.manager.LogCmdManager
 import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.ui.MainUI
+import me.gegenbauer.logviewer.ui.addHSeparator
 import me.gegenbauer.logviewer.ui.button.ColorButton
 import java.awt.*
 import java.awt.event.*
@@ -41,7 +42,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
     }
 
     inner class LogCmdMouseHandler : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent?) {
+        override fun mouseClicked(e: MouseEvent) {
             if (e != null) {
                 if (e.clickCount == 2) {
                     if (logCmdTable.selectedRow > 0) {
@@ -189,22 +190,8 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
         Utils.installKeyStrokeEscClosing(this)
     }
 
-    private fun addHSeparator(target:JPanel, title: String) {
-        val titleHtml = title.replace(" ", "&nbsp;")
-        val separator = JSeparator(SwingConstants.HORIZONTAL)
-        val label = JLabel("<html><b>$titleHtml</b></html>")
-        val panel = JPanel(BorderLayout())
-        val separPanel = JPanel(BorderLayout())
-        separPanel.add(Box.createVerticalStrut(label.font.size / 2), BorderLayout.NORTH)
-        separPanel.add(separator, BorderLayout.CENTER)
-        panel.add(label, BorderLayout.WEST)
-        panel.add(separPanel, BorderLayout.CENTER)
-        target.add(panel)
-    }
-
-
-    override fun actionPerformed(e: ActionEvent?) {
-        if (e?.source == adbCmdBtn) {
+    override fun actionPerformed(e: ActionEvent) {
+        if (e.source == adbCmdBtn) {
             val fileDialog = FileDialog(this@LogCmdSettingsDialog, "Adb command", FileDialog.LOAD)
             fileDialog.isVisible = true
             if (fileDialog.file != null) {
@@ -214,7 +201,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
             } else {
                 println("Cancel Open")
             }
-        } else if (e?.source == adbSaveBtn) {
+        } else if (e.source == adbSaveBtn) {
             val chooser = JFileChooser()
             chooser.currentDirectory = File(".")
             chooser.dialogTitle = "Adb Save Dir"
@@ -227,7 +214,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
             } else {
                 println("No Selection ")
             }
-        } else if (e?.source == okBtn) {
+        } else if (e.source == okBtn) {
             logCmdManager.adbCmd = adbCmdTF.text
             logCmdManager.logSavePath = adbSaveTF.text
             val prefix = prefixTF.text.trim()
@@ -270,7 +257,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
             mainUI.updateLogCmdCombo(true)
 
             dispose()
-        } else if (e?.source == cancelBtn) {
+        } else if (e.source == cancelBtn) {
             dispose()
         }
     }
@@ -361,8 +348,8 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
             Utils.installKeyStrokeEscClosing(this)
         }
 
-        override fun actionPerformed(e: ActionEvent?) {
-            if (e?.source == cmdBtn) {
+        override fun actionPerformed(e: ActionEvent) {
+            if (e.source == cmdBtn) {
                 val fileDialog = FileDialog(this@LogCmdDialog, Strings.CMD, FileDialog.LOAD)
                 fileDialog.isVisible = true
                 if (fileDialog.file != null) {
@@ -372,7 +359,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
                 } else {
                     println("Cancel Open")
                 }
-            } else if (e?.source == okBtn) {
+            } else if (e.source == okBtn) {
                 val text = if (cmdRadio.isSelected) {
                     if (cmdTF.text.isNotEmpty()) {
                         "${LogCmdManager.TYPE_CMD_PREFIX}${cmdTF.text}"
@@ -386,21 +373,21 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
                 }
                 logCmdTable.setValueAt(text, logCmdTable.selectedRow, 1)
                 dispose()
-            } else if (e?.source == cancelBtn) {
+            } else if (e.source == cancelBtn) {
                 dispose()
             }
         }
 
-        override fun focusGained(e: FocusEvent?) {
-            if (e?.source == adbTF) {
+        override fun focusGained(e: FocusEvent) {
+            if (e.source == adbTF) {
                 adbRadio.isSelected = true
             }
-            else if (e?.source == cmdTF) {
+            else if (e.source == cmdTF) {
                 cmdRadio.isSelected = true
             }
         }
 
-        override fun focusLost(e: FocusEvent?) {
+        override fun focusLost(e: FocusEvent) {
 
         }
     }

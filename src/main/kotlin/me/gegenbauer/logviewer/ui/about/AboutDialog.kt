@@ -12,7 +12,6 @@ import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-
 class AboutDialog(parent: JFrame) :JDialog(parent, Strings.ABOUT, true), ActionListener {
     private var aboutLabel: JLabel
     private var closeBtn : ColorButton = ColorButton(Strings.CLOSE)
@@ -41,8 +40,8 @@ class AboutDialog(parent: JFrame) :JDialog(parent, Strings.ABOUT, true), ActionL
         Utils.installKeyStrokeEscClosing(this)
     }
 
-    override fun actionPerformed(e: ActionEvent?) {
-        if (e?.source == closeBtn) {
+    override fun actionPerformed(event: ActionEvent) {
+        if (event.source == closeBtn) {
             dispose()
         }
     }

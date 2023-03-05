@@ -30,7 +30,7 @@ data class LogTableModelEvent(val source: LogTableModel,val dataChange: Int,val 
 }
 
 interface LogTableModelListener {
-    fun tableChanged(event: LogTableModelEvent?)
+    fun tableChanged(event: LogTableModelEvent)
 }
 
 class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableModel() {
@@ -250,7 +250,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     private var regexSearchLog = ""
     private var searchPatternCase = Pattern.CASE_INSENSITIVE
-    var SearchMatchCase: Boolean = false
+    var searchMatchCase: Boolean = false
         set(value) {
             if (field != value) {
                 searchPatternCase = if (!value) {
@@ -266,7 +266,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 updateFilterSearchLog(filterSearchLog)
 
                 if (baseModel != null) {
-                    baseModel!!.SearchMatchCase = value
+                    baseModel!!.searchMatchCase = value
                 }
             }
         }
@@ -352,7 +352,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         }
 
         val colorEventListener = object : ColorManager.ColorEventListener {
-            override fun colorChanged(event: ColorManager.ColorEvent?) {
+            override fun colorChanged(event: ColorManager.ColorEvent) {
                 parsePattern(filterLog, true) // update color
                 isFilterUpdated = true
             }
@@ -1731,14 +1731,14 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                         logFilterItems.clear()
                         if (!isPause) {
                             while (isKeepReading) {
-                                if (scanner.hasNextLine()) {
-                                    line = try {
+                                line = if (scanner.hasNextLine()) {
+                                    try {
                                         scanner.nextLine()
                                     } catch (e: NoSuchElementException) {
                                         null
                                     }
                                 } else {
-                                    line = null
+                                    null
                                 }
                                 if (line == null) {
                                     Thread.sleep(1000)
@@ -1750,14 +1750,14 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                             while (line != null) {
                                 logLines.add(line)
 
-                                if (scanner.hasNextLine()) {
-                                    line = try {
+                                line = if (scanner.hasNextLine()) {
+                                    try {
                                         scanner.nextLine()
                                     } catch (e: NoSuchElementException) {
                                         null
                                     }
                                 } else {
-                                    line = null
+                                    null
                                 }
                                 if (System.currentTimeMillis() > nextUpdateTime) {
                                     if (line != null) {

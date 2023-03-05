@@ -245,10 +245,7 @@ class ConfigManager private constructor() {
         }
 
         for (i in 0 until FiltersManager.MAX_FILTERS) {
-            val title = properties[ITEM_FILTERS_TITLE + i] as? String
-            if (title == null) {
-                break
-            }
+            val title = properties[ITEM_FILTERS_TITLE + i] as? String ?: break
             properties.remove(ITEM_FILTERS_TITLE + i)
             properties.remove(ITEM_FILTERS_FILTER + i)
             properties.remove(ITEM_FILTERS_TABLE_BAR + i)
@@ -302,10 +299,7 @@ class ConfigManager private constructor() {
         }
 
         for (i in 0 until CmdManager.MAX_CMD_COUNT) {
-            val title = properties[ITEM_CMD_TITLE + i] as? String
-            if (title == null) {
-                break
-            }
+            val title = properties[ITEM_CMD_TITLE + i] as? String ?: break
             properties.remove(ITEM_CMD_TITLE + i)
             properties.remove(ITEM_CMD_CMD + i)
             properties.remove(ITEM_CMD_TABLE_BAR + i)

@@ -49,8 +49,8 @@ class HelpDialog(parent: JFrame) : JDialog(parent, Strings.HELP, true), ActionLi
         Utils.installKeyStrokeEscClosing(this)
     }
 
-    override fun actionPerformed(e: ActionEvent?) {
-        if (e?.source == closeBtn) {
+    override fun actionPerformed(e: ActionEvent) {
+        if (e.source == closeBtn) {
             dispose()
         }
     }

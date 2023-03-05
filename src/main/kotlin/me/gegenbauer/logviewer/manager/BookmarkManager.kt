@@ -9,7 +9,7 @@ class BookmarkEvent(change:Int) {
 }
 
 interface BookmarkEventListener {
-    fun bookmarkChanged(event: BookmarkEvent?)
+    fun bookmarkChanged(event: BookmarkEvent)
 }
 
 class BookmarkManager private constructor(){

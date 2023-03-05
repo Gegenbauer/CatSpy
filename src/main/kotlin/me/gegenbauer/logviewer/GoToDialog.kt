@@ -26,11 +26,11 @@ class GoToDialog (parent: JFrame) : JDialog(parent, "GoTo line", true) {
     }
 
     internal inner class KeyHandler: KeyAdapter() {
-        override fun keyReleased(p0: KeyEvent?) {
-            if (p0?.keyCode == KeyEvent.VK_ESCAPE) {
+        override fun keyReleased(event: KeyEvent) {
+            if (event.keyCode == KeyEvent.VK_ESCAPE) {
                 line = -1
                 dispose()
-            } else if (p0?.keyCode == KeyEvent.VK_ENTER && textField.text.trim().isNotEmpty()) {
+            } else if (event.keyCode == KeyEvent.VK_ENTER && textField.text.trim().isNotEmpty()) {
                 line = try {
                     textField.text.toInt()
                 } catch (e:NumberFormatException) {

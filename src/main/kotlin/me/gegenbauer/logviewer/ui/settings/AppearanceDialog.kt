@@ -126,21 +126,11 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, Strings.APP
         Utils.installKeyStrokeEscClosing(this)
     }
 
-    override fun actionPerformed(e: ActionEvent?) {
-        if (e?.source == okBtn) {
-            for (item in laFGroup.elements) {
-                if (item.isSelected) {
-                    ConfigManager.getInstance().saveItem(ConfigManager.ITEM_LOOK_AND_FEEL, item.text)
-                    ConfigManager.getInstance().saveItem(ConfigManager.ITEM_UI_FONT_SIZE, fontSlider.value.toString())
-                    ConfigManager.getInstance().saveItem(
-                        ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE,
-                        parent.logSplitPane.dividerSize.toString()
-                    )
-                    break
-                }
-            }
+    override fun actionPerformed(e: ActionEvent) {
+        if (e.source == okBtn) {
+            saveConfiguration(laFGroup, parent, fontSlider)
             this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
-        } else if (e?.source == cancelBtn) {
+        } else if (e.source == cancelBtn) {
             parent.logSplitPane.dividerSize = freDividerSize
             this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
         }
@@ -152,6 +142,20 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, Strings.APP
         private const val EXAMPLE_TEXT = "To apply \"Changes\" need to restart"
         private const val MIN_DIVIDER_POS = 1
         private const val MAX_DIVIDER_POS = 20
+
+        fun saveConfiguration(laFGroup: ButtonGroup, parent: MainUI, fontSlider: JSlider) {
+            for (item in laFGroup.elements) {
+                if (item.isSelected) {
+                    ConfigManager.getInstance().saveItem(ConfigManager.ITEM_LOOK_AND_FEEL, item.text)
+                    ConfigManager.getInstance().saveItem(ConfigManager.ITEM_UI_FONT_SIZE, fontSlider.value.toString())
+                    ConfigManager.getInstance().saveItem(
+                        ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE,
+                        parent.logSplitPane.dividerSize.toString()
+                    )
+                    break
+                }
+            }
+        }
     }
 }
 

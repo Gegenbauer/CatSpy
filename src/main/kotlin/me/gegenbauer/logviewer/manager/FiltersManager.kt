@@ -43,9 +43,9 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mai
     }
 
     internal inner class ListSelectionHandler : ListSelectionListener {
-        override fun valueChanged(p0: ListSelectionEvent?) {
-            if (p0?.valueIsAdjusting == false) {
-//                val list = p0?.source as JList<CustomElement>
+        override fun valueChanged(event: ListSelectionEvent) {
+            if (!event.valueIsAdjusting) {
+//                val list = event.source as JList<CustomElement>
 //                val selection = list.selectedValue
 //                mainUI.setTextShowLogCombo(selection.mValue)
 //                mainUI.applyShowLogCombo()
@@ -66,7 +66,7 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mai
     private fun shouMainUIText(event: InputEvent) {
         val list = event.source as JList<CustomElement>
         val selection = list.selectedValue
-        if ((ActionEvent.CTRL_MASK and event.modifiers) != 0) {
+        if ((InputEvent.CTRL_DOWN_MASK and event.modifiersEx) != 0) {
             val filterText = mainUI.getTextShowLogCombo()
             if (filterText.isEmpty()) {
                 mainUI.setTextShowLogCombo(selection.value)

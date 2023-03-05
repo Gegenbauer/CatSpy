@@ -231,7 +231,7 @@ class FontDialog(parent: MainUI) : JDialog(parent, Strings.FONT + " & " + String
         contentPane.add(panel)
 
         addWindowListener(object : WindowAdapter() {
-            override fun windowClosing(e: WindowEvent?) {
+            override fun windowClosing(e: WindowEvent) {
                 println("exit Font Color dialog, restore $isNeedRestore")
 
                 if (isNeedRestore) {
@@ -349,11 +349,11 @@ class FontDialog(parent: MainUI) : JDialog(parent, Strings.FONT + " & " + String
 
     class ColorLabel(val type: ColorManager.TableColorType, val idx: Int) : JLabel()
 
-    override fun actionPerformed(e: ActionEvent?) {
-        if (e?.source == okBtn) {
+    override fun actionPerformed(e: ActionEvent) {
+        if (e.source == okBtn) {
             isNeedRestore = false
             this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
-        } else if (e?.source == cancelBtn) {
+        } else if (e.source == cancelBtn) {
             this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
         }
     }
@@ -367,14 +367,14 @@ class FontDialog(parent: MainUI) : JDialog(parent, Strings.FONT + " & " + String
     }
 
     internal inner class ChangeHandler : ChangeListener {
-        override fun stateChanged(e: ChangeEvent?) {
+        override fun stateChanged(e: ChangeEvent) {
             setFont()
         }
     }
 
     internal inner class ListSelectionHandler : ListSelectionListener {
-        override fun valueChanged(p0: ListSelectionEvent?) {
-            if (p0?.source == nameList) {
+        override fun valueChanged(event: ListSelectionEvent) {
+            if (event.source == nameList) {
                 setFont()
             }
         }
@@ -384,7 +384,7 @@ class FontDialog(parent: MainUI) : JDialog(parent, Strings.FONT + " & " + String
     val optionFilterCheckbox = JCheckBox()
 
     internal inner class MouseHandler : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent?) {
+        override fun mouseClicked(e: MouseEvent) {
             val colorChooser = JColorChooser()
             val panels = colorChooser.chooserPanels
             var rgbPanel: JPanel? = null

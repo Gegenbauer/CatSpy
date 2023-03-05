@@ -174,20 +174,20 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                 button.value = item.value
                 button.toolTipText = "<html>${item.title} : <b>\"${item.value}\"</b><br><br>* Append : Ctrl + Click</html>"
                 button.margin = Insets(0, 3, 0, 3)
-                button.addActionListener { e: ActionEvent? ->
-                    if ((ActionEvent.CTRL_MASK and e!!.modifiers) != 0) {
+                button.addActionListener { event: ActionEvent ->
+                    if ((ActionEvent.CTRL_MASK and event.modifiers) != 0) {
                         val filterText = mainUI.getTextShowLogCombo()
                         if (filterText.isEmpty()) {
-                            mainUI.setTextShowLogCombo((e.source as TableBarButton).value)
+                            mainUI.setTextShowLogCombo((event.source as TableBarButton).value)
                         } else {
                             if (filterText.substring(filterText.length - 1) == "|") {
-                                mainUI.setTextShowLogCombo(filterText + (e.source as TableBarButton).value)
+                                mainUI.setTextShowLogCombo(filterText + (event.source as TableBarButton).value)
                             } else {
-                                mainUI.setTextShowLogCombo(filterText + "|" + (e.source as TableBarButton).value)
+                                mainUI.setTextShowLogCombo(filterText + "|" + (event.source as TableBarButton).value)
                             }
                         }
                     } else {
-                        mainUI.setTextShowLogCombo((e.source as TableBarButton).value)
+                        mainUI.setTextShowLogCombo((event.source as TableBarButton).value)
                     }
                     mainUI.applyShowLogCombo()
                 }
@@ -217,19 +217,8 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                 button.value = item.value
                 button.toolTipText = "${item.title} : ${item.value}"
                 button.margin = Insets(0, 3, 0, 3)
-                button.addActionListener { e: ActionEvent? ->
-                    var cmd = (e?.source as TableBarButton).value
-                    if (cmd.startsWith("adb ")) {
-                        cmd = cmd.replaceFirst(
-                            "adb ",
-                            "${LogCmdManager.getInstance().adbCmd} -s ${LogCmdManager.getInstance().targetDevice} "
-                        )
-                    } else if (cmd.startsWith("adb.exe ")) {
-                        cmd = cmd.replaceFirst(
-                            "adb.exe ",
-                            "${LogCmdManager.getInstance().adbCmd} -s ${LogCmdManager.getInstance().targetDevice} "
-                        )
-                    }
+                button.addActionListener { event: ActionEvent ->
+                    val cmd = CmdManager.replaceAdbCmdWithTargetDevice((event.source as TableBarButton).value)
 
                     if (cmd.isNotEmpty()) {
                         val runtime = Runtime.getRuntime()
@@ -355,8 +344,8 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
     }
 
     internal inner class AdjustmentHandler : AdjustmentListener {
-        override fun adjustmentValueChanged(p0: AdjustmentEvent?) {
-            if (p0?.source == scrollPane.verticalScrollBar) {
+        override fun adjustmentValueChanged(event: AdjustmentEvent) {
+            if (event.source == scrollPane.verticalScrollBar) {
                 val vPos = scrollPane.verticalScrollBar.value
                 if (vPos != oldLogVPos) {
                     if (vPos < oldLogVPos && getGoToLast()) {
@@ -369,7 +358,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                     oldLogVPos = vPos
                     vStatusPanel.repaint()
                 }
-            } else if (p0?.source == scrollPane.horizontalScrollBar) {
+            } else if (event.source == scrollPane.horizontalScrollBar) {
                 val hPos = scrollPane.horizontalScrollBar.value
                 if (hPos != oldLogHPos) {
                     oldLogHPos = hPos
@@ -381,8 +370,8 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
 
     internal inner class TableModelHandler : LogTableModelListener {
         @Synchronized
-        override fun tableChanged(event: LogTableModelEvent?) {
-            if (event?.dataChange == LogTableModelEvent.EVENT_CLEARED) {
+        override fun tableChanged(event: LogTableModelEvent) {
+            if (event.dataChange == LogTableModelEvent.EVENT_CLEARED) {
                 oldLogVPos = -1
             } else {
                 if (SwingUtilities.isEventDispatchThread()) {
@@ -395,10 +384,10 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
             }
         }
 
-        private fun tableChangedInternal(event: LogTableModelEvent?) {
+        private fun tableChangedInternal(event: LogTableModelEvent) {
             updateTableUI()
             table.updateColumnWidth(this@LogPanel.width, scrollPane.verticalScrollBar.width)
-            if (event?.dataChange == LogTableModelEvent.EVENT_CHANGED) {
+            if (event.dataChange == LogTableModelEvent.EVENT_CHANGED) {
                 if (getGoToLast() && table.rowCount > 0) {
                     val viewRect = table.getCellRect(table.rowCount - 1, 0, true)
                     viewRect.x = table.visibleRect.x
@@ -421,7 +410,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                         }
                     }
                 }
-            } else if (event?.dataChange == LogTableModelEvent.EVENT_FILTERED) {
+            } else if (event.dataChange == LogTableModelEvent.EVENT_FILTERED) {
                 if (basePanel != null) {
                     val selectedLine = mainUI.getMarkLine()
                     if (selectedLine >= 0) {
@@ -445,7 +434,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
     }
 
     internal inner class ListSelectionHandler : ListSelectionListener {
-        override fun valueChanged(p0: ListSelectionEvent?) {
+        override fun valueChanged(event: ListSelectionEvent) {
             val basePanel = basePanel
             if (basePanel != null) {
                 val value = table.tableModel.getValueAt(table.selectedRow, 0)
@@ -475,8 +464,8 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
     }
 
     internal inner class ActionHandler : ActionListener {
-        override fun actionPerformed(p0: ActionEvent?) {
-            when (p0?.source) {
+        override fun actionPerformed(event: ActionEvent) {
+            when (event.source) {
                 firstBtn -> {
                     goToFirst()
                 }
@@ -522,7 +511,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
     }
 
     internal inner class BookmarkHandler : BookmarkEventListener {
-        override fun bookmarkChanged(event: BookmarkEvent?) {
+        override fun bookmarkChanged(event: BookmarkEvent) {
             vStatusPanel.repaint()
             if (table.tableModel.bookmarkMode) {
                 table.tableModel.bookmarkMode = true
@@ -640,7 +629,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
     }
 
     internal inner class ComponenetHander : ComponentAdapter() {
-        override fun componentResized(e: ComponentEvent?) {
+        override fun componentResized(e: ComponentEvent) {
             if (e != null) {
                 table.updateColumnWidth(e.component.width, scrollPane.verticalScrollBar.width)
             }
@@ -670,8 +659,8 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         }
 
         internal inner class ActionHandler : ActionListener {
-            override fun actionPerformed(p0: ActionEvent?) {
-                when (p0?.source) {
+            override fun actionPerformed(event: ActionEvent) {
+                when (event.source) {
                     reconnectItem -> {
                         mainUI.reconnectAdb()
                     }
@@ -693,8 +682,8 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
     }
 
     internal inner class MouseHandler : MouseAdapter() {
-        override fun mousePressed(p0: MouseEvent?) {
-            super.mousePressed(p0)
+        override fun mousePressed(event: MouseEvent) {
+            super.mousePressed(event)
         }
 
         private var popupMenu: JPopupMenu? = null
@@ -709,7 +698,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
             super.mouseReleased(event)
         }
 
-        override fun mouseDragged(e: MouseEvent?) {
+        override fun mouseDragged(e: MouseEvent) {
             println("mouseDragged")
             super.mouseDragged(e)
         }

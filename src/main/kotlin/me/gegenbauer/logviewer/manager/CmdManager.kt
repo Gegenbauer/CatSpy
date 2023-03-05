@@ -14,10 +14,6 @@ class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI,
     private val mouseHandler = MouseHandler()
     private val keyHandler = KeyHandler()
 
-    companion object {
-        const val MAX_CMD_COUNT = 20
-    }
-
     init {
         dialogTitle = "Cmd Manager"
     }
@@ -48,13 +44,7 @@ class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI,
 
     private fun runCmd(list: JList<CustomElement>) {
         val selection = list.selectedValue
-        var cmd = selection.value
-        if (cmd.startsWith("adb ")) {
-            cmd = cmd.replaceFirst("adb ", "${LogCmdManager.getInstance().adbCmd} -s ${LogCmdManager.getInstance().targetDevice} ")
-        } else if (cmd.startsWith("adb.exe ")) {
-            cmd = cmd.replaceFirst("adb.exe ", "${LogCmdManager.getInstance().adbCmd} -s ${LogCmdManager.getInstance().targetDevice} ")
-        }
-
+        val cmd = replaceAdbCmdWithTargetDevice(selection.value)
         if (cmd.isNotEmpty()) {
             val ret = JOptionPane.showConfirmDialog(
                 list,
@@ -71,17 +61,17 @@ class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI,
     }
 
     internal inner class ListSelectionHandler : ListSelectionListener {
-        override fun valueChanged(e: ListSelectionEvent?) {
+        override fun valueChanged(e: ListSelectionEvent) {
             println("Not implemented")
         }
     }
 
     @Suppress("UNCHECKED_CAST")
     internal inner class MouseHandler: MouseAdapter() {
-        override fun mouseClicked(p0: MouseEvent?) {
-            super.mouseClicked(p0)
-            if (p0?.clickCount == 2) {
-                val list = p0.source as JList<CustomElement>
+        override fun mouseClicked(event: MouseEvent) {
+            super.mouseClicked(event)
+            if (event.clickCount == 2) {
+                val list = event.source as JList<CustomElement>
                 runCmd(list)
             }
         }
@@ -89,10 +79,24 @@ class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI,
 
     @Suppress("UNCHECKED_CAST")
     internal inner class KeyHandler: KeyAdapter() {
-        override fun keyPressed(p0: KeyEvent?) {
-            if (p0?.keyCode == KeyEvent.VK_ENTER) {
-                val list = p0.source as JList<CustomElement>
+        override fun keyPressed(event: KeyEvent) {
+            if (event.keyCode == KeyEvent.VK_ENTER) {
+                val list = event.source as JList<CustomElement>
                 runCmd(list)
+            }
+        }
+    }
+
+    companion object {
+        const val MAX_CMD_COUNT = 20
+
+        fun replaceAdbCmdWithTargetDevice(cmd: String): String {
+            return if (cmd.startsWith("adb ")) {
+                cmd.replaceFirst("adb ", "${LogCmdManager.getInstance().adbCmd} -s ${LogCmdManager.getInstance().targetDevice} ")
+            } else if (cmd.startsWith("adb.exe ")) {
+                cmd.replaceFirst("adb.exe ", "${LogCmdManager.getInstance().adbCmd} -s ${LogCmdManager.getInstance().targetDevice} ")
+            } else {
+                cmd
             }
         }
     }

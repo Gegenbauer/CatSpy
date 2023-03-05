@@ -27,7 +27,7 @@ class LogTableDialog (private val parent: MainUI, private val logPanel: LogPanel
         panel.add(this.logPanel, BorderLayout.CENTER)
         contentPane.add(panel)
         addWindowListener(object : WindowAdapter() {
-            override fun windowClosing(e: WindowEvent?) {
+            override fun windowClosing(e: WindowEvent) {
                 println("exit table dialog")
                 parent.attachLogPanel(this@LogTableDialog.logPanel)
             }
