@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<entry key="FRAME_HEIGHT">727</entry>
+<entry key="SHOW_PID_CHECK">true</entry>
+<entry key="SHOW_LOG_CHECK">true</entry>
+<entry key="FRAME_EXTENDED_STATE">0</entry>
+<entry key="FRAME_WIDTH">1270</entry>
+<entry key="SHOW_TAG_CHECK">true</entry>
+<entry key="SHOW_TID_CHECK">true</entry>
+<entry key="ADB_DEVICE"></entry>
+<entry key="DIVIDER_LOCATION">692</entry>
+<entry key="HIGHLIGHT_LOG_CHECK">true</entry>
+<entry key="CONFIG_VERSION">1</entry>
+<entry key="ADB_LOG_CMD">logcat -v threadtime</entry>
+<entry key="LOG_LEVEL">Verbose</entry>
+<entry key="FRAME_Y">27</entry>
+<entry key="FRAME_X">72</entry>
+</properties>
