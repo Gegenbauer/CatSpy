@@ -273,11 +273,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     var goToLast = true
 
-    //        set(value) {
-//            field = value
-//            Exception().printStackTrace()
-//            println("tid = " + Thread.currentThread().id)
-//        }
     var boldTag = false
     var boldPid = false
     var boldTid = false
@@ -360,10 +355,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
         ColorManager.getInstance().addColorEventListener(colorEventListener)
     }
-
-//    override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean {
-//        return true
-//    }
 
     fun isFullDataModel(): Boolean {
         if (baseModel == null) {
@@ -826,14 +817,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             }
         }
 
-//        val TYPE_HIGHLIGHT = 1
-//        val TYPE_FILTER = 2
-//        val TYPE_BOLD_TAG = 3
-//        val TYPE_BOLD_PID = 4
-//        val TYPE_BOLD_TID = 5
         val starts = Stack<Int>()
         val ends = Stack<Int>()
-//        val types = Stack<Int>()
         val fgColors = Stack<String>()
         val bgColors = Stack<String>()
 
@@ -1093,7 +1078,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             while (!starts.isEmpty()) {
                 val start = starts.pop()
                 val end = ends.pop()
-//                val type = types.pop()
 
                 val fgColor = fgColors.pop()
                 var bgColor = bgColors.pop()
@@ -1130,7 +1114,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                 tmpColor.blue / 2 + tableColor.selectedBG.blue / 2
                             ).rgb
                         ).substring(2).uppercase()
-//                        bgColor = "#" + Integer.toHexString(tableColor.SelectedBG.brighter().rgb).substring(2).uppercase()
                     }
 
                     stringBuilder.replace(
@@ -1260,8 +1243,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         } else {
             isFilterUpdated = false
         }
-//            goToLast = false
-//            baseModel?.goToLast = false
         SwingUtilities.invokeAndWait {
             logItems.clear()
             logItems = mutableListOf()
@@ -1275,9 +1256,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 }
             } else {
                 makePattenPrintValue()
-//                val dtf = DateTimeFormatter.ofPattern("HH:mm:ss")
-//                val now = LocalDateTime.now()
-//                println(dtf.format(now))
                 var isShow: Boolean
 
                 var regexShowLog = ""
@@ -1703,7 +1681,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 makePattenPrintValue()
 
                 val currLogFile: File? = logFile
-//            var bufferedReader = BufferedReader(InputStreamReader(FileInputStream(currLogFile)))
                 val scanner = Scanner(MyFileInputStream(currLogFile))
                 var line: String? = null
                 var num = 0

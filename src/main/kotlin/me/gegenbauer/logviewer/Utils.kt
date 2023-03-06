@@ -8,13 +8,6 @@ import javax.swing.*
 
 class Utils {
     companion object {
-//        var escStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)
-//        var actionMapKey = javaClass.name + ":WINDOW_CLOSING"
-//        var closingAction: Action = object : AbstractAction() {
-//            override fun actionPerformed(event: ActionEvent) {
-//                this@MainUI.dispatchEvent(WindowEvent(this@MainUI, WindowEvent.WINDOW_CLOSING))
-//            }
-//        }
         fun installKeyStroke(container: RootPaneContainer, stroke: KeyStroke?, actionMapKey: String?, action: Action?) {
             val rootPane = container.rootPane
             rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(stroke, actionMapKey)

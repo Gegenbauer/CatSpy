@@ -51,7 +51,6 @@ class TooltipStringsEn private constructor() {
             , "F4 : Move to Next"
             , "Searching View : filtered log, full log"
             , "ESC : Close search bar"
-//            , ""
         )
     }
 }

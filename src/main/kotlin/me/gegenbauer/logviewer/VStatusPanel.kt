@@ -74,7 +74,6 @@ class VStatusPanel(private val logTable: LogTable) : JPanel() {
         override fun mouseClicked(event: MouseEvent) {
             val row = event!!.point.y * logTable.rowCount / height
             try {
-                // logTable.setRowSelectionInterval(row, row)
                 logTable.scrollRectToVisible(Rectangle(logTable.getCellRect(row, 0, true)))
             } catch (e: IllegalArgumentException) {
                 println("e : $e")

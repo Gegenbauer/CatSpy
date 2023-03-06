@@ -87,7 +87,6 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
 
         val columnNames = arrayOf("Num", "Cmd")
 
-        // logCommands num = AdbManager.LOG_CMD_MAX
         val logCommands = arrayOf(
                 arrayOf<Any>("1(fixed)", LogCmdManager.DEFAULT_LOGCAT),
                 arrayOf<Any>("2", ""),

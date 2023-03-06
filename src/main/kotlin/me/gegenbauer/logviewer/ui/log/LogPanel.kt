@@ -57,7 +57,6 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
     init {
         layout = BorderLayout()
         ctrlMainPanel = ButtonPanel()
-//        firstBtn = ColorButton("∧") // △ ▲ ▽ ▼ ↑ ↓ ∧ ∨
         firstBtn = ColorButton("")
         firstBtn.icon = ImageIcon(this.javaClass.getResource("/images/top.png"))
         firstBtn.toolTipText = TooltipStrings.VIEW_FIRST_BTN
@@ -642,7 +641,6 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         var startItem = JMenuItem("Start")
         var stopItem = JMenuItem("Stop")
         var clearItem = JMenuItem("Clear")
-//        var clearSaveItem = JMenuItem("Clear/Save")
         private val actionHandler = ActionHandler()
 
         init {
@@ -654,8 +652,6 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
             add(stopItem)
             clearItem.addActionListener(actionHandler)
             add(clearItem)
-//            clearSaveItem.addActionListener(mActionHandler)
-//            add(clearSaveItem)
         }
 
         internal inner class ActionHandler : ActionListener {
@@ -673,9 +669,6 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                     clearItem -> {
                         mainUI.clearAdbLog()
                     }
-//                    clearSaveItem -> {
-//                        mainUI.clearSaveAdbLog()
-//                    }
                 }
             }
         }

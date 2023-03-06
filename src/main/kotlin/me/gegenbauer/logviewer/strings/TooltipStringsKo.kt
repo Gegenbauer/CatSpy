@@ -51,7 +51,6 @@ class TooltipStringsKo private constructor() {
                 , "F4 : 다음 검색 항목으로 이동"
                 , "검색 중인 뷰 : 필터 로그 뷰, 전체 로그 뷰"
                 , "ESC : 검색 바 닫기"
-//            , ""
         )
     }
 }

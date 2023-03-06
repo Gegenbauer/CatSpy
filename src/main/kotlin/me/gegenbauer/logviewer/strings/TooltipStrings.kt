@@ -63,7 +63,6 @@ class TooltipStrings private constructor() {
         private val IDX_SEARCH_NEXT_BTN = idx++
         private val IDX_SEARCH_TARGET_LABEL = idx++
         private val IDX_SEARCH_CLOSE_BTN = idx++
-//        private val IDX_ = idx++
 
         val START_BTN: String
             get() { return currStrings[IDX_START_BTN] }

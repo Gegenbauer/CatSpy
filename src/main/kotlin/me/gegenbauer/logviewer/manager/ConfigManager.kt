@@ -324,10 +324,6 @@ class ConfigManager private constructor() {
             println("manageVersion : $confVer applied")
         }
 
-//        if (confVer != null && confVer == "1") {
-//            updateConfigFromV1ToV2()
-//        }
-
         saveConfig()
     }
 

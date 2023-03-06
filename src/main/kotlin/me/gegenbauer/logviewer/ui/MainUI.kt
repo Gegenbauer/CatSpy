@@ -79,7 +79,6 @@ class MainUI(title: String) : JFrame() {
     private lateinit var itemFileFollow: JMenuItem
     private lateinit var itemFileOpenFiles: JMenuItem
     private lateinit var itemFileAppendFiles: JMenuItem
-//    private lateinit var itemFileOpenRecents: JMenu
     private lateinit var itemFileExit: JMenuItem
     private lateinit var menuView: JMenu
     private lateinit var itemFull: JCheckBoxMenuItem
@@ -106,9 +105,6 @@ class MainUI(title: String) : JFrame() {
     private lateinit var pauseToggle: ColorToggleButton
     private lateinit var clearViewsBtn: ColorButton
     private lateinit var saveBtn: ColorButton
-//    private lateinit var rotationBtn: ColorButton
-//    lateinit var filtersBtn: ColorButton
-//    lateinit var cmdsBtn: ColorButton
     internal lateinit var searchPanel: SearchPanel
 
     private lateinit var logPanel: JPanel
@@ -464,8 +460,6 @@ class MainUI(title: String) : JFrame() {
             configManager.setItem(ConfigManager.ITEM_LAST_DIVIDER_LOCATION, logSplitPane.lastDividerLocation.toString())
         }
 
-//            properties.put(ITEM_LANG, Strings.lang.toString())
-
         configManager.saveConfig()
     }
 
@@ -501,9 +495,6 @@ class MainUI(title: String) : JFrame() {
         itemFileAppendFiles.addActionListener(actionHandler)
         menuFile.add(itemFileAppendFiles)
 
-//       itemFileOpenRecents = JMenu(Strings.OPEN_RECENTS)
-//       itemFileOpenRecents.addActionListener(mActionHandler)
-//        menuFile.add(mItemFileOpenRecents)
         menuFile.addSeparator()
 
         itemFileExit = JMenuItem(Strings.EXIT)
@@ -635,8 +626,6 @@ class MainUI(title: String) : JFrame() {
             } else if (event.keyCode == KeyEvent.VK_PAGE_UP && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
                 filteredLogPanel.goToFirst()
                 fullLogPanel.goToFirst()
-//                } else if (event.keyCode == KeyEvent.VK_N && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
-
             } else if (event.keyCode == KeyEvent.VK_L && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
                 deviceCombo.requestFocus()
             } else if (event.keyCode == KeyEvent.VK_R && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
@@ -665,8 +654,6 @@ class MainUI(title: String) : JFrame() {
         searchPanel = SearchPanel()
 
         val btnMargin = Insets(2, 5, 2, 5)
-//        logToolBar = JPanel()
-//        logToolBar.background = Color(0xE5, 0xE5, 0xE5)
         startBtn = ColorButton(Strings.START)
         startBtn.margin = btnMargin
         startBtn.toolTipText = TooltipStrings.START_BTN
@@ -676,13 +663,11 @@ class MainUI(title: String) : JFrame() {
         retryAdbToggle = ColorToggleButton(Strings.RETRY_ADB)
         retryAdbToggle.toolTipText = TooltipStrings.RETRY_ADB_TOGGLE
         retryAdbToggle.margin = btnMargin
-//        retryAdbToggle.margin = Insets(retryAdbToggle.margin.top, 0, retryAdbToggle.margin.bottom, 0)
         retryAdbToggle.addItemListener(itemHandler)
 
         pauseToggle = ColorToggleButton(Strings.PAUSE)
         pauseToggle.toolTipText = TooltipStrings.PAUSE_BTN
         pauseToggle.margin = btnMargin
-//        pauseToggle.margin = Insets(pauseToggle.margin.top, 0, pauseToggle.margin.bottom, 0)
         pauseToggle.addItemListener(itemHandler)
 
 
@@ -703,21 +688,6 @@ class MainUI(title: String) : JFrame() {
         saveBtn.toolTipText = TooltipStrings.SAVE_BTN
         saveBtn.addActionListener(actionHandler)
         saveBtn.addMouseListener(mouseHandler)
-//        rotationBtn = ColorButton(Strings.ROTATION)
-//        rotationBtn.margin = btnMargin
-//        rotationBtn.toolTipText = TooltipStrings.ROTATION_BTN
-//        rotationBtn.addActionListener(actionHandler)
-//        rotationBtn.addMouseListener(aouseHandler)
-//        filtersBtn = ColorButton(Strings.FILTERS)
-//        filtersBtn.margin = btnMargin
-//        filtersBtn.toolTipText = TooltipStrings.FILTER_LIST_BTN
-//        filtersBtn.addActionListener(actionHandler)
-//        filtersBtn.addMouseListener(mouseHandler)
-//        cmdsBtn = ColorButton(Strings.COMMANDS)
-//        cmdsBtn.margin = btnMargin
-//        cmdsBtn.toolTipText = TooltipStrings.CMD_LIST_BTN
-//        cmdsBtn.addActionListener(actionHandler)
-//        cmdsBtn.addMouseListener(mouseHandler)
 
         logPanel = JPanel()
         showLogPanel = JPanel()
@@ -826,7 +796,6 @@ class MainUI(title: String) : JFrame() {
         adbConnectBtn.margin = btnMargin
         adbConnectBtn.toolTipText = TooltipStrings.CONNECT_BTN
         adbConnectBtn.addActionListener(actionHandler)
-//        deviceComboPanel.add(adbConnectBtn, BorderLayout.EAST)
         adbRefreshBtn = ColorButton(Strings.REFRESH)
         adbRefreshBtn.margin = btnMargin
         adbRefreshBtn.addActionListener(actionHandler)
@@ -858,7 +827,6 @@ class MainUI(title: String) : JFrame() {
         }
         boldLogCombo.preferredSize = Dimension(170, boldLogCombo.preferredSize.height)
         boldLogPanel.add(boldLogCombo, BorderLayout.CENTER)
-//        boldPanel.add(boldLogPanel)
 
         showTagPanel.layout = BorderLayout()
         showTagPanel.add(showTagTogglePanel, BorderLayout.WEST)
@@ -867,7 +835,6 @@ class MainUI(title: String) : JFrame() {
         }
         showTagCombo.preferredSize = Dimension(250, showTagCombo.preferredSize.height)
         showTagPanel.add(showTagCombo, BorderLayout.CENTER)
-//        tagPanel.add(showTagPanel)
 
         showPidPanel.layout = BorderLayout()
         showPidPanel.add(showPidTogglePanel, BorderLayout.WEST)
@@ -876,7 +843,6 @@ class MainUI(title: String) : JFrame() {
         }
         showPidCombo.preferredSize = Dimension(120, showPidCombo.preferredSize.height)
         showPidPanel.add(showPidCombo, BorderLayout.CENTER)
-//        pidPanel.add(showPidPanel)
 
         showTidPanel.layout = BorderLayout()
         showTidPanel.add(showTidTogglePanel, BorderLayout.WEST)
@@ -885,7 +851,6 @@ class MainUI(title: String) : JFrame() {
         }
         showTidCombo.preferredSize = Dimension(120, showTidCombo.preferredSize.height)
         showTidPanel.add(showTidCombo, BorderLayout.CENTER)
-//        tidPanel.add(showTidPanel)
 
         logCmdCombo.preferredSize = Dimension(200, logCmdCombo.preferredSize.height)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
@@ -1925,21 +1890,18 @@ class MainUI(title: String) : JFrame() {
                 stopBtn -> {
                     stopAdbScan()
                     logCmdManager.stop()
-    //            } else if (event.source == pauseBtn) {
                 }
                 clearViewsBtn -> {
                     filteredTableModel.clearItems()
                     repaint()
                 }
                 saveBtn -> {
-    //                filteredTableModel.clearItems()
                     if (filteredTableModel.isScanning()) {
                         setSaveLogFile()
                     }
                     else {
                         println("SaveBtn : not adb scanning mode")
                     }
-    //                repaint()
                 }
                 itemRotation -> {
                     rotationStatus++
@@ -1979,12 +1941,6 @@ class MainUI(title: String) : JFrame() {
                         }
                     }
                 }
-//                filtersBtn -> {
-//                    filtersManager.showDialog()
-//                }
-//                cmdsBtn -> {
-//                    cmdsManager.showDialog()
-//                }
                 startFollowBtn -> {
                     startFileFollow()
                 }
@@ -2280,14 +2236,6 @@ class MainUI(title: String) : JFrame() {
             }
         }.start()
     }
-
-//    fun clearSaveAdbLog() {
-//        Thread(Runnable {
-//            run {
-//                saveBtn.doClick()
-//            }
-//        }).start()
-//    }
 
     fun getTextShowLogCombo() : String {
         if (showLogCombo.selectedItem == null) {

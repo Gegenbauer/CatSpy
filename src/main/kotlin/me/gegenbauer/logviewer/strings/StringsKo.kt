@@ -87,7 +87,6 @@ class StringsKo private constructor() {
             , "검색 항목 설정"
             , "검색"
             , "Cmd"
-//            , ""
         )
     }
 }

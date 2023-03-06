@@ -102,7 +102,6 @@ class Strings private constructor() {
         private val IDX_SET_SEARCH = idx++
         private val IDX_SEARCH = idx++
         private val IDX_CMD = idx++
-//        private val IDX_ = idx++
 
         val FILE: String
             get() { return currStrings[IDX_FILE] }

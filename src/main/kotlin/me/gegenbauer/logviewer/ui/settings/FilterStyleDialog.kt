@@ -96,7 +96,6 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${Strings
         styleComboArray[ComboIdx.TID.value]!!.selectedIndex = parent.showTidComboStyle.value
         comboLabelArray[ComboIdx.BOLD.value]!!.text = "Combo Style : BOLD"
         styleComboArray[ComboIdx.BOLD.value]!!.selectedIndex = parent.boldLogComboStyle.value
-//            comboLabelArray[idx]!!.toolTipText = colorLabelArray[idx]!!.text
 
         for (idx in comboLabelArray.indices) {
             styleLabelPanel.add(comboLabelArray[idx])

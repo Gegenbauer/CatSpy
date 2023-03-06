@@ -31,11 +31,9 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
         dropMode = DropMode.INSERT
 
         val columnNum = columnModel.getColumn(0)
-//        columnNum.preferredWidth = COLUMN_0_WIDTH
         columnNum.cellRenderer = NumCellRenderer()
 
         val columnLog = columnModel.getColumn(1)
-//        columnLog.preferredWidth = gd.displayMode.width - COLUMN_0_WIDTH - 25
         columnLog.cellRenderer = LogCellRenderer()
         intercellSpacing = Dimension(0, 0)
 
@@ -82,29 +80,14 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
         set(value) {
             field = value
             val columnLog = columnModel.getColumn(1)
-//            if (value == true) {
             columnLog.cellRenderer = LogCellRenderer()
-//            }
-//            else {
-//                if (viewMode == VIEW_LINE_ONE) {
-//                    columnLog.cellRenderer = LogCellRenderer()
-//                }
-//                else if (viewMode == VIEW_LINE_WRAP) {
-//                    columnLog.cellRenderer = LogWrapCellRenderer()
-//                }
-//            }
         }
 
     var viewMode = VIEW_LINE_ONE
         set(value) {
             field = value
             val columnLog = columnModel.getColumn(1)
-//            if (value == VIEW_LINE_ONE) {
             columnLog.cellRenderer = LogCellRenderer()
-//            }
-//            else if (value == VIEW_LINE_WRAP) {
-//                columnLog.cellRenderer = LogWrapCellRenderer()
-//            }
         }
 
     internal class LineNumBorder(val color: Color, private val thickness: Int) : AbstractBorder() {
@@ -155,7 +138,6 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
                 num = value.toString().trim().toInt()
             }
 
-//            println("NumCellRenderer getTableCellRendererComponent $isSelected, $hasFocus, $row, $col, ${isRowSelected(row)}")
             val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
 
             label.border = LineNumBorder(tableColor.numLogSeparatorBG, 1)
@@ -176,7 +158,6 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
             row: Int,
             col: Int
         ): Component {
-//            println("LogCellRenderer getTableCellRendererComponent $isSelected, $hasFocus, $row, $col, ${isRowSelected(row)}")
 
             val newValue: String = if (value != null) {
                 this@LogTable.tableModel.getPrintValue(value.toString(), row, isSelected)
@@ -213,48 +194,6 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
             tableColor.logBG
         }
     }
-
-
-//    internal inner class LogWrapCellRenderer : JTextArea(), TableCellRenderer {
-//        init {
-//            lineWrap = true
-//        }
-//
-//        override fun getTableCellRendererComponent(
-//            table: JTable?,
-//            value: Any?,
-//            isSelected: Boolean,
-//            hasFocus: Boolean,
-//            row: Int,
-//            col: Int
-//        ): Component {
-//
-//            if (table == null) {
-//                return this
-//            } else {
-//                text = value.toString()
-//                val logTableModel = tableModel as LogTableModel
-//                foreground = logTableModel.getFgColor(row)
-//                setSize(table.columnModel.getColumn(col).width, preferredSize.height)
-//                if (table.getRowHeight(row) != preferredSize.height) {
-//                    table.setRowHeight(row, preferredSize.height)
-//                }
-//
-//                var isSelectedChecked = isSelected
-//                val dropLocation = table.getDropLocation()
-//                if (dropLocation != null && !dropLocation.isInsertRow() && !dropLocation.isInsertColumn() && dropLocation.getRow() == row && dropLocation.getColumn() == col) {
-//                    isSelectedChecked = true
-//                }
-//
-//                background = Color(0xFF, 0xFF, 0xFF)
-//                if (isSelectedChecked || row == table.selectedRow) {
-//                    background = Color(0xC0, 0xC0, 0xC0)
-//                }
-//
-//                return this
-//            }
-//        }
-//    }
 
     fun downPage() {
         val toRect = visibleRect
@@ -374,7 +313,6 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
         var stopItem = JMenuItem("Stop")
         var clearItem = JMenuItem("Clear")
 
-        //        var clearSaveItem = JMenuItem("Clear/Save")
         private val actionHandler = ActionHandler()
 
         init {
@@ -393,8 +331,6 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
             add(stopItem)
             clearItem.addActionListener(actionHandler)
             add(clearItem)
-//            clearSaveItem.addActionListener(mActionHandler)
-//            add(clearSaveItem)
         }
 
         internal inner class ActionHandler : ActionListener {
@@ -440,10 +376,6 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
                         val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
                         frame.clearAdbLog()
                     }
-//                    clearSaveItem -> {
-//                        val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
-//                        frame.clearSaveAdbLog()
-//                    }
                 }
             }
         }
@@ -494,12 +426,6 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
     }
 
     internal inner class TableKeyHandler : KeyAdapter() {
-//        override fun keyReleased(event: KeyEvent) {
-//            if (KeyEvent.VK_ENTER == event.keyCode) {
-//            }
-//            super.keyReleased(event)
-//        }
-
         override fun keyPressed(event: KeyEvent) {
             if (event.keyCode == KeyEvent.VK_B && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
                 updateBookmark(selectedRow)

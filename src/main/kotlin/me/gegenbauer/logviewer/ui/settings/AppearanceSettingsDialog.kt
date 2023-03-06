@@ -290,7 +290,6 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
             styleComboArray[ComboIdx.TID.value]!!.selectedIndex = mainUI.showLogComboStyle.value
             comboLabelArray[ComboIdx.BOLD.value]!!.text = "Combo Style : BOLD"
             styleComboArray[ComboIdx.BOLD.value]!!.selectedIndex = mainUI.boldLogComboStyle.value
-//            comboLabelArray[idx]!!.toolTipText = colorLabelArray[idx]!!.text
 
             for (idx in comboLabelArray.indices) {
                 styleLabelPanel.add(comboLabelArray[idx])
@@ -1038,7 +1037,6 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
                             updateColor(filterColorLabelArray[colorLabel.idx]!!, colorChooser.color)
                         }
 
-//                        SwingUtilities.updateComponentTreeUI(mainUI)
                         mainUI.fullLogPanel.repaint()
                         mainUI.filteredLogPanel.repaint()
                     }

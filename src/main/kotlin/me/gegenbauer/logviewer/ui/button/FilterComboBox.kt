@@ -347,14 +347,12 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         override fun insertUpdate(e: DocumentEvent) {
             if (enabledTfTooltip && !isPopupVisible) {
                 updateTooltip()
-//                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(editorComponent, 0, 0, 0, 0, preferredSize.height / 3, 0, false))
             }
         }
 
         override fun removeUpdate(e: DocumentEvent) {
             if (enabledTfTooltip && !isPopupVisible) {
                 updateTooltip()
-//                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(editorComponent, 0, 0, 0, 0, preferredSize.height / 3, 0, false))
             }
         }
 
