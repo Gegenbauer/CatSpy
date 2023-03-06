@@ -4,7 +4,7 @@ import me.gegenbauer.logviewer.Utils
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.ui.button.ColorButton
+
 import java.awt.*
 import java.awt.event.*
 import javax.swing.*
@@ -24,8 +24,8 @@ class FontDialog(parent: MainUI) : JDialog(parent, Strings.FONT + " & " + String
     private var sizeLabel: JLabel
     private var sizeSpinner: JSpinner
     private var exampleLabel: JLabel
-    private var okBtn: ColorButton
-    private var cancelBtn: ColorButton
+    private var okBtn: JButton
+    private var cancelBtn: JButton
     private var parent = parent
     private val prevFont = parent.customFont
 
@@ -49,9 +49,9 @@ class FontDialog(parent: MainUI) : JDialog(parent, Strings.FONT + " & " + String
         nameScrollPane.verticalScrollBar.setUI(BasicScrollBarUI())
         nameScrollPane.horizontalScrollBar.setUI(BasicScrollBarUI())
         nameList.addListSelectionListener(ListSelectionHandler())
-        okBtn = ColorButton(Strings.OK)
+        okBtn = JButton(Strings.OK)
         okBtn.addActionListener(this)
-        cancelBtn = ColorButton(Strings.CANCEL)
+        cancelBtn = JButton(Strings.CANCEL)
         cancelBtn.addActionListener(this)
 
         sizeLabel = JLabel(Strings.SIZE)

@@ -6,7 +6,7 @@ import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.strings.TooltipStrings
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.ButtonPanel
-import me.gegenbauer.logviewer.ui.button.ColorButton
+
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
 import me.gegenbauer.logviewer.ui.button.TableBarButton
 import java.awt.*
@@ -23,12 +23,12 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 
 class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var basePanel: LogPanel?, val focusHandler: MainUI.FocusHandler) :JPanel() {
     private val ctrlMainPanel: ButtonPanel
-    private var firstBtn: ColorButton
-    private var lastBtn: ColorButton
+    private var firstBtn: JButton
+    private var lastBtn: JButton
     private var tagBtn: ColorToggleButton
     private var pidBtn: ColorToggleButton
     private var tidBtn: ColorToggleButton
-    private var windowedModeBtn: ColorButton
+    private var windowedModeBtn: JButton
     private var bookmarksBtn: ColorToggleButton
     private var fullBtn: ColorToggleButton
 
@@ -57,13 +57,13 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
     init {
         layout = BorderLayout()
         ctrlMainPanel = ButtonPanel()
-        firstBtn = ColorButton("")
+        firstBtn = JButton("")
         firstBtn.icon = ImageIcon(this.javaClass.getResource("/images/top.png"))
         firstBtn.toolTipText = TooltipStrings.VIEW_FIRST_BTN
         firstBtn.margin = Insets(2, 3, 1, 3)
 
         firstBtn.addActionListener(actionHandler)
-        lastBtn = ColorButton("")
+        lastBtn = JButton("")
         lastBtn.icon = ImageIcon(this.javaClass.getResource("/images/bottom.png"))
         lastBtn.toolTipText = TooltipStrings.VIEW_LAST_BTN
         lastBtn.margin = Insets(2, 3, 1, 3)
@@ -80,7 +80,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         tidBtn.toolTipText = TooltipStrings.VIEW_TID_TOGGLE
         tidBtn.margin = Insets(0, 3, 0, 3)
         tidBtn.addActionListener(actionHandler)
-        windowedModeBtn = ColorButton(Strings.WINDOWED_MODE)
+        windowedModeBtn = JButton(Strings.WINDOWED_MODE)
         windowedModeBtn.toolTipText = TooltipStrings.VIEW__WINDOWED_MODE_BTN
         windowedModeBtn.margin = Insets(0, 3, 0, 3)
         windowedModeBtn.addActionListener(actionHandler)

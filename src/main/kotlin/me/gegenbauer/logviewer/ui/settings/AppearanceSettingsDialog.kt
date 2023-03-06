@@ -6,7 +6,7 @@ import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
-import me.gegenbauer.logviewer.ui.button.ColorButton
+
 import me.gegenbauer.logviewer.ui.button.ColorComboBox
 import me.gegenbauer.logviewer.ui.button.FilterComboBox
 import java.awt.*
@@ -26,8 +26,8 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
     private val filterComboPanel = FilterComboPanel()
     private val fontColorPanel = FontColorPanel()
 
-    private val okBtn = ColorButton(Strings.OK)
-    private val cancelBtn = ColorButton(Strings.CANCEL)
+    private val okBtn = JButton(Strings.OK)
+    private val cancelBtn = JButton(Strings.CANCEL)
 
     init {
         addWindowListener(filterComboPanel)

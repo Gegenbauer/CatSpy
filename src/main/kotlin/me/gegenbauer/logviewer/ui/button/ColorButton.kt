@@ -1,19 +1,8 @@
 package me.gegenbauer.logviewer.ui.button
 
-import me.gegenbauer.logviewer.manager.ConfigManager
-import me.gegenbauer.logviewer.ui.MainUI
-import java.awt.Color
 import javax.swing.JButton
 
-open class ColorButton(title:String) : JButton(title){
-    init {
-        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
-            background = Color(0xE5, 0xE5, 0xE5)
-        }
-    }
-}
-
-class TableBarButton(title:String) : ColorButton(title){
+class TableBarButton(title:String) : JButton(title){
     var value = ""
 
     init {

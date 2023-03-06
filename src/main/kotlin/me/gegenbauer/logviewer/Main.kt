@@ -1,11 +1,8 @@
 package me.gegenbauer.logviewer
 
 import com.github.weisj.darklaf.LafManager
-import com.github.weisj.darklaf.theme.DarculaTheme
+import com.github.weisj.darklaf.theme.Theme
 import me.gegenbauer.logviewer.ui.MainUI
-import javax.swing.JButton
-import javax.swing.JFrame
-import javax.swing.JPanel
 import javax.swing.SwingUtilities
 
 
@@ -18,7 +15,6 @@ fun main(args: Array<String>) {
 
 
     SwingUtilities.invokeLater {
-        LafManager.setTheme(DarculaTheme())
         LafManager.install()
 
         val mainUI = MainUI(NAME)
@@ -26,4 +22,8 @@ fun main(args: Array<String>) {
         mainUI.isVisible = true
         mainUI.updateUIAfterVisible(args)
     }
+}
+
+fun changeTheme(theme: Theme) {
+    LafManager.install(theme)
 }

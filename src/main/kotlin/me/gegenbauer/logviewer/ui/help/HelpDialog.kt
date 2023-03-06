@@ -2,7 +2,7 @@ package me.gegenbauer.logviewer.ui.help
 
 import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.Utils
-import me.gegenbauer.logviewer.ui.button.ColorButton
+
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ActionEvent
@@ -12,7 +12,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 
 class HelpDialog(parent: JFrame) : JDialog(parent, Strings.HELP, true), ActionListener {
     private var helpTextPane: JTextPane
-    private var closeBtn : ColorButton = ColorButton(Strings.CLOSE)
+    private var closeBtn : JButton = JButton(Strings.CLOSE)
 
     init {
         closeBtn.addActionListener(this)

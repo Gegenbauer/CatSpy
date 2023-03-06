@@ -4,7 +4,7 @@ import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.Utils
 import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.ui.MainUI.Companion.FLAT_DARK_LAF
-import me.gegenbauer.logviewer.ui.button.ColorButton
+
 import me.gegenbauer.logviewer.ui.log.LogPanel
 import java.awt.*
 import java.awt.event.*
@@ -46,16 +46,16 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
     internal inner class CustomDialog(parent: MainUI) : JDialog(parent, dialogTitle, true), ActionListener {
         private var scrollPane: JScrollPane
         var jList = JList<CustomElement>()
-        private var firstBtn: ColorButton
-        private var prevBtn: ColorButton
-        private var nextBtn: ColorButton
-        private var lastBtn: ColorButton
-        private var newBtn: ColorButton
-        private var copyBtn: ColorButton
-        private var editBtn: ColorButton
-        private var deleteBtn: ColorButton
-        private var saveBtn: ColorButton
-        private var closeBtn: ColorButton
+        private var firstBtn: JButton
+        private var prevBtn: JButton
+        private var nextBtn: JButton
+        private var lastBtn: JButton
+        private var newBtn: JButton
+        private var copyBtn: JButton
+        private var editBtn: JButton
+        private var deleteBtn: JButton
+        private var saveBtn: JButton
+        private var closeBtn: JButton
         private var model = DefaultListModel<CustomElement>()
 
         init {
@@ -84,26 +84,26 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             scrollPane = JScrollPane(jList)
             scrollPane.preferredSize = Dimension(800, 500)
 
-            firstBtn = ColorButton("↑")
+            firstBtn = JButton("↑")
             firstBtn.addActionListener(this)
-            prevBtn = ColorButton("∧")
+            prevBtn = JButton("∧")
             prevBtn.addActionListener(this)
-            nextBtn = ColorButton("∨")
+            nextBtn = JButton("∨")
             nextBtn.addActionListener(this)
-            lastBtn = ColorButton("↓")
+            lastBtn = JButton("↓")
             lastBtn.addActionListener(this)
 
-            newBtn = ColorButton(Strings.NEW)
+            newBtn = JButton(Strings.NEW)
             newBtn.addActionListener(this)
-            copyBtn = ColorButton(Strings.COPY)
+            copyBtn = JButton(Strings.COPY)
             copyBtn.addActionListener(this)
-            editBtn = ColorButton(Strings.EDIT)
+            editBtn = JButton(Strings.EDIT)
             editBtn.addActionListener(this)
-            deleteBtn = ColorButton(Strings.DELETE)
+            deleteBtn = JButton(Strings.DELETE)
             deleteBtn.addActionListener(this)
-            saveBtn = ColorButton(Strings.SAVE)
+            saveBtn = JButton(Strings.SAVE)
             saveBtn.addActionListener(this)
-            closeBtn = ColorButton(Strings.CLOSE)
+            closeBtn = JButton(Strings.CLOSE)
             closeBtn.addActionListener(this)
             val bottomPanel = JPanel()
             bottomPanel.add(firstBtn)
@@ -351,8 +351,8 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             value: String,
             tableBar: Boolean
         ) : JDialog(parent, "Edit", true), ActionListener {
-            private var okBtn: ColorButton = ColorButton(Strings.OK)
-            private var cancelBtn: ColorButton
+            private var okBtn: JButton = JButton(Strings.OK)
+            private var cancelBtn: JButton
 
             private var titleLabel: JLabel
             private var valueLabel: JLabel
@@ -369,7 +369,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
 
             init {
                 okBtn.addActionListener(this)
-                cancelBtn = ColorButton(Strings.CANCEL)
+                cancelBtn = JButton(Strings.CANCEL)
                 cancelBtn.addActionListener(this)
 
                 titleLabel = JLabel("Title")

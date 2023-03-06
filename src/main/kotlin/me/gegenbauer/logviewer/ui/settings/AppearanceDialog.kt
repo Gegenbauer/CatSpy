@@ -4,7 +4,7 @@ import me.gegenbauer.logviewer.Utils
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.ui.button.ColorButton
+
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -22,13 +22,13 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, Strings.APP
     private var exampleLabel: JLabel
     private var baseFontSize = 0
 
-    private var okBtn: ColorButton = ColorButton(Strings.OK)
-    private var cancelBtn: ColorButton
+    private var okBtn: JButton = JButton(Strings.OK)
+    private var cancelBtn: JButton
     private val freDividerSize = parent.logSplitPane.dividerSize
 
     init {
         okBtn.addActionListener(this)
-        cancelBtn = ColorButton(Strings.CANCEL)
+        cancelBtn = JButton(Strings.CANCEL)
         cancelBtn.addActionListener(this)
 
         val lafPanel = JPanel()

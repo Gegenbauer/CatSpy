@@ -6,7 +6,7 @@ import me.gegenbauer.logviewer.manager.LogCmdManager
 import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
-import me.gegenbauer.logviewer.ui.button.ColorButton
+
 import java.awt.*
 import java.awt.event.*
 import java.io.File
@@ -16,10 +16,10 @@ import javax.swing.table.DefaultTableModel
 
 
 class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${Strings.SETTING}", true), ActionListener {
-    private var adbCmdBtn: ColorButton
-    private var adbSaveBtn: ColorButton
-    private var okBtn: ColorButton
-    private var cancelBtn: ColorButton
+    private var adbCmdBtn: JButton
+    private var adbSaveBtn: JButton
+    private var okBtn: JButton
+    private var cancelBtn: JButton
 
     private var adbCmdLabel: JLabel
     private var adbSaveLabel: JLabel
@@ -62,14 +62,14 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
 
     init {
         val rowHeight = 30
-        adbCmdBtn = ColorButton(Strings.SELECT)
+        adbCmdBtn = JButton(Strings.SELECT)
         adbCmdBtn.addActionListener(this)
         adbCmdBtn.preferredSize = Dimension(adbCmdBtn.preferredSize.width, rowHeight)
-        adbSaveBtn = ColorButton(Strings.SELECT)
+        adbSaveBtn = JButton(Strings.SELECT)
         adbSaveBtn.addActionListener(this)
-        okBtn = ColorButton(Strings.OK)
+        okBtn = JButton(Strings.OK)
         okBtn.addActionListener(this)
-        cancelBtn = ColorButton(Strings.CANCEL)
+        cancelBtn = JButton(Strings.CANCEL)
         cancelBtn.addActionListener(this)
 
         adbCmdLabel = JLabel(Strings.ADB_PATH)
@@ -268,10 +268,10 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
         private var adbTF: JTextField
         private var cmdTF: JTextField
 
-        private var cmdBtn: ColorButton
+        private var cmdBtn: JButton
 
-        private var okBtn: ColorButton
-        private var cancelBtn: ColorButton
+        private var okBtn: JButton
+        private var cancelBtn: JButton
 
         init {
             val rowHeight = 30
@@ -298,13 +298,13 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
                 adbRadio.isSelected = true
             }
 
-            cmdBtn = ColorButton(Strings.SELECT)
+            cmdBtn = JButton(Strings.SELECT)
             cmdBtn.addActionListener(this)
             cmdBtn.preferredSize = Dimension(cmdBtn.preferredSize.width, rowHeight)
 
-            okBtn = ColorButton(Strings.OK)
+            okBtn = JButton(Strings.OK)
             okBtn.addActionListener(this)
-            cancelBtn = ColorButton(Strings.CANCEL)
+            cancelBtn = JButton(Strings.CANCEL)
             cancelBtn.addActionListener(this)
 
             val panel1 = JPanel(GridLayout(2, 1, 0, 2))
