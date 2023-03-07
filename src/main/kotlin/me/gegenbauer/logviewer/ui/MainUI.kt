@@ -227,6 +227,8 @@ class MainUI(title: String) : JFrame() {
         loadConfigOnCreate()
         logCmdManager.setMainUI(this)
 
+        configureWindow(title)
+
         val laf = configManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
 
         if (laf == null) {
@@ -349,11 +351,23 @@ class MainUI(title: String) : JFrame() {
             FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
-        createUI(title)
+        createUI()
 
         if (logCmdManager.getType() == LogCmdManager.TYPE_LOGCAT) {
             logCmdManager.getDevices()
         }
+    }
+
+    private fun configureWindow(title: String) {
+        setTitle(title)
+
+        val img = ImageIcon(this.javaClass.getResource("/images/logo.png"))
+        iconImage = img.image
+
+        defaultCloseOperation = EXIT_ON_CLOSE
+        setLocation(frameX, frameY)
+        setSize(frameWidth, frameHeight)
+        extendedState = frameExtendedState
     }
 
     private fun exit() {
@@ -468,16 +482,7 @@ class MainUI(title: String) : JFrame() {
         configManager.saveConfig()
     }
 
-    private fun createUI(title: String) {
-        setTitle(title)
-
-        val img = ImageIcon(this.javaClass.getResource("/images/logo.png"))
-        iconImage = img.image
-
-        defaultCloseOperation = EXIT_ON_CLOSE
-        setLocation(frameX, frameY)
-        setSize(frameWidth, frameHeight)
-        extendedState = frameExtendedState
+    private fun createUI() {
         addComponentListener(componentHandler)
 
         menuBar = JMenuBar()
