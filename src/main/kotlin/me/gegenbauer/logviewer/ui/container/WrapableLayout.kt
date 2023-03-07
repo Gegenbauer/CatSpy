@@ -5,7 +5,7 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.JPanel
 
-class WrapLayout(hGap: Int = 0, vGap: Int = 0, align: Int = LEFT) : FlowLayout(align, hGap, vGap) {
+class WrapableLayout(hGap: Int = 0, vGap: Int = 0, align: Int = LEFT) : FlowLayout(align, hGap, vGap) {
     private var hasAddComposeAdapter = false
     override fun minimumLayoutSize(target: Container): Dimension {
         return Dimension(0, 0)

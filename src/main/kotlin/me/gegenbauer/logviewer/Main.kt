@@ -3,6 +3,7 @@ package me.gegenbauer.logviewer
 import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.theme.Theme
 import me.gegenbauer.logviewer.ui.MainUI
+import java.awt.Container
 import javax.swing.SwingUtilities
 
 
@@ -21,6 +22,20 @@ fun main(args: Array<String>) {
 
         mainUI.isVisible = true
         mainUI.updateUIAfterVisible(args)
+        addClickListenerForAllComponents(mainUI.components)
+    }
+}
+
+private fun addClickListenerForAllComponents(components: Array<java.awt.Component>) {
+    components.forEach { component ->
+        component.addMouseListener(object : java.awt.event.MouseAdapter() {
+            override fun mouseClicked(e: java.awt.event.MouseEvent?) {
+                println(component.javaClass.name)
+            }
+        })
+        if (component is Container) {
+            addClickListenerForAllComponents(component.components)
+        }
     }
 }
 

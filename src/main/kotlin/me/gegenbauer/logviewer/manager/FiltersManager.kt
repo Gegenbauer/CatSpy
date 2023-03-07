@@ -66,8 +66,7 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mai
             val filterText = mainUI.getTextShowLogCombo()
             if (filterText.isEmpty()) {
                 mainUI.setTextShowLogCombo(selection.value)
-            }
-            else {
+            } else {
                 if (filterText.substring(filterText.length - 1) == "|") {
                     mainUI.setTextShowLogCombo(filterText + selection.value)
                 }

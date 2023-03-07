@@ -7,7 +7,6 @@ import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
 
-import me.gegenbauer.logviewer.ui.button.ColorComboBox
 import me.gegenbauer.logviewer.ui.button.FilterComboBox
 import java.awt.*
 import java.awt.event.*
@@ -194,9 +193,9 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
                 background = Color.RED
             }
 
-            override fun paint(g: Graphics?) {
+            override fun paint(g: Graphics) {
                 super.paint(g)
-                g?.drawImage(imgIcon.image, 0, 0, imgIcon.iconWidth, imgIcon.iconHeight, null)
+                g.drawImage(imgIcon.image, 0, 0, imgIcon.iconWidth, imgIcon.iconHeight, null)
             }
         }
 
@@ -216,10 +215,6 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
         TID(3),
         BOLD(4),
         SIZE(5);
-
-        companion object {
-            fun fromInt(value: Int) = values().first { it.value == value }
-        }
     }
 
     inner class FilterComboPanel : JPanel(), WindowListener {
@@ -228,7 +223,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
         private var exampleCombo: FilterComboBox
 
         private val comboLabelArray = arrayOfNulls<ColorLabel>(ComboIdx.SIZE.value)
-        private val styleComboArray = arrayOfNulls<ColorComboBox<String>>(ComboIdx.SIZE.value)
+        private val styleComboArray = arrayOfNulls<JComboBox<String>>(ComboIdx.SIZE.value)
 
         private var confirmLabel: JLabel
 
@@ -269,7 +264,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
                 comboLabelArray[idx]!!.preferredSize = Dimension(200, 20)
                 comboLabelArray[idx]!!.maximumSize = Dimension(200, 20)
 
-                styleComboArray[idx] = ColorComboBox()
+                styleComboArray[idx] = JComboBox()
                 styleComboArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
                 styleComboArray[idx]!!.minimumSize = Dimension(rightWidth, 20)
                 styleComboArray[idx]!!.preferredSize = Dimension(rightWidth, 20)

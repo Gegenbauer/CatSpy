@@ -6,7 +6,6 @@ import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.ui.MainUI
 
-import me.gegenbauer.logviewer.ui.button.ColorComboBox
 import me.gegenbauer.logviewer.ui.button.FilterComboBox
 import java.awt.BorderLayout
 import java.awt.Color
@@ -24,17 +23,13 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${Strings
         TID(3),
         BOLD(4),
         SIZE(5);
-
-        companion object {
-            fun fromInt(value: Int) = values().first { it.value == value }
-        }
     }
 
     private val exampleLabel: JLabel = JLabel("Ex : ")
     private val exampleCombo: FilterComboBox = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, true)
 
     private val comboLabelArray = arrayOfNulls<ColorLabel>(ComboIdx.SIZE.value)
-    private val styleComboArray = arrayOfNulls<ColorComboBox<String>>(ComboIdx.SIZE.value)
+    private val styleComboArray = arrayOfNulls<JComboBox<String>>(ComboIdx.SIZE.value)
 
     private val confirmLabel: JLabel = JLabel("To apply \"Style\" need to restart")
     private val okBtn: JButton = JButton(Strings.OK)
@@ -75,7 +70,7 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${Strings
             comboLabelArray[idx]!!.preferredSize = Dimension(200, 20)
             comboLabelArray[idx]!!.maximumSize = Dimension(200, 20)
 
-            styleComboArray[idx] = ColorComboBox()
+            styleComboArray[idx] = JComboBox()
             styleComboArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
             styleComboArray[idx]!!.minimumSize = Dimension(rightWidth, 20)
             styleComboArray[idx]!!.preferredSize = Dimension(rightWidth, 20)

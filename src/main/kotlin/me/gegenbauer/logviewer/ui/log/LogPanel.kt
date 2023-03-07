@@ -5,7 +5,7 @@ import me.gegenbauer.logviewer.manager.*
 import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.strings.TooltipStrings
 import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.ui.button.ButtonPanel
+import me.gegenbauer.logviewer.ui.button.WrapablePanel
 
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
 import me.gegenbauer.logviewer.ui.button.TableBarButton
@@ -22,7 +22,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 
 
 class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var basePanel: LogPanel?, val focusHandler: MainUI.FocusHandler) :JPanel() {
-    private val ctrlMainPanel: ButtonPanel
+    private val ctrlMainPanel: WrapablePanel
     private var firstBtn: JButton
     private var lastBtn: JButton
     private var tagBtn: ColorToggleButton
@@ -56,7 +56,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
 
     init {
         layout = BorderLayout()
-        ctrlMainPanel = ButtonPanel()
+        ctrlMainPanel = WrapablePanel()
         firstBtn = JButton("")
         firstBtn.icon = ImageIcon(this.javaClass.getResource("/images/top.png"))
         firstBtn.toolTipText = TooltipStrings.VIEW_FIRST_BTN
@@ -141,8 +141,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
             separator1.foreground = Color.GRAY
             separator1.background = Color.GRAY
-        }
-        else {
+        } else {
             separator1.foreground = Color.DARK_GRAY
             separator1.background = Color.DARK_GRAY
         }
@@ -248,8 +247,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         addVSeparator(ctrlMainPanel)
         if (basePanel != null) {
             updateTableBarFilters(customArray)
-        }
-        else {
+        } else {
             updateTableBarCommands(customArray)
         }
         ctrlMainPanel.updateUI()
@@ -267,8 +265,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
     override fun repaint() {
         val bg = if (basePanel != null) {
             ColorManager.getInstance().filterTableColor.logBG
-        }
-        else {
+        } else {
             ColorManager.getInstance().fullTableColor.logBG
         }
 

@@ -24,6 +24,7 @@ import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_INFO
 import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_VERBOSE
 import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_WARNING
 import me.gegenbauer.logviewer.ui.settings.AppearanceSettingsDialog
+import me.gegenbauer.logviewer.utils.getEnum
 import java.awt.*
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
@@ -110,7 +111,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var filterPanel: JPanel
     private lateinit var filterLeftPanel: JPanel
 
-    private lateinit var logToolBar: ButtonPanel
+    private lateinit var logToolBar: WrapablePanel
     private lateinit var startBtn: JButton
     private lateinit var retryAdbToggle: ColorToggleButton
     private lateinit var stopBtn: JButton
@@ -152,9 +153,9 @@ class MainUI(title: String) : JFrame() {
     private lateinit var showTidToggle: ColorToggleButton
     private lateinit var showTidTogglePanel: JPanel
 
-    private lateinit var logCmdCombo: ColorComboBox<String>
+    private lateinit var logCmdCombo: JComboBox<String>
 
-    private lateinit var deviceCombo: ColorComboBox<String>
+    private lateinit var deviceCombo: JComboBox<String>
     private lateinit var deviceStatus: JLabel
     private lateinit var adbConnectBtn: JButton
     private lateinit var adbRefreshBtn: JButton
@@ -230,8 +231,7 @@ class MainUI(title: String) : JFrame() {
 
         if (laf == null) {
             ConfigManager.LaF = FLAT_LIGHT_LAF
-        }
-        else {
+        } else {
             ConfigManager.LaF = laf
         }
 
@@ -242,8 +242,7 @@ class MainUI(title: String) : JFrame() {
 
         if (ConfigManager.LaF == FLAT_LIGHT_LAF || ConfigManager.LaF == FLAT_DARK_LAF) {
             System.setProperty("flatlaf.uiScale", "$uiFontPercent%")
-        }
-        else {
+        } else {
             initFontSize(uiFontPercent)
         }
 
@@ -311,48 +310,42 @@ class MainUI(title: String) : JFrame() {
         prop = configManager.getItem(ConfigManager.ITEM_LANG)
         if (!prop.isNullOrEmpty()) {
             Strings.lang = prop.toInt()
-        }
-        else {
+        } else {
             Strings.lang = Strings.EN
         }
 
         prop = configManager.getItem(ConfigManager.ITEM_SHOW_LOG_STYLE)
         showLogComboStyle = if (!prop.isNullOrEmpty()) {
-            FilterComboBox.Mode.fromInt(prop.toInt())
-        }
-        else {
+            getEnum(prop.toInt())
+        } else {
             FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT
         }
 
         prop = configManager.getItem(ConfigManager.ITEM_BOLD_LOG_STYLE)
         boldLogComboStyle = if (!prop.isNullOrEmpty()) {
-            FilterComboBox.Mode.fromInt(prop.toInt())
-        }
-        else {
+            getEnum(prop.toInt())
+        } else {
             FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
         prop = configManager.getItem(ConfigManager.ITEM_SHOW_TAG_STYLE)
         showTagComboStyle = if (!prop.isNullOrEmpty()) {
-            FilterComboBox.Mode.fromInt(prop.toInt())
-        }
-        else {
+            getEnum(prop.toInt())
+        } else {
             FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
         prop = configManager.getItem(ConfigManager.ITEM_SHOW_PID_STYLE)
         showPidComboStyle = if (!prop.isNullOrEmpty()) {
-            FilterComboBox.Mode.fromInt(prop.toInt())
-        }
-        else {
+            getEnum(prop.toInt())
+        } else {
             FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
         prop = configManager.getItem(ConfigManager.ITEM_SHOW_TID_STYLE)
         showTidComboStyle = if (!prop.isNullOrEmpty()) {
-            FilterComboBox.Mode.fromInt(prop.toInt())
-        }
-        else {
+            getEnum(prop.toInt())
+        } else {
             FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
@@ -668,7 +661,7 @@ class MainUI(title: String) : JFrame() {
         filterPanel = JPanel()
         filterLeftPanel = JPanel()
 
-        logToolBar = ButtonPanel()
+        logToolBar = WrapablePanel()
         logToolBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         logToolBar.addMouseListener(mouseHandler)
 
@@ -793,10 +786,9 @@ class MainUI(title: String) : JFrame() {
         showTidTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
         showTidToggle.addItemListener(itemHandler)
 
-        logCmdCombo = ColorComboBox()
+        logCmdCombo = JComboBox()
         logCmdCombo.toolTipText = TooltipStrings.LOG_CMD_COMBO
         logCmdCombo.isEditable = true
-        logCmdCombo.renderer = ColorComboBox.ComboBoxRenderer()
         logCmdCombo.editor.editorComponent.addKeyListener(keyHandler)
         logCmdCombo.addItemListener(itemHandler)
         logCmdCombo.editor.editorComponent.addMouseListener(mouseHandler)
@@ -805,10 +797,9 @@ class MainUI(title: String) : JFrame() {
         deviceStatus = JLabel("None", JLabel.LEFT)
         deviceStatus.isEnabled = false
         val deviceComboPanel = JPanel(BorderLayout())
-        deviceCombo = ColorComboBox()
+        deviceCombo = JComboBox()
         deviceCombo.toolTipText = TooltipStrings.DEVICES_COMBO
         deviceCombo.isEditable = true
-        deviceCombo.renderer = ColorComboBox.ComboBoxRenderer()
         deviceCombo.editor.editorComponent.addKeyListener(keyHandler)
         deviceCombo.addItemListener(itemHandler)
         deviceCombo.editor.editorComponent.addMouseListener(mouseHandler)
@@ -1419,7 +1410,7 @@ class MainUI(title: String) : JFrame() {
     inner class StatusChangeListener : PropertyChangeListener, DocumentListener {
         private var method = ""
         override fun propertyChange(evt: PropertyChangeEvent) {
-            if (evt?.source == statusMethod && evt.propertyName == "text") {
+            if (evt.source == statusMethod && evt.propertyName == "text") {
                 method = evt.newValue.toString().trim()
             }
         }

@@ -234,8 +234,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
 
             if (prefix.isEmpty()) {
                 logCmdManager.prefix = LogCmdManager.DEFAULT_PREFIX
-            }
-            else {
+            } else {
                 logCmdManager.prefix = prefix
             }
 
@@ -362,12 +361,10 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
                 val text = if (cmdRadio.isSelected) {
                     if (cmdTF.text.isNotEmpty()) {
                         "${LogCmdManager.TYPE_CMD_PREFIX}${cmdTF.text}"
-                    }
-                    else {
+                    } else {
                         ""
                     }
-                }
-                else {
+                } else {
                     adbTF.text
                 }
                 logCmdTable.setValueAt(text, logCmdTable.selectedRow, 1)

@@ -37,10 +37,6 @@ class ColorManager private constructor(){
     enum class TableColorType(val value: Int) {
         FULL_LOG_TABLE(0),
         FILTER_LOG_TABLE(1);
-
-        companion object {
-            fun fromInt(value: Int) = values().first { it.value == value }
-        }
     }
 
     enum class TableColorIdx(val value: Int) {
@@ -72,11 +68,6 @@ class ColorManager private constructor(){
         FILTERED_START_BG(33),
         SEARCH_FG(42),
         SEARCH_BG(43),
-        ;
-
-        companion object {
-            fun fromInt(value: Int) = values().first { it.value == value }
-        }
     }
 
     var colorSchemeLight = arrayOf(
@@ -504,8 +495,7 @@ class ColorManager private constructor(){
                 if (idx == 0) {
                     strFilteredFGs[idx] = strFilteredFG
                     strFilteredBGs[idx] = strFilteredBG
-                }
-                else {
+                } else {
                     strFilteredFGs[idx] = colorArray[TableColorIdx.FILTERED_START_FG.value + idx - 1].strColor
                     strFilteredBGs[idx] = colorArray[TableColorIdx.FILTERED_START_BG.value + idx - 1].strColor
                 }

@@ -22,8 +22,7 @@ class HelpDialog(parent: JFrame) : JDialog(parent, Strings.HELP, true), ActionLi
 
         if (Strings.lang == Strings.KO) {
             helpTextPane.text = HelpText.textKo
-        }
-        else {
+        } else {
             helpTextPane.text = HelpText.textEn
         }
 

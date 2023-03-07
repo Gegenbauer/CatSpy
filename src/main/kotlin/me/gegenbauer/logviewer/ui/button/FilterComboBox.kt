@@ -25,10 +25,6 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         SINGLE_LINE_HIGHLIGHT(1),
         MULTI_LINE(2),
         MULTI_LINE_HIGHLIGHT(3);
-
-        companion object {
-            fun fromInt(value: Int) = values().first { it.value == value }
-        }
     }
 
     private var editorComponent: JTextComponent
@@ -44,17 +40,12 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
             field = value
             if (value.isEmpty()) {
                 updateTooltip(false)
-            }
-            else {
+            } else {
                 updateTooltip(true)
             }
         }
 
     init {
-        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
-            ui = BasicComboBoxUI()
-            ui.installUI(this)
-        }
         when (this.mode) {
             Mode.SINGLE_LINE -> {
                 editor = HighlighterSingleLineEditor()
@@ -62,12 +53,14 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 editorComponent.setEnableHighlighter(false)
                 this.editorComponent = editorComponent
             }
+
             Mode.SINGLE_LINE_HIGHLIGHT -> {
                 editor = HighlighterSingleLineEditor()
                 val editorComponent = editor.editorComponent as HighlighterSingleLineEditor.HighlighterTextField
                 editorComponent.setEnableHighlighter(true)
                 this.editorComponent = editorComponent
             }
+
             Mode.MULTI_LINE -> {
                 editor = HighlighterMultiLineEditor()
                 val editorComponent = editor.editorComponent as HighlighterMultiLineEditor.HighlighterTextArea
@@ -75,6 +68,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 editorComponent.setEnableHighlighter(false)
                 this.editorComponent = editorComponent
             }
+
             Mode.MULTI_LINE_HIGHLIGHT -> {
                 editor = HighlighterMultiLineEditor()
                 val editorComponent = editor.editorComponent as HighlighterMultiLineEditor.HighlighterTextArea
@@ -82,9 +76,6 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 editorComponent.setEnableHighlighter(true)
                 this.editorComponent = editorComponent
             }
-        }
-        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
-            editorComponent.border = BorderFactory.createLineBorder(Color.black)
         }
         editorComponent.toolTipText = toolTipText
         editorComponent.addKeyListener(KeyHandler())
@@ -96,7 +87,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         isVisible = !(!enabled && editor.item.toString().isEmpty())
     }
 
-    fun isExistItem(item:String) : Boolean {
+    fun isExistItem(item: String): Boolean {
         var isExist = false
         for (idx in 0 until itemCount) {
             if (getItemAt(idx).toString() == item) {
@@ -107,7 +98,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         return isExist
     }
 
-    fun removeAllColorTags(){
+    fun removeAllColorTags() {
         val textSplit = editorComponent.text.split("|")
         var prevPatternIdx = -1
         var result = ""
@@ -163,10 +154,12 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 val editorComponent = editorComponent as HighlighterSingleLineEditor.HighlighterTextField
                 editorComponent.setUpdateHighlighter(true)
             }
+
             Mode.MULTI_LINE_HIGHLIGHT -> {
                 val editorComponent = editorComponent as HighlighterMultiLineEditor.HighlighterTextArea
                 editorComponent.setUpdateHighlighter(true)
             }
+
             else -> {
 
             }
@@ -174,7 +167,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         return
     }
 
-    fun removeColorTag(){
+    fun removeColorTag() {
         val text = editorComponent.selectedText
         if (text != null) {
             if (2 <= text.length && text[0] == '#' && text[1].isDigit()) {
@@ -187,10 +180,12 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 val editorComponent = editorComponent as HighlighterSingleLineEditor.HighlighterTextField
                 editorComponent.setUpdateHighlighter(true)
             }
+
             Mode.MULTI_LINE_HIGHLIGHT -> {
                 val editorComponent = editorComponent as HighlighterMultiLineEditor.HighlighterTextArea
                 editorComponent.setUpdateHighlighter(true)
             }
+
             else -> {
 
             }
@@ -203,8 +198,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         if (text != null) {
             if (2 <= text.length && text[0] == '#' && text[1].isDigit()) {
                 editorComponent.replaceSelection(tag + text.substring(2))
-            }
-            else {
+            } else {
                 editorComponent.replaceSelection(tag + text)
             }
         }
@@ -225,7 +219,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         return
     }
 
-    private fun parsePattern(pattern: String) : Array<String> {
+    private fun parsePattern(pattern: String): Array<String> {
         val patterns: Array<String> = Array(2) { "" }
 
         val patternSplit = pattern.split("|")
@@ -250,8 +244,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
 
                     if (2 < item.length && item[0] == '#' && item[1].isDigit()) {
                         patterns[0] += item.substring(2)
-                    }
-                    else {
+                    } else {
                         patterns[0] += item
                     }
 
@@ -265,8 +258,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
 
                     if (3 < item.length && item[1] == '#' && item[2].isDigit()) {
                         patterns[1] += item.substring(3)
-                    }
-                    else {
+                    } else {
                         patterns[1] += item.substring(1)
                     }
 
@@ -298,8 +290,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
             }
             tooltip += "</b></html>"
             editorComponent.toolTipText = tooltip
-        }
-        else {
+        } else {
             val patterns = parsePattern(editorComponent.text)
             var includeStr = patterns[0]
             var excludeStr = patterns[1]
@@ -343,7 +334,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         }
     }
 
-    internal inner class DocumentHandler: DocumentListener {
+    internal inner class DocumentHandler : DocumentListener {
         override fun insertUpdate(e: DocumentEvent) {
             if (enabledTfTooltip && !isPopupVisible) {
                 updateTooltip()
@@ -386,9 +377,12 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         val colorManager = ColorManager.getInstance()
         fun updateHighlighter(textComponent: JTextComponent) {
             if (textComponent.selectedText == null) {
-                val painterInclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(colorManager.filterStyleInclude)
-                val painterExclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(colorManager.filterStyleExclude)
-                val painterSeparator: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(colorManager.filterStyleSeparator)
+                val painterInclude: Highlighter.HighlightPainter =
+                    DefaultHighlighter.DefaultHighlightPainter(colorManager.filterStyleInclude)
+                val painterExclude: Highlighter.HighlightPainter =
+                    DefaultHighlighter.DefaultHighlightPainter(colorManager.filterStyleExclude)
+                val painterSeparator: Highlighter.HighlightPainter =
+                    DefaultHighlighter.DefaultHighlightPainter(colorManager.filterStyleSeparator)
                 val text = textComponent.text
                 val separator = "|"
                 try {
@@ -404,14 +398,14 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                         if (startPos in 0 until endPos) {
                             if (text[startPos] == '-') {
                                 textComponent.highlighter.addHighlight(startPos, endPos, painterExclude)
-                            }
-                            else if (useColorTag && text[startPos] == '#' && startPos < (endPos - 1) && text[startPos + 1].isDigit()) {
-                                val color = Color.decode(colorManager.filterTableColor.strFilteredBGs[text[startPos + 1].digitToInt()])
-                                val painterColor: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(color)
+                            } else if (useColorTag && text[startPos] == '#' && startPos < (endPos - 1) && text[startPos + 1].isDigit()) {
+                                val color =
+                                    Color.decode(colorManager.filterTableColor.strFilteredBGs[text[startPos + 1].digitToInt()])
+                                val painterColor: Highlighter.HighlightPainter =
+                                    DefaultHighlighter.DefaultHighlightPainter(color)
                                 textComponent.highlighter.addHighlight(startPos, startPos + 2, painterColor)
                                 textComponent.highlighter.addHighlight(startPos + 2, endPos, painterInclude)
-                            }
-                            else {
+                            } else {
                                 textComponent.highlighter.addHighlight(startPos, endPos, painterInclude)
                             }
                         }
@@ -453,21 +447,25 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         override fun addActionListener(l: ActionListener) {
             textEditor.addActionListener(l)
         }
+
         override fun removeActionListener(l: ActionListener) {
             textEditor.removeActionListener(l)
         }
 
         internal inner class HighlighterTextField : JTextField() {
             private val fgColor: Color = foreground
+
             init {
                 (highlighter as DefaultHighlighter).drawsLayeredHighlights = false
 
                 addKeyListener(object : KeyListener {
                     override fun keyTyped(e: KeyEvent) {
                     }
+
                     override fun keyPressed(e: KeyEvent) {
                         setUpdateHighlighter(true)
                     }
+
                     override fun keyReleased(e: KeyEvent) {
                     }
                 })
@@ -478,7 +476,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                     }
                 })
 
-                val colorEventListener = object: ColorManager.ColorEventListener {
+                val colorEventListener = object : ColorManager.ColorEventListener {
                     override fun colorChanged(event: ColorManager.ColorEvent) {
                         setUpdateHighlighter(true)
                         repaint()
@@ -495,7 +493,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
 
             private var enableHighlighter = false
             private var updateHighlighter = false
-            override fun paint(g: Graphics?) {
+            override fun paint(g: Graphics) {
                 foreground = if (errorMsg.isNotEmpty()) {
                     if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
                         Color(0xC0, 0x70, 0x70)
@@ -505,7 +503,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 } else {
                     fgColor
                 }
-                
+
                 if (enableHighlighter && updateHighlighter) {
                     updateHighlighter(this)
                     updateHighlighter = false
@@ -545,6 +543,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         override fun addActionListener(l: ActionListener) {
             textEditor.addActionListener(l)
         }
+
         override fun removeActionListener(l: ActionListener) {
             textEditor.removeActionListener(l)
         }
@@ -565,26 +564,29 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 addKeyListener(object : KeyListener {
                     override fun keyTyped(e: KeyEvent) {
                     }
+
                     override fun keyPressed(e: KeyEvent) {
                         when (e.keyCode) {
                             KeyEvent.VK_ENTER -> {
                                 e.consume()
                             }
+
                             KeyEvent.VK_DOWN -> {
                                 prevCaret = caretPosition
                                 return
                             }
+
                             KeyEvent.VK_UP -> {
                                 if (combo.isPopupVisible) {
                                     e.consume()
                                 }
                                 return
                             }
+
                             KeyEvent.VK_TAB -> {
                                 if (e.modifiersEx > 0) {
                                     transferFocusBackward()
-                                }
-                                else {
+                                } else {
                                     transferFocus()
                                 }
 
@@ -594,6 +596,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
 
                         setUpdateHighlighter(true)
                     }
+
                     override fun keyReleased(e: KeyEvent) {
                         when (e.keyCode) {
                             KeyEvent.VK_ENTER -> {
@@ -602,6 +605,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                                     listener.actionPerformed(ActionEvent(this, ActionEvent.ACTION_PERFORMED, text))
                                 }
                             }
+
                             KeyEvent.VK_DOWN -> {
                                 if (prevCaret == caretPosition) {
                                     e.consume()
@@ -614,6 +618,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                                 }
                                 return
                             }
+
                             KeyEvent.VK_UP -> {
                                 if (combo.isPopupVisible) {
                                     e.consume()
@@ -627,8 +632,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
 
                         if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
                             combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height + 6)
-                        }
-                        else {
+                        } else {
                             combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height)
                         }
                         combo.parent.revalidate()
@@ -642,7 +646,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                     }
                 })
 
-                val colorEventListener = object: ColorManager.ColorEventListener {
+                val colorEventListener = object : ColorManager.ColorEventListener {
                     override fun colorChanged(event: ColorManager.ColorEvent) {
                         setUpdateHighlighter(true)
                         repaint()
@@ -665,7 +669,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 }
             }
 
-            override fun paint(g: Graphics?) {
+            override fun paint(g: Graphics) {
                 foreground = if (errorMsg.isNotEmpty()) {
                     if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
                         Color(0xC0, 0x70, 0x70)
@@ -682,9 +686,11 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 }
                 super.paint(g)
             }
+
             fun addActionListener(l: ActionListener) {
                 actionListeners.add(l)
             }
+
             fun removeActionListener(l: ActionListener) {
                 actionListeners.remove(l)
             }
@@ -698,8 +704,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 if (t != null) {
                     if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
                         combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height + 6)
-                    }
-                    else {
+                    } else {
                         combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height)
                     }
                 }

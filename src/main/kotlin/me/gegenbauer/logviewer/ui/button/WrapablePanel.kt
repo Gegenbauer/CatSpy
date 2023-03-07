@@ -1,11 +1,11 @@
 package me.gegenbauer.logviewer.ui.button
 
-import me.gegenbauer.logviewer.ui.container.WrapLayout
+import me.gegenbauer.logviewer.ui.container.WrapableLayout
 import javax.swing.JPanel
 
-class ButtonPanel : JPanel() {
+class WrapablePanel : JPanel() {
     init {
-        layout = WrapLayout(HORIZONTAL_GAP, VERTICAL_GAP)
+        layout = WrapableLayout(HORIZONTAL_GAP, VERTICAL_GAP)
     }
 
     companion object {
