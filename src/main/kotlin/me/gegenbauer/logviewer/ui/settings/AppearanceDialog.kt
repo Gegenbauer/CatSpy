@@ -2,9 +2,8 @@ package me.gegenbauer.logviewer.ui.settings
 
 import me.gegenbauer.logviewer.Utils
 import me.gegenbauer.logviewer.manager.ConfigManager
-import me.gegenbauer.logviewer.strings.Strings
+import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
-
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -15,20 +14,20 @@ import java.awt.event.WindowEvent
 import javax.swing.*
 
 
-class AppearanceDialog(private val parent: MainUI) : JDialog(parent, Strings.APPEARANCE, true), ActionListener {
+class AppearanceDialog(private val parent: MainUI) : JDialog(parent, STRINGS.ui.appearance, true), ActionListener {
     private var fontSlider: JSlider
     private var dividerSlider: JSlider
     private var laFGroup: ButtonGroup
     private var exampleLabel: JLabel
     private var baseFontSize = 0
 
-    private var okBtn: JButton = JButton(Strings.OK)
+    private var okBtn: JButton = JButton(STRINGS.ui.ok)
     private var cancelBtn: JButton
     private val freDividerSize = parent.logSplitPane.dividerSize
 
     init {
         okBtn.addActionListener(this)
-        cancelBtn = JButton(Strings.CANCEL)
+        cancelBtn = JButton(STRINGS.ui.cancel)
         cancelBtn.addActionListener(this)
 
         val lafPanel = JPanel()
@@ -82,7 +81,7 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, Strings.APP
         sizePanel.add(sliderPanel)
 
         val lafSizePanel = JPanel(BorderLayout())
-        lafSizePanel.border = BorderFactory.createTitledBorder(Strings.LOOK_AND_FEEL)
+        lafSizePanel.border = BorderFactory.createTitledBorder(STRINGS.ui.lookAndFeel)
         lafSizePanel.add(lafPanel, BorderLayout.NORTH)
         lafSizePanel.add(sizePanel, BorderLayout.CENTER)
 
@@ -104,7 +103,7 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, Strings.APP
         dividerPanel.add(dividerSlider)
 
         val optionsPanel = JPanel(BorderLayout())
-        optionsPanel.border = BorderFactory.createTitledBorder(Strings.OPTIONS)
+        optionsPanel.border = BorderFactory.createTitledBorder(STRINGS.ui.options)
         optionsPanel.add(dividerPanel, BorderLayout.CENTER)
 
         val confirmPanel = JPanel(FlowLayout(FlowLayout.RIGHT))

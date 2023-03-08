@@ -83,7 +83,10 @@
     "ADD_SEARCH": "Add Search",
     "SET_SEARCH": "Set Search",
     "SEARCH": "Search",
-    "CMD": "Command"
+    "CMD": "Command",
+    "THEME": "Theme",
+    "DARCULA": "Darcula",
+    "INTELLIJ": "IntelliJ"
   },
   "TOOL_TIP": {
     "START_BTN": "Start adb logcat and receive logs",
@@ -132,6 +135,7 @@
     " SEARCH_CASE_TOGGLE": "Search case-sensitive",
     "SEARCH_PREV_BTN": "F3 : Move to Previous",
     "SEARCH_NEXT_BTN": "F4 : Move to Next",
-    "SEARCH_TARGET_LABEL": "ESC : Close search bar"
+    "SEARCH_TARGET_LABEL": "Searching View : filtered log, full log",
+    "SEARCH_CLOSE_BTN": "ESC : Close search bar"
   }
 }

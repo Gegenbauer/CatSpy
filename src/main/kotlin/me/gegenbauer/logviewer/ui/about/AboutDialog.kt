@@ -1,17 +1,17 @@
 package me.gegenbauer.logviewer.ui.about
 
-import me.gegenbauer.logviewer.*
-import me.gegenbauer.logviewer.strings.Strings
+import me.gegenbauer.logviewer.Utils
+import me.gegenbauer.logviewer.VERSION
+import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
-
 import java.awt.BorderLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.*
 
-class AboutDialog(parent: JFrame) :JDialog(parent, Strings.ABOUT, true), ActionListener {
+class AboutDialog(parent: JFrame) :JDialog(parent, STRINGS.ui.about, true), ActionListener {
     private var aboutLabel: JLabel
-    private var closeBtn : JButton = JButton(Strings.CLOSE)
+    private var closeBtn : JButton = JButton(STRINGS.ui.close)
     private var mainUI: MainUI
 
     init {

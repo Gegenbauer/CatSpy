@@ -3,16 +3,12 @@ package me.gegenbauer.logviewer.ui.button
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.ui.MainUI
-import java.awt.Color
-import java.awt.Component
-import java.awt.Dimension
-import java.awt.Graphics
+import java.awt.*
 import java.awt.event.*
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.plaf.basic.BasicComboBoxRenderer
-import javax.swing.plaf.basic.BasicComboBoxUI
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter
 import javax.swing.text.Highlighter
@@ -20,6 +16,16 @@ import javax.swing.text.JTextComponent
 
 
 class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboBox<String>() {
+
+    interface IFilterComboBoxMode {
+        val editor: HighlighterEditor
+
+        val editorComponent: JTextComponent
+
+        fun configureEditorComponent(editorComponent: JTextComponent)
+
+    }
+
     enum class Mode(val value: Int) {
         SINGLE_LINE(0),
         SINGLE_LINE_HIGHLIGHT(1),
@@ -49,21 +55,21 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         when (this.mode) {
             Mode.SINGLE_LINE -> {
                 editor = HighlighterSingleLineEditor()
-                val editorComponent = editor.editorComponent as HighlighterSingleLineEditor.HighlighterTextField
+                val editorComponent = editor.editorComponent as HighlighterTextField
                 editorComponent.setEnableHighlighter(false)
                 this.editorComponent = editorComponent
             }
 
             Mode.SINGLE_LINE_HIGHLIGHT -> {
                 editor = HighlighterSingleLineEditor()
-                val editorComponent = editor.editorComponent as HighlighterSingleLineEditor.HighlighterTextField
+                val editorComponent = editor.editorComponent as HighlighterTextField
                 editorComponent.setEnableHighlighter(true)
                 this.editorComponent = editorComponent
             }
 
             Mode.MULTI_LINE -> {
                 editor = HighlighterMultiLineEditor()
-                val editorComponent = editor.editorComponent as HighlighterMultiLineEditor.HighlighterTextArea
+                val editorComponent = editor.editorComponent as HighlighterTextArea
                 editorComponent.setComboBox(this)
                 editorComponent.setEnableHighlighter(false)
                 this.editorComponent = editorComponent
@@ -71,7 +77,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
 
             Mode.MULTI_LINE_HIGHLIGHT -> {
                 editor = HighlighterMultiLineEditor()
-                val editorComponent = editor.editorComponent as HighlighterMultiLineEditor.HighlighterTextArea
+                val editorComponent = editor.editorComponent as HighlighterTextArea
                 editorComponent.setComboBox(this)
                 editorComponent.setEnableHighlighter(true)
                 this.editorComponent = editorComponent
@@ -87,15 +93,14 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         isVisible = !(!enabled && editor.item.toString().isEmpty())
     }
 
+    // TODO 在将 xml 配置文件改成 json 配置文件后，需要整改
     fun isExistItem(item: String): Boolean {
-        var isExist = false
         for (idx in 0 until itemCount) {
             if (getItemAt(idx).toString() == item) {
-                isExist = true
-                break
+                return true
             }
         }
-        return isExist
+        return false
     }
 
     fun removeAllColorTags() {
@@ -149,47 +154,35 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
 
         editorComponent.text = result
 
+        updateHighlight()
+        return
+    }
+
+    private fun updateHighlight() {
         when (mode) {
             Mode.SINGLE_LINE_HIGHLIGHT -> {
-                val editorComponent = editorComponent as HighlighterSingleLineEditor.HighlighterTextField
+                val editorComponent = editorComponent as HighlighterTextField
                 editorComponent.setUpdateHighlighter(true)
             }
 
             Mode.MULTI_LINE_HIGHLIGHT -> {
-                val editorComponent = editorComponent as HighlighterMultiLineEditor.HighlighterTextArea
+                val editorComponent = editorComponent as HighlighterTextArea
                 editorComponent.setUpdateHighlighter(true)
             }
 
             else -> {
-
+                // do nothing
             }
         }
-        return
     }
 
     fun removeColorTag() {
         val text = editorComponent.selectedText
-        if (text != null) {
-            if (2 <= text.length && text[0] == '#' && text[1].isDigit()) {
-                editorComponent.replaceSelection(text.substring(2))
-            }
+        if (text != null && 2 <= text.length && text[0] == '#' && text[1].isDigit()) {
+            editorComponent.replaceSelection(text.substring(2))
         }
 
-        when (mode) {
-            Mode.SINGLE_LINE_HIGHLIGHT -> {
-                val editorComponent = editorComponent as HighlighterSingleLineEditor.HighlighterTextField
-                editorComponent.setUpdateHighlighter(true)
-            }
-
-            Mode.MULTI_LINE_HIGHLIGHT -> {
-                val editorComponent = editorComponent as HighlighterMultiLineEditor.HighlighterTextArea
-                editorComponent.setUpdateHighlighter(true)
-            }
-
-            else -> {
-
-            }
-        }
+        updateHighlight()
         return
     }
 
@@ -203,19 +196,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
             }
         }
 
-        when (mode) {
-            Mode.SINGLE_LINE_HIGHLIGHT -> {
-                val editorComponent = editorComponent as HighlighterSingleLineEditor.HighlighterTextField
-                editorComponent.setUpdateHighlighter(true)
-            }
-            Mode.MULTI_LINE_HIGHLIGHT -> {
-                val editorComponent = editorComponent as HighlighterMultiLineEditor.HighlighterTextArea
-                editorComponent.setUpdateHighlighter(true)
-            }
-            else -> {
-
-            }
-        }
+        updateHighlight()
         return
     }
 
@@ -276,7 +257,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         updateTooltip(false)
     }
 
-    fun updateTooltip(isShow: Boolean) {
+    private fun updateTooltip(isShow: Boolean) {
         if (!enabledTfTooltip) {
             return
         }
@@ -292,24 +273,8 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
             editorComponent.toolTipText = tooltip
         } else {
             val patterns = parsePattern(editorComponent.text)
-            var includeStr = patterns[0]
-            var excludeStr = patterns[1]
-
-            if (includeStr.isNotEmpty()) {
-                includeStr = includeStr.replace("&#09", "&amp;#09")
-                includeStr = includeStr.replace("\t", "&#09;")
-                includeStr = includeStr.replace("&nbsp", "&amp;nbsp")
-                includeStr = includeStr.replace(" ", "&nbsp;")
-                includeStr = includeStr.replace("|", "<font color=#303030><b>|</b></font>")
-            }
-
-            if (excludeStr.isNotEmpty()) {
-                excludeStr = excludeStr.replace("&#09", "&amp;#09")
-                excludeStr = excludeStr.replace("\t", "&#09;")
-                excludeStr = excludeStr.replace("&nbsp", "&amp;nbsp")
-                excludeStr = excludeStr.replace(" ", "&nbsp;")
-                excludeStr = excludeStr.replace("|", "<font color=#303030><b>|</b></font>")
-            }
+            val includeStr = updateToolTipStrToHtml(patterns[0])
+            val excludeStr = updateToolTipStrToHtml(patterns[1])
 
             var tooltip = "<html><b>$toolTipText</b><br>"
             if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
@@ -328,13 +293,9 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         }
     }
 
-    internal inner class KeyHandler : KeyAdapter() {
-        override fun keyReleased(e: KeyEvent) {
-            super.keyReleased(e)
-        }
-    }
+    private class KeyHandler : KeyAdapter()
 
-    internal inner class DocumentHandler : DocumentListener {
+    private inner class DocumentHandler : DocumentListener {
         override fun insertUpdate(e: DocumentEvent) {
             if (enabledTfTooltip && !isPopupVisible) {
                 updateTooltip()
@@ -348,6 +309,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         }
 
         override fun changedUpdate(e: DocumentEvent) {
+            // do nothing
         }
 
     }
@@ -373,7 +335,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         }
     }
 
-    internal abstract inner class HighlighterEditor : ComboBoxEditor {
+    abstract inner class HighlighterEditor : ComboBoxEditor {
         val colorManager = ColorManager.getInstance()
         fun updateHighlighter(textComponent: JTextComponent) {
             if (textComponent.selectedText == null) {
@@ -421,226 +383,44 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         }
     }
 
-    internal inner class HighlighterSingleLineEditor : HighlighterEditor() {
-        private val textEditor: HighlighterTextField = HighlighterTextField()
+    private abstract inner class BaseHighlighterEditor<T : JTextComponent>(protected val textComponent: T) :
+        HighlighterEditor() {
+        protected val textComponentWrapper = HighlightTextComponentWrapper(textComponent)
+
         override fun getEditorComponent(): Component {
-            return textEditor
+            return textComponent
         }
 
         override fun setItem(item: Any?) {
             if (item is String) {
-                textEditor.text = item
-                textEditor.setUpdateHighlighter(true)
+                textComponent.text = item
+                textComponentWrapper.setUpdateHighlighter(true)
             } else {
-                textEditor.text = null
+                textComponent.text = null
             }
         }
 
         override fun getItem(): Any {
-            return textEditor.text
+            return textComponent.text
         }
 
         override fun selectAll() {
-            textEditor.selectAll()
+            textComponent.selectAll()
         }
 
-        override fun addActionListener(l: ActionListener) {
-            textEditor.addActionListener(l)
-        }
-
-        override fun removeActionListener(l: ActionListener) {
-            textEditor.removeActionListener(l)
-        }
-
-        internal inner class HighlighterTextField : JTextField() {
-            private val fgColor: Color = foreground
-
-            init {
-                (highlighter as DefaultHighlighter).drawsLayeredHighlights = false
-
-                addKeyListener(object : KeyListener {
-                    override fun keyTyped(e: KeyEvent) {
-                    }
-
-                    override fun keyPressed(e: KeyEvent) {
-                        setUpdateHighlighter(true)
-                    }
-
-                    override fun keyReleased(e: KeyEvent) {
-                    }
-                })
-                addFocusListener(object : FocusListener {
-                    override fun focusGained(e: FocusEvent) {}
-                    override fun focusLost(e: FocusEvent) {
-                        setUpdateHighlighter(true)
-                    }
-                })
-
-                val colorEventListener = object : ColorManager.ColorEventListener {
-                    override fun colorChanged(event: ColorManager.ColorEvent) {
-                        setUpdateHighlighter(true)
-                        repaint()
-                    }
-                }
-
-                colorManager.addFilterStyleEventListener(colorEventListener)
-                colorManager.addColorEventListener(colorEventListener)
-            }
-
-            fun setUpdateHighlighter(updateHighlighter: Boolean) {
-                this.updateHighlighter = updateHighlighter
-            }
-
+        inner class HighlightTextComponentWrapper(private val textComponent: T) {
             private var enableHighlighter = false
             private var updateHighlighter = false
-            override fun paint(g: Graphics) {
-                foreground = if (errorMsg.isNotEmpty()) {
-                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
-                        Color(0xC0, 0x70, 0x70)
-                    } else {
-                        Color(0xFF, 0x00, 0x00)
-                    }
-                } else {
-                    fgColor
-                }
-
-                if (enableHighlighter && updateHighlighter) {
-                    updateHighlighter(this)
-                    updateHighlighter = false
-                }
-                super.paint(g)
-            }
-
-            fun setEnableHighlighter(enable: Boolean) {
-                enableHighlighter = enable
-            }
-        }
-    }
-
-    internal inner class HighlighterMultiLineEditor : HighlighterEditor() {
-        private val textEditor: HighlighterTextArea = HighlighterTextArea()
-        override fun getEditorComponent(): Component {
-            return textEditor
-        }
-
-        override fun setItem(item: Any?) {
-            if (item is String) {
-                textEditor.text = item
-                textEditor.setUpdateHighlighter(true)
-            } else {
-                textEditor.text = null
-            }
-        }
-
-        override fun getItem(): Any {
-            return textEditor.text
-        }
-
-        override fun selectAll() {
-            textEditor.selectAll()
-        }
-
-        override fun addActionListener(l: ActionListener) {
-            textEditor.addActionListener(l)
-        }
-
-        override fun removeActionListener(l: ActionListener) {
-            textEditor.removeActionListener(l)
-        }
-
-        inner class HighlighterTextArea : JTextArea() {
-            private var enableHighlighter = false
-            private lateinit var combo: FilterComboBox
-            private var updateHighlighter = false
-            private var prevCaret = 0
-            private val actionListeners = ArrayList<ActionListener>()
-
-            private val fgColor = foreground
+            private val fgColor = textComponent.foreground
 
             init {
-                lineWrap = true
+                (textComponent.highlighter as DefaultHighlighter).drawsLayeredHighlights = false
 
-                (highlighter as DefaultHighlighter).drawsLayeredHighlights = false
-                addKeyListener(object : KeyListener {
-                    override fun keyTyped(e: KeyEvent) {
+                textComponent.addFocusListener(object : FocusListener {
+                    override fun focusGained(e: FocusEvent) {
+                        // do nothing
                     }
 
-                    override fun keyPressed(e: KeyEvent) {
-                        when (e.keyCode) {
-                            KeyEvent.VK_ENTER -> {
-                                e.consume()
-                            }
-
-                            KeyEvent.VK_DOWN -> {
-                                prevCaret = caretPosition
-                                return
-                            }
-
-                            KeyEvent.VK_UP -> {
-                                if (combo.isPopupVisible) {
-                                    e.consume()
-                                }
-                                return
-                            }
-
-                            KeyEvent.VK_TAB -> {
-                                if (e.modifiersEx > 0) {
-                                    transferFocusBackward()
-                                } else {
-                                    transferFocus()
-                                }
-
-                                e.consume()
-                            }
-                        }
-
-                        setUpdateHighlighter(true)
-                    }
-
-                    override fun keyReleased(e: KeyEvent) {
-                        when (e.keyCode) {
-                            KeyEvent.VK_ENTER -> {
-                                e.consume()
-                                for (listener in actionListeners) {
-                                    listener.actionPerformed(ActionEvent(this, ActionEvent.ACTION_PERFORMED, text))
-                                }
-                            }
-
-                            KeyEvent.VK_DOWN -> {
-                                if (prevCaret == caretPosition) {
-                                    e.consume()
-                                    if (!combo.isPopupVisible) {
-                                        combo.showPopup()
-                                    }
-                                    if (combo.selectedIndex < (combo.itemCount - 1)) {
-                                        combo.selectedIndex++
-                                    }
-                                }
-                                return
-                            }
-
-                            KeyEvent.VK_UP -> {
-                                if (combo.isPopupVisible) {
-                                    e.consume()
-                                    if (combo.selectedIndex > 0) {
-                                        combo.selectedIndex--
-                                    }
-                                }
-                                return
-                            }
-                        }
-
-                        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
-                            combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height + 6)
-                        } else {
-                            combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height)
-                        }
-                        combo.parent.revalidate()
-                        combo.parent.repaint()
-                    }
-                })
-                addFocusListener(object : FocusListener {
-                    override fun focusGained(e: FocusEvent) {}
                     override fun focusLost(e: FocusEvent) {
                         setUpdateHighlighter(true)
                     }
@@ -669,8 +449,8 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 }
             }
 
-            override fun paint(g: Graphics) {
-                foreground = if (errorMsg.isNotEmpty()) {
+            fun paint() {
+                textComponent.foreground = if (errorMsg.isNotEmpty()) {
                     if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
                         Color(0xC0, 0x70, 0x70)
                     } else {
@@ -681,34 +461,220 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 }
 
                 if (enableHighlighter && updateHighlighter) {
-                    updateHighlighter(this)
+                    updateHighlighter(textComponent)
                     updateHighlighter = false
                 }
-                super.paint(g)
             }
+        }
+    }
 
-            fun addActionListener(l: ActionListener) {
-                actionListeners.add(l)
-            }
+    private inner class HighlighterSingleLineEditor :
+        BaseHighlighterEditor<HighlighterTextField>(HighlighterTextField()) {
 
-            fun removeActionListener(l: ActionListener) {
-                actionListeners.remove(l)
-            }
+        init {
+            textComponent.setTextComponentWrapper(textComponentWrapper)
+        }
 
-            fun setComboBox(filterComboBox: FilterComboBox) {
-                combo = filterComboBox
-            }
+        override fun addActionListener(l: ActionListener) {
+            textComponent.addActionListener(l)
+        }
 
-            override fun setText(t: String?) {
-                super.setText(t)
-                if (t != null) {
+        override fun removeActionListener(l: ActionListener) {
+            textComponent.removeActionListener(l)
+        }
+    }
+
+    private inner class HighlighterTextField : JTextField() {
+        private lateinit var textComponentWrapper: BaseHighlighterEditor<HighlighterTextField>.HighlightTextComponentWrapper
+
+        init {
+            addKeyListener(object : KeyListener {
+                override fun keyTyped(e: KeyEvent) {
+                    // do nothing
+                }
+
+                override fun keyPressed(e: KeyEvent) {
+                    textComponentWrapper.setUpdateHighlighter(true)
+                }
+
+                override fun keyReleased(e: KeyEvent) {
+                    // do nothing
+                }
+            })
+        }
+
+        fun setEnableHighlighter(enable: Boolean) {
+            textComponentWrapper.setEnableHighlighter(enable)
+        }
+
+        fun setUpdateHighlighter(updateHighlighter: Boolean) {
+            textComponentWrapper.setUpdateHighlighter(updateHighlighter)
+        }
+
+        override fun paint(graphics: Graphics) {
+            textComponentWrapper.paint()
+            super.paint(graphics)
+        }
+
+        fun setTextComponentWrapper(textComponentWrapper: BaseHighlighterEditor<HighlighterTextField>.HighlightTextComponentWrapper) {
+            this.textComponentWrapper = textComponentWrapper
+        }
+    }
+
+    private inner class HighlighterMultiLineEditor : BaseHighlighterEditor<HighlighterTextArea>(HighlighterTextArea()) {
+
+        init {
+            textComponent.setTextComponentWrapper(textComponentWrapper)
+        }
+
+        override fun addActionListener(l: ActionListener) {
+            textComponent.addActionListener(l)
+        }
+
+        override fun removeActionListener(l: ActionListener) {
+            textComponent.removeActionListener(l)
+        }
+    }
+
+    private class HighlighterTextArea : JTextArea() {
+        private val actionListeners = ArrayList<ActionListener>()
+        private var prevCaret = 0
+        private lateinit var combo: FilterComboBox
+        private lateinit var textComponentWrapper: BaseHighlighterEditor<HighlighterTextArea>.HighlightTextComponentWrapper
+
+        init {
+            lineWrap = true
+
+            addKeyListener(object : KeyListener {
+                override fun keyTyped(e: KeyEvent) {
+                    // do nothing
+                }
+
+                override fun keyPressed(e: KeyEvent) {
+                    when (e.keyCode) {
+                        KeyEvent.VK_ENTER -> {
+                            e.consume()
+                        }
+
+                        KeyEvent.VK_DOWN -> {
+                            prevCaret = caretPosition
+                            return
+                        }
+
+                        KeyEvent.VK_UP -> {
+                            if (combo.isPopupVisible) {
+                                e.consume()
+                            }
+                            return
+                        }
+
+                        KeyEvent.VK_TAB -> {
+                            if (e.modifiersEx > 0) {
+                                transferFocusBackward()
+                            } else {
+                                transferFocus()
+                            }
+
+                            e.consume()
+                        }
+                    }
+
+                    setUpdateHighlighter(true)
+                }
+
+                override fun keyReleased(e: KeyEvent) {
+                    when (e.keyCode) {
+                        KeyEvent.VK_ENTER -> {
+                            e.consume()
+                            for (listener in actionListeners) {
+                                listener.actionPerformed(ActionEvent(this, ActionEvent.ACTION_PERFORMED, text))
+                            }
+                        }
+
+                        KeyEvent.VK_DOWN -> {
+                            if (prevCaret == caretPosition) {
+                                e.consume()
+                                if (!combo.isPopupVisible) {
+                                    combo.showPopup()
+                                }
+                                if (combo.selectedIndex < (combo.itemCount - 1)) {
+                                    combo.selectedIndex++
+                                }
+                            }
+                            return
+                        }
+
+                        KeyEvent.VK_UP -> {
+                            if (combo.isPopupVisible) {
+                                e.consume()
+                                if (combo.selectedIndex > 0) {
+                                    combo.selectedIndex--
+                                }
+                            }
+                            return
+                        }
+                    }
+
                     if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
                         combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height + 6)
                     } else {
                         combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height)
                     }
+                    combo.parent.revalidate()
+                    combo.parent.repaint()
+                }
+            })
+        }
+
+        fun setTextComponentWrapper(textComponentWrapper: BaseHighlighterEditor<HighlighterTextArea>.HighlightTextComponentWrapper) {
+            this.textComponentWrapper = textComponentWrapper
+        }
+
+        fun setUpdateHighlighter(updateHighlighter: Boolean) {
+            textComponentWrapper.setUpdateHighlighter(updateHighlighter)
+        }
+
+        fun setEnableHighlighter(enable: Boolean) {
+            textComponentWrapper.setEnableHighlighter(enable)
+        }
+
+        override fun paint(g: Graphics) {
+            textComponentWrapper.paint()
+            super.paint(g)
+        }
+
+        fun addActionListener(l: ActionListener) {
+            actionListeners.add(l)
+        }
+
+        fun removeActionListener(l: ActionListener) {
+            actionListeners.remove(l)
+        }
+
+        fun setComboBox(filterComboBox: FilterComboBox) {
+            combo = filterComboBox
+        }
+
+        override fun setText(t: String?) {
+            super.setText(t)
+            if (t != null) {
+                if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
+                    combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height + 6)
+                } else {
+                    combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height)
                 }
             }
+        }
+    }
+
+    companion object {
+        private fun updateToolTipStrToHtml(toolTipStr: String): String {
+            if (toolTipStr.isEmpty()) return toolTipStr
+            return toolTipStr.replace("&#09", "&amp;#09")
+                .replace("\t", "&#09;")
+                .replace("&nbsp", "&amp;nbsp")
+                .replace(" ", "&nbsp;")
+                .replace("|", "<font color=#303030><b>|</b></font>")
         }
     }
 }

@@ -1,12 +1,11 @@
 package me.gegenbauer.logviewer.ui.log
 
-import me.gegenbauer.logviewer.*
+import me.gegenbauer.logviewer.Utils
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.manager.LogCmdManager
-import me.gegenbauer.logviewer.strings.Strings
+import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
-
 import java.awt.*
 import java.awt.event.*
 import java.io.File
@@ -15,7 +14,7 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 
 
-class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${Strings.SETTING}", true), ActionListener {
+class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd} ${STRINGS.ui.setting}", true), ActionListener {
     private var adbCmdBtn: JButton
     private var adbSaveBtn: JButton
     private var okBtn: JButton
@@ -62,19 +61,19 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
 
     init {
         val rowHeight = 30
-        adbCmdBtn = JButton(Strings.SELECT)
+        adbCmdBtn = JButton(STRINGS.ui.select)
         adbCmdBtn.addActionListener(this)
         adbCmdBtn.preferredSize = Dimension(adbCmdBtn.preferredSize.width, rowHeight)
-        adbSaveBtn = JButton(Strings.SELECT)
+        adbSaveBtn = JButton(STRINGS.ui.select)
         adbSaveBtn.addActionListener(this)
-        okBtn = JButton(Strings.OK)
+        okBtn = JButton(STRINGS.ui.ok)
         okBtn.addActionListener(this)
-        cancelBtn = JButton(Strings.CANCEL)
+        cancelBtn = JButton(STRINGS.ui.cancel)
         cancelBtn.addActionListener(this)
 
-        adbCmdLabel = JLabel(Strings.ADB_PATH)
+        adbCmdLabel = JLabel(STRINGS.ui.adbPath)
         adbCmdLabel.preferredSize = Dimension(adbCmdLabel.preferredSize.width, rowHeight)
-        adbSaveLabel = JLabel(Strings.LOG_PATH)
+        adbSaveLabel = JLabel(STRINGS.ui.logPath)
         prefixLabel = JLabel("Prefix")
         prefixLabel2 = JLabel("Default : LogViewer, Do not use \\ / : * ? \" < > |")
 
@@ -149,7 +148,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
 
         val pathPanel = JPanel()
         pathPanel.layout = BoxLayout(pathPanel, BoxLayout.Y_AXIS)
-        addHSeparator(pathPanel, "ADB " + Strings.SETTING)
+        addHSeparator(pathPanel, "ADB " + STRINGS.ui.setting)
         pathPanel.add(cmdPathPanel, BorderLayout.NORTH)
 
         val cmdPanel = JPanel(BorderLayout())
@@ -166,7 +165,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
 
         val logCmdPanel = JPanel()
         logCmdPanel.layout = BoxLayout(logCmdPanel, BoxLayout.Y_AXIS)
-        addHSeparator(logCmdPanel, Strings.LOG_CMD)
+        addHSeparator(logCmdPanel, STRINGS.ui.logCmd)
         logCmdPanel.add(logCmdTablePanel)
         logCmdPanel.add(logCmdLable1Panel)
         logCmdPanel.add(logCmdLable2Panel)
@@ -260,7 +259,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
         }
     }
 
-    inner class LogCmdDialog(parent: JDialog) :JDialog(parent, Strings.LOG_CMD, true), ActionListener, FocusListener {
+    inner class LogCmdDialog(parent: JDialog) :JDialog(parent, STRINGS.ui.logCmd, true), ActionListener, FocusListener {
         private var adbRadio: JRadioButton
         private var cmdRadio: JRadioButton
 
@@ -274,9 +273,9 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
 
         init {
             val rowHeight = 30
-            adbRadio = JRadioButton(Strings.ADB)
+            adbRadio = JRadioButton(STRINGS.ui.adb)
             adbRadio.preferredSize = Dimension(60, rowHeight)
-            cmdRadio = JRadioButton(Strings.CMD)
+            cmdRadio = JRadioButton(STRINGS.ui.cmd)
 
             val buttonGroup = ButtonGroup()
             buttonGroup.add(adbRadio)
@@ -297,13 +296,13 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
                 adbRadio.isSelected = true
             }
 
-            cmdBtn = JButton(Strings.SELECT)
+            cmdBtn = JButton(STRINGS.ui.select)
             cmdBtn.addActionListener(this)
             cmdBtn.preferredSize = Dimension(cmdBtn.preferredSize.width, rowHeight)
 
-            okBtn = JButton(Strings.OK)
+            okBtn = JButton(STRINGS.ui.ok)
             okBtn.addActionListener(this)
-            cancelBtn = JButton(Strings.CANCEL)
+            cancelBtn = JButton(STRINGS.ui.cancel)
             cancelBtn.addActionListener(this)
 
             val panel1 = JPanel(GridLayout(2, 1, 0, 2))
@@ -348,7 +347,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
 
         override fun actionPerformed(e: ActionEvent) {
             if (e.source == cmdBtn) {
-                val fileDialog = FileDialog(this@LogCmdDialog, Strings.CMD, FileDialog.LOAD)
+                val fileDialog = FileDialog(this@LogCmdDialog, STRINGS.ui.cmd, FileDialog.LOAD)
                 fileDialog.isVisible = true
                 if (fileDialog.file != null) {
                     val file = File(fileDialog.directory + fileDialog.file)

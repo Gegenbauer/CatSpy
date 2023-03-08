@@ -2,16 +2,15 @@ package me.gegenbauer.logviewer.ui
 
 import com.formdev.flatlaf.FlatDarkLaf
 import com.formdev.flatlaf.FlatLightLaf
-import com.github.weisj.darklaf.theme.DarculaTheme
-import com.github.weisj.darklaf.theme.IntelliJTheme
+import com.github.weisj.darklaf.components.OverlayScrollPane
 import me.gegenbauer.logviewer.GoToDialog
 import me.gegenbauer.logviewer.NAME
-import me.gegenbauer.logviewer.changeTheme
 import me.gegenbauer.logviewer.manager.*
-import me.gegenbauer.logviewer.strings.Strings
-import me.gegenbauer.logviewer.strings.TooltipStrings
+import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.about.AboutDialog
-import me.gegenbauer.logviewer.ui.button.*
+import me.gegenbauer.logviewer.ui.button.ColorToggleButton
+import me.gegenbauer.logviewer.ui.button.FilterComboBox
+import me.gegenbauer.logviewer.ui.button.WrapablePanel
 import me.gegenbauer.logviewer.ui.help.HelpDialog
 import me.gegenbauer.logviewer.ui.log.LogCmdSettingsDialog
 import me.gegenbauer.logviewer.ui.log.LogPanel
@@ -23,6 +22,7 @@ import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_FATAL
 import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_INFO
 import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_VERBOSE
 import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_WARNING
+import me.gegenbauer.logviewer.ui.menu.ThemeMenu
 import me.gegenbauer.logviewer.ui.settings.AppearanceSettingsDialog
 import me.gegenbauer.logviewer.utils.getEnum
 import java.awt.*
@@ -103,10 +103,6 @@ class MainUI(title: String) : JFrame() {
     private lateinit var menuHelp: JMenu
     private lateinit var itemHelp: JMenuItem
     private lateinit var itemAbout: JMenuItem
-
-    private lateinit var menuTheme: JMenu
-    private lateinit var itemDarculaTheme: JMenuItem
-    private lateinit var itemIntelliJTheme: JMenuItem
 
     private lateinit var filterPanel: JPanel
     private lateinit var filterLeftPanel: JPanel
@@ -309,13 +305,6 @@ class MainUI(title: String) : JFrame() {
             rotationStatus = prop.toInt()
         }
 
-        prop = configManager.getItem(ConfigManager.ITEM_LANG)
-        if (!prop.isNullOrEmpty()) {
-            Strings.lang = prop.toInt()
-        } else {
-            Strings.lang = Strings.EN
-        }
-
         prop = configManager.getItem(ConfigManager.ITEM_SHOW_LOG_STYLE)
         showLogComboStyle = if (!prop.isNullOrEmpty()) {
             getEnum(prop.toInt())
@@ -486,72 +475,72 @@ class MainUI(title: String) : JFrame() {
         addComponentListener(componentHandler)
 
         menuBar = JMenuBar()
-        menuFile = JMenu(Strings.FILE)
+        menuFile = JMenu(STRINGS.ui.file)
         menuFile.mnemonic = KeyEvent.VK_F
 
-        itemFileOpen = JMenuItem(Strings.OPEN)
+        itemFileOpen = JMenuItem(STRINGS.ui.open)
         itemFileOpen.addActionListener(actionHandler)
         menuFile.add(itemFileOpen)
 
-        itemFileFollow = JMenuItem(Strings.FOLLOW)
+        itemFileFollow = JMenuItem(STRINGS.ui.follow)
         itemFileFollow.addActionListener(actionHandler)
         menuFile.add(itemFileFollow)
 
-        itemFileOpenFiles = JMenuItem(Strings.OPEN_FILES)
+        itemFileOpenFiles = JMenuItem(STRINGS.ui.openFiles)
         itemFileOpenFiles.addActionListener(actionHandler)
         menuFile.add(itemFileOpenFiles)
 
-        itemFileAppendFiles = JMenuItem(Strings.APPEND_FILES)
+        itemFileAppendFiles = JMenuItem(STRINGS.ui.appendFiles)
         itemFileAppendFiles.addActionListener(actionHandler)
         menuFile.add(itemFileAppendFiles)
 
         menuFile.addSeparator()
 
-        itemFileExit = JMenuItem(Strings.EXIT)
+        itemFileExit = JMenuItem(STRINGS.ui.exit)
         itemFileExit.addActionListener(actionHandler)
         menuFile.add(itemFileExit)
         menuBar.add(menuFile)
 
-        menuView = JMenu(Strings.VIEW)
+        menuView = JMenu(STRINGS.ui.view)
         menuView.mnemonic = KeyEvent.VK_V
 
-        itemFull = JCheckBoxMenuItem(Strings.VIEW_FULL)
+        itemFull = JCheckBoxMenuItem(STRINGS.ui.viewFull)
         itemFull.addActionListener(actionHandler)
         menuView.add(itemFull)
 
         menuView.addSeparator()
 
-        itemSearch = JCheckBoxMenuItem(Strings.SEARCH)
+        itemSearch = JCheckBoxMenuItem(STRINGS.ui.search)
         itemSearch.addActionListener(actionHandler)
         menuView.add(itemSearch)
 
         menuView.addSeparator()
 
-        itemRotation = JMenuItem(Strings.ROTATION)
+        itemRotation = JMenuItem(STRINGS.ui.rotation)
         itemRotation.addActionListener(actionHandler)
         menuView.add(itemRotation)
 
         menuBar.add(menuView)
 
-        menuSettings = JMenu(Strings.SETTING)
+        menuSettings = JMenu(STRINGS.ui.setting)
         menuSettings.mnemonic = KeyEvent.VK_S
 
-        itemlogCmd = JMenuItem("${Strings.LOG_CMD}(${Strings.ADB})")
+        itemlogCmd = JMenuItem("${STRINGS.ui.logCmd}(${STRINGS.ui.adb})")
         itemlogCmd.addActionListener(actionHandler)
         menuSettings.add(itemlogCmd)
-        itemlogFile = JMenuItem(Strings.LOGFILE)
+        itemlogFile = JMenuItem(STRINGS.ui.logFile)
         itemlogFile.addActionListener(actionHandler)
         menuSettings.add(itemlogFile)
 
         menuSettings.addSeparator()
 
-        itemfilterIncremental = JCheckBoxMenuItem(Strings.FILTER + "-" + Strings.INCREMENTAL)
+        itemfilterIncremental = JCheckBoxMenuItem(STRINGS.ui.filter + "-" + STRINGS.ui.incremental)
         itemfilterIncremental.addActionListener(actionHandler)
         menuSettings.add(itemfilterIncremental)
 
         menuSettings.addSeparator()
 
-        menuLogLevel = JMenu(Strings.LOGLEVEL)
+        menuLogLevel = JMenu(STRINGS.ui.logLevel)
         menuLogLevel.addActionListener(actionHandler)
         menuSettings.add(menuLogLevel)
 
@@ -590,34 +579,27 @@ class MainUI(title: String) : JFrame() {
 
         menuSettings.addSeparator()
 
-        itemAppearance = JMenuItem(Strings.APPEARANCE)
+        itemAppearance = JMenuItem(STRINGS.ui.appearance)
         itemAppearance.addActionListener(actionHandler)
         menuSettings.add(itemAppearance)
 
         menuBar.add(menuSettings)
 
-        menuHelp = JMenu(Strings.HELP)
+        menuHelp = JMenu(STRINGS.ui.help)
         menuHelp.mnemonic = KeyEvent.VK_H
 
-        itemHelp = JMenuItem(Strings.HELP)
+        itemHelp = JMenuItem(STRINGS.ui.help)
         itemHelp.addActionListener(actionHandler)
         menuHelp.add(itemHelp)
 
         menuHelp.addSeparator()
 
-        itemAbout = JMenuItem(Strings.ABOUT)
+        itemAbout = JMenuItem(STRINGS.ui.about)
         itemAbout.addActionListener(actionHandler)
         menuHelp.add(itemAbout)
         menuBar.add(menuHelp)
 
-        menuTheme = JMenu("Theme")
-        itemDarculaTheme = JMenuItem("Darcula")
-        itemDarculaTheme.addActionListener(actionHandler)
-        menuTheme.add(itemDarculaTheme)
-        itemIntelliJTheme = JMenuItem("IntelliJ")
-        itemIntelliJTheme.addActionListener(actionHandler)
-        menuTheme.add(itemIntelliJTheme)
-        menuBar.add(menuTheme)
+        menuBar.add(ThemeMenu())
 
         jMenuBar = menuBar
 
@@ -673,53 +655,53 @@ class MainUI(title: String) : JFrame() {
         searchPanel = SearchPanel()
 
         val btnMargin = Insets(2, 5, 2, 5)
-        startBtn = JButton(Strings.START)
+        startBtn = JButton(STRINGS.ui.start)
         startBtn.margin = btnMargin
-        startBtn.toolTipText = TooltipStrings.START_BTN
+        startBtn.toolTipText = STRINGS.toolTip.startBtn
         startBtn.icon = ImageIcon(this.javaClass.getResource("/images/start.png"))
         startBtn.addActionListener(actionHandler)
         startBtn.addMouseListener(mouseHandler)
-        retryAdbToggle = ColorToggleButton(Strings.RETRY_ADB)
-        retryAdbToggle.toolTipText = TooltipStrings.RETRY_ADB_TOGGLE
+        retryAdbToggle = ColorToggleButton(STRINGS.ui.retryAdb)
+        retryAdbToggle.toolTipText = STRINGS.toolTip.retryAdbToggle
         retryAdbToggle.margin = btnMargin
         retryAdbToggle.addItemListener(itemHandler)
 
-        pauseToggle = ColorToggleButton(Strings.PAUSE)
-        pauseToggle.toolTipText = TooltipStrings.PAUSE_BTN
+        pauseToggle = ColorToggleButton(STRINGS.ui.pause)
+        pauseToggle.toolTipText = STRINGS.toolTip.pauseBtn
         pauseToggle.margin = btnMargin
         pauseToggle.addItemListener(itemHandler)
 
 
-        stopBtn = JButton(Strings.STOP)
+        stopBtn = JButton(STRINGS.ui.stop)
         stopBtn.margin = btnMargin
-        stopBtn.toolTipText = TooltipStrings.STOP_BTN
+        stopBtn.toolTipText = STRINGS.toolTip.stopBtn
         stopBtn.addActionListener(actionHandler)
         stopBtn.addMouseListener(mouseHandler)
-        clearViewsBtn = JButton(Strings.CLEAR_VIEWS)
+        clearViewsBtn = JButton(STRINGS.ui.clearViews)
         clearViewsBtn.margin = btnMargin
-        clearViewsBtn.toolTipText = TooltipStrings.CLEAR_BTN
+        clearViewsBtn.toolTipText = STRINGS.toolTip.clearBtn
         clearViewsBtn.icon = ImageIcon(this.javaClass.getResource("/images/clear.png"))
 
         clearViewsBtn.addActionListener(actionHandler)
         clearViewsBtn.addMouseListener(mouseHandler)
-        saveBtn = JButton(Strings.SAVE)
+        saveBtn = JButton(STRINGS.ui.save)
         saveBtn.margin = btnMargin
-        saveBtn.toolTipText = TooltipStrings.SAVE_BTN
+        saveBtn.toolTipText = STRINGS.toolTip.saveBtn
         saveBtn.addActionListener(actionHandler)
         saveBtn.addMouseListener(mouseHandler)
 
         logPanel = JPanel()
         showLogPanel = JPanel()
         showLogCombo = FilterComboBox(showLogComboStyle, true)
-        showLogCombo.toolTipText = TooltipStrings.LOG_COMBO
+        showLogCombo.toolTipText = STRINGS.toolTip.logCombo
         showLogCombo.isEditable = true
         showLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
         showLogCombo.editor.editorComponent.addKeyListener(keyHandler)
         showLogCombo.addItemListener(itemHandler)
         showLogCombo.addPopupMenuListener(popupMenuHandler)
         showLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        showLogToggle = ColorToggleButton(Strings.LOG)
-        showLogToggle.toolTipText = TooltipStrings.LOG_TOGGLE
+        showLogToggle = ColorToggleButton(STRINGS.ui.log)
+        showLogToggle.toolTipText = STRINGS.toolTip.logToggle
         showLogToggle.margin = Insets(0, 0, 0, 0)
         showLogTogglePanel = JPanel(GridLayout(1, 1))
         showLogTogglePanel.add(showLogToggle)
@@ -728,15 +710,15 @@ class MainUI(title: String) : JFrame() {
 
         boldLogPanel = JPanel()
         boldLogCombo = FilterComboBox(boldLogComboStyle, false)
-        boldLogCombo.toolTipText = TooltipStrings.BOLD_COMBO
+        boldLogCombo.toolTipText = STRINGS.toolTip.boldCombo
         boldLogCombo.enabledTfTooltip = false
         boldLogCombo.isEditable = true
         boldLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
         boldLogCombo.editor.editorComponent.addKeyListener(keyHandler)
         boldLogCombo.addItemListener(itemHandler)
         boldLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        boldLogToggle = ColorToggleButton(Strings.BOLD)
-        boldLogToggle.toolTipText = TooltipStrings.BOLD_TOGGLE
+        boldLogToggle = ColorToggleButton(STRINGS.ui.bold)
+        boldLogToggle.toolTipText = STRINGS.toolTip.boldToggle
         boldLogToggle.margin = Insets(0, 0, 0, 0)
         boldLogTogglePanel = JPanel(GridLayout(1, 1))
         boldLogTogglePanel.add(boldLogToggle)
@@ -745,14 +727,14 @@ class MainUI(title: String) : JFrame() {
 
         showTagPanel = JPanel()
         showTagCombo = FilterComboBox(showTagComboStyle, false)
-        showTagCombo.toolTipText = TooltipStrings.TAG_COMBO
+        showTagCombo.toolTipText = STRINGS.toolTip.tagCombo
         showTagCombo.isEditable = true
         showTagCombo.renderer = FilterComboBox.ComboBoxRenderer()
         showTagCombo.editor.editorComponent.addKeyListener(keyHandler)
         showTagCombo.addItemListener(itemHandler)
         showTagCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        showTagToggle = ColorToggleButton(Strings.TAG)
-        showTagToggle.toolTipText = TooltipStrings.TAG_TOGGLE
+        showTagToggle = ColorToggleButton(STRINGS.ui.tag)
+        showTagToggle.toolTipText = STRINGS.toolTip.tagToggle
         showTagToggle.margin = Insets(0, 0, 0, 0)
         showTagTogglePanel = JPanel(GridLayout(1, 1))
         showTagTogglePanel.add(showTagToggle)
@@ -761,14 +743,14 @@ class MainUI(title: String) : JFrame() {
 
         showPidPanel = JPanel()
         showPidCombo = FilterComboBox(showPidComboStyle, false)
-        showPidCombo.toolTipText = TooltipStrings.PID_COMBO
+        showPidCombo.toolTipText = STRINGS.toolTip.pidCombo
         showPidCombo.isEditable = true
         showPidCombo.renderer = FilterComboBox.ComboBoxRenderer()
         showPidCombo.editor.editorComponent.addKeyListener(keyHandler)
         showPidCombo.addItemListener(itemHandler)
         showPidCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        showPidToggle = ColorToggleButton(Strings.PID)
-        showPidToggle.toolTipText = TooltipStrings.PID_TOGGLE
+        showPidToggle = ColorToggleButton(STRINGS.ui.pid)
+        showPidToggle.toolTipText = STRINGS.toolTip.pidToggle
         showPidToggle.margin = Insets(0, 0, 0, 0)
         showPidTogglePanel = JPanel(GridLayout(1, 1))
         showPidTogglePanel.add(showPidToggle)
@@ -777,14 +759,14 @@ class MainUI(title: String) : JFrame() {
 
         showTidPanel = JPanel()
         showTidCombo = FilterComboBox(showTidComboStyle, false)
-        showTidCombo.toolTipText = TooltipStrings.TID_COMBO
+        showTidCombo.toolTipText = STRINGS.toolTip.tidCombo
         showTidCombo.isEditable = true
         showTidCombo.renderer = FilterComboBox.ComboBoxRenderer()
         showTidCombo.editor.editorComponent.addKeyListener(keyHandler)
         showTidCombo.addItemListener(itemHandler)
         showTidCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        showTidToggle = ColorToggleButton(Strings.TID)
-        showTidToggle.toolTipText = TooltipStrings.TID_TOGGLE
+        showTidToggle = ColorToggleButton(STRINGS.ui.tid)
+        showTidToggle.toolTipText = STRINGS.toolTip.tidToggle
         showTidToggle.margin = Insets(0, 0, 0, 0)
         showTidTogglePanel = JPanel(GridLayout(1, 1))
         showTidTogglePanel.add(showTidToggle)
@@ -792,7 +774,7 @@ class MainUI(title: String) : JFrame() {
         showTidToggle.addItemListener(itemHandler)
 
         logCmdCombo = JComboBox()
-        logCmdCombo.toolTipText = TooltipStrings.LOG_CMD_COMBO
+        logCmdCombo.toolTipText = STRINGS.toolTip.logCmdCombo
         logCmdCombo.isEditable = true
         logCmdCombo.editor.editorComponent.addKeyListener(keyHandler)
         logCmdCombo.addItemListener(itemHandler)
@@ -803,27 +785,27 @@ class MainUI(title: String) : JFrame() {
         deviceStatus.isEnabled = false
         val deviceComboPanel = JPanel(BorderLayout())
         deviceCombo = JComboBox()
-        deviceCombo.toolTipText = TooltipStrings.DEVICES_COMBO
+        deviceCombo.toolTipText = STRINGS.toolTip.devicesCombo
         deviceCombo.isEditable = true
         deviceCombo.editor.editorComponent.addKeyListener(keyHandler)
         deviceCombo.addItemListener(itemHandler)
         deviceCombo.editor.editorComponent.addMouseListener(mouseHandler)
         deviceComboPanel.add(deviceCombo, BorderLayout.CENTER)
-        adbConnectBtn = JButton(Strings.CONNECT)
+        adbConnectBtn = JButton(STRINGS.ui.connect)
         adbConnectBtn.margin = btnMargin
-        adbConnectBtn.toolTipText = TooltipStrings.CONNECT_BTN
+        adbConnectBtn.toolTipText = STRINGS.toolTip.connectBtn
         adbConnectBtn.addActionListener(actionHandler)
-        adbRefreshBtn = JButton(Strings.REFRESH)
+        adbRefreshBtn = JButton(STRINGS.ui.refresh)
         adbRefreshBtn.margin = btnMargin
         adbRefreshBtn.addActionListener(actionHandler)
-        adbRefreshBtn.toolTipText = TooltipStrings.REFRESH_BTN
-        adbDisconnectBtn = JButton(Strings.DISCONNECT)
+        adbRefreshBtn.toolTipText = STRINGS.toolTip.refreshBtn
+        adbDisconnectBtn = JButton(STRINGS.ui.disconnect)
         adbDisconnectBtn.margin = btnMargin
         adbDisconnectBtn.addActionListener(actionHandler)
-        adbDisconnectBtn.toolTipText = TooltipStrings.DISCONNECT_BTN
+        adbDisconnectBtn.toolTipText = STRINGS.toolTip.disconnectBtn
 
         matchCaseToggle = ColorToggleButton("Aa")
-        matchCaseToggle.toolTipText = TooltipStrings.CASE_TOGGLE
+        matchCaseToggle.toolTipText = STRINGS.toolTip.caseToggle
         matchCaseToggle.margin = Insets(0, 0, 0, 0)
         matchCaseToggle.addItemListener(itemHandler)
         matchCaseTogglePanel = JPanel(GridLayout(1, 1))
@@ -882,12 +864,12 @@ class MainUI(title: String) : JFrame() {
         deviceStatus.border = BorderFactory.createEmptyBorder(3, 0, 3, 0)
         deviceStatus.horizontalAlignment = JLabel.CENTER
 
-        scrollBackApplyBtn = JButton(Strings.APPLY)
+        scrollBackApplyBtn = JButton(STRINGS.ui.apply)
         scrollBackApplyBtn.margin = btnMargin
-        scrollBackApplyBtn.toolTipText = TooltipStrings.SCROLL_BACK_APPLY_BTN
+        scrollBackApplyBtn.toolTipText = STRINGS.toolTip.scrollBackApplyBtn
         scrollBackApplyBtn.addActionListener(actionHandler)
-        scrollBackKeepToggle = ColorToggleButton(Strings.KEEP)
-        scrollBackKeepToggle.toolTipText = TooltipStrings.SCROLL_BACK_KEEP_TOGGLE
+        scrollBackKeepToggle = ColorToggleButton(STRINGS.ui.keep)
+        scrollBackKeepToggle.toolTipText = STRINGS.toolTip.scrollBackKeepToggle
         if (ConfigManager.LaF != CROSS_PLATFORM_LAF) {
             val imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on_warn.png"))
             scrollBackKeepToggle.selectedIcon = imgIcon
@@ -896,14 +878,14 @@ class MainUI(title: String) : JFrame() {
         scrollBackKeepToggle.margin = btnMargin
         scrollBackKeepToggle.addItemListener(itemHandler)
 
-        scrollBackLabel = JLabel(Strings.SCROLL_BACK_LINES)
+        scrollBackLabel = JLabel(STRINGS.ui.scrollBackLines)
 
         scrollBackTF = JTextField()
-        scrollBackTF.toolTipText = TooltipStrings.SCROLL_BACK_TF
+        scrollBackTF.toolTipText = STRINGS.toolTip.scrollBackTf
         scrollBackTF.preferredSize = Dimension(80, scrollBackTF.preferredSize.height)
         scrollBackTF.addKeyListener(keyHandler)
-        scrollBackSplitFileToggle = ColorToggleButton(Strings.SPLIT_FILE)
-        scrollBackSplitFileToggle.toolTipText = TooltipStrings.SCROLL_BACK_SPLIT_CHK
+        scrollBackSplitFileToggle = ColorToggleButton(STRINGS.ui.splitFile)
+        scrollBackSplitFileToggle.toolTipText = STRINGS.toolTip.scrollBackSplitChk
         scrollBackSplitFileToggle.margin = btnMargin
         scrollBackSplitFileToggle.addItemListener(itemHandler)
 
@@ -1016,31 +998,31 @@ class MainUI(title: String) : JFrame() {
         statusMethod.isOpaque = true
         statusMethod.background = Color.DARK_GRAY
         statusMethod.addPropertyChangeListener(statusChangeListener)
-        statusTF = StatusTextField(Strings.NONE)
+        statusTF = StatusTextField(STRINGS.ui.none)
         statusTF.document.addDocumentListener(statusChangeListener)
-        statusTF.toolTipText = TooltipStrings.SAVED_FILE_TF
+        statusTF.toolTipText = STRINGS.toolTip.savedFileTf
         statusTF.isEditable = false
         statusTF.border = BorderFactory.createEmptyBorder()
 
-        startFollowBtn = JButton(Strings.START)
+        startFollowBtn = JButton(STRINGS.ui.start)
         startFollowBtn.margin = btnMargin
-        startFollowBtn.toolTipText = TooltipStrings.START_FOLLOW_BTN
+        startFollowBtn.toolTipText = STRINGS.toolTip.startFollowBtn
         startFollowBtn.addActionListener(actionHandler)
         startFollowBtn.addMouseListener(mouseHandler)
 
-        pauseFollowToggle = ColorToggleButton(Strings.PAUSE)
+        pauseFollowToggle = ColorToggleButton(STRINGS.ui.pause)
         pauseFollowToggle.margin = Insets(pauseFollowToggle.margin.top, 0, pauseFollowToggle.margin.bottom, 0)
         pauseFollowToggle.addItemListener(itemHandler)
 
-        stopFollowBtn = JButton(Strings.STOP)
+        stopFollowBtn = JButton(STRINGS.ui.stop)
         stopFollowBtn.margin = btnMargin
-        stopFollowBtn.toolTipText = TooltipStrings.STOP_FOLLOW_BTN
+        stopFollowBtn.toolTipText = STRINGS.toolTip.stopFollowBtn
         stopFollowBtn.addActionListener(actionHandler)
         stopFollowBtn.addMouseListener(mouseHandler)
 
         val followPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
         followPanel.border = BorderFactory.createEmptyBorder(0, 3, 0, 3)
-        followLabel = JLabel(" ${Strings.FOLLOW} ")
+        followLabel = JLabel(" ${STRINGS.ui.follow} ")
         followLabel.border = BorderFactory.createDashedBorder(null, 1.0f, 2.0f)
         followPanel.add(followLabel)
         followPanel.add(startFollowBtn)
@@ -1167,10 +1149,10 @@ class MainUI(title: String) : JFrame() {
         deviceCombo.selectedIndex = 0
 
         if (logCmdManager.devices.contains(targetDevice)) {
-            deviceStatus.text = Strings.CONNECTED
+            deviceStatus.text = STRINGS.ui.connected
             setDeviceComboColor(true)
         } else {
-            deviceStatus.text = Strings.NOT_CONNECTED
+            deviceStatus.text = STRINGS.ui.notConnected
             setDeviceComboColor(false)
         }
 
@@ -1381,19 +1363,19 @@ class MainUI(title: String) : JFrame() {
 
     private fun setBtnTexts(isShow:Boolean) {
         if (isShow) {
-            startBtn.text = Strings.START
-            retryAdbToggle.text = Strings.RETRY_ADB
-            pauseToggle.text = Strings.PAUSE
-            stopBtn.text = Strings.STOP
-            clearViewsBtn.text = Strings.CLEAR_VIEWS
-            saveBtn.text = Strings.SAVE
-            adbConnectBtn.text = Strings.CONNECT
-            adbRefreshBtn.text = Strings.REFRESH
-            adbDisconnectBtn.text = Strings.DISCONNECT
-            scrollBackApplyBtn.text = Strings.APPLY
-            scrollBackKeepToggle.text = Strings.KEEP
-            scrollBackSplitFileToggle.text = Strings.SPLIT_FILE
-            scrollBackLabel.text = Strings.SCROLL_BACK_LINES
+            startBtn.text = STRINGS.ui.start
+            retryAdbToggle.text = STRINGS.ui.retryAdb
+            pauseToggle.text = STRINGS.ui.pause
+            stopBtn.text = STRINGS.ui.stop
+            clearViewsBtn.text = STRINGS.ui.clearViews
+            saveBtn.text = STRINGS.ui.save
+            adbConnectBtn.text = STRINGS.ui.connect
+            adbRefreshBtn.text = STRINGS.ui.refresh
+            adbDisconnectBtn.text = STRINGS.ui.disconnect
+            scrollBackApplyBtn.text = STRINGS.ui.apply
+            scrollBackKeepToggle.text = STRINGS.ui.keep
+            scrollBackSplitFileToggle.text = STRINGS.ui.splitFile
+            scrollBackLabel.text = STRINGS.ui.scrollBackLines
         }
         else {
             startBtn.text = null
@@ -1433,11 +1415,11 @@ class MainUI(title: String) : JFrame() {
 
     private fun updateTitleBar(statusMethod: String) {
         title = when (statusMethod) {
-            Strings.OPEN, Strings.FOLLOW, "${Strings.FOLLOW} ${Strings.STOP}" -> {
+            STRINGS.ui.open, STRINGS.ui.follow, "${STRINGS.ui.follow} ${STRINGS.ui.stop}" -> {
                 val path: Path = Paths.get(statusTF.text)
                 path.fileName.toString()
             }
-            Strings.ADB, Strings.CMD, "${Strings.ADB} ${Strings.STOP}", "${Strings.CMD} ${Strings.STOP}" -> {
+            STRINGS.ui.adb, STRINGS.ui.cmd, "${STRINGS.ui.adb} ${STRINGS.ui.stop}", "${STRINGS.ui.cmd} ${STRINGS.ui.stop}" -> {
                 logCmdManager.targetDevice.ifEmpty { NAME }
             }
             else -> {
@@ -1599,7 +1581,7 @@ class MainUI(title: String) : JFrame() {
 
     fun openFile(path: String, isAppend: Boolean) {
         println("Opening: $path, $isAppend")
-        statusMethod.text = " ${Strings.OPEN} "
+        statusMethod.text = " ${STRINGS.ui.open} "
         filteredTableModel.stopScan()
         filteredTableModel.stopFollow()
 
@@ -1651,10 +1633,10 @@ class MainUI(title: String) : JFrame() {
 
     fun startAdbScan(reconnect: Boolean) {
         if (logCmdManager.getType() == LogCmdManager.TYPE_CMD) {
-            statusMethod.text = " ${Strings.CMD} "
+            statusMethod.text = " ${STRINGS.ui.cmd} "
         }
         else {
-            statusMethod.text = " ${Strings.ADB} "
+            statusMethod.text = " ${STRINGS.ui.adb} "
         }
 
         filteredTableModel.stopScan()
@@ -1678,10 +1660,10 @@ class MainUI(title: String) : JFrame() {
 
     fun stopAdbScan() {
         if (logCmdManager.getType() == LogCmdManager.TYPE_CMD) {
-            statusMethod.text = " ${Strings.CMD} ${Strings.STOP} "
+            statusMethod.text = " ${STRINGS.ui.cmd} ${STRINGS.ui.stop} "
         }
         else {
-            statusMethod.text = " ${Strings.ADB} ${Strings.STOP} "
+            statusMethod.text = " ${STRINGS.ui.adb} ${STRINGS.ui.stop} "
         }
 
         if (!filteredTableModel.isScanning()) {
@@ -1725,7 +1707,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun startFileFollow() {
-        statusMethod.text = " ${Strings.FOLLOW} "
+        statusMethod.text = " ${STRINGS.ui.follow} "
         filteredTableModel.stopScan()
         filteredTableModel.stopFollow()
         pauseFollowToggle.isSelected = false
@@ -1746,7 +1728,7 @@ class MainUI(title: String) : JFrame() {
             println("stopAdbScan : not file follow mode")
             return
         }
-        statusMethod.text = " ${Strings.FOLLOW} ${Strings.STOP} "
+        statusMethod.text = " ${STRINGS.ui.follow} ${STRINGS.ui.stop} "
         filteredTableModel.stopFollow()
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             statusMethod.background = Color(0x50, 0x50, 0x50)
@@ -1776,7 +1758,7 @@ class MainUI(title: String) : JFrame() {
         override fun actionPerformed(event: ActionEvent) {
             when (event.source) {
                 itemFileOpen -> {
-                    val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN, FileDialog.LOAD)
+                    val fileDialog = FileDialog(this@MainUI, STRINGS.ui.file + " " + STRINGS.ui.open, FileDialog.LOAD)
                     fileDialog.isMultipleMode = false
                     fileDialog.directory = fullTableModel.logFile?.parent
                     fileDialog.isVisible = true
@@ -1788,7 +1770,7 @@ class MainUI(title: String) : JFrame() {
                     }
                 }
                 itemFileFollow -> {
-                    val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.FOLLOW, FileDialog.LOAD)
+                    val fileDialog = FileDialog(this@MainUI, STRINGS.ui.file + " " + STRINGS.ui.follow, FileDialog.LOAD)
                     fileDialog.isMultipleMode = false
                     fileDialog.directory = fullTableModel.logFile?.parent
                     fileDialog.isVisible = true
@@ -1801,7 +1783,7 @@ class MainUI(title: String) : JFrame() {
                     }
                 }
                 itemFileOpenFiles -> {
-                    val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN_FILES, FileDialog.LOAD)
+                    val fileDialog = FileDialog(this@MainUI, STRINGS.ui.file + " " + STRINGS.ui.openFiles, FileDialog.LOAD)
                     fileDialog.isMultipleMode = true
                     fileDialog.directory = fullTableModel.logFile?.parent
                     fileDialog.isVisible = true
@@ -1821,7 +1803,7 @@ class MainUI(title: String) : JFrame() {
                     }
                 }
                 itemFileAppendFiles -> {
-                    val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.APPEND_FILES, FileDialog.LOAD)
+                    val fileDialog = FileDialog(this@MainUI, STRINGS.ui.file + " " + STRINGS.ui.appendFiles, FileDialog.LOAD)
                     fileDialog.isMultipleMode = true
                     fileDialog.directory = fullTableModel.logFile?.parent
                     fileDialog.isVisible = true
@@ -1962,12 +1944,6 @@ class MainUI(title: String) : JFrame() {
                 stopFollowBtn -> {
                     stopFileFollow()
                 }
-                itemDarculaTheme -> {
-                    changeTheme(DarculaTheme())
-                }
-                itemIntelliJTheme -> {
-                    changeTheme(IntelliJTheme())
-                }
             }
         }
     }
@@ -2091,6 +2067,7 @@ class MainUI(title: String) : JFrame() {
 
         init {
             this.combo = combo
+            combo.background = Color.BLACK
             selectAllItem = JMenuItem("Select All")
             selectAllItem.addActionListener(actionHandler)
             add(selectAllItem)
@@ -2336,7 +2313,7 @@ class MainUI(title: String) : JFrame() {
             }
         }
 
-        logCmdCombo.toolTipText = "\"${logCmdManager.logCmd}\"\n\n${TooltipStrings.LOG_CMD_COMBO}"
+        logCmdCombo.toolTipText = "\"${logCmdManager.logCmd}\"\n\n${STRINGS.toolTip.logCmdCombo}"
 
         if (logCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
             if (ConfigManager.LaF == FLAT_DARK_LAF) {
@@ -2561,7 +2538,7 @@ class MainUI(title: String) : JFrame() {
                     }
 
                     if (logCmdManager.devices.contains(selectedItem.toString())) {
-                        deviceStatus.text = Strings.CONNECTED
+                        deviceStatus.text = STRINGS.ui.connected
                         setDeviceComboColor(true)
                     } else {
                         var isExist = false
@@ -2574,10 +2551,10 @@ class MainUI(title: String) : JFrame() {
                             }
                         }
                         if (isExist) {
-                            deviceStatus.text = Strings.CONNECTED
+                            deviceStatus.text = STRINGS.ui.connected
                             setDeviceComboColor(true)
                         } else {
-                            deviceStatus.text = Strings.NOT_CONNECTED
+                            deviceStatus.text = STRINGS.ui.notConnected
                             setDeviceComboColor(false)
                         }
                     }
@@ -2671,7 +2648,7 @@ class MainUI(title: String) : JFrame() {
         override fun popupMenuWillBecomeVisible(event: PopupMenuEvent) {
             val box = event.source as JComboBox<*>
             val comp = box.ui.getAccessibleChild(box, 0) as? JPopupMenu ?: return
-            val scrollPane = comp.getComponent(0) as JScrollPane
+            val scrollPane = comp.getComponent(0) as OverlayScrollPane
             scrollPane.verticalScrollBar?.setUI(BasicScrollBarUI())
             scrollPane.horizontalScrollBar?.setUI(BasicScrollBarUI())
             isCanceled = false
@@ -2828,41 +2805,41 @@ class MainUI(title: String) : JFrame() {
                 searchCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
             }
 
-            searchCombo.toolTipText = TooltipStrings.SEARCH_COMBO
+            searchCombo.toolTipText = STRINGS.toolTip.searchCombo
             searchCombo.enabledTfTooltip = false
             searchCombo.isEditable = true
             searchCombo.renderer = FilterComboBox.ComboBoxRenderer()
             searchCombo.editor.editorComponent.addKeyListener(searchKeyHandler)
             searchCombo.addPopupMenuListener(searchPopupMenuHandler)
 
-            searchMatchCaseToggle.toolTipText = TooltipStrings.SEARCH_CASE_TOGGLE
+            searchMatchCaseToggle.toolTipText = STRINGS.toolTip.searchCaseToggle
             searchMatchCaseToggle.margin = Insets(0, 0, 0, 0)
             searchMatchCaseToggle.addItemListener(SearchItemHandler())
             searchMatchCaseToggle.background = background
             searchMatchCaseToggle.border = BorderFactory.createEmptyBorder()
 
             upBtn = JButton("▲") //△ ▲ ▽ ▼
-            upBtn.toolTipText = TooltipStrings.SEARCH_PREV_BTN
+            upBtn.toolTipText = STRINGS.toolTip.searchPrevBtn
             upBtn.margin = Insets(0, 7, 0, 7)
             upBtn.addActionListener(searchActionHandler)
             upBtn.background = background
             upBtn.border = BorderFactory.createEmptyBorder()
 
             downBtn = JButton("▼") //△ ▲ ▽ ▼
-            downBtn.toolTipText = TooltipStrings.SEARCH_NEXT_BTN
+            downBtn.toolTipText = STRINGS.toolTip.searchNextBtn
             downBtn.margin = Insets(0, 7, 0, 7)
             downBtn.addActionListener(searchActionHandler)
             downBtn.background = background
             downBtn.border = BorderFactory.createEmptyBorder()
 
             targetLabel = if (isInternalTargetView) {
-                JLabel("${Strings.FILTER} ${Strings.LOG}")
+                JLabel("${STRINGS.ui.filter} ${STRINGS.ui.log}")
             } else {
-                JLabel("${Strings.FULL} ${Strings.LOG}")
+                JLabel("${STRINGS.ui.full} ${STRINGS.ui.log}")
             }
-            targetLabel.toolTipText = TooltipStrings.SEARCH_TARGET_LABEL
+            targetLabel.toolTipText = STRINGS.toolTip.searchTargetLabel
 
-            closeBtn.toolTipText = TooltipStrings.SEARCH_CLOSE_BTN
+            closeBtn.toolTipText = STRINGS.toolTip.searchCloseBtn
             closeBtn.margin = Insets(0, 0, 0, 0)
             closeBtn.addActionListener(searchActionHandler)
             closeBtn.background = background
@@ -2902,9 +2879,9 @@ class MainUI(title: String) : JFrame() {
         fun setTargetView(aFlag: Boolean) {
             isInternalTargetView = aFlag
             if (isInternalTargetView) {
-                targetLabel.text = "${Strings.FILTER} ${Strings.LOG}"
+                targetLabel.text = "${STRINGS.ui.filter} ${STRINGS.ui.log}"
             } else {
-                targetLabel.text = "${Strings.FULL} ${Strings.LOG}"
+                targetLabel.text = "${STRINGS.ui.full} ${STRINGS.ui.log}"
             }
         }
 

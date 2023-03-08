@@ -2,9 +2,8 @@ package me.gegenbauer.logviewer.ui.settings
 
 import me.gegenbauer.logviewer.Utils
 import me.gegenbauer.logviewer.manager.ColorManager
-import me.gegenbauer.logviewer.strings.Strings
+import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
-
 import java.awt.*
 import java.awt.event.*
 import javax.swing.*
@@ -16,7 +15,7 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class FontDialog(parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strings.COLOR + " " + Strings.SETTING, true),
+class FontDialog(parent: MainUI) : JDialog(parent, STRINGS.ui.font + " & " + STRINGS.ui.color + " " + STRINGS.ui.setting, true),
     ActionListener {
     private var nameList: JList<String> =
         JList(GraphicsEnvironment.getLocalGraphicsEnvironment().availableFontFamilyNames)
@@ -49,12 +48,12 @@ class FontDialog(parent: MainUI) : JDialog(parent, Strings.FONT + " & " + String
         nameScrollPane.verticalScrollBar.setUI(BasicScrollBarUI())
         nameScrollPane.horizontalScrollBar.setUI(BasicScrollBarUI())
         nameList.addListSelectionListener(ListSelectionHandler())
-        okBtn = JButton(Strings.OK)
+        okBtn = JButton(STRINGS.ui.ok)
         okBtn.addActionListener(this)
-        cancelBtn = JButton(Strings.CANCEL)
+        cancelBtn = JButton(STRINGS.ui.cancel)
         cancelBtn.addActionListener(this)
 
-        sizeLabel = JLabel(Strings.SIZE)
+        sizeLabel = JLabel(STRINGS.ui.size)
         sizeSpinner = JSpinner(SpinnerNumberModel())
         sizeSpinner.model.value = parent.customFont.size
         sizeSpinner.preferredSize = Dimension(70, 30)
@@ -138,13 +137,13 @@ class FontDialog(parent: MainUI) : JDialog(parent, Strings.FONT + " & " + String
         titleLabelPanel.add(label)
         titleLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
 
-        label = JLabel(Strings.FULL_LOG_TABLE)
+        label = JLabel(STRINGS.ui.fullLogTable)
         label.horizontalAlignment = JLabel.CENTER
         label.maximumSize = Dimension(330, 20)
         fullColorLabelPanel.add(label)
         fullColorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
 
-        label = JLabel(Strings.FILTER_LOG_TABLE)
+        label = JLabel(STRINGS.ui.filterLogTable)
         label.horizontalAlignment = JLabel.CENTER
         label.maximumSize = Dimension(330, 20)
         filterColorLabelPanel.add(label)
@@ -184,11 +183,11 @@ class FontDialog(parent: MainUI) : JDialog(parent, Strings.FONT + " & " + String
         sizePanel.add(exampleLabel)
 
         val schemePanel = JPanel()
-        val schemeLabel = JLabel("${Strings.BUILT_IN_SCHEMES} : ")
-        val radioLight = JRadioButton(Strings.LIGHT)
-        val radioDark = JRadioButton(Strings.DARK)
+        val schemeLabel = JLabel("${STRINGS.ui.builtInSchemes} : ")
+        val radioLight = JRadioButton(STRINGS.ui.light)
+        val radioDark = JRadioButton(STRINGS.ui.dark)
         val buttonGroup = ButtonGroup()
-        val schemeBtn = JButton(Strings.APPLY)
+        val schemeBtn = JButton(STRINGS.ui.apply)
 
         schemeBtn.addActionListener {
             if (radioLight.isSelected) {
@@ -404,8 +403,8 @@ class FontDialog(parent: MainUI) : JDialog(parent, Strings.FONT + " & " + String
 
                 val optionPanel = JPanel()
                 val optionTitleLabel = JLabel("${titleLabelArray[colorLabel.idx]!!.text} : ")
-                val optionFullLabel = JLabel("${Strings.FULL_LOG_TABLE}  ")
-                val optionFilterLabel = JLabel(Strings.FILTER_LOG_TABLE)
+                val optionFullLabel = JLabel("${STRINGS.ui.fullLogTable}  ")
+                val optionFilterLabel = JLabel(STRINGS.ui.filterLogTable)
                 if (!optionFullCheckbox.isSelected || !optionFilterCheckbox.isSelected) {
                     if (colorLabel.type == ColorManager.TableColorType.FULL_LOG_TABLE) {
                         optionFullCheckbox.isSelected = true

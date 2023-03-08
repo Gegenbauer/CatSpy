@@ -1,8 +1,8 @@
 package me.gegenbauer.logviewer.ui.help
 
-import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.Utils
-
+import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.strings.helpText
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ActionEvent
@@ -10,9 +10,9 @@ import java.awt.event.ActionListener
 import javax.swing.*
 import javax.swing.plaf.basic.BasicScrollBarUI
 
-class HelpDialog(parent: JFrame) : JDialog(parent, Strings.HELP, true), ActionListener {
+class HelpDialog(parent: JFrame) : JDialog(parent, STRINGS.ui.help, true), ActionListener {
     private var helpTextPane: JTextPane
-    private var closeBtn : JButton = JButton(Strings.CLOSE)
+    private var closeBtn: JButton = JButton(STRINGS.ui.close)
 
     init {
         closeBtn.addActionListener(this)
@@ -20,11 +20,7 @@ class HelpDialog(parent: JFrame) : JDialog(parent, Strings.HELP, true), ActionLi
         helpTextPane = JTextPane()
         helpTextPane.contentType = "text/html"
 
-        if (Strings.lang == Strings.KO) {
-            helpTextPane.text = HelpText.textKo
-        } else {
-            helpTextPane.text = HelpText.textEn
-        }
+        helpTextPane.text = STRINGS.helpText
 
         helpTextPane.caretPosition = 0
         val scrollPane = JScrollPane(helpTextPane)

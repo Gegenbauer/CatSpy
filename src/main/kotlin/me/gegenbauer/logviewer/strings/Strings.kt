@@ -1,275 +1,435 @@
 package me.gegenbauer.logviewer.strings
 
-class Strings private constructor() {
-    companion object {
-        const val KO = 0
-        const val EN = 1
-        private var currStrings = StringsEn.STRINGS
-        var lang = EN
-            set(value) {
-                currStrings = if (value == KO) {
-                    StringsKo.STRINGS
-                } else {
-                    StringsEn.STRINGS
-                }
-                field = value
-                TooltipStrings.lang = value
-            }
+import com.google.gson.annotations.SerializedName
+import me.gegenbauer.logviewer.ui.help.HelpText
+import java.util.Locale
 
+// TODO use tool to automatically generate this file
+data class Strings(
+    @SerializedName("UI")
+    val ui: StringUI,
+    @SerializedName("TOOL_TIP")
+    val toolTip: StringToolTip
+)
 
-        private var idx = 0
-        private val IDX_FILE = idx++
-        private val IDX_OPEN = idx++
-        private val IDX_FOLLOW = idx++
-        private val IDX_OPEN_FILES = idx++
-        private val IDX_APPEND_FILES = idx++
-        private val IDX_OPEN_RECENTS = idx++
-        private val IDX_CLOSE = idx++
-        private val IDX_EXIT = idx++
-        private val IDX_SETTING = idx++
-        private val IDX_ADB = idx++
-        private val IDX_FONT = idx++
-        private val IDX_LOG = idx++
-        private val IDX_START = idx++
-        private val IDX_STOP = idx++
-        private val IDX_PAUSE = idx++
-        private val IDX_CLEAR_VIEWS = idx++
-        private val IDX_ROTATION = idx++
-        private val IDX_FIRST = idx++
-        private val IDX_LAST = idx++
-        private val IDX_BOLD = idx++
-        private val IDX_HIDE = idx++
-        private val IDX_TAG = idx++
-        private val IDX_PID = idx++
-        private val IDX_TID = idx++
-        private val IDX_FILTER = idx++
-        private val IDX_WINDOWED_MODE = idx++
-        private val IDX_VIEW = idx++
-        private val IDX_VIEW_FULL = idx++
-        private val IDX_HELP = idx++
-        private val IDX_ABOUT = idx++
-        private val IDX_BOOKMARKS = idx++
-        private val IDX_FULL = idx++
-        private val IDX_INCREMENTAL = idx++
-        private val IDX_HIGHLIGHT = idx++
-        private val IDX_LOGLEVEL = idx++
-        private val IDX_SCROLL_BACK = idx++
-        private val IDX_CLEAR_SAVE = idx++
-        private val IDX_LOGFILE = idx++
-        private val IDX_CONNECT = idx++
-        private val IDX_REFRESH = idx++
-        private val IDX_DISCONNECT = idx++
-        private val IDX_APPLY = idx++
-        private val IDX_SCROLL_BACK_LINES = idx++
-        private val IDX_SPLIT_FILE = idx++
-        private val IDX_COLOR = idx++
-        private val IDX_FILTERS = idx++
-        private val IDX_KEEP = idx++
-        private val IDX_OK = idx++
-        private val IDX_CANCEL = idx++
-        private val IDX_NEW = idx++
-        private val IDX_COPY = idx++
-        private val IDX_EDIT = idx++
-        private val IDX_DELETE = idx++
-        private val IDX_SAVE = idx++
-        private val IDX_SELECT = idx++
-        private val IDX_ADB_PATH = idx++
-        private val IDX_LOG_PATH = idx++
-        private val IDX_SIZE = idx++
-        private val IDX_CONNECTED = idx++
-        private val IDX_NOT_CONNECTED = idx++
-        private val IDX_APPEND = idx++
-        private val IDX_MSG_SELECT_OPEN_MODE = idx++
-        private val IDX_NONE = idx++
-        private val IDX_ADD_FILTER = idx++
-        private val IDX_ADD_CMD = idx++
-        private val IDX_COMMANDS = idx++
-        private val IDX_RETRY_ADB = idx++
-        private val IDX_FILTER_STYLE = idx++
-        private val IDX_LOOK_AND_FEEL = idx++
-        private val IDX_FULL_LOG_TABLE = idx++
-        private val IDX_FILTER_LOG_TABLE = idx++
-        private val IDX_BUILT_IN_SCHEMES = idx++
-        private val IDX_LIGHT = idx++
-        private val IDX_DARK = idx++
-        private val IDX_APPEARANCE = idx++
-        private val IDX_OPTIONS = idx++
-        private val IDX_LOG_CMD = idx++
-        private val IDX_NOT_FOUND = idx++
-        private val IDX_ADD_INCLUDE = idx++
-        private val IDX_ADD_EXCLUDE = idx++
-        private val IDX_ADD_SEARCH = idx++
-        private val IDX_SET_SEARCH = idx++
-        private val IDX_SEARCH = idx++
-        private val IDX_CMD = idx++
-
-        val FILE: String
-            get() { return currStrings[IDX_FILE] }
-        val OPEN: String
-            get() { return currStrings[IDX_OPEN] }
-        val FOLLOW: String
-            get() { return currStrings[IDX_FOLLOW] }
-        val OPEN_FILES: String
-            get() { return currStrings[IDX_OPEN_FILES] }
-        val APPEND_FILES: String
-            get() { return currStrings[IDX_APPEND_FILES] }
-        val OPEN_RECENTS: String
-            get() { return currStrings[IDX_OPEN_RECENTS] }
-        val CLOSE: String
-            get() { return currStrings[IDX_CLOSE] }
-        val EXIT: String
-            get() { return currStrings[IDX_EXIT] }
-        val SETTING: String
-            get() { return currStrings[IDX_SETTING] }
-        val ADB: String
-            get() { return currStrings[IDX_ADB] }
-        val FONT: String
-            get() { return currStrings[IDX_FONT] }
-        val LOG: String
-            get() { return currStrings[IDX_LOG] }
-        val START: String
-            get() { return currStrings[IDX_START] }
-        val STOP: String
-            get() { return currStrings[IDX_STOP] }
-        val PAUSE: String
-            get() { return currStrings[IDX_PAUSE] }
-        val CLEAR_VIEWS: String
-            get() { return currStrings[IDX_CLEAR_VIEWS] }
-        val ROTATION: String
-            get() { return currStrings[IDX_ROTATION] }
-        val FIRST: String
-            get() { return currStrings[IDX_FIRST] }
-        val LAST: String
-            get() { return currStrings[IDX_LAST] }
-        val BOLD: String
-            get() { return currStrings[IDX_BOLD] }
-        val HIDE: String
-            get() { return currStrings[IDX_HIDE] }
-        val TAG: String
-            get() { return currStrings[IDX_TAG] }
-        val PID: String
-            get() { return currStrings[IDX_PID] }
-        val TID: String
-            get() { return currStrings[IDX_TID] }
-        val FILTER: String
-            get() { return currStrings[IDX_FILTER] }
-        val WINDOWED_MODE: String
-            get() { return currStrings[IDX_WINDOWED_MODE] }
-        val VIEW: String
-            get() { return currStrings[IDX_VIEW] }
-        val VIEW_FULL: String
-            get() { return currStrings[IDX_VIEW_FULL] }
-        val HELP: String
-            get() { return currStrings[IDX_HELP] }
-        val ABOUT: String
-            get() { return currStrings[IDX_ABOUT] }
-        val BOOKMARKS: String
-            get() { return currStrings[IDX_BOOKMARKS] }
-        val FULL: String
-            get() { return currStrings[IDX_FULL] }
-        val INCREMENTAL: String
-            get() { return currStrings[IDX_INCREMENTAL] }
-        val HIGHLIGHT: String
-            get() { return currStrings[IDX_HIGHLIGHT] }
-        val LOGLEVEL: String
-            get() { return currStrings[IDX_LOGLEVEL] }
-        val SCROLL_BACK: String
-            get() { return currStrings[IDX_SCROLL_BACK] }
-        val CLEAR_SAVE: String
-            get() { return currStrings[IDX_CLEAR_SAVE] }
-        val LOGFILE: String
-            get() { return currStrings[IDX_LOGFILE] }
-        val CONNECT: String
-            get() { return currStrings[IDX_CONNECT] }
-        val REFRESH: String
-            get() { return currStrings[IDX_REFRESH] }
-        val DISCONNECT: String
-            get() { return currStrings[IDX_DISCONNECT] }
-        val APPLY: String
-            get() { return currStrings[IDX_APPLY] }
-        val SCROLL_BACK_LINES: String
-            get() { return currStrings[IDX_SCROLL_BACK_LINES] }
-        val SPLIT_FILE: String
-            get() { return currStrings[IDX_SPLIT_FILE] }
-        val COLOR: String
-            get() { return currStrings[IDX_COLOR] }
-        val FILTERS: String
-            get() { return currStrings[IDX_FILTERS] }
-        val KEEP: String
-            get() { return currStrings[IDX_KEEP] }
-        val OK: String
-            get() { return currStrings[IDX_OK] }
-        val CANCEL: String
-            get() { return currStrings[IDX_CANCEL] }
-        val NEW: String
-            get() { return currStrings[IDX_NEW] }
-        val COPY: String
-            get() { return currStrings[IDX_COPY] }
-        val EDIT: String
-            get() { return currStrings[IDX_EDIT] }
-        val DELETE: String
-            get() { return currStrings[IDX_DELETE] }
-        val SAVE: String
-            get() { return currStrings[IDX_SAVE] }
-        val SELECT: String
-            get() { return currStrings[IDX_SELECT] }
-        val ADB_PATH: String
-            get() { return currStrings[IDX_ADB_PATH] }
-        val LOG_PATH: String
-            get() { return currStrings[IDX_LOG_PATH] }
-        val SIZE: String
-            get() { return currStrings[IDX_SIZE] }
-        val CONNECTED: String
-            get() { return currStrings[IDX_CONNECTED] }
-        val NOT_CONNECTED: String
-            get() { return currStrings[IDX_NOT_CONNECTED] }
-        val APPEND: String
-            get() { return currStrings[IDX_APPEND] }
-        val MSG_SELECT_OPEN_MODE: String
-            get() { return currStrings[IDX_MSG_SELECT_OPEN_MODE] }
-        val NONE: String
-            get() { return currStrings[IDX_NONE] }
-        val ADD_FILTER: String
-            get() { return currStrings[IDX_ADD_FILTER] }
-        val ADD_CMD: String
-            get() { return currStrings[IDX_ADD_CMD] }
-        val COMMANDS: String
-            get() { return currStrings[IDX_COMMANDS] }
-        val RETRY_ADB: String
-            get() { return currStrings[IDX_RETRY_ADB] }
-        val FILTER_STYLE: String
-            get() { return currStrings[IDX_FILTER_STYLE] }
-        val LOOK_AND_FEEL: String
-            get() { return currStrings[IDX_LOOK_AND_FEEL] }
-        val FULL_LOG_TABLE: String
-            get() { return currStrings[IDX_FULL_LOG_TABLE] }
-        val FILTER_LOG_TABLE: String
-            get() { return currStrings[IDX_FILTER_LOG_TABLE] }
-        val BUILT_IN_SCHEMES: String
-            get() { return currStrings[IDX_BUILT_IN_SCHEMES] }
-        val LIGHT: String
-            get() { return currStrings[IDX_LIGHT] }
-        val DARK: String
-            get() { return currStrings[IDX_DARK] }
-        val APPEARANCE: String
-            get() { return currStrings[IDX_APPEARANCE] }
-        val OPTIONS: String
-            get() { return currStrings[IDX_OPTIONS] }
-        val LOG_CMD: String
-            get() { return currStrings[IDX_LOG_CMD] }
-        val NOT_FOUND: String
-            get() { return currStrings[IDX_NOT_FOUND] }
-        val ADD_INCLUDE: String
-            get() { return currStrings[IDX_ADD_INCLUDE] }
-        val ADD_EXCLUDE: String
-            get() { return currStrings[IDX_ADD_EXCLUDE] }
-        val ADD_SEARCH: String
-            get() { return currStrings[IDX_ADD_SEARCH] }
-        val SET_SEARCH: String
-            get() { return currStrings[IDX_SET_SEARCH] }
-        val SEARCH: String
-            get() { return currStrings[IDX_SEARCH] }
-        val CMD: String
-            get() { return currStrings[IDX_CMD] }
+inline val Strings.helpText: String
+    get() = when (locale) {
+        Locale.ENGLISH -> {
+            HelpText.textEn
+        }
+        Locale.KOREAN -> {
+            HelpText.textKo
+        }
+        else -> {
+            HelpText.textCn
+        }
     }
-}
+
+data class StringUI(
+    @SerializedName("FILE")
+    val file: String,
+
+    @SerializedName("OPEN")
+    val open: String,
+
+    @SerializedName("FOLLOW")
+    val follow: String,
+
+    @SerializedName("OPEN_FILES")
+    val openFiles: String,
+
+    @SerializedName("APPEND_FILES")
+    val appendFiles: String,
+
+    @SerializedName("OPEN_RECENTS")
+    val openRecents: String,
+
+    @SerializedName("CLOSE")
+    val close: String,
+
+    @SerializedName("EXIT")
+    val exit: String,
+
+    @SerializedName("SETTING")
+    val setting: String,
+
+    @SerializedName("ADB")
+    val adb: String,
+
+    @SerializedName("FONT")
+    val font: String,
+
+    @SerializedName("LOG")
+    val log: String,
+
+    @SerializedName("START")
+    val start: String,
+
+    @SerializedName("STOP")
+    val stop: String,
+
+    @SerializedName("PAUSE")
+    val pause: String,
+
+    @SerializedName("CLEAR_VIEWS")
+    val clearViews: String,
+
+    @SerializedName("ROTATION")
+    val rotation: String,
+
+    @SerializedName("FIRST")
+    val first: String,
+
+    @SerializedName("LAST")
+    val last: String,
+
+    @SerializedName("BOLD")
+    val bold: String,
+
+    @SerializedName("HIDE")
+    val hide: String,
+
+    @SerializedName("TAG")
+    val tag: String,
+
+    @SerializedName("PID")
+    val pid: String,
+
+    @SerializedName("TID")
+    val tid: String,
+
+    @SerializedName("FILTER")
+    val filter: String,
+
+    @SerializedName("WINDOWED_MODE")
+    val windowedMode: String,
+
+    @SerializedName("VIEW")
+    val view: String,
+
+    @SerializedName("VIEW_FULL")
+    val viewFull: String,
+
+    @SerializedName("HELP")
+    val help: String,
+
+    @SerializedName("ABOUT")
+    val about: String,
+
+    @SerializedName("BOOKMARKS")
+    val bookmarks: String,
+
+    @SerializedName("FULL")
+    val full: String,
+
+    @SerializedName("INCREMENTAL")
+    val incremental: String,
+
+    @SerializedName("HIGHLIGHT")
+    val highlight: String,
+
+    @SerializedName("LOGLEVEL")
+    val logLevel: String,
+
+    @SerializedName("SCROLL_BACK")
+    val scrollBack: String,
+
+    @SerializedName("CLEAR_SAVE")
+    val clearSave: String,
+
+    @SerializedName("LOGFILE")
+    val logFile: String,
+
+    @SerializedName("CONNECT")
+    val connect: String,
+
+    @SerializedName("REFRESH")
+    val refresh: String,
+
+    @SerializedName("DISCONNECT")
+    val disconnect: String,
+
+    @SerializedName("APPLY")
+    val apply: String,
+
+    @SerializedName("SCROLL_BACK_LINES")
+    val scrollBackLines: String,
+
+    @SerializedName("SPLIT_FILE")
+    val splitFile: String,
+
+    @SerializedName("COLOR")
+    val color: String,
+
+    @SerializedName("FILTERS")
+    val filters: String,
+
+    @SerializedName("KEEP")
+    val keep: String,
+
+    @SerializedName("OK")
+    val ok: String,
+
+    @SerializedName("CANCEL")
+    val cancel: String,
+
+    @SerializedName("NEW")
+    val new: String,
+
+    @SerializedName("COPY")
+    val copy: String,
+
+    @SerializedName("EDIT")
+    val edit: String,
+
+    @SerializedName("DELETE")
+    val delete: String,
+
+    @SerializedName("SAVE")
+    val save: String,
+
+    @SerializedName("SELECT")
+    val select: String,
+
+    @SerializedName("ADB_PATH")
+    val adbPath: String,
+
+    @SerializedName("LOG_PATH")
+    val logPath: String,
+
+    @SerializedName("SIZE")
+    val size: String,
+
+    @SerializedName("CONNECTED")
+    val connected: String,
+
+    @SerializedName("NOT_CONNECTED")
+    val notConnected: String,
+
+    @SerializedName("APPEND")
+    val append: String,
+
+    @SerializedName("MSG_SELECT_OPEN_MODE")
+    val msgSelectOpenMode: String,
+
+    @SerializedName("NONE")
+    val none: String,
+
+    @SerializedName("ADD_FILTER")
+    val addFilter: String,
+
+    @SerializedName("ADD_CMD")
+    val addCmd: String,
+
+    @SerializedName("COMMANDS")
+    val commands: String,
+
+    @SerializedName("RETRY_ADB")
+    val retryAdb: String,
+
+    @SerializedName("FILTER_STYLE")
+    val filterStyle: String,
+
+    @SerializedName("LOOK_AND_FEEL")
+    val lookAndFeel: String,
+
+    @SerializedName("FULL_LOG_TABLE")
+    val fullLogTable: String,
+
+    @SerializedName("FILTER_LOG_TABLE")
+    val filterLogTable: String,
+
+    @SerializedName("BUILT_IN_SCHEMES")
+    val builtInSchemes: String,
+
+    @SerializedName("LIGHT")
+    val light: String,
+
+    @SerializedName("DARK")
+    val dark: String,
+
+    @SerializedName("APPEARANCE")
+    val appearance: String,
+
+    @SerializedName("OPTIONS")
+    val options: String,
+
+    @SerializedName("LOG_CMD")
+    val logCmd: String,
+
+    @SerializedName("NOT_FOUND")
+    val notFound: String,
+
+    @SerializedName("ADD_INCLUDE")
+    val addInclude: String,
+
+    @SerializedName("ADD_EXCLUDE")
+    val addExclude: String,
+
+    @SerializedName("ADD_SEARCH")
+    val addSearch: String,
+
+    @SerializedName("SET_SEARCH")
+    val setSearch: String,
+
+    @SerializedName("SEARCH")
+    val search: String,
+
+    @SerializedName("CMD")
+    val cmd: String,
+
+    @SerializedName("THEME")
+    val theme: String,
+
+    @SerializedName("DARCULA")
+    val darcula: String,
+
+    @SerializedName("INTELLIJ")
+    val intelliJ: String,
+)
+
+class StringToolTip(
+    @SerializedName("START_BTN")
+    val startBtn: String,
+
+    @SerializedName("PAUSE_BTN")
+    val pauseBtn: String,
+
+    @SerializedName("STOP_BTN")
+    val stopBtn: String,
+
+    @SerializedName("CLEAR_BTN")
+    val clearBtn: String,
+
+    @SerializedName("SAVE_BTN")
+    val saveBtn: String,
+
+    @SerializedName("DEVICES_COMBO")
+    val devicesCombo: String,
+
+    @SerializedName("CONNECT_BTN")
+    val connectBtn: String,
+
+    @SerializedName("REFRESH_BTN")
+    val refreshBtn: String,
+
+    @SerializedName("DISCONNECT_BTN")
+    val disconnectBtn: String,
+
+    @SerializedName("SCROLL_BACK_TF")
+    val scrollBackTf: String,
+
+    @SerializedName("SCROLL_BACK_SPLIT_CHK")
+    val scrollBackSplitChk: String,
+
+    @SerializedName("SCROLL_BACK_APPLY_BTN")
+    val scrollBackApplyBtn: String,
+
+    @SerializedName("SCROLL_BACK_KEEP_TOGGLE")
+    val scrollBackKeepToggle: String,
+
+    @SerializedName("ROTATION_BTN")
+    val rotationBtn: String,
+
+    @SerializedName("CASE_TOGGLE")
+    val caseToggle: String,
+
+    @SerializedName("FILTER_LIST_BTN")
+    val filterListBtn: String,
+
+    @SerializedName("LOG_TOGGLE")
+    val logToggle: String,
+
+    @SerializedName("LOG_COMBO")
+    val logCombo: String,
+
+    @SerializedName("TAG_TOGGLE")
+    val tagToggle: String,
+
+    @SerializedName("TAG_COMBO")
+    val tagCombo: String,
+
+    @SerializedName("PID_TOGGLE")
+    val pidToggle: String,
+
+    @SerializedName("PID_COMBO")
+    val pidCombo: String,
+
+    @SerializedName("TID_TOGGLE")
+    val tidToggle: String,
+
+    @SerializedName("TID_COMBO")
+    val tidCombo: String,
+
+    @SerializedName("BOLD_TOGGLE")
+    val boldToggle: String,
+
+    @SerializedName("BOLD_COMBO")
+    val boldCombo: String,
+
+    @SerializedName("VIEW_FIRST_BTN")
+    val viewFirstBtn: String,
+
+    @SerializedName("VIEW_LAST_BTN")
+    val viewLastBtn: String,
+
+    @SerializedName("VIEW_PID_TOGGLE")
+    val viewPidToggle: String,
+
+    @SerializedName("VIEW_TID_TOGGLE")
+    val viewTidToggle: String,
+
+    @SerializedName("VIEW_TAG_TOGGLE")
+    val viewTagToggle: String,
+
+    @SerializedName("VIEW_FULL_TOGGLE")
+    val viewFullToggle: String,
+
+    @SerializedName("VIEW_BOOKMARKS_TOGGLE")
+    val viewBookmarksToggle: String,
+
+    @SerializedName("VIEW_WINDOWED_MODE_BTN")
+    val viewWindowedModeBtn: String,
+
+    @SerializedName("SAVED_FILE_TF")
+    val savedFileTf: String,
+
+    @SerializedName("ADD_FILTER_BTN")
+    val addFilterBtn: String,
+
+    @SerializedName("ADD_CMD_BTN")
+    val addCmdBtn: String,
+
+    @SerializedName("CMD_LIST_BTN")
+    val cmdListBtn: String,
+
+    @SerializedName("RETRY_ADB_TOGGLE")
+    val retryAdbToggle: String,
+
+    @SerializedName("START_FOLLOW_BTN")
+    val startFollowBtn: String,
+
+    @SerializedName("STOP_FOLLOW_BTN")
+    val stopFollowBtn: String,
+
+    @SerializedName("LOG_CMD_COMBO")
+    val logCmdCombo: String,
+
+    @SerializedName("SEARCH_COMBO")
+    val searchCombo: String,
+
+    @SerializedName("SEARCH_CASE_TOGGLE")
+    val searchCaseToggle: String,
+
+    @SerializedName("SEARCH_PREV_BTN")
+    val searchPrevBtn: String,
+
+    @SerializedName("SEARCH_NEXT_BTN")
+    val searchNextBtn: String,
+
+    @SerializedName("SEARCH_TARGET_LABEL")
+    val searchTargetLabel: String,
+
+    @SerializedName("SEARCH_CLOSE_BTN")
+    val searchCloseBtn: String
+)

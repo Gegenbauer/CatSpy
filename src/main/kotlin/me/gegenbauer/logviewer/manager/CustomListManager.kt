@@ -1,10 +1,9 @@
 package me.gegenbauer.logviewer.manager
 
-import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.Utils
-import me.gegenbauer.logviewer.strings.Strings
+import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.MainUI.Companion.FLAT_DARK_LAF
-
 import me.gegenbauer.logviewer.ui.log.LogPanel
 import java.awt.*
 import java.awt.event.*
@@ -93,17 +92,17 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             lastBtn = JButton("↓")
             lastBtn.addActionListener(this)
 
-            newBtn = JButton(Strings.NEW)
+            newBtn = JButton(STRINGS.ui.new)
             newBtn.addActionListener(this)
-            copyBtn = JButton(Strings.COPY)
+            copyBtn = JButton(STRINGS.ui.copy)
             copyBtn.addActionListener(this)
-            editBtn = JButton(Strings.EDIT)
+            editBtn = JButton(STRINGS.ui.edit)
             editBtn.addActionListener(this)
-            deleteBtn = JButton(Strings.DELETE)
+            deleteBtn = JButton(STRINGS.ui.delete)
             deleteBtn.addActionListener(this)
-            saveBtn = JButton(Strings.SAVE)
+            saveBtn = JButton(STRINGS.ui.save)
             saveBtn.addActionListener(this)
-            closeBtn = JButton(Strings.CLOSE)
+            closeBtn = JButton(STRINGS.ui.close)
             closeBtn.addActionListener(this)
             val bottomPanel = JPanel()
             bottomPanel.add(firstBtn)
@@ -351,7 +350,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             value: String,
             tableBar: Boolean
         ) : JDialog(parent, "Edit", true), ActionListener {
-            private var okBtn: JButton = JButton(Strings.OK)
+            private var okBtn: JButton = JButton(STRINGS.ui.ok)
             private var cancelBtn: JButton
 
             private var titleLabel: JLabel
@@ -369,7 +368,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
 
             init {
                 okBtn.addActionListener(this)
-                cancelBtn = JButton(Strings.CANCEL)
+                cancelBtn = JButton(STRINGS.ui.cancel)
                 cancelBtn.addActionListener(this)
 
                 titleLabel = JLabel("Title")

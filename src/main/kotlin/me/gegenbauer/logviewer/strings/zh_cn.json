@@ -84,9 +84,7 @@
     "SET_SEARCH": "设置搜索",
     "SEARCH": "搜索",
     "CMD": "命令",
-    "THEME": "主题",
-    "DARCULA": "Darcula",
-    "INTELLIJ": "IntelliJ"
+    "THEME": "主题"
   },
   "TOOL_TIP": {
     "START_BTN": "开始 adb logcat 并接收日志",
@@ -135,7 +133,6 @@
     "SEARCH_CASE_TOGGLE": "搜索区分大小写",
     "SEARCH_PREV_BTN": "F3：移至上一个",
     "SEARCH_NEXT_BTN": "F4：移至下一个",
-    "SEARCH_TARGET_LABEL": "搜索视图：过滤日志、完整日志",
-    "SEARCH_CLOSE_BTN": "ESC：关闭搜索栏"
+    "SEARCH_TARGET_LABEL": "ESC：关闭搜索栏"
   }
 }

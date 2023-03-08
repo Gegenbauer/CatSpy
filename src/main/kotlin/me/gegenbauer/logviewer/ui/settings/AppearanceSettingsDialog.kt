@@ -3,10 +3,9 @@ package me.gegenbauer.logviewer.ui.settings
 import me.gegenbauer.logviewer.*
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
-import me.gegenbauer.logviewer.strings.Strings
+import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
-
 import me.gegenbauer.logviewer.ui.button.FilterComboBox
 import java.awt.*
 import java.awt.event.*
@@ -18,15 +17,15 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener {
+class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, STRINGS.ui.appearance, true), ActionListener {
     private val settingsPanel = JPanel()
     private val scrollPane = JScrollPane()
     private val lnFPanel = LnFPanel()
     private val filterComboPanel = FilterComboPanel()
     private val fontColorPanel = FontColorPanel()
 
-    private val okBtn = JButton(Strings.OK)
-    private val cancelBtn = JButton(Strings.CANCEL)
+    private val okBtn = JButton(STRINGS.ui.ok)
+    private val cancelBtn = JButton(STRINGS.ui.cancel)
 
     init {
         addWindowListener(filterComboPanel)
@@ -34,13 +33,13 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
         scrollPane.verticalScrollBar.unitIncrement = 10
         settingsPanel.layout = BoxLayout(settingsPanel, BoxLayout.Y_AXIS)
         scrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-        addHSeparator(settingsPanel, " ${Strings.LOOK_AND_FEEL}, ${Strings.OPTIONS} ")
+        addHSeparator(settingsPanel, " ${STRINGS.ui.lookAndFeel}, ${STRINGS.ui.options} ")
         settingsPanel.add(lnFPanel)
         addHEmptySeparator(settingsPanel, 20)
-        addHSeparator(settingsPanel, " ${Strings.FILTER_STYLE} ")
+        addHSeparator(settingsPanel, " ${STRINGS.ui.filterStyle} ")
         settingsPanel.add(filterComboPanel)
         addHEmptySeparator(settingsPanel, 20)
-        addHSeparator(settingsPanel, " ${Strings.LOG} ${Strings.FONT} & ${Strings.COLOR} ")
+        addHSeparator(settingsPanel, " ${STRINGS.ui.log} ${STRINGS.ui.font} & ${STRINGS.ui.color} ")
         settingsPanel.add(fontColorPanel)
 
         okBtn.addActionListener(this)
@@ -359,11 +358,11 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
             examplePanel.add(exampleCombo)
 
             val schemePanel = JPanel()
-            val schemeLabel = JLabel("${Strings.BUILT_IN_SCHEMES} : ")
-            val radioLight = JRadioButton(Strings.LIGHT)
-            val radioDark = JRadioButton(Strings.DARK)
+            val schemeLabel = JLabel("${STRINGS.ui.builtInSchemes} : ")
+            val radioLight = JRadioButton(STRINGS.ui.light)
+            val radioDark = JRadioButton(STRINGS.ui.dark)
             val buttonGroup = ButtonGroup()
-            val schemeBtn = JButton(Strings.APPLY)
+            val schemeBtn = JButton(STRINGS.ui.apply)
 
             schemeBtn.addActionListener {
                 if (radioLight.isSelected) {
@@ -541,7 +540,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
             nameScrollPane.horizontalScrollBar.setUI(BasicScrollBarUI())
             nameList.addListSelectionListener(ListSelectionHandler())
 
-            sizeLabel = JLabel(Strings.SIZE)
+            sizeLabel = JLabel(STRINGS.ui.size)
             sizeSpinner = JSpinner(SpinnerNumberModel())
             sizeSpinner.model.value = mainUI.customFont.size
             sizeSpinner.preferredSize = Dimension(70, 30)
@@ -626,7 +625,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
             titleLabelPanel.add(label)
             titleLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
 
-            label = JLabel("<html><font color=\"#000000\">--- <b><font color=\"#FF0000\">${Strings.FULL}</font></b> ${Strings.LOG} ${Strings.COLOR} ---</font></html>")
+            label = JLabel("<html><font color=\"#000000\">--- <b><font color=\"#FF0000\">${STRINGS.ui.full}</font></b> ${STRINGS.ui.log} ${STRINGS.ui.color} ---</font></html>")
             label.horizontalAlignment = JLabel.CENTER
             label.isOpaque = true
             label.preferredSize = Dimension(330, 20)
@@ -634,7 +633,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
             fullColorLabelPanel.add(label)
             fullColorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
 
-            label = JLabel("<html><font color=\"#000000\">--- <b><font color=\"#0000FF\">${Strings.FILTER}</font></b> ${Strings.LOG} ${Strings.COLOR} ---</font></html>")
+            label = JLabel("<html><font color=\"#000000\">--- <b><font color=\"#0000FF\">${STRINGS.ui.filter}</font></b> ${STRINGS.ui.log} ${STRINGS.ui.color} ---</font></html>")
             label.horizontalAlignment = JLabel.CENTER
             label.isOpaque = true
             label.preferredSize = Dimension(330, 20)
@@ -676,13 +675,13 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
             sizePanel.add(exampleLabel)
 
             val schemePanel = JPanel()
-            val schemeLabel = JLabel("${Strings.BUILT_IN_SCHEMES} : ")
-            val fullCheckbox = JCheckBox("${Strings.FULL} ${Strings.LOG}", true)
-            val filterCheckbox = JCheckBox("${Strings.FILTER} ${Strings.LOG}", true)
-            val radioLight = JRadioButton(Strings.LIGHT)
-            val radioDark = JRadioButton(Strings.DARK)
+            val schemeLabel = JLabel("${STRINGS.ui.builtInSchemes} : ")
+            val fullCheckbox = JCheckBox("${STRINGS.ui.full} ${STRINGS.ui.log}", true)
+            val filterCheckbox = JCheckBox("${STRINGS.ui.filter} ${STRINGS.ui.log}", true)
+            val radioLight = JRadioButton(STRINGS.ui.light)
+            val radioDark = JRadioButton(STRINGS.ui.dark)
             val buttonGroup = ButtonGroup()
-            val schemeBtn = JButton(Strings.APPLY)
+            val schemeBtn = JButton(STRINGS.ui.apply)
 
             schemeBtn.addActionListener(ActionListener {
                 val scheme: Array<String> = if (radioLight.isSelected) {
@@ -982,8 +981,8 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, St
             }
         }
 
-        val optionFullCheckbox = JCheckBox(Strings.FULL_LOG_TABLE)
-        val optionFilterCheckbox = JCheckBox(Strings.FILTER_LOG_TABLE)
+        val optionFullCheckbox = JCheckBox(STRINGS.ui.fullLogTable)
+        val optionFilterCheckbox = JCheckBox(STRINGS.ui.filterLogTable)
         internal inner class MouseHandler: MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 val colorChooser = JColorChooser()

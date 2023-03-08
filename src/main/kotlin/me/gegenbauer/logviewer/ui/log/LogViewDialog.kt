@@ -1,9 +1,9 @@
 package me.gegenbauer.logviewer.ui.log
 
-import me.gegenbauer.logviewer.manager.ConfigManager
-import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.strings.Strings
 import me.gegenbauer.logviewer.Utils
+import me.gegenbauer.logviewer.manager.ConfigManager
+import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.ui.MainUI
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.event.*
@@ -79,12 +79,12 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
     }
 
     internal inner class PopUpLogViewDialog : JPopupMenu() {
-        var includeItem = JMenuItem(Strings.ADD_INCLUDE)
-        var excludeItem = JMenuItem(Strings.ADD_EXCLUDE)
-        var searchAddItem = JMenuItem(Strings.ADD_SEARCH)
-        var searchSetItem = JMenuItem(Strings.SET_SEARCH)
-        var copyItem = JMenuItem(Strings.COPY)
-        var closeItem = JMenuItem(Strings.CLOSE)
+        var includeItem = JMenuItem(STRINGS.ui.addInclude)
+        var excludeItem = JMenuItem(STRINGS.ui.addExclude)
+        var searchAddItem = JMenuItem(STRINGS.ui.addSearch)
+        var searchSetItem = JMenuItem(STRINGS.ui.setSearch)
+        var copyItem = JMenuItem(STRINGS.ui.copy)
+        var closeItem = JMenuItem(STRINGS.ui.close)
         private val actionHandler = ActionHandler()
 
         init {

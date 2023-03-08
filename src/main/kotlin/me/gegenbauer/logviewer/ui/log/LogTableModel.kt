@@ -1,10 +1,10 @@
 package me.gegenbauer.logviewer.ui.log
 
-import me.gegenbauer.logviewer.*
+import me.gegenbauer.logviewer.NAME
 import me.gegenbauer.logviewer.manager.BookmarkManager
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.LogCmdManager
-import me.gegenbauer.logviewer.strings.Strings
+import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.FilterComboBox
 import java.awt.Color
@@ -1916,7 +1916,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             startRow = selectedRow + 1
             endRow = logItems.count() - 1
             if (startRow >= endRow) {
-                mainUI.showSearchResultTooltip(isNext, "\"${filterSearchLog}\" ${Strings.NOT_FOUND}")
+                mainUI.showSearchResultTooltip(isNext, "\"${filterSearchLog}\" ${STRINGS.ui.notFound}")
                 return
             }
         } else {
@@ -1924,7 +1924,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             endRow = 0
 
             if (startRow < endRow) {
-                mainUI.showSearchResultTooltip(isNext, "\"${filterSearchLog}\" ${Strings.NOT_FOUND}")
+                mainUI.showSearchResultTooltip(isNext, "\"${filterSearchLog}\" ${STRINGS.ui.notFound}")
                 return
             }
         }
@@ -1966,7 +1966,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 mainUI.fullLogPanel.goToRow(idxFound, 0)
             }
         } else {
-            mainUI.showSearchResultTooltip(isNext, "\"${filterSearchLog}\" ${Strings.NOT_FOUND}")
+            mainUI.showSearchResultTooltip(isNext, "\"${filterSearchLog}\" ${STRINGS.ui.notFound}")
         }
     }
 

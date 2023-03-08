@@ -3,7 +3,7 @@ package me.gegenbauer.logviewer.ui.help
 
 class HelpText {
     companion object {
-        val text =
+        val textCn =
             """
             <html>
             <body>

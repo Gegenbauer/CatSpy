@@ -2,8 +2,7 @@ package me.gegenbauer.logviewer.ui.log
 
 import me.gegenbauer.logviewer.*
 import me.gegenbauer.logviewer.manager.*
-import me.gegenbauer.logviewer.strings.Strings
-import me.gegenbauer.logviewer.strings.TooltipStrings
+import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.WrapablePanel
 
@@ -59,37 +58,37 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         ctrlMainPanel = WrapablePanel()
         firstBtn = JButton("")
         firstBtn.icon = ImageIcon(this.javaClass.getResource("/images/top.png"))
-        firstBtn.toolTipText = TooltipStrings.VIEW_FIRST_BTN
+        firstBtn.toolTipText = STRINGS.toolTip.viewFirstBtn
         firstBtn.margin = Insets(2, 3, 1, 3)
 
         firstBtn.addActionListener(actionHandler)
         lastBtn = JButton("")
         lastBtn.icon = ImageIcon(this.javaClass.getResource("/images/bottom.png"))
-        lastBtn.toolTipText = TooltipStrings.VIEW_LAST_BTN
+        lastBtn.toolTipText = STRINGS.toolTip.viewLastBtn
         lastBtn.margin = Insets(2, 3, 1, 3)
         lastBtn.addActionListener(actionHandler)
-        tagBtn = ColorToggleButton(Strings.TAG)
-        tagBtn.toolTipText = TooltipStrings.VIEW_TAG_TOGGLE
+        tagBtn = ColorToggleButton(STRINGS.ui.tag)
+        tagBtn.toolTipText = STRINGS.toolTip.viewTagToggle
         tagBtn.margin = Insets(0, 3, 0, 3)
         tagBtn.addActionListener(actionHandler)
-        pidBtn = ColorToggleButton(Strings.PID)
-        pidBtn.toolTipText = TooltipStrings.VIEW_PID_TOGGLE
+        pidBtn = ColorToggleButton(STRINGS.ui.pid)
+        pidBtn.toolTipText = STRINGS.toolTip.viewPidToggle
         pidBtn.margin = Insets(0, 3, 0, 3)
         pidBtn.addActionListener(actionHandler)
-        tidBtn = ColorToggleButton(Strings.TID)
-        tidBtn.toolTipText = TooltipStrings.VIEW_TID_TOGGLE
+        tidBtn = ColorToggleButton(STRINGS.ui.tid)
+        tidBtn.toolTipText = STRINGS.toolTip.viewTidToggle
         tidBtn.margin = Insets(0, 3, 0, 3)
         tidBtn.addActionListener(actionHandler)
-        windowedModeBtn = JButton(Strings.WINDOWED_MODE)
-        windowedModeBtn.toolTipText = TooltipStrings.VIEW__WINDOWED_MODE_BTN
+        windowedModeBtn = JButton(STRINGS.ui.windowedMode)
+        windowedModeBtn.toolTipText = STRINGS.toolTip.viewWindowedModeBtn
         windowedModeBtn.margin = Insets(0, 3, 0, 3)
         windowedModeBtn.addActionListener(actionHandler)
-        bookmarksBtn = ColorToggleButton(Strings.BOOKMARKS)
-        bookmarksBtn.toolTipText = TooltipStrings.VIEW_BOOKMARKS_TOGGLE
+        bookmarksBtn = ColorToggleButton(STRINGS.ui.bookmarks)
+        bookmarksBtn.toolTipText = STRINGS.toolTip.viewBookmarksToggle
         bookmarksBtn.margin = Insets(0, 3, 0, 3)
         bookmarksBtn.addActionListener(actionHandler)
-        fullBtn = ColorToggleButton(Strings.FULL)
-        fullBtn.toolTipText = TooltipStrings.VIEW_FULL_TOGGLE
+        fullBtn = ColorToggleButton(STRINGS.ui.full)
+        fullBtn.toolTipText = STRINGS.toolTip.viewFullToggle
         fullBtn.margin = Insets(0, 3, 0, 3)
         fullBtn.addActionListener(actionHandler)
 
@@ -152,9 +151,9 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
     }
 
     private fun updateTableBarFilters(customArray: ArrayList<CustomListManager.CustomElement>?) {
-        val filtersBtn = TableBarButton(Strings.FILTERS)
+        val filtersBtn = TableBarButton(STRINGS.ui.filters)
         filtersBtn.icon = ImageIcon(this.javaClass.getResource("/images/filterscmds.png"))
-        filtersBtn.toolTipText = TooltipStrings.ADD_FILTER_BTN
+        filtersBtn.toolTipText = STRINGS.toolTip.addFilterBtn
         filtersBtn.margin = Insets(0, 3, 0, 3)
         filtersBtn.addActionListener {
             mainUI.filtersManager.showDialog()
@@ -195,9 +194,9 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
     }
 
     private fun updateTableBarCommands(customArray: ArrayList<CustomListManager.CustomElement>?) {
-        val cmdsBtn = TableBarButton(Strings.COMMANDS)
+        val cmdsBtn = TableBarButton(STRINGS.ui.commands)
         cmdsBtn.icon = ImageIcon(this.javaClass.getResource("/images/filterscmds.png"))
-        cmdsBtn.toolTipText = TooltipStrings.ADD_CMD_BTN
+        cmdsBtn.toolTipText = STRINGS.toolTip.addCmdBtn
         cmdsBtn.margin = Insets(0, 3, 0, 3)
         cmdsBtn.addActionListener {
             mainUI.cmdManager.showDialog()
@@ -583,12 +582,12 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                 var value = 1
                 if (action == COPY) {
                     val options = arrayOf<Any>(
-                        Strings.APPEND,
-                        Strings.OPEN,
-                        Strings.CANCEL
+                        STRINGS.ui.append,
+                        STRINGS.ui.open,
+                        STRINGS.ui.cancel
                     )
                     value = JOptionPane.showOptionDialog(
-                        mainUI, Strings.MSG_SELECT_OPEN_MODE,
+                        mainUI, STRINGS.ui.msgSelectOpenMode,
                         "",
                         JOptionPane.YES_NO_CANCEL_OPTION,
                         JOptionPane.PLAIN_MESSAGE,

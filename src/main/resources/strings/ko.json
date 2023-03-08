@@ -83,7 +83,10 @@
     "ADD_SEARCH": "검색 추가",
     "SET_SEARCH": "검색 설정",
     "SEARCH": "검색",
-    "CMD": "명령"
+    "CMD": "명령",
+    "THEME": "테마",
+    "DARCULA": "다르쿨라",
+    "INTELLIJ": "IntelliJ"
   },
   "TOOL_TIP": {
     "START_BTN": "adb logcat 시작 및 로그 받기",
@@ -132,6 +135,7 @@
     "SEARCH_CASE_TOGGLE": "검색 대소문자 구분하기",
     "SEARCH_PREV_BTN": "F3 : 이전 검색 결과",
     "SEARCH_NEXT_BTN": "F4 : 다음 검색 결과",
-    "SEARCH_TARGET_LABEL": "ESC : 검색 바 닫기"
+    "SEARCH_TARGET_LABEL": "검색하기: 필터링된 로그 또는 전체 로그",
+    "SEARCH_CLOSE_BTN": "ESC : 검색 바 닫기"
   }
 }
