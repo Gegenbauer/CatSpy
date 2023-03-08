@@ -5,6 +5,7 @@ import com.github.weisj.darklaf.settings.ThemeSettings
 import com.github.weisj.darklaf.theme.Theme
 import me.gegenbauer.logviewer.ui.MainUI
 import java.awt.Container
+import java.util.*
 import javax.swing.SwingUtilities
 
 
@@ -26,6 +27,10 @@ fun main(args: Array<String>) {
         LafManager.install()
 
         ThemeSettings.showSettingsDialog(mainUI)
+        LafManager.registerDefaultsAdjustmentTask { t: Theme?, d: Properties ->
+            println("Theme: $t")
+            // called on theme or theme property changed
+        }
     }
 }
 
