@@ -3,6 +3,8 @@ package me.gegenbauer.logviewer
 import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.settings.ThemeSettings
 import com.github.weisj.darklaf.theme.Theme
+import me.gegenbauer.logviewer.theme.ThemeManager
+import me.gegenbauer.logviewer.theme.ThemeManager.loadThemeSettings
 import me.gegenbauer.logviewer.ui.MainUI
 import java.awt.Container
 import java.util.*
@@ -26,14 +28,20 @@ fun main(args: Array<String>) {
 
         LafManager.install()
 
+        ThemeSettings.getInstance().setConfiguration(ThemeManager.settingsConfiguration)
         ThemeSettings.showSettingsDialog(mainUI)
-        LafManager.registerDefaultsAdjustmentTask { t: Theme?, d: Properties ->
-            println("Theme: $t")
-            // called on theme or theme property changed
+        LafManager.registerDefaultsAdjustmentTask { t: Theme, _: Properties ->
+            //ThemeManager.updateTheme(t)
         }
+        mainUI.addWindowListener(object : java.awt.event.WindowAdapter() {
+            override fun windowClosing(e: java.awt.event.WindowEvent?) {
+                ThemeManager.saveThemeSettings()
+            }
+        })
     }
 }
 
+// TODO removed
 private fun addClickListenerForAllComponents(components: Array<java.awt.Component>) {
     components.forEach { component ->
         component.addMouseListener(object : java.awt.event.MouseAdapter() {

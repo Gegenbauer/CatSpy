@@ -7,8 +7,10 @@ import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
 import me.gegenbauer.logviewer.ui.button.FilterComboBox
+import me.gegenbauer.logviewer.utils.getIconFromFile
 import java.awt.*
 import java.awt.event.*
+import java.net.URL
 import javax.swing.*
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
@@ -109,12 +111,12 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             lafItem = JRadioButton(MainUI.FLAT_LIGHT_LAF)
             laFGroup.add(lafItem)
             lafPanel.add(lafItem)
-            lafPanel.add(ImagePanel("/images/appearance_flat_light.png"))
+            lafPanel.add(ImagePanel(getIconFromFile("appearance_flat_light.png")))
 
             lafItem = JRadioButton(MainUI.FLAT_DARK_LAF)
             laFGroup.add(lafItem)
             lafPanel.add(lafItem)
-            lafPanel.add(ImagePanel("/images/appearance_flat_dark.png"))
+            lafPanel.add(ImagePanel(getIconFromFile("appearance_flat_dark.png")))
 
             lafPanel.add(JLabel("   (Restart)"))
 
@@ -185,8 +187,8 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             add(panel)
         }
 
-        inner class ImagePanel(imageResource: String) : JPanel() {
-            private val imgIcon = ImageIcon(this.javaClass.getResource(imageResource))
+        inner class ImagePanel(url: URL) : JPanel() {
+            private val imgIcon = ImageIcon(url)
             init {
                 preferredSize = Dimension(150, 106)
                 background = Color.RED

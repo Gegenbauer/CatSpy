@@ -8,6 +8,7 @@ import me.gegenbauer.logviewer.ui.button.WrapablePanel
 
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
 import me.gegenbauer.logviewer.ui.button.TableBarButton
+import me.gegenbauer.logviewer.utils.getIconFromFile
 import java.awt.*
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.*
@@ -57,13 +58,13 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         layout = BorderLayout()
         ctrlMainPanel = WrapablePanel()
         firstBtn = JButton("")
-        firstBtn.icon = ImageIcon(this.javaClass.getResource("/images/top.png"))
+        firstBtn.icon = ImageIcon(getIconFromFile("top.png"))
         firstBtn.toolTipText = STRINGS.toolTip.viewFirstBtn
         firstBtn.margin = Insets(2, 3, 1, 3)
 
         firstBtn.addActionListener(actionHandler)
         lastBtn = JButton("")
-        lastBtn.icon = ImageIcon(this.javaClass.getResource("/images/bottom.png"))
+        lastBtn.icon = ImageIcon(getIconFromFile("bottom.png"))
         lastBtn.toolTipText = STRINGS.toolTip.viewLastBtn
         lastBtn.margin = Insets(2, 3, 1, 3)
         lastBtn.addActionListener(actionHandler)
@@ -152,7 +153,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
 
     private fun updateTableBarFilters(customArray: ArrayList<CustomListManager.CustomElement>?) {
         val filtersBtn = TableBarButton(STRINGS.ui.filters)
-        filtersBtn.icon = ImageIcon(this.javaClass.getResource("/images/filterscmds.png"))
+        filtersBtn.icon = ImageIcon(getIconFromFile("filterscmds.png"))
         filtersBtn.toolTipText = STRINGS.toolTip.addFilterBtn
         filtersBtn.margin = Insets(0, 3, 0, 3)
         filtersBtn.addActionListener {
@@ -160,7 +161,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         }
         ctrlMainPanel.add(filtersBtn)
 
-        val icon = ImageIcon(this.javaClass.getResource("/images/filterscmdsitem.png"))
+        val icon = ImageIcon(getIconFromFile("filterscmdsitem.png"))
         if (customArray != null) {
             for (item in customArray) {
                 if (!item.tableBar) {
@@ -195,7 +196,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
 
     private fun updateTableBarCommands(customArray: ArrayList<CustomListManager.CustomElement>?) {
         val cmdsBtn = TableBarButton(STRINGS.ui.commands)
-        cmdsBtn.icon = ImageIcon(this.javaClass.getResource("/images/filterscmds.png"))
+        cmdsBtn.icon = ImageIcon(getIconFromFile("filterscmds.png"))
         cmdsBtn.toolTipText = STRINGS.toolTip.addCmdBtn
         cmdsBtn.margin = Insets(0, 3, 0, 3)
         cmdsBtn.addActionListener {
@@ -203,7 +204,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         }
         ctrlMainPanel.add(cmdsBtn)
 
-        val icon = ImageIcon(this.javaClass.getResource("/images/filterscmdsitem.png"))
+        val icon = ImageIcon(getIconFromFile("filterscmdsitem.png"))
         if (customArray != null) {
             for (item in customArray) {
                 if (!item.tableBar) {

@@ -25,6 +25,7 @@ import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_WARNING
 import me.gegenbauer.logviewer.ui.menu.ThemeMenu
 import me.gegenbauer.logviewer.ui.settings.AppearanceSettingsDialog
 import me.gegenbauer.logviewer.utils.getEnum
+import me.gegenbauer.logviewer.utils.getIconFromFile
 import java.awt.*
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
@@ -350,7 +351,7 @@ class MainUI(title: String) : JFrame() {
     private fun configureWindow(title: String) {
         setTitle(title)
 
-        val img = ImageIcon(this.javaClass.getResource("/images/logo.png"))
+        val img = ImageIcon(getIconFromFile("logo.png"))
         iconImage = img.image
 
         defaultCloseOperation = EXIT_ON_CLOSE
@@ -658,7 +659,7 @@ class MainUI(title: String) : JFrame() {
         startBtn = JButton(STRINGS.ui.start)
         startBtn.margin = btnMargin
         startBtn.toolTipText = STRINGS.toolTip.startBtn
-        startBtn.icon = ImageIcon(this.javaClass.getResource("/images/start.png"))
+        startBtn.icon = ImageIcon(getIconFromFile("start.png"))
         startBtn.addActionListener(actionHandler)
         startBtn.addMouseListener(mouseHandler)
         retryAdbToggle = ColorToggleButton(STRINGS.ui.retryAdb)
@@ -680,7 +681,7 @@ class MainUI(title: String) : JFrame() {
         clearViewsBtn = JButton(STRINGS.ui.clearViews)
         clearViewsBtn.margin = btnMargin
         clearViewsBtn.toolTipText = STRINGS.toolTip.clearBtn
-        clearViewsBtn.icon = ImageIcon(this.javaClass.getResource("/images/clear.png"))
+        clearViewsBtn.icon = ImageIcon(getIconFromFile("clear.png"))
 
         clearViewsBtn.addActionListener(actionHandler)
         clearViewsBtn.addMouseListener(mouseHandler)
@@ -871,7 +872,7 @@ class MainUI(title: String) : JFrame() {
         scrollBackKeepToggle = ColorToggleButton(STRINGS.ui.keep)
         scrollBackKeepToggle.toolTipText = STRINGS.toolTip.scrollBackKeepToggle
         if (ConfigManager.LaF != CROSS_PLATFORM_LAF) {
-            val imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on_warn.png"))
+            val imgIcon = ImageIcon(getIconFromFile("toggle_on_warn.png"))
             scrollBackKeepToggle.selectedIcon = imgIcon
         }
 
