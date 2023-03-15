@@ -7,7 +7,7 @@ import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
 import me.gegenbauer.logviewer.ui.button.FilterComboBox
-import me.gegenbauer.logviewer.utils.getIconFromFile
+import me.gegenbauer.logviewer.utils.getImageFile
 import java.awt.*
 import java.awt.event.*
 import java.net.URL
@@ -111,12 +111,12 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             lafItem = JRadioButton(MainUI.FLAT_LIGHT_LAF)
             laFGroup.add(lafItem)
             lafPanel.add(lafItem)
-            lafPanel.add(ImagePanel(getIconFromFile("appearance_flat_light.png")))
+            lafPanel.add(ImagePanel(getImageFile("appearance_flat_light.png")))
 
             lafItem = JRadioButton(MainUI.FLAT_DARK_LAF)
             laFGroup.add(lafItem)
             lafPanel.add(lafItem)
-            lafPanel.add(ImagePanel(getIconFromFile("appearance_flat_dark.png")))
+            lafPanel.add(ImagePanel(getImageFile("appearance_flat_dark.png")))
 
             lafPanel.add(JLabel("   (Restart)"))
 
@@ -487,7 +487,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
                 }
 
                 if (rgbPanel != null) {
-                    val tmpColorLabel = e!!.source as ColorLabel
+                    val tmpColorLabel = e.source as ColorLabel
                     val idx = tmpColorLabel.idx
                     val colorLabel = colorLabelArray[idx]!!
                     colorChooser.color = colorLabel.background

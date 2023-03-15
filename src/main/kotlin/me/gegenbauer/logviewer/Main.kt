@@ -4,10 +4,8 @@ import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.settings.ThemeSettings
 import com.github.weisj.darklaf.theme.Theme
 import me.gegenbauer.logviewer.theme.ThemeManager
-import me.gegenbauer.logviewer.theme.ThemeManager.loadThemeSettings
 import me.gegenbauer.logviewer.ui.MainUI
 import java.awt.Container
-import java.util.*
 import javax.swing.SwingUtilities
 
 
@@ -24,20 +22,12 @@ fun main(args: Array<String>) {
         mainUI.isVisible = true
         mainUI.updateUIAfterVisible(args)
 
+        ThemeSettings.showSettingsDialog(mainUI)
+
         addClickListenerForAllComponents(mainUI.components)
 
-        LafManager.install()
-
-        ThemeSettings.getInstance().setConfiguration(ThemeManager.settingsConfiguration)
-        ThemeSettings.showSettingsDialog(mainUI)
-        LafManager.registerDefaultsAdjustmentTask { t: Theme, _: Properties ->
-            //ThemeManager.updateTheme(t)
-        }
-        mainUI.addWindowListener(object : java.awt.event.WindowAdapter() {
-            override fun windowClosing(e: java.awt.event.WindowEvent?) {
-                ThemeManager.saveThemeSettings()
-            }
-        })
+        // need call after main ui created
+        ThemeManager.init()
     }
 }
 

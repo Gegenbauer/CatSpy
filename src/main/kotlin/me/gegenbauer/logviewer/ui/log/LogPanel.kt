@@ -1,19 +1,19 @@
 package me.gegenbauer.logviewer.ui.log
 
-import me.gegenbauer.logviewer.*
+import me.gegenbauer.logviewer.VStatusPanel
 import me.gegenbauer.logviewer.manager.*
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.ui.button.WrapablePanel
-
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
 import me.gegenbauer.logviewer.ui.button.TableBarButton
-import me.gegenbauer.logviewer.utils.getIconFromFile
+import me.gegenbauer.logviewer.ui.button.WrapablePanel
+import me.gegenbauer.logviewer.utils.getImageFile
 import java.awt.*
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.*
 import java.io.File
 import java.net.URI
+import java.net.URL
 import java.util.*
 import javax.swing.*
 import javax.swing.event.ListSelectionEvent
@@ -42,7 +42,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
     private val tableModelHandler = TableModelHandler()
     private val actionHandler = ActionHandler()
     private val bookmarkHandler = BookmarkHandler()
-    private val componentHandler = ComponenetHander()
+    private val componentHandler = ComponenetHandler()
 
     private var oldLogVPos = -1
     private var oldLogHPos = -1
@@ -58,13 +58,13 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         layout = BorderLayout()
         ctrlMainPanel = WrapablePanel()
         firstBtn = JButton("")
-        firstBtn.icon = ImageIcon(getIconFromFile("top.png"))
+        firstBtn.icon = ImageIcon(getImageFile<URL>("top.png"))
         firstBtn.toolTipText = STRINGS.toolTip.viewFirstBtn
         firstBtn.margin = Insets(2, 3, 1, 3)
 
         firstBtn.addActionListener(actionHandler)
         lastBtn = JButton("")
-        lastBtn.icon = ImageIcon(getIconFromFile("bottom.png"))
+        lastBtn.icon = ImageIcon(getImageFile<URL>("bottom.png"))
         lastBtn.toolTipText = STRINGS.toolTip.viewLastBtn
         lastBtn.margin = Insets(2, 3, 1, 3)
         lastBtn.addActionListener(actionHandler)
@@ -153,7 +153,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
 
     private fun updateTableBarFilters(customArray: ArrayList<CustomListManager.CustomElement>?) {
         val filtersBtn = TableBarButton(STRINGS.ui.filters)
-        filtersBtn.icon = ImageIcon(getIconFromFile("filterscmds.png"))
+        filtersBtn.icon = ImageIcon(getImageFile<URL>("filterscmds.png"))
         filtersBtn.toolTipText = STRINGS.toolTip.addFilterBtn
         filtersBtn.margin = Insets(0, 3, 0, 3)
         filtersBtn.addActionListener {
@@ -161,7 +161,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         }
         ctrlMainPanel.add(filtersBtn)
 
-        val icon = ImageIcon(getIconFromFile("filterscmdsitem.png"))
+        val icon = ImageIcon(getImageFile<URL>("filterscmdsitem.png"))
         if (customArray != null) {
             for (item in customArray) {
                 if (!item.tableBar) {
@@ -196,7 +196,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
 
     private fun updateTableBarCommands(customArray: ArrayList<CustomListManager.CustomElement>?) {
         val cmdsBtn = TableBarButton(STRINGS.ui.commands)
-        cmdsBtn.icon = ImageIcon(getIconFromFile("filterscmds.png"))
+        cmdsBtn.icon = ImageIcon(getImageFile<URL>("filterscmds.png"))
         cmdsBtn.toolTipText = STRINGS.toolTip.addCmdBtn
         cmdsBtn.margin = Insets(0, 3, 0, 3)
         cmdsBtn.addActionListener {
@@ -204,7 +204,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         }
         ctrlMainPanel.add(cmdsBtn)
 
-        val icon = ImageIcon(getIconFromFile("filterscmdsitem.png"))
+        val icon = ImageIcon(getImageFile<URL>("filterscmdsitem.png"))
         if (customArray != null) {
             for (item in customArray) {
                 if (!item.tableBar) {
@@ -624,7 +624,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         }
     }
 
-    internal inner class ComponenetHander : ComponentAdapter() {
+    internal inner class ComponenetHandler : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent) {
             if (e != null) {
                 table.updateColumnWidth(e.component.width, scrollPane.verticalScrollBar.width)

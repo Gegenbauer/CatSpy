@@ -25,7 +25,7 @@ import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_WARNING
 import me.gegenbauer.logviewer.ui.menu.ThemeMenu
 import me.gegenbauer.logviewer.ui.settings.AppearanceSettingsDialog
 import me.gegenbauer.logviewer.utils.getEnum
-import me.gegenbauer.logviewer.utils.getIconFromFile
+import me.gegenbauer.logviewer.utils.getImageFile
 import java.awt.*
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
@@ -33,6 +33,7 @@ import java.awt.event.*
 import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
 import java.io.File
+import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.LocalDateTime
@@ -351,8 +352,7 @@ class MainUI(title: String) : JFrame() {
     private fun configureWindow(title: String) {
         setTitle(title)
 
-        val img = ImageIcon(getIconFromFile("logo.png"))
-        iconImage = img.image
+        iconImage = ImageIcon(getImageFile<URL>("logo.png")).image
 
         defaultCloseOperation = EXIT_ON_CLOSE
         setLocation(frameX, frameY)
@@ -659,7 +659,7 @@ class MainUI(title: String) : JFrame() {
         startBtn = JButton(STRINGS.ui.start)
         startBtn.margin = btnMargin
         startBtn.toolTipText = STRINGS.toolTip.startBtn
-        startBtn.icon = ImageIcon(getIconFromFile("start.png"))
+        startBtn.icon = ImageIcon(getImageFile<URL>("start.png"))
         startBtn.addActionListener(actionHandler)
         startBtn.addMouseListener(mouseHandler)
         retryAdbToggle = ColorToggleButton(STRINGS.ui.retryAdb)
@@ -681,7 +681,7 @@ class MainUI(title: String) : JFrame() {
         clearViewsBtn = JButton(STRINGS.ui.clearViews)
         clearViewsBtn.margin = btnMargin
         clearViewsBtn.toolTipText = STRINGS.toolTip.clearBtn
-        clearViewsBtn.icon = ImageIcon(getIconFromFile("clear.png"))
+        clearViewsBtn.icon = ImageIcon(getImageFile<URL>("clear.png"))
 
         clearViewsBtn.addActionListener(actionHandler)
         clearViewsBtn.addMouseListener(mouseHandler)
@@ -872,7 +872,7 @@ class MainUI(title: String) : JFrame() {
         scrollBackKeepToggle = ColorToggleButton(STRINGS.ui.keep)
         scrollBackKeepToggle.toolTipText = STRINGS.toolTip.scrollBackKeepToggle
         if (ConfigManager.LaF != CROSS_PLATFORM_LAF) {
-            val imgIcon = ImageIcon(getIconFromFile("toggle_on_warn.png"))
+            val imgIcon = ImageIcon(getImageFile<URL>("toggle_on_warn.png"))
             scrollBackKeepToggle.selectedIcon = imgIcon
         }
 
@@ -1310,34 +1310,34 @@ class MainUI(title: String) : JFrame() {
 
     private fun setBtnIcons(isShow:Boolean) {
         if (isShow) {
-            startBtn.icon = ImageIcon(this.javaClass.getResource("/images/start.png"))
-            stopBtn.icon = ImageIcon(this.javaClass.getResource("/images/stop.png"))
-            clearViewsBtn.icon = ImageIcon(this.javaClass.getResource("/images/clear.png"))
-            saveBtn.icon = ImageIcon(this.javaClass.getResource("/images/save.png"))
-            adbConnectBtn.icon = ImageIcon(this.javaClass.getResource("/images/connect.png"))
-            adbRefreshBtn.icon = ImageIcon(this.javaClass.getResource("/images/refresh.png"))
-            adbDisconnectBtn.icon = ImageIcon(this.javaClass.getResource("/images/disconnect.png"))
-            scrollBackApplyBtn.icon = ImageIcon(this.javaClass.getResource("/images/apply.png"))
+            startBtn.icon = ImageIcon(getImageFile<URL>("start.png"))
+            stopBtn.icon = ImageIcon(getImageFile<URL>("stop.png"))
+            clearViewsBtn.icon = ImageIcon(getImageFile<URL>("clear.png"))
+            saveBtn.icon = ImageIcon(getImageFile<URL>("save.png"))
+            adbConnectBtn.icon = ImageIcon(getImageFile<URL>("connect.png"))
+            adbRefreshBtn.icon = ImageIcon(getImageFile<URL>("refresh.png"))
+            adbDisconnectBtn.icon = ImageIcon(getImageFile<URL>("disconnect.png"))
+            scrollBackApplyBtn.icon = ImageIcon(getImageFile<URL>("apply.png"))
 
-            retryAdbToggle.icon = ImageIcon(this.javaClass.getResource("/images/retry_off.png"))
-            pauseToggle.icon = ImageIcon(this.javaClass.getResource("/images/pause_off.png"))
-            scrollBackKeepToggle.icon = ImageIcon(this.javaClass.getResource("/images/keeplog_off.png"))
-            scrollBackSplitFileToggle.icon = ImageIcon(this.javaClass.getResource("/images/splitfile_off.png"))
+            retryAdbToggle.icon = ImageIcon(getImageFile<URL>("retry_off.png"))
+            pauseToggle.icon = ImageIcon(getImageFile<URL>("pause_off.png"))
+            scrollBackKeepToggle.icon = ImageIcon(getImageFile<URL>("keeplog_off.png"))
+            scrollBackSplitFileToggle.icon = ImageIcon(getImageFile<URL>("splitfile_off.png"))
 
             if (ConfigManager.LaF == FLAT_DARK_LAF) {
-                retryAdbToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/retry_on_dark.png"))
-                pauseToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/pause_on_dark.png"))
-                scrollBackKeepToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/keeplog_on_dark.png"))
-                scrollBackSplitFileToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/splitfile_on_dark.png"))
+                retryAdbToggle.selectedIcon = ImageIcon(getImageFile<URL>("retry_on_dark.png"))
+                pauseToggle.selectedIcon = ImageIcon(getImageFile<URL>("pause_on_dark.png"))
+                scrollBackKeepToggle.selectedIcon = ImageIcon(getImageFile<URL>("keeplog_on_dark.png"))
+                scrollBackSplitFileToggle.selectedIcon = ImageIcon(getImageFile<URL>("splitfile_on_dark.png"))
             }
             else {
-                retryAdbToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/retry_on.png"))
-                pauseToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/pause_on.png"))
-                scrollBackKeepToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/keeplog_on.png"))
-                scrollBackSplitFileToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/splitfile_on.png"))
+                retryAdbToggle.selectedIcon = ImageIcon(getImageFile<URL>("retry_on.png"))
+                pauseToggle.selectedIcon = ImageIcon(getImageFile<URL>("pause_on.png"))
+                scrollBackKeepToggle.selectedIcon = ImageIcon(getImageFile<URL>("keeplog_on.png"))
+                scrollBackSplitFileToggle.selectedIcon = ImageIcon(getImageFile<URL>("splitfile_on.png"))
             }
 
-            scrollBackLabel.icon = ImageIcon(this.javaClass.getResource("/images/scrollback.png"))
+            scrollBackLabel.icon = ImageIcon(getImageFile<URL>("scrollback.png"))
         }
         else {
             startBtn.icon = null
@@ -1349,14 +1349,14 @@ class MainUI(title: String) : JFrame() {
             adbDisconnectBtn.icon = null
             scrollBackApplyBtn.icon = null
 
-            retryAdbToggle.icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
-            retryAdbToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
-            pauseToggle.icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
-            pauseToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
-            scrollBackKeepToggle.icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
-            scrollBackKeepToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on_warn.png"))
-            scrollBackSplitFileToggle.icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
-            scrollBackSplitFileToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
+            retryAdbToggle.icon = ImageIcon(getImageFile<URL>("toggle_off.png"))
+            retryAdbToggle.selectedIcon = ImageIcon(getImageFile<URL>("toggle_on.png"))
+            pauseToggle.icon = ImageIcon(getImageFile<URL>("toggle_off.png"))
+            pauseToggle.selectedIcon = ImageIcon(getImageFile<URL>("toggle_on.png"))
+            scrollBackKeepToggle.icon = ImageIcon(getImageFile<URL>("toggle_off.png"))
+            scrollBackKeepToggle.selectedIcon = ImageIcon(getImageFile<URL>("toggle_on_warn.png"))
+            scrollBackSplitFileToggle.icon = ImageIcon(getImageFile<URL>("toggle_off.png"))
+            scrollBackSplitFileToggle.selectedIcon = ImageIcon(getImageFile<URL>("toggle_on.png"))
 
             scrollBackLabel.icon = null
         }
