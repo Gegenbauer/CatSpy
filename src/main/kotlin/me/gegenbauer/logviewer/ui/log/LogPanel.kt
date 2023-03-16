@@ -21,7 +21,12 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var basePanel: LogPanel?, val focusHandler: MainUI.FocusHandler) :JPanel() {
+class LogPanel constructor(
+    val mainUI: MainUI,
+    tableModel: LogTableModel,
+    var basePanel: LogPanel?,
+    val focusHandler: MainUI.FocusHandler
+) : JPanel() {
     private val ctrlMainPanel: WrapablePanel
     private var firstBtn: JButton
     private var lastBtn: JButton
@@ -135,7 +140,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         isCreatingUI = false
     }
 
-    private fun addVSeparator(panel:JPanel) {
+    private fun addVSeparator(panel: JPanel) {
         val separator1 = JSeparator(SwingConstants.VERTICAL)
         separator1.preferredSize = Dimension(separator1.preferredSize.width, 10)
         if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
@@ -170,7 +175,8 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                 val button = TableBarButton(item.title)
                 button.icon = icon
                 button.value = item.value
-                button.toolTipText = "<html>${item.title} : <b>\"${item.value}\"</b><br><br>* Append : Ctrl + Click</html>"
+                button.toolTipText =
+                    "<html>${item.title} : <b>\"${item.value}\"</b><br><br>* Append : Ctrl + Click</html>"
                 button.margin = Insets(0, 3, 0, 3)
                 button.addActionListener { event: ActionEvent ->
                     if ((ActionEvent.CTRL_MASK and event.modifiers) != 0) {
@@ -270,7 +276,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         }
 
         if (bg != background) {
-            background =  bg
+            background = bg
         }
 
         super.repaint()
@@ -331,11 +337,11 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
         table.updateUI()
     }
 
-    fun getSelectedLine() : Int {
+    fun getSelectedLine(): Int {
         return table.getValueAt(table.selectedRow, 0).toString().trim().toInt()
     }
 
-    fun getSelectedRow() : Int {
+    fun getSelectedRow(): Int {
         return table.selectedRow
     }
 
@@ -347,8 +353,9 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                     if (vPos < oldLogVPos && getGoToLast()) {
                         setGoToLast(false)
                     } else if (vPos > oldLogVPos
-                            && !getGoToLast()
-                            && (vPos + scrollPane.verticalScrollBar.size.height) == scrollPane.verticalScrollBar.maximum) {
+                        && !getGoToLast()
+                        && (vPos + scrollPane.verticalScrollBar.size.height) == scrollPane.verticalScrollBar.maximum
+                    ) {
                         setGoToLast(true)
                     }
                     oldLogVPos = vPos
@@ -388,8 +395,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                     val viewRect = table.getCellRect(table.rowCount - 1, 0, true)
                     viewRect.x = table.visibleRect.x
                     table.scrollRectToVisible(viewRect)
-                }
-                else {
+                } else {
                     if (event.removedCount > 0 && table.selectedRow > 0) {
                         var idx = table.selectedRow - event.removedCount
                         if (idx < 0) {
@@ -417,7 +423,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                                 println("tableChanged Tid = ${Thread.currentThread().id}, num = $num, selectedLine = $selectedLine")
                                 table.setRowSelectionInterval(idx, idx)
                                 val viewRect: Rectangle = table.getCellRect(idx, 0, true)
-                                println("tableChanged Tid = ${Thread.currentThread().id}, viewRect = $viewRect, rowCount = ${ table.rowCount }, idx = $idx")
+                                println("tableChanged Tid = ${Thread.currentThread().id}, viewRect = $viewRect, rowCount = ${table.rowCount}, idx = $idx")
                                 table.scrollRectToVisible(viewRect)
                                 table.scrollRectToVisible(viewRect) // sometimes not work
                                 break
@@ -465,27 +471,33 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                 firstBtn -> {
                     goToFirst()
                 }
+
                 lastBtn -> {
                     goToLast()
                 }
+
                 windowedModeBtn -> {
                     mainUI.windowedModeLogPanel(this@LogPanel)
                 }
+
                 tagBtn -> {
                     val selected = tagBtn.model.isSelected
                     table.tableModel.boldTag = selected
                     table.repaint()
                 }
+
                 pidBtn -> {
                     val selected = pidBtn.model.isSelected
                     table.tableModel.boldPid = selected
                     table.repaint()
                 }
+
                 tidBtn -> {
                     val selected = tidBtn.model.isSelected
                     table.tableModel.boldTid = selected
                     table.repaint()
                 }
+
                 bookmarksBtn -> {
                     val selected = bookmarksBtn.model.isSelected
                     if (selected) {
@@ -494,6 +506,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                     table.tableModel.bookmarkMode = selected
                     table.repaint()
                 }
+
                 fullBtn -> {
                     val selected = fullBtn.model.isSelected
                     if (selected) {
@@ -604,6 +617,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                             mainUI.openFile(file.absolutePath, true)
                         }
                     }
+
                     1 -> {
                         var isFirst = true
                         for (file in fileList) {
@@ -615,6 +629,7 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                             }
                         }
                     }
+
                     else -> {
                         println("select cancel")
                     }
@@ -657,12 +672,15 @@ class LogPanel constructor(val mainUI: MainUI, tableModel: LogTableModel, var ba
                     reconnectItem -> {
                         mainUI.reconnectAdb()
                     }
+
                     startItem -> {
                         mainUI.startAdbLog()
                     }
+
                     stopItem -> {
                         mainUI.stopAdbLog()
                     }
+
                     clearItem -> {
                         mainUI.clearAdbLog()
                     }

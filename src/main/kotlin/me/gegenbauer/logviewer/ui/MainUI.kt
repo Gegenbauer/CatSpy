@@ -7,12 +7,9 @@ import me.gegenbauer.logviewer.GoToDialog
 import me.gegenbauer.logviewer.NAME
 import me.gegenbauer.logviewer.manager.*
 import me.gegenbauer.logviewer.strings.STRINGS
-import me.gegenbauer.logviewer.ui.about.AboutDialog
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
 import me.gegenbauer.logviewer.ui.button.FilterComboBox
 import me.gegenbauer.logviewer.ui.button.WrapablePanel
-import me.gegenbauer.logviewer.ui.help.HelpDialog
-import me.gegenbauer.logviewer.ui.log.LogCmdSettingsDialog
 import me.gegenbauer.logviewer.ui.log.LogPanel
 import me.gegenbauer.logviewer.ui.log.LogTableDialog
 import me.gegenbauer.logviewer.ui.log.LogTableModel
@@ -22,8 +19,9 @@ import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_FATAL
 import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_INFO
 import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_VERBOSE
 import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_WARNING
+import me.gegenbauer.logviewer.ui.menu.HelpMenu
+import me.gegenbauer.logviewer.ui.menu.SettingsMenu
 import me.gegenbauer.logviewer.ui.menu.ThemeMenu
-import me.gegenbauer.logviewer.ui.settings.AppearanceSettingsDialog
 import me.gegenbauer.logviewer.utils.getEnum
 import me.gegenbauer.logviewer.utils.getImageFile
 import java.awt.*
@@ -79,6 +77,13 @@ class MainUI(title: String) : JFrame() {
         var IsCreatingUI = true
     }
 
+    private val settingsMenu = SettingsMenu().apply {
+        setLogLevelChangedListener {
+            filteredTableModel.filterLevel = it
+            configManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, SettingsMenu.parseLogLevel(it))
+        }
+    }
+
     private lateinit var menuBar: JMenuBar
 
     private lateinit var menuFile: JMenu
@@ -92,19 +97,6 @@ class MainUI(title: String) : JFrame() {
     private lateinit var itemFull: JCheckBoxMenuItem
     private lateinit var itemSearch: JCheckBoxMenuItem
     private lateinit var itemRotation: JMenuItem
-
-    private lateinit var menuSettings: JMenu
-    private lateinit var itemlogCmd: JMenuItem
-    private lateinit var itemlogFile: JMenuItem
-    private lateinit var itemfilterIncremental: JCheckBoxMenuItem
-
-    private lateinit var menuLogLevel: JMenu
-    private lateinit var logLevelGroup: ButtonGroup
-    private lateinit var itemAppearance: JMenuItem
-
-    private lateinit var menuHelp: JMenu
-    private lateinit var itemHelp: JMenuItem
-    private lateinit var itemAbout: JMenuItem
 
     private lateinit var filterPanel: JPanel
     private lateinit var filterLeftPanel: JPanel
@@ -523,82 +515,9 @@ class MainUI(title: String) : JFrame() {
 
         menuBar.add(menuView)
 
-        menuSettings = JMenu(STRINGS.ui.setting)
-        menuSettings.mnemonic = KeyEvent.VK_S
+        menuBar.add(settingsMenu)
 
-        itemlogCmd = JMenuItem("${STRINGS.ui.logCmd}(${STRINGS.ui.adb})")
-        itemlogCmd.addActionListener(actionHandler)
-        menuSettings.add(itemlogCmd)
-        itemlogFile = JMenuItem(STRINGS.ui.logFile)
-        itemlogFile.addActionListener(actionHandler)
-        menuSettings.add(itemlogFile)
-
-        menuSettings.addSeparator()
-
-        itemfilterIncremental = JCheckBoxMenuItem(STRINGS.ui.filter + "-" + STRINGS.ui.incremental)
-        itemfilterIncremental.addActionListener(actionHandler)
-        menuSettings.add(itemfilterIncremental)
-
-        menuSettings.addSeparator()
-
-        menuLogLevel = JMenu(STRINGS.ui.logLevel)
-        menuLogLevel.addActionListener(actionHandler)
-        menuSettings.add(menuLogLevel)
-
-        logLevelGroup = ButtonGroup()
-
-        var menuItem = JRadioButtonMenuItem(VERBOSE)
-        logLevelGroup.add(menuItem)
-        menuLogLevel.add(menuItem)
-        menuItem.isSelected = true
-        menuItem.addItemListener(levelItemHandler)
-
-        menuItem = JRadioButtonMenuItem(DEBUG)
-        logLevelGroup.add(menuItem)
-        menuLogLevel.add(menuItem)
-        menuItem.addItemListener(levelItemHandler)
-
-        menuItem = JRadioButtonMenuItem(INFO)
-        logLevelGroup.add(menuItem)
-        menuLogLevel.add(menuItem)
-        menuItem.addItemListener(levelItemHandler)
-
-        menuItem = JRadioButtonMenuItem(WARNING)
-        logLevelGroup.add(menuItem)
-        menuLogLevel.add(menuItem)
-        menuItem.addItemListener(levelItemHandler)
-
-        menuItem = JRadioButtonMenuItem(ERROR)
-        logLevelGroup.add(menuItem)
-        menuLogLevel.add(menuItem)
-        menuItem.addItemListener(levelItemHandler)
-
-        menuItem = JRadioButtonMenuItem(FATAL)
-        logLevelGroup.add(menuItem)
-        menuLogLevel.add(menuItem)
-        menuItem.addItemListener(levelItemHandler)
-
-        menuSettings.addSeparator()
-
-        itemAppearance = JMenuItem(STRINGS.ui.appearance)
-        itemAppearance.addActionListener(actionHandler)
-        menuSettings.add(itemAppearance)
-
-        menuBar.add(menuSettings)
-
-        menuHelp = JMenu(STRINGS.ui.help)
-        menuHelp.mnemonic = KeyEvent.VK_H
-
-        itemHelp = JMenuItem(STRINGS.ui.help)
-        itemHelp.addActionListener(actionHandler)
-        menuHelp.add(itemHelp)
-
-        menuHelp.addSeparator()
-
-        itemAbout = JMenuItem(STRINGS.ui.about)
-        itemAbout.addActionListener(actionHandler)
-        menuHelp.add(itemAbout)
-        menuBar.add(menuHelp)
+        menuBar.add(HelpMenu())
 
         menuBar.add(ThemeMenu())
 
@@ -1036,16 +955,6 @@ class MainUI(title: String) : JFrame() {
         statusBar.add(statusTF, BorderLayout.CENTER)
         statusBar.add(followPanel, BorderLayout.EAST)
 
-        val logLevel = configManager.getItem(ConfigManager.ITEM_LOG_LEVEL)
-        if (logLevel != null) {
-            for (item in logLevelGroup.elements) {
-                if (logLevel == item.text) {
-                    item.isSelected = true
-                    break
-                }
-            }
-        }
-
         var item: String?
         for (i in 0 until ConfigManager.COUNT_SHOW_LOG) {
             item = configManager.getItem(ConfigManager.ITEM_SHOW_LOG + i)
@@ -1182,7 +1091,7 @@ class MainUI(title: String) : JFrame() {
             logSplitPane.dividerLocation = divider.toInt()
         }
 
-        when (logLevel) {
+        when (settingsMenu.logLevel) {
             VERBOSE ->filteredTableModel.filterLevel = LEVEL_VERBOSE
             DEBUG ->filteredTableModel.filterLevel = LEVEL_DEBUG
             INFO ->filteredTableModel.filterLevel = LEVEL_INFO
@@ -1230,13 +1139,6 @@ class MainUI(title: String) : JFrame() {
         }
         if (!itemFull.state) {
             windowedModeLogPanel(fullLogPanel)
-        }
-
-        check = configManager.getItem(ConfigManager.ITEM_FILTER_INCREMENTAL)
-        if (!check.isNullOrEmpty()) {
-            itemfilterIncremental.state = check.toBoolean()
-        } else {
-            itemfilterIncremental.state = false
         }
 
         check = configManager.getItem(ConfigManager.ITEM_SCROLL_BACK)
@@ -1820,11 +1722,6 @@ class MainUI(title: String) : JFrame() {
                 itemFileExit -> {
                     exit()
                 }
-                itemlogCmd, itemlogFile -> {
-                    val settingsDialog = LogCmdSettingsDialog(this@MainUI)
-                    settingsDialog.setLocationRelativeTo(this@MainUI)
-                    settingsDialog.isVisible = true
-                }
                 itemFull -> {
                     if (itemFull.state) {
                         attachLogPanel(fullLogPanel)
@@ -1834,29 +1731,9 @@ class MainUI(title: String) : JFrame() {
 
                     configManager.saveItem(ConfigManager.ITEM_VIEW_FULL, itemFull.state.toString())
                 }
-
                 itemSearch -> {
                     searchPanel.isVisible = !searchPanel.isVisible
                     itemSearch.state = searchPanel.isVisible
-                }
-
-                itemfilterIncremental -> {
-                    configManager.saveItem(ConfigManager.ITEM_FILTER_INCREMENTAL, itemfilterIncremental.state.toString())
-                }
-                itemAppearance -> {
-                    val appearanceSettingsDialog = AppearanceSettingsDialog(this@MainUI)
-                    appearanceSettingsDialog.setLocationRelativeTo(this@MainUI)
-                    appearanceSettingsDialog.isVisible = true
-                }
-                itemAbout -> {
-                    val aboutDialog = AboutDialog(this@MainUI)
-                    aboutDialog.setLocationRelativeTo(this@MainUI)
-                    aboutDialog.isVisible = true
-                }
-                itemHelp -> {
-                    val helpDialog = HelpDialog(this@MainUI)
-                    helpDialog.setLocationRelativeTo(this@MainUI)
-                    helpDialog.isVisible = true
                 }
                 adbConnectBtn -> {
                     stopAdbScan()
@@ -2392,7 +2269,7 @@ class MainUI(title: String) : JFrame() {
                         scrollBackApplyBtn.doClick()
                     }
                 }
-            } else if (event != null && itemfilterIncremental.state) {
+            } else if (settingsMenu.filterIncremental) {
                 when {
                     event.source == showLogCombo.editor.editorComponent && showLogToggle.isSelected -> {
                         val item = showLogCombo.editor.item.toString()
