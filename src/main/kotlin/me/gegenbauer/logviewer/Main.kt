@@ -22,8 +22,6 @@ fun main(args: Array<String>) {
         mainUI.isVisible = true
         mainUI.updateUIAfterVisible(args)
 
-        ThemeSettings.showSettingsDialog(mainUI)
-
         addClickListenerForAllComponents(mainUI.components)
 
         // need call after main ui created

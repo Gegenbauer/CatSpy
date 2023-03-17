@@ -1,5 +1,6 @@
 package me.gegenbauer.logviewer.ui.menu
 
+import com.github.weisj.darklaf.settings.ThemeSettings
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
@@ -37,14 +38,15 @@ class SettingsMenu : JMenu() {
             }
         }
     }
+    private val itemThemeSettings = JMenuItem(STRINGS.ui.theme)
     private val itemClickListener = ActionListener {
         when (it.source) {
             itemLogCommand -> openLogCommandConfigurationDialog()
             itemLogFile -> openLogCommandConfigurationDialog()
             itemFilterIncremental -> ConfigManager.getInstance()
                 .saveItem(ConfigManager.ITEM_FILTER_INCREMENTAL, itemFilterIncremental.state.toString())
-
             itemAppearance -> openAppearanceConfigurationDialog()
+            itemThemeSettings -> openThemeConfigurationDialog()
         }
     }
     private var onLogLevelChangedListener: (Int) -> Unit = {}
@@ -101,6 +103,7 @@ class SettingsMenu : JMenu() {
         itemLogCommand.addActionListener(itemClickListener)
         itemFilterIncremental.addActionListener(itemClickListener)
         itemAppearance.addActionListener(itemClickListener)
+        itemThemeSettings.addActionListener(itemClickListener)
 
         add(itemLogCommand)
         add(itemLogFile)
@@ -110,6 +113,7 @@ class SettingsMenu : JMenu() {
         add(itemFilterIncremental)
         addSeparator()
         add(itemAppearance)
+        add(itemThemeSettings)
     }
 
     fun setLogLevelChangedListener(listener: (Int) -> Unit) {
@@ -128,6 +132,11 @@ class SettingsMenu : JMenu() {
         val appearanceSettingsDialog = AppearanceSettingsDialog(frame as MainUI)
         appearanceSettingsDialog.setLocationRelativeTo(frame)
         appearanceSettingsDialog.isVisible = true
+    }
+
+    private fun openThemeConfigurationDialog() {
+        val frame = findFrameFromParent(this)
+        ThemeSettings.showSettingsDialog(frame as MainUI)
     }
 
     companion object {

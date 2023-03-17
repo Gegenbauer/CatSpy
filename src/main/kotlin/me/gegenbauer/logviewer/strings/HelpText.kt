@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer.ui.help
+package me.gegenbauer.logviewer.strings
 
 
 class HelpText {

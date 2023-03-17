@@ -20,7 +20,7 @@ class HelpDialog(parent: JFrame) : JDialog(parent, STRINGS.ui.help, true), Actio
         helpTextPane = JTextPane()
         helpTextPane.contentType = "text/html"
 
-        helpTextPane.text = STRINGS.helpText
+        helpTextPane.text = helpText
 
         helpTextPane.caretPosition = 0
         val scrollPane = JScrollPane(helpTextPane)
@@ -44,8 +44,8 @@ class HelpDialog(parent: JFrame) : JDialog(parent, STRINGS.ui.help, true), Actio
         Utils.installKeyStrokeEscClosing(this)
     }
 
-    override fun actionPerformed(e: ActionEvent) {
-        if (e.source == closeBtn) {
+    override fun actionPerformed(event: ActionEvent) {
+        if (event.source == closeBtn) {
             dispose()
         }
     }

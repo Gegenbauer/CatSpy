@@ -1,7 +1,6 @@
 package me.gegenbauer.logviewer.strings
 
 import com.google.gson.annotations.SerializedName
-import me.gegenbauer.logviewer.ui.help.HelpText
 import java.util.Locale
 
 // TODO use tool to automatically generate this file
@@ -12,7 +11,7 @@ data class Strings(
     val toolTip: StringToolTip
 )
 
-inline val Strings.helpText: String
+inline val helpText: String
     get() = when (locale) {
         Locale.ENGLISH -> {
             HelpText.textEn

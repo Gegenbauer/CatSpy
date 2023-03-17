@@ -5,6 +5,7 @@ import com.formdev.flatlaf.FlatLightLaf
 import com.github.weisj.darklaf.components.OverlayScrollPane
 import me.gegenbauer.logviewer.GoToDialog
 import me.gegenbauer.logviewer.NAME
+import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.manager.*
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
@@ -19,9 +20,9 @@ import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_FATAL
 import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_INFO
 import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_VERBOSE
 import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_WARNING
+import me.gegenbauer.logviewer.ui.menu.FileMenu
 import me.gegenbauer.logviewer.ui.menu.HelpMenu
 import me.gegenbauer.logviewer.ui.menu.SettingsMenu
-import me.gegenbauer.logviewer.ui.menu.ThemeMenu
 import me.gegenbauer.logviewer.utils.getEnum
 import me.gegenbauer.logviewer.utils.getImageFile
 import java.awt.*
@@ -84,14 +85,36 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    private lateinit var menuBar: JMenuBar
+    private val fileMenu = FileMenu().apply {
+        setOnFileSelected { file ->
+            openFile(file.absolutePath, false)
+        }
+        setOnFileFollowSelected { file ->
+            setFollowLogFile(file.absolutePath)
+            startFileFollow()
+        }
+        setOnFileListSelected { files ->
+            var isFirst = true
+            for (file in files) {
+                if (isFirst) {
+                    openFile(file.absolutePath, false)
+                    isFirst = false
+                } else {
+                    openFile(file.absolutePath, true)
+                }
+            }
+        }
+        setOnFilesAppendSelected { files ->
+            for (file in files) {
+                openFile(file.absolutePath, true)
+            }
+        }
+        setOnExit {
+            exit()
+        }
+    }
 
-    private lateinit var menuFile: JMenu
-    private lateinit var itemFileOpen: JMenuItem
-    private lateinit var itemFileFollow: JMenuItem
-    private lateinit var itemFileOpenFiles: JMenuItem
-    private lateinit var itemFileAppendFiles: JMenuItem
-    private lateinit var itemFileExit: JMenuItem
+    private lateinit var menuBar: JMenuBar
 
     private lateinit var menuView: JMenu
     private lateinit var itemFull: JCheckBoxMenuItem
@@ -180,7 +203,6 @@ class MainUI(title: String) : JFrame() {
     private val frameMouseListener = FrameMouseListener(this)
     private val keyHandler = KeyHandler()
     private val itemHandler = ItemHandler()
-    private val levelItemHandler = LevelItemHandler()
     private val actionHandler = ActionHandler()
     private val popupMenuHandler = PopupMenuHandler()
     private val mouseHandler = MouseHandler()
@@ -468,31 +490,7 @@ class MainUI(title: String) : JFrame() {
         addComponentListener(componentHandler)
 
         menuBar = JMenuBar()
-        menuFile = JMenu(STRINGS.ui.file)
-        menuFile.mnemonic = KeyEvent.VK_F
-
-        itemFileOpen = JMenuItem(STRINGS.ui.open)
-        itemFileOpen.addActionListener(actionHandler)
-        menuFile.add(itemFileOpen)
-
-        itemFileFollow = JMenuItem(STRINGS.ui.follow)
-        itemFileFollow.addActionListener(actionHandler)
-        menuFile.add(itemFileFollow)
-
-        itemFileOpenFiles = JMenuItem(STRINGS.ui.openFiles)
-        itemFileOpenFiles.addActionListener(actionHandler)
-        menuFile.add(itemFileOpenFiles)
-
-        itemFileAppendFiles = JMenuItem(STRINGS.ui.appendFiles)
-        itemFileAppendFiles.addActionListener(actionHandler)
-        menuFile.add(itemFileAppendFiles)
-
-        menuFile.addSeparator()
-
-        itemFileExit = JMenuItem(STRINGS.ui.exit)
-        itemFileExit.addActionListener(actionHandler)
-        menuFile.add(itemFileExit)
-        menuBar.add(menuFile)
+        menuBar.add(fileMenu)
 
         menuView = JMenu(STRINGS.ui.view)
         menuView.mnemonic = KeyEvent.VK_V
@@ -518,8 +516,6 @@ class MainUI(title: String) : JFrame() {
         menuBar.add(settingsMenu)
 
         menuBar.add(HelpMenu())
-
-        menuBar.add(ThemeMenu())
 
         jMenuBar = menuBar
 
@@ -1493,8 +1489,7 @@ class MainUI(title: String) : JFrame() {
         } else {
             statusTF.text = path
         }
-        fullTableModel.setLogFile(path)
-        filteredTableModel.setLogFile(path)
+        Log.file = File(path)
         fullTableModel.loadItems(isAppend)
         filteredTableModel.loadItems(isAppend)
 
@@ -1529,8 +1524,7 @@ class MainUI(title: String) : JFrame() {
             idx++
         }
 
-        fullTableModel.setLogFile(filePathSaved)
-        filteredTableModel.setLogFile(filePathSaved)
+        Log.file = File(filePathSaved)
         statusTF.text = filePathSaved
     }
 
@@ -1604,8 +1598,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun setFollowLogFile(filePath: String) {
-        fullTableModel.setLogFile(filePath)
-        filteredTableModel.setLogFile(filePath)
+        Log.file = File(filePath)
         statusTF.text = filePath
     }
 
@@ -1660,68 +1653,6 @@ class MainUI(title: String) : JFrame() {
     internal inner class ActionHandler : ActionListener {
         override fun actionPerformed(event: ActionEvent) {
             when (event.source) {
-                itemFileOpen -> {
-                    val fileDialog = FileDialog(this@MainUI, STRINGS.ui.file + " " + STRINGS.ui.open, FileDialog.LOAD)
-                    fileDialog.isMultipleMode = false
-                    fileDialog.directory = fullTableModel.logFile?.parent
-                    fileDialog.isVisible = true
-                    if (fileDialog.file != null) {
-                        val file = File(fileDialog.directory + fileDialog.file)
-                        openFile(file.absolutePath, false)
-                    } else {
-                        println("Cancel Open")
-                    }
-                }
-                itemFileFollow -> {
-                    val fileDialog = FileDialog(this@MainUI, STRINGS.ui.file + " " + STRINGS.ui.follow, FileDialog.LOAD)
-                    fileDialog.isMultipleMode = false
-                    fileDialog.directory = fullTableModel.logFile?.parent
-                    fileDialog.isVisible = true
-                    if (fileDialog.file != null) {
-                        val file = File(fileDialog.directory + fileDialog.file)
-                        setFollowLogFile(file.absolutePath)
-                        startFileFollow()
-                    } else {
-                        println("Cancel Open")
-                    }
-                }
-                itemFileOpenFiles -> {
-                    val fileDialog = FileDialog(this@MainUI, STRINGS.ui.file + " " + STRINGS.ui.openFiles, FileDialog.LOAD)
-                    fileDialog.isMultipleMode = true
-                    fileDialog.directory = fullTableModel.logFile?.parent
-                    fileDialog.isVisible = true
-                    val fileList = fileDialog.files
-                    if (fileList != null) {
-                        var isFirst = true
-                        for (file in fileList) {
-                            if (isFirst) {
-                                openFile(file.absolutePath, false)
-                                isFirst = false
-                            } else {
-                                openFile(file.absolutePath, true)
-                            }
-                        }
-                    } else {
-                        println("Cancel Open")
-                    }
-                }
-                itemFileAppendFiles -> {
-                    val fileDialog = FileDialog(this@MainUI, STRINGS.ui.file + " " + STRINGS.ui.appendFiles, FileDialog.LOAD)
-                    fileDialog.isMultipleMode = true
-                    fileDialog.directory = fullTableModel.logFile?.parent
-                    fileDialog.isVisible = true
-                    val fileList = fileDialog.files
-                    if (fileList != null) {
-                        for (file in fileList) {
-                            openFile(file.absolutePath, true)
-                        }
-                    } else {
-                        println("Cancel Open")
-                    }
-                }
-                itemFileExit -> {
-                    exit()
-                }
                 itemFull -> {
                     if (itemFull.state) {
                         attachLogPanel(fullLogPanel)
@@ -2378,21 +2309,6 @@ class MainUI(title: String) : JFrame() {
                     pauseFileFollow(pauseFollowToggle.isSelected)
                 }
             }
-        }
-    }
-
-    internal inner class LevelItemHandler : ItemListener {
-        override fun itemStateChanged(event: ItemEvent) {
-            val item = event.source as JRadioButtonMenuItem
-            when (item.text) {
-                VERBOSE ->filteredTableModel.filterLevel = LEVEL_VERBOSE
-                DEBUG ->filteredTableModel.filterLevel = LEVEL_DEBUG
-                INFO ->filteredTableModel.filterLevel = LEVEL_INFO
-                WARNING ->filteredTableModel.filterLevel = LEVEL_WARNING
-                ERROR ->filteredTableModel.filterLevel = LEVEL_ERROR
-                FATAL ->filteredTableModel.filterLevel = LEVEL_FATAL
-            }
-            configManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, item.text)
         }
     }
 

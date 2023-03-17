@@ -1,6 +1,7 @@
 package me.gegenbauer.logviewer.ui.log
 
 import me.gegenbauer.logviewer.NAME
+import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.manager.BookmarkManager
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.LogCmdManager
@@ -41,7 +42,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     private val columnNames = arrayOf("line", "log")
     private var logItems: MutableList<LogItem> = mutableListOf()
     private var baseModel: LogTableModel? = baseModel
-    var logFile: File? = null
     private val logCmdManager = LogCmdManager.getInstance()
     private val bookmarkManager = BookmarkManager.getInstance()
 
@@ -488,10 +488,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         }
     }
 
-    fun setLogFile(path: String) {
-        logFile = File(path)
-    }
-
     private fun levelToInt(text: String): Int {
         var level = LEVEL_NONE
         when (text) {
@@ -524,6 +520,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     }
 
     private fun loadFile(isAppend: Boolean) {
+        val logFile = Log.file
         if (logFile == null) {
             return
         }
@@ -1370,9 +1367,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     fun startScan() {
         sIsLogcatLog = true
-        if (logFile == null) {
-            return
-        }
+        val logFile = Log.file ?: return
 
         if (SwingUtilities.isEventDispatchThread()) {
             scanThread?.interrupt()
@@ -1649,9 +1644,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     fun startFollow() {
         sIsLogcatLog = false
-        if (logFile == null) {
-            return
-        }
+        val logFile = Log.file ?: return
 
         if (SwingUtilities.isEventDispatchThread()) {
             followThread?.interrupt()
