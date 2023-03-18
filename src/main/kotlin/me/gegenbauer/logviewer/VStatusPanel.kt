@@ -1,5 +1,6 @@
 package me.gegenbauer.logviewer
 
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.BookmarkManager
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.ui.MainUI
@@ -18,6 +19,7 @@ class VStatusPanel(private val logTable: LogTable) : JPanel() {
     private val bookmarkManager = BookmarkManager.getInstance()
 
     companion object {
+        private const val TAG = "VStatusPanel"
         const val VIEW_RECT_WIDTH = 20
         const val VIEW_RECT_HEIGHT = 5
     }
@@ -73,7 +75,7 @@ class VStatusPanel(private val logTable: LogTable) : JPanel() {
             try {
                 logTable.scrollRectToVisible(Rectangle(logTable.getCellRect(row, 0, true)))
             } catch (e: IllegalArgumentException) {
-                println("e : $e")
+                GLog.d(TAG, "e : $e")
             }
             super.mouseClicked(event)
         }

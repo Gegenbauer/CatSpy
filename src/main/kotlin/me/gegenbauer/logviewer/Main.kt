@@ -1,14 +1,15 @@
 package me.gegenbauer.logviewer
 
 import com.github.weisj.darklaf.LafManager
-import com.github.weisj.darklaf.settings.ThemeSettings
 import com.github.weisj.darklaf.theme.Theme
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.theme.ThemeManager
 import me.gegenbauer.logviewer.ui.MainUI
 import java.awt.Container
 import javax.swing.SwingUtilities
 
 
+private const val TAG = "Main"
 const val VERSION: String = "0.3.0"
 const val NAME: String = "LogViewer"
 
@@ -34,7 +35,7 @@ private fun addClickListenerForAllComponents(components: Array<java.awt.Componen
     components.forEach { component ->
         component.addMouseListener(object : java.awt.event.MouseAdapter() {
             override fun mouseClicked(e: java.awt.event.MouseEvent?) {
-                println(component.javaClass.name)
+                GLog.d(TAG, component.javaClass.name)
             }
         })
         if (component is Container) {

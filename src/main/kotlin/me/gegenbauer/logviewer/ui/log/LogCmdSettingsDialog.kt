@@ -1,6 +1,7 @@
 package me.gegenbauer.logviewer.ui.log
 
 import me.gegenbauer.logviewer.Utils
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.manager.LogCmdManager
 import me.gegenbauer.logviewer.strings.STRINGS
@@ -194,10 +195,10 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
             fileDialog.isVisible = true
             if (fileDialog.file != null) {
                 val file = File(fileDialog.directory + fileDialog.file)
-                println("adb command : ${file.absolutePath}")
+                GLog.d(TAG, "adb command : ${file.absolutePath}")
                 adbCmdTF.text = file.absolutePath
             } else {
-                println("Cancel Open")
+                GLog.d(TAG, "Cancel Open")
             }
         } else if (e.source == adbSaveBtn) {
             val chooser = JFileChooser()
@@ -207,10 +208,10 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
             chooser.isAcceptAllFileFilterUsed = false
 
             if (chooser.showOpenDialog(this@LogCmdSettingsDialog) == JFileChooser.APPROVE_OPTION) {
-                println("getSelectedFile() : ${chooser.selectedFile}")
+                GLog.d(TAG, "getSelectedFile() : ${chooser.selectedFile}")
                 adbSaveTF.text = chooser.selectedFile.absolutePath
             } else {
-                println("No Selection ")
+                GLog.d(TAG, "No Selection ")
             }
         } else if (e.source == okBtn) {
             logCmdManager.adbCmd = adbCmdTF.text
@@ -351,10 +352,10 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
                 fileDialog.isVisible = true
                 if (fileDialog.file != null) {
                     val file = File(fileDialog.directory + fileDialog.file)
-                    println("command : ${file.absolutePath}")
+                    GLog.d(TAG, "command : ${file.absolutePath}")
                     cmdTF.text = file.absolutePath
                 } else {
-                    println("Cancel Open")
+                    GLog.d(TAG, "Cancel Open")
                 }
             } else if (e.source == okBtn) {
                 val text = if (cmdRadio.isSelected) {
@@ -385,5 +386,9 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
         override fun focusLost(e: FocusEvent) {
 
         }
+    }
+
+    companion object {
+        private const val TAG = "LogCmdSettingsDialog"
     }
 }

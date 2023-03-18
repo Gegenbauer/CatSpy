@@ -6,6 +6,7 @@ import com.github.weisj.darklaf.components.OverlayScrollPane
 import me.gegenbauer.logviewer.GoToDialog
 import me.gegenbauer.logviewer.NAME
 import me.gegenbauer.logviewer.file.Log
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.*
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
@@ -53,6 +54,7 @@ import kotlin.system.exitProcess
 
 class MainUI(title: String) : JFrame() {
     companion object {
+        private const val TAG = "MainUI"
         private const val SPLIT_WEIGHT = 0.7
 
         private const val ROTATION_LEFT_RIGHT = 0
@@ -267,7 +269,7 @@ class MainUI(title: String) : JFrame() {
             logCmdManager.adbCmd = cmd
         } else {
             val os = System.getProperty("os.name")
-            println("OS : $os")
+            GLog.d(TAG, "OS : $os")
             if (os.lowercase().contains("windows")) {
                 logCmdManager.adbCmd = "adb.exe"
             } else {
@@ -554,7 +556,7 @@ class MainUI(title: String) : JFrame() {
                 if (goToDialog.line != -1) {
                     goToLine(goToDialog.line)
                 } else {
-                    println("Cancel Goto Line")
+                    GLog.d(TAG, "Cancel Goto Line")
                 }
             }
 
@@ -1333,35 +1335,35 @@ class MainUI(title: String) : JFrame() {
                 try {
                     UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName())
                 } catch (ex: Exception) {
-                    println("Failed to initialize CrossPlatformLaf")
+                    GLog.d(TAG, "Failed to initialize CrossPlatformLaf")
                 }
             }
             SYSTEM_LAF ->{
                 try {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
                 } catch (ex: Exception) {
-                    println("Failed to initialize SystemLaf")
+                    GLog.d(TAG, "Failed to initialize SystemLaf")
                 }
             }
             FLAT_LIGHT_LAF ->{
                 try {
                     UIManager.setLookAndFeel(FlatLightLaf())
                 } catch (ex: Exception) {
-                    println("Failed to initialize FlatLightLaf")
+                    GLog.d(TAG, "Failed to initialize FlatLightLaf")
                 }
             }
             FLAT_DARK_LAF ->{
                 try {
                     UIManager.setLookAndFeel(FlatDarkLaf())
                 } catch (ex: Exception) {
-                    println("Failed to initialize FlatDarkLaf")
+                    GLog.d(TAG, "Failed to initialize FlatDarkLaf")
                 }
             }
             else->{
                 try {
                     UIManager.setLookAndFeel(FlatLightLaf())
                 } catch (ex: Exception) {
-                    println("Failed to initialize FlatLightLaf")
+                    GLog.d(TAG, "Failed to initialize FlatLightLaf")
                 }
             }
         }
@@ -1479,7 +1481,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun openFile(path: String, isAppend: Boolean) {
-        println("Opening: $path, $isAppend")
+        GLog.d(TAG, "Opening: $path, $isAppend")
         statusMethod.text = " ${STRINGS.ui.open} "
         filteredTableModel.stopScan()
         filteredTableModel.stopFollow()
@@ -1564,7 +1566,7 @@ class MainUI(title: String) : JFrame() {
         }
 
         if (!filteredTableModel.isScanning()) {
-            println("stopAdbScan : not adb scanning mode")
+            GLog.d(TAG, "stopAdbScan : not adb scanning mode")
             return
         }
         filteredTableModel.stopScan()
@@ -1583,7 +1585,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun restartAdbLogcat() {
-        println("Restart Adb Logcat")
+        GLog.d(TAG, "Restart Adb Logcat")
         logCmdManager.stop()
         logCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
         logCmdManager.startLogcat()
@@ -1591,7 +1593,7 @@ class MainUI(title: String) : JFrame() {
 
     fun pauseAdbScan(pause: Boolean) {
         if (!filteredTableModel.isScanning()) {
-            println("pauseAdbScan : not adb scanning mode")
+            GLog.d(TAG, "pauseAdbScan : not adb scanning mode")
             return
         }
         filteredTableModel.pauseScan(pause)
@@ -1621,7 +1623,7 @@ class MainUI(title: String) : JFrame() {
 
     fun stopFileFollow() {
         if (!filteredTableModel.isFollowing()) {
-            println("stopAdbScan : not file follow mode")
+            GLog.d(TAG, "stopAdbScan : not file follow mode")
             return
         }
         statusMethod.text = " ${STRINGS.ui.follow} ${STRINGS.ui.stop} "
@@ -1637,7 +1639,7 @@ class MainUI(title: String) : JFrame() {
 
     fun pauseFileFollow(pause: Boolean) {
         if (!filteredTableModel.isFollowing()) {
-            println("pauseFileFollow : not file follow mode")
+            GLog.d(TAG, "pauseFileFollow : not file follow mode")
             return
         }
         filteredTableModel.pauseFollow(pause)
@@ -1706,7 +1708,7 @@ class MainUI(title: String) : JFrame() {
                         setSaveLogFile()
                     }
                     else {
-                        println("SaveBtn : not adb scanning mode")
+                        GLog.d(TAG, "SaveBtn : not adb scanning mode")
                     }
                 }
                 itemRotation -> {
@@ -2005,7 +2007,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun reconnectAdb() {
-        println("Reconnect ADB")
+        GLog.d(TAG, "Reconnect ADB")
         stopBtn.doClick()
         Thread.sleep(200)
 
@@ -2469,7 +2471,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun goToLine(line: Int) {
-        println("Line : $line")
+        GLog.d(TAG, "Line : $line")
         if (line < 0) {
             return
         }

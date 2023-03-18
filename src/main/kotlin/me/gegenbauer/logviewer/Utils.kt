@@ -1,5 +1,6 @@
 package me.gegenbauer.logviewer
 
+import me.gegenbauer.logviewer.log.GLog
 import java.awt.Window
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
@@ -8,6 +9,7 @@ import javax.swing.*
 
 class Utils {
     companion object {
+        private const val TAG = "Utils"
         fun installKeyStroke(container: RootPaneContainer, stroke: KeyStroke?, actionMapKey: String?, action: Action?) {
             val rootPane = container.rootPane
             rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(stroke, actionMapKey)
@@ -16,7 +18,7 @@ class Utils {
 
         fun installKeyStrokeEscClosing(container: RootPaneContainer) {
             if (container !is Window) {
-                println("container is not java.awt.Window")
+                GLog.w(TAG, "container is not java.awt.Window")
                 return
             }
 

@@ -1,6 +1,7 @@
 package me.gegenbauer.logviewer.ui.settings
 
 import me.gegenbauer.logviewer.Utils
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.strings.STRINGS
@@ -186,7 +187,7 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
 
         addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent) {
-                println("exit Filter Style dialog, restore $isNeedRestore")
+                GLog.d(TAG, "exit Filter Style dialog, restore $isNeedRestore")
 
                 if (isNeedRestore) {
                     for (idx in colorLabelArray.indices) {
@@ -277,6 +278,10 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
 
             super.mouseClicked(e)
         }
+    }
+
+    companion object {
+        private const val TAG = "FilterStyleDialog"
     }
 }
 

@@ -1,6 +1,7 @@
 package me.gegenbauer.logviewer.ui.settings
 
 import me.gegenbauer.logviewer.Utils
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
@@ -231,7 +232,7 @@ class FontDialog(parent: MainUI) : JDialog(parent, STRINGS.ui.font + " & " + STR
 
         addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent) {
-                println("exit Font Color dialog, restore $isNeedRestore")
+                GLog.d(TAG, "exit Font Color dialog, restore $isNeedRestore")
 
                 if (isNeedRestore) {
                     for (idx in fullColorLabelArray.indices) {
@@ -463,6 +464,10 @@ class FontDialog(parent: MainUI) : JDialog(parent, STRINGS.ui.font + " & " + STR
             tableColor.applyColor()
             updateLabelColor(colorLabel.type)
         }
+    }
+
+    companion object {
+        private const val TAG = "FontDialog"
     }
 }
 

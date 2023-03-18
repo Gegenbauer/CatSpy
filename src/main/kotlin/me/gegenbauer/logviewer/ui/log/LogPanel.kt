@@ -1,6 +1,7 @@
 package me.gegenbauer.logviewer.ui.log
 
 import me.gegenbauer.logviewer.VStatusPanel
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.*
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
@@ -284,7 +285,7 @@ class LogPanel constructor(
 
     fun goToRow(idx: Int, column: Int) {
         if (idx < 0 || idx >= table.rowCount) {
-            println("goToRow : invalid idx")
+            GLog.d(TAG, "goToRow : invalid idx")
             return
         }
         table.setRowSelectionInterval(idx, idx)
@@ -420,10 +421,10 @@ class LogPanel constructor(
                         for (idx in 0 until table.rowCount) {
                             num = table.getValueAt(idx, 0).toString().trim().toInt()
                             if (selectedLine <= num) {
-                                println("tableChanged Tid = ${Thread.currentThread().id}, num = $num, selectedLine = $selectedLine")
+                                GLog.d(TAG, "tableChanged Tid = ${Thread.currentThread().id}, num = $num, selectedLine = $selectedLine")
                                 table.setRowSelectionInterval(idx, idx)
                                 val viewRect: Rectangle = table.getCellRect(idx, 0, true)
-                                println("tableChanged Tid = ${Thread.currentThread().id}, viewRect = $viewRect, rowCount = ${table.rowCount}, idx = $idx")
+                                GLog.d(TAG, "tableChanged Tid = ${Thread.currentThread().id}, viewRect = $viewRect, rowCount = ${table.rowCount}, idx = $idx")
                                 table.scrollRectToVisible(viewRect)
                                 table.scrollRectToVisible(viewRect) // sometimes not work
                                 break
@@ -543,7 +544,7 @@ class LogPanel constructor(
         }
 
         override fun importData(info: TransferSupport): Boolean {
-            println("importData")
+            GLog.d(TAG, "importData")
             if (!info.isDrop) {
                 return false
             }
@@ -558,7 +559,7 @@ class LogPanel constructor(
 
                     for (item in splitData) {
                         if (item.isNotEmpty()) {
-                            println("importData item = $item")
+                            GLog.d(TAG, "importData item = $item")
                             fileList.add(File(URI(item.trim())))
                         }
                     }
@@ -586,7 +587,7 @@ class LogPanel constructor(
 
             if (fileList.size > 0) {
                 val os = System.getProperty("os.name").lowercase(Locale.getDefault())
-                println("os = $os, drop = ${info.dropAction}, source drop = ${info.sourceDropActions}, user drop = ${info.userDropAction}")
+                GLog.d(TAG, "os = $os, drop = ${info.dropAction}, source drop = ${info.sourceDropActions}, user drop = ${info.userDropAction}")
                 val action = if (os.contains("windows")) {
                     info.dropAction
                 } else {
@@ -631,7 +632,7 @@ class LogPanel constructor(
                     }
 
                     else -> {
-                        println("select cancel")
+                        GLog.d(TAG, "select cancel")
                     }
                 }
             }
@@ -707,9 +708,12 @@ class LogPanel constructor(
         }
 
         override fun mouseDragged(e: MouseEvent) {
-            println("mouseDragged")
+            GLog.d(TAG, "mouseDragged")
             super.mouseDragged(e)
         }
     }
 
+    companion object {
+        private const val TAG = "LogPanel"
+    }
 }

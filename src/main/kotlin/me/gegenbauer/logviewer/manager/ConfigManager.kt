@@ -1,5 +1,6 @@
 package me.gegenbauer.logviewer.manager
 
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.ui.MainUI
 import java.io.File
 import java.io.FileInputStream
@@ -9,6 +10,7 @@ import java.util.*
 
 class ConfigManager private constructor() {
     companion object {
+        private const val TAG = "ConfigManager"
         private const val CONFIG_FILE = "log_viewer.xml"
         val APP_HOME: String? = System.getenv("LOG_VIEWER_HOME")
         const val ITEM_CONFIG_VERSION = "CONFIG_VERSION"
@@ -104,7 +106,7 @@ class ConfigManager private constructor() {
         if (APP_HOME != null) {
             configPath = "$APP_HOME${File.separator}$CONFIG_FILE"
         }
-        println("Config Path : $configPath")
+        GLog.d(TAG, "Config Path : $configPath")
         manageVersion()
     }
 
@@ -177,7 +179,7 @@ class ConfigManager private constructor() {
 
     private fun setItems(keys: Array<String>, values: Array<String>) {
         if (keys.size != values.size) {
-            println("saveItem : size not match ${keys.size}, ${values.size}")
+            GLog.d(TAG, "saveItem : size not match ${keys.size}, ${values.size}")
             return
         }
         for (idx in keys.indices) {
@@ -321,14 +323,14 @@ class ConfigManager private constructor() {
         if (confVer == null) {
             updateConfigFromV0ToV1()
             confVer = properties[ITEM_CONFIG_VERSION] as String?
-            println("manageVersion : $confVer applied")
+            GLog.d(TAG, "manageVersion : $confVer applied")
         }
 
         saveConfig()
     }
 
     private fun updateConfigFromV0ToV1() {
-        println("updateConfigFromV0ToV1 : change color manager properties ++")
+        GLog.d(TAG, "updateConfigFromV0ToV1 : change color manager properties ++")
         for (idx: Int in 0..22) {
             val item = properties["$ITEM_COLOR_MANAGER$idx"] as String?
             if (item != null) {
@@ -349,7 +351,7 @@ class ConfigManager private constructor() {
             }
         }
         properties[ITEM_CONFIG_VERSION] = "1"
-        println("updateConfigFromV0ToV1 : --")
+        GLog.d(TAG, "updateConfigFromV0ToV1 : --")
     }
 }
 

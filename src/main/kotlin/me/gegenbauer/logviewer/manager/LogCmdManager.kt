@@ -2,6 +2,7 @@ package me.gegenbauer.logviewer.manager
 
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.NAME
+import me.gegenbauer.logviewer.log.GLog
 import java.io.IOException
 import java.util.*
 import javax.swing.JOptionPane
@@ -18,6 +19,7 @@ class LogCmdManager private constructor() {
     private var mainUI: MainUI? = null
 
     companion object {
+        private const val TAG = "LogCmdManager"
         const val DEFAULT_PREFIX = NAME
 
         const val EVENT_NONE = 0
@@ -62,7 +64,7 @@ class LogCmdManager private constructor() {
 
     fun connect() {
         if (targetDevice.isEmpty()) {
-            println("Target device is not selected")
+            GLog.d(TAG, "Target device is not selected")
             return
         }
 
@@ -78,12 +80,12 @@ class LogCmdManager private constructor() {
     }
 
     fun stop() {
-        println("Stop all processes ++")
+        GLog.d(TAG, "Stop all processes ++")
         processLogcat?.destroy()
         processLogcat = null
         currentExecutor?.interrupt()
         currentExecutor = null
-        println("Stop all processes --")
+        GLog.d(TAG, "Stop all processes --")
     }
 
     fun addEventListener(eventListener: AdbEventListener) {
@@ -113,7 +115,7 @@ class LogCmdManager private constructor() {
                         val process = runtime.exec(cmd)
                         Scanner(process.inputStream)
                     } catch (e: IOException) {
-                        println("Failed run $cmd")
+                        GLog.d(TAG, "Failed run $cmd")
                         e.printStackTrace()
                         JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
@@ -126,7 +128,7 @@ class LogCmdManager private constructor() {
                     while (scanner.hasNextLine()) {
                         line = scanner.nextLine()
                         if (line.contains("connected to")) {
-                            println("Success connect to $targetDevice")
+                            GLog.d(TAG, "Success connect to $targetDevice")
                             val adbEvent = AdbEvent(CMD_CONNECT, EVENT_SUCCESS)
                             sendEvent(adbEvent)
                             isSuccess = true
@@ -135,7 +137,7 @@ class LogCmdManager private constructor() {
                     }
 
                     if (!isSuccess) {
-                        println("Failed connect to $targetDevice")
+                        GLog.d(TAG, "Failed connect to $targetDevice")
                         val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
                         sendEvent(adbEvent)
                     }
@@ -152,7 +154,7 @@ class LogCmdManager private constructor() {
                         val process = runtime.exec(cmd)
                         Scanner(process.inputStream)
                     } catch (e: IOException) {
-                        println("Failed run $cmd")
+                        GLog.d(TAG, "Failed run $cmd")
                         e.printStackTrace()
                         val adbEvent = AdbEvent(CMD_GET_DEVICES, EVENT_FAIL)
                         sendEvent(adbEvent)
@@ -167,7 +169,7 @@ class LogCmdManager private constructor() {
                         }
                         val textSplit = line.trim().split(Regex("\\s+"))
                         if (textSplit.size >= 2) {
-                            println("device : ${textSplit[0]}")
+                            GLog.d(TAG, "device : ${textSplit[0]}")
                             devices.add(textSplit[0])
                         }
                     }
@@ -193,25 +195,25 @@ class LogCmdManager private constructor() {
                             "$adbCmd $logCmd"
                         }
                     }
-                    println("Start : $cmd")
+                    GLog.d(TAG, "Start : $cmd")
                     val runtime = Runtime.getRuntime()
                     try {
                         processLogcat = runtime.exec(cmd)
                         val processExitDetector = ProcessExitDetector(processLogcat!!)
                         processExitDetector.addProcessListener(object : ProcessListener {
                             override fun processFinished(process: Process?) {
-                                println("The subprocess has finished")
+                                GLog.d(TAG, "The subprocess has finished")
                             }
                         })
                         processExitDetector.start()
                     } catch (e: IOException) {
-                        println("Failed run $cmd")
+                        GLog.d(TAG, "Failed run $cmd")
                         e.printStackTrace()
                         JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         processLogcat = null
                         return@run
                     }
-                    println("End : $cmd")
+                    GLog.d(TAG, "End : $cmd")
                 }
             }
 
@@ -222,7 +224,7 @@ class LogCmdManager private constructor() {
                     try {
                         runtime.exec(cmd)
                     } catch (e: IOException) {
-                        println("Failed run $cmd")
+                        GLog.d(TAG, "Failed run $cmd")
                         e.printStackTrace()
                         JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         val adbEvent = AdbEvent(CMD_DISCONNECT, EVENT_FAIL)

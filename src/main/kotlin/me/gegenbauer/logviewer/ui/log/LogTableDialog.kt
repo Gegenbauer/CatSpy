@@ -2,6 +2,7 @@ package me.gegenbauer.logviewer.ui.log
 
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.Utils
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.utils.getImageFile
 import java.awt.BorderLayout
 import java.awt.event.WindowAdapter
@@ -30,11 +31,15 @@ class LogTableDialog (private val parent: MainUI, private val logPanel: LogPanel
         contentPane.add(panel)
         addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent) {
-                println("exit table dialog")
+                GLog.d(TAG, "exit table dialog")
                 parent.attachLogPanel(this@LogTableDialog.logPanel)
             }
         })
 
         Utils.installKeyStrokeEscClosing(this)
+    }
+
+    companion object {
+        private const val TAG = "LogTableDialog"
     }
 }

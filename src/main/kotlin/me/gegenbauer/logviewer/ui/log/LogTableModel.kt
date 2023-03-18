@@ -2,6 +2,7 @@ package me.gegenbauer.logviewer.ui.log
 
 import me.gegenbauer.logviewer.NAME
 import me.gegenbauer.logviewer.file.Log
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.BookmarkManager
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.LogCmdManager
@@ -473,7 +474,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     }
 
     fun clearItems() {
-        println("isEventDispatchThread = ${SwingUtilities.isEventDispatchThread()}")
+        GLog.d(TAG, "isEventDispatchThread = ${SwingUtilities.isEventDispatchThread()}")
 
         if (baseModel != null) {
             baseModel!!.goToLast = true
@@ -1235,7 +1236,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     private fun makeFilteredItems(isRedraw: Boolean) {
         if (baseModel == null || !isFilterUpdated) {
-            println("skip makeFilteredItems $baseModel, $isFilterUpdated")
+            GLog.d(TAG, "skip makeFilteredItems $baseModel, $isFilterUpdated")
             return
         } else {
             isFilterUpdated = false
@@ -1284,7 +1285,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 val matcherShowLog = patternShowLog.matcher("")
                 val normalShowLogSplit = normalShowLog.split("|")
 
-                println("Show Log $normalShowLog, $regexShowLog")
+                GLog.d(TAG, "Show Log $normalShowLog, $regexShowLog")
                 for (item in baseModel!!.logItems) {
                     if (isFilterUpdated) {
                         break
@@ -1423,7 +1424,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                         logFilterItems.clear()
 
                         if (line == null && mainUI.isRestartAdbLogcat()) {
-                            println("line is Null : $line")
+                            GLog.d(TAG, "line is Null : $line")
                             if (logCmdManager.processLogcat == null || !logCmdManager.processLogcat!!.isAlive) {
                                 if (mainUI.isRestartAdbLogcat()) {
                                     Thread.sleep(5000)
@@ -1432,7 +1433,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                         bufferedReader =
                                             BufferedReader(InputStreamReader(logCmdManager.processLogcat?.inputStream!!))
                                     } else {
-                                        println("startScan : inputStream is Null")
+                                        GLog.d(TAG, "startScan : inputStream is Null")
                                     }
                                     line = "LogViewer - RESTART LOGCAT"
                                 }
@@ -1461,7 +1462,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
                                 if (scrollBackSplitFile && scrollback > 0 && saveNum >= scrollback) {
                                     mainUI.setSaveLogFile()
-                                    println("Change save file : ${logFile?.absolutePath}")
+                                    GLog.d(TAG, "Change save file : ${logFile?.absolutePath}")
                                 }
 
                                 logLines.add(line)
@@ -1573,7 +1574,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                         baseModel!!.fireLogTableDataChanged(baseRemovedCount)
                         baseRemovedCount = 0
                     } catch (e: Exception) {
-                        println("Start scan : ${e.stackTraceToString()}")
+                        GLog.d(TAG, "Start scan : ${e.stackTraceToString()}")
                         if (e !is InterruptedException) {
                             JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         }
@@ -1619,7 +1620,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     }
 
     fun pauseScan(pause: Boolean) {
-        println("Pause adb scan $pause")
+        GLog.d(TAG, "Pause adb scan $pause")
         isPause = pause
     }
 
@@ -1846,7 +1847,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                         baseModel!!.fireLogTableDataChanged(baseRemovedCount)
                         baseRemovedCount = 0
                     } catch (e: Exception) {
-                        println("Start follow : ${e.stackTraceToString()}")
+                        GLog.d(TAG, "Start follow : ${e.stackTraceToString()}")
                         if (e !is InterruptedException) {
                             JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         }
@@ -1854,7 +1855,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                         return@run
                     }
                 }
-                println("Exit follow")
+                GLog.d(TAG, "Exit follow")
             }
         }
 
@@ -1878,7 +1879,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     }
 
     fun pauseFollow(pause: Boolean) {
-        println("Pause file follow $pause")
+        GLog.d(TAG, "Pause file follow $pause")
         isFollowPause = pause
     }
 
@@ -1964,14 +1965,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     }
 
     companion object {
-        var sIsLogcatLog = false
-        private const val COLUMN_NUM = 0
-        private const val COLUMN_LOG_LINE = 1
-
-        private const val PID_INDEX = 2
-        private const val TID_INDEX = 3
-        private const val LEVEL_INDEX = 4
-        private const val TAG_INDEX = 5
         const val LEVEL_NONE = -1
         const val LEVEL_VERBOSE = 0
         const val LEVEL_DEBUG = 1
@@ -1979,5 +1972,16 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         const val LEVEL_WARNING = 3
         const val LEVEL_ERROR = 4
         const val LEVEL_FATAL = 5
+
+        private const val TAG = "LogTableModel"
+        private const val COLUMN_NUM = 0
+        private const val COLUMN_LOG_LINE = 1
+
+        private const val PID_INDEX = 2
+        private const val TID_INDEX = 3
+        private const val LEVEL_INDEX = 4
+        private const val TAG_INDEX = 5
+
+        var sIsLogcatLog = false
     }
 }

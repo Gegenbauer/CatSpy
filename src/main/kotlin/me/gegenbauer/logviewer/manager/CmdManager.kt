@@ -1,5 +1,6 @@
 package me.gegenbauer.logviewer.manager
 
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.log.LogPanel
 import java.awt.event.*
@@ -62,7 +63,7 @@ class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI,
 
     internal inner class ListSelectionHandler : ListSelectionListener {
         override fun valueChanged(e: ListSelectionEvent) {
-            println("Not implemented")
+            GLog.d(TAG, "Not implemented")
         }
     }
 
@@ -88,6 +89,7 @@ class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI,
     }
 
     companion object {
+        private const val TAG = "CmdManager"
         const val MAX_CMD_COUNT = 20
 
         fun replaceAdbCmdWithTargetDevice(cmd: String): String {

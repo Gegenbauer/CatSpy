@@ -1,6 +1,7 @@
 package me.gegenbauer.logviewer.ui.settings
 
 import me.gegenbauer.logviewer.*
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.strings.STRINGS
@@ -395,7 +396,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
         }
 
         override fun windowClosing(e: WindowEvent) {
-            println("exit Filter Style, restore $isNeedRestore")
+            GLog.d(TAG, "exit Filter Style, restore $isNeedRestore")
 
             if (isNeedRestore) {
                 for (idx in colorLabelArray.indices) {
@@ -691,7 +692,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
                 } else if (radioDark.isSelected) {
                     ColorManager.getInstance().colorSchemeDark
                 } else {
-                    println("Scheme is not selected")
+                    GLog.d(TAG, "Scheme is not selected")
                     return@ActionListener
                 }
 
@@ -705,7 +706,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
                     applyColorScheme(ColorManager.TableColorType.FILTER_LOG_TABLE, scheme, true)
                 }
                 else {
-                    println("Target log(full/filter) is not selected")
+                    GLog.d(TAG, "Target log(full/filter) is not selected")
                 }
             })
 
@@ -750,7 +751,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
         }
 
         override fun windowClosing(e: WindowEvent) {
-            println("exit Font Color, restore $isNeedRestore")
+            GLog.d(TAG, "exit Font Color, restore $isNeedRestore")
 
             if (isNeedRestore) {
                 for (idx in fullColorLabelArray.indices) {
@@ -1063,6 +1064,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
     }
 
     companion object {
+        private const val TAG = "AppearanceSettingsDialog"
         private const val MIN_FONT_POS = 50
         private const val MAX_FONT_POS = 200
         private const val EXAMPLE_TEXT = "ABC def GHI jkl 0123456789"
