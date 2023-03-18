@@ -2,21 +2,14 @@ package me.gegenbauer.logviewer.manager
 
 import java.awt.Color
 
-class ColorManager private constructor(){
+// TODO refactor
+object ColorManager {
     class ColorEvent(change:Int) {
         val colorChange = change
     }
 
     interface ColorEventListener {
         fun colorChanged(event: ColorEvent)
-    }
-
-    companion object {
-        private val instance: ColorManager = ColorManager()
-
-        fun getInstance(): ColorManager {
-            return instance
-        }
     }
 
     private val colorEventListeners = ArrayList<ColorEventListener>()
@@ -31,8 +24,6 @@ class ColorManager private constructor(){
     }
 
     data class ColorItem(val order: Int, val name: String, var strColor: String)
-
-    private val configManager = ConfigManager.getInstance()
 
     enum class TableColorType(val value: Int) {
         FULL_LOG_TABLE(0),
@@ -168,7 +159,7 @@ class ColorManager private constructor(){
     val fullTableColor = TableColor(TableColorType.FULL_LOG_TABLE)
     val filterTableColor = TableColor(TableColorType.FILTER_LOG_TABLE)
 
-    inner class TableColor(val type: TableColorType) {
+    class TableColor(val type: TableColorType) {
         var strFilteredFG = "#000000"
             set(value) {
                 field = value
@@ -450,7 +441,7 @@ class ColorManager private constructor(){
 
         fun getConfig() {
             for (idx in colorArray.indices) {
-                val item = configManager.getItem("${ConfigManager.ITEM_COLOR_MANAGER}${type}_$idx")
+                val item = ConfigManager.getItem("${ConfigManager.ITEM_COLOR_MANAGER}${type}_$idx")
                 if (item != null) {
                     colorArray[idx].strColor = item
                 }
@@ -459,7 +450,7 @@ class ColorManager private constructor(){
 
         fun putConfig() {
             for (idx in colorArray.indices) {
-                configManager.setItem("${ConfigManager.ITEM_COLOR_MANAGER}${type}_$idx", colorArray[idx].strColor)
+                ConfigManager.setItem("${ConfigManager.ITEM_COLOR_MANAGER}${type}_$idx", colorArray[idx].strColor)
             }
         }
 
@@ -541,7 +532,7 @@ class ColorManager private constructor(){
 
     fun getConfigFilterStyle() {
         for (idx in filterStyle.indices) {
-            val item = configManager.getItem(ConfigManager.ITEM_COLOR_FILTER_STYLE + idx)
+            val item = ConfigManager.getItem(ConfigManager.ITEM_COLOR_FILTER_STYLE + idx)
             if (item != null) {
                 filterStyle[idx].strColor = item
             }
@@ -550,7 +541,7 @@ class ColorManager private constructor(){
 
     fun putConfigFilterStyle() {
         for (idx in filterStyle.indices) {
-            configManager.setItem(ConfigManager.ITEM_COLOR_FILTER_STYLE + idx, filterStyle[idx].strColor)
+            ConfigManager.setItem(ConfigManager.ITEM_COLOR_FILTER_STYLE + idx, filterStyle[idx].strColor)
         }
     }
 

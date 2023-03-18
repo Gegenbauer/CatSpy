@@ -43,8 +43,6 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
     private val columnNames = arrayOf("line", "log")
     private var logItems: MutableList<LogItem> = mutableListOf()
     private var baseModel: LogTableModel? = baseModel
-    private val logCmdManager = LogCmdManager.getInstance()
-    private val bookmarkManager = BookmarkManager.getInstance()
 
     private val eventListeners = ArrayList<LogTableModelListener>()
     private val filteredFGMap = mutableMapOf<String, String>()
@@ -301,7 +299,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                 logItems = mutableListOf()
                 baseModel!!.logItems.clear()
                 baseModel!!.logItems = mutableListOf()
-                baseModel!!.bookmarkManager.clear()
+                BookmarkManager.clear()
                 fireLogTableDataCleared()
                 baseModel!!.fireLogTableDataCleared()
             } else {
@@ -310,7 +308,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                     logItems = mutableListOf()
                     baseModel!!.logItems.clear()
                     baseModel!!.logItems = mutableListOf()
-                    baseModel!!.bookmarkManager.clear()
+                    BookmarkManager.clear()
                     fireLogTableDataCleared()
                     baseModel!!.fireLogTableDataCleared()
                 }
@@ -340,9 +338,9 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
         loadItems(false)
 
         tableColor = if (isFullDataModel()) {
-            ColorManager.getInstance().fullTableColor
+            ColorManager.fullTableColor
         } else {
-            ColorManager.getInstance().filterTableColor
+            ColorManager.filterTableColor
         }
 
         val colorEventListener = object : ColorManager.ColorEventListener {
@@ -352,7 +350,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
             }
         }
 
-        ColorManager.getInstance().addColorEventListener(colorEventListener)
+        ColorManager.addColorEventListener(colorEventListener)
     }
 
     fun isFullDataModel(): Boolean {
@@ -479,7 +477,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
             goToLast = true
             baseModel!!.logItems.clear()
             baseModel!!.logItems = mutableListOf()
-            baseModel!!.bookmarkManager.clear()
+            BookmarkManager.clear()
             logItems.clear()
             logItems = mutableListOf()
             isFilterUpdated = true
@@ -506,7 +504,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
             sIsLogcatLog = false
             logItems.clear()
             logItems = mutableListOf()
-            bookmarkManager.clear()
+            BookmarkManager.clear()
         }
 
         val bufferedReader = BufferedReader(FileReader(logFile!!))
@@ -1215,7 +1213,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
             val logItems: MutableList<LogItem> = mutableListOf()
             if (bookmarkMode) {
                 for (item in baseModel!!.logItems) {
-                    if (bookmarkManager.bookmarks.contains(item.num.toInt())) {
+                    if (BookmarkManager.bookmarks.contains(item.num.toInt())) {
                         logItems.add(item)
                     }
                 }
@@ -1308,7 +1306,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                         }
                     }
 
-                    if (isShow || bookmarkManager.bookmarks.contains(item.num.toInt())) {
+                    if (isShow || BookmarkManager.bookmarks.contains(item.num.toInt())) {
                         logItems.add(item)
                     }
                 }
@@ -1355,7 +1353,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                     logItems = mutableListOf()
                     baseModel!!.logItems.clear()
                     baseModel!!.logItems = mutableListOf()
-                    baseModel!!.bookmarkManager.clear()
+                    BookmarkManager.clear()
                     fireLogTableDataCleared()
                     baseModel!!.fireLogTableDataCleared()
                 }
@@ -1364,7 +1362,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                 makePattenPrintValue()
 
                 var currLogFile: File? = logFile
-                var bufferedReader = BufferedReader(InputStreamReader(logCmdManager.processLogcat!!.inputStream))
+                var bufferedReader = BufferedReader(InputStreamReader(LogCmdManager.processLogcat!!.inputStream))
                 var line: String?
                 var num = 0
                 var saveNum = 0
@@ -1392,13 +1390,13 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
 
                         if (line == null && mainUI.isRestartAdbLogcat()) {
                             GLog.d(TAG, "line is Null : $line")
-                            if (logCmdManager.processLogcat == null || !logCmdManager.processLogcat!!.isAlive) {
+                            if (LogCmdManager.processLogcat == null || !LogCmdManager.processLogcat!!.isAlive) {
                                 if (mainUI.isRestartAdbLogcat()) {
                                     Thread.sleep(5000)
                                     mainUI.restartAdbLogcat()
-                                    if (logCmdManager.processLogcat?.inputStream != null) {
+                                    if (LogCmdManager.processLogcat?.inputStream != null) {
                                         bufferedReader =
-                                            BufferedReader(InputStreamReader(logCmdManager.processLogcat?.inputStream!!))
+                                            BufferedReader(InputStreamReader(LogCmdManager.processLogcat?.inputStream!!))
                                     } else {
                                         GLog.d(TAG, "startScan : inputStream is Null")
                                     }
@@ -1525,7 +1523,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                                     baseModel!!.logItems.removeAt(0)
                                     baseRemovedCount++
                                 }
-                                if (filterItem.isShow || bookmarkManager.bookmarks.contains(filterItem.item.num.toInt())) {
+                                if (filterItem.isShow || BookmarkManager.bookmarks.contains(filterItem.item.num.toInt())) {
                                     logItems.add(filterItem.item)
                                     while (!scrollBackKeep && scrollback > 0 && logItems.count() > scrollback) {
                                         logItems.removeAt(0)
@@ -1633,7 +1631,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                     logItems = mutableListOf()
                     baseModel!!.logItems.clear()
                     baseModel!!.logItems = mutableListOf()
-                    baseModel!!.bookmarkManager.clear()
+                    BookmarkManager.clear()
                     fireLogTableDataCleared()
                     baseModel!!.fireLogTableDataCleared()
                 }
@@ -1798,7 +1796,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                                     baseModel!!.logItems.removeAt(0)
                                     baseRemovedCount++
                                 }
-                                if (filterItem.isShow || bookmarkManager.bookmarks.contains(filterItem.item.num.toInt())) {
+                                if (filterItem.isShow || BookmarkManager.bookmarks.contains(filterItem.item.num.toInt())) {
                                     logItems.add(filterItem.item)
                                     while (!scrollBackKeep && scrollback > 0 && logItems.count() > scrollback) {
                                         logItems.removeAt(0)

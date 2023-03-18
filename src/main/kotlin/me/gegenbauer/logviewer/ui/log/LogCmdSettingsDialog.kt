@@ -56,8 +56,6 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
         }
     }
 
-    private val logCmdManager = LogCmdManager.getInstance()
-    private val configManager = ConfigManager.getInstance()
     private val mainUI = parent
 
     init {
@@ -78,11 +76,11 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
         prefixLabel = JLabel("Prefix")
         prefixLabel2 = JLabel("Default : LogViewer, Do not use \\ / : * ? \" < > |")
 
-        adbCmdTF = JTextField(logCmdManager.adbCmd)
+        adbCmdTF = JTextField(LogCmdManager.adbCmd)
         adbCmdTF.preferredSize = Dimension(488, rowHeight)
-        adbSaveTF = JTextField(logCmdManager.logSavePath)
+        adbSaveTF = JTextField(LogCmdManager.logSavePath)
         adbSaveTF.preferredSize = Dimension(488, rowHeight)
-        prefixTF = JTextField(logCmdManager.prefix)
+        prefixTF = JTextField(LogCmdManager.prefix)
         prefixTF.preferredSize = Dimension(300, rowHeight)
 
         val columnNames = arrayOf("Num", "Cmd")
@@ -101,7 +99,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
         )
 
         for (idx in logCommands.indices) {
-            val item = configManager.getItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$idx")
+            val item = ConfigManager.getItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$idx")
             if (idx != 0 && item != null) {
                 logCommands[idx][1] = item
             }
@@ -214,8 +212,8 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
                 GLog.d(TAG, "No Selection ")
             }
         } else if (e.source == okBtn) {
-            logCmdManager.adbCmd = adbCmdTF.text
-            logCmdManager.logSavePath = adbSaveTF.text
+            LogCmdManager.adbCmd = adbCmdTF.text
+            LogCmdManager.logSavePath = adbSaveTF.text
             val prefix = prefixTF.text.trim()
 
             prefixLabel2 = JLabel("Default : LogViewer, Do not use \\ / : * ? \" < > |")
@@ -233,15 +231,15 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
             }
 
             if (prefix.isEmpty()) {
-                logCmdManager.prefix = LogCmdManager.DEFAULT_PREFIX
+                LogCmdManager.prefix = LogCmdManager.DEFAULT_PREFIX
             } else {
-                logCmdManager.prefix = prefix
+                LogCmdManager.prefix = prefix
             }
 
             for (idx in 0 until logCmdTable.rowCount) {
-                configManager.setItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$idx", logCmdTableModel.getValueAt(idx, 1).toString())
+                ConfigManager.setItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$idx", logCmdTableModel.getValueAt(idx, 1).toString())
             }
-            configManager.saveConfig()
+            ConfigManager.saveConfig()
 
             val keys = arrayOf(
                 ConfigManager.ITEM_ADB_CMD,
@@ -249,9 +247,9 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
                 ConfigManager.ITEM_ADB_PREFIX,
                 ConfigManager.ITEM_ADB_LOG_CMD
             )
-            val values = arrayOf(logCmdManager.adbCmd, logCmdManager.logSavePath, logCmdManager.prefix, logCmdManager.logCmd)
+            val values = arrayOf(LogCmdManager.adbCmd, LogCmdManager.logSavePath, LogCmdManager.prefix, LogCmdManager.logCmd)
 
-            configManager.saveItems(keys, values)
+            ConfigManager.saveItems(keys, values)
             mainUI.updateLogCmdCombo(true)
 
             dispose()

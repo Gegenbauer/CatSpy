@@ -38,13 +38,12 @@ class SettingsMenu : JMenu() {
         when (it.source) {
             itemLogCommand -> openLogCommandConfigurationDialog()
             itemLogFile -> openLogCommandConfigurationDialog()
-            itemFilterIncremental -> ConfigManager.getInstance()
-                .saveItem(ConfigManager.ITEM_FILTER_INCREMENTAL, itemFilterIncremental.state.toString())
+            itemFilterIncremental -> ConfigManager.saveItem(ConfigManager.ITEM_FILTER_INCREMENTAL, itemFilterIncremental.state.toString())
             itemAppearance -> openAppearanceConfigurationDialog()
             itemThemeSettings -> openThemeConfigurationDialog()
         }
     }
-    private var onLogLevelChangedListener: (LogLevel) -> Unit = {}
+    var onLogLevelChangedListener: (LogLevel) -> Unit = {}
     var logLevel: String = ""
     val filterIncremental: Boolean
         get() = itemFilterIncremental.state
@@ -53,41 +52,41 @@ class SettingsMenu : JMenu() {
         text = STRINGS.ui.setting
         mnemonic = KeyEvent.VK_S
 
-        logLevel = ConfigManager.getInstance().getItem(ConfigManager.ITEM_LOG_LEVEL) ?: ""
+        logLevel = ConfigManager.getItem(ConfigManager.ITEM_LOG_LEVEL) ?: ""
         logLevelGroup.apply {
-            add(JRadioButtonMenuItem(MainUI.VERBOSE).apply {
-                isSelected = logLevel == MainUI.VERBOSE
+            add(JRadioButtonMenuItem(LogLevel.VERBOSE.logName).apply {
+                isSelected = logLevel == LogLevel.VERBOSE.logName
                 menuLogLevel.add(this)
                 addItemListener(levelItemHandler)
             })
-            add(JRadioButtonMenuItem(MainUI.DEBUG).apply {
-                isSelected = logLevel == MainUI.DEBUG
+            add(JRadioButtonMenuItem(LogLevel.DEBUG.logName).apply {
+                isSelected = logLevel == LogLevel.DEBUG.logName
                 menuLogLevel.add(this)
                 addItemListener(levelItemHandler)
             })
-            add(JRadioButtonMenuItem(MainUI.INFO).apply {
-                isSelected = logLevel == MainUI.INFO
+            add(JRadioButtonMenuItem(LogLevel.INFO.logName).apply {
+                isSelected = logLevel == LogLevel.INFO.logName
                 menuLogLevel.add(this)
                 addItemListener(levelItemHandler)
             })
-            add(JRadioButtonMenuItem(MainUI.WARNING).apply {
-                isSelected = logLevel == MainUI.WARNING
+            add(JRadioButtonMenuItem(LogLevel.WARN.logName).apply {
+                isSelected = logLevel == LogLevel.WARN.logName
                 menuLogLevel.add(this)
                 addItemListener(levelItemHandler)
             })
-            add(JRadioButtonMenuItem(MainUI.ERROR).apply {
-                isSelected = logLevel == MainUI.ERROR
+            add(JRadioButtonMenuItem(LogLevel.ERROR.logName).apply {
+                isSelected = logLevel == LogLevel.ERROR.logName
                 menuLogLevel.add(this)
                 addItemListener(levelItemHandler)
             })
-            add(JRadioButtonMenuItem(MainUI.FATAL).apply {
-                isSelected = logLevel == MainUI.FATAL
+            add(JRadioButtonMenuItem(LogLevel.FATAL.logName).apply {
+                isSelected = logLevel == LogLevel.FATAL.logName
                 menuLogLevel.add(this)
                 addItemListener(levelItemHandler)
             })
         }
 
-        val check = ConfigManager.getInstance().getItem(ConfigManager.ITEM_FILTER_INCREMENTAL)
+        val check = ConfigManager.getItem(ConfigManager.ITEM_FILTER_INCREMENTAL)
         if (!check.isNullOrEmpty()) {
             itemFilterIncremental.state = check.toBoolean()
         } else {
@@ -109,10 +108,6 @@ class SettingsMenu : JMenu() {
         addSeparator()
         add(itemAppearance)
         add(itemThemeSettings)
-    }
-
-    fun setLogLevelChangedListener(listener: (LogLevel) -> Unit) {
-        onLogLevelChangedListener = listener
     }
 
     private fun openLogCommandConfigurationDialog() {

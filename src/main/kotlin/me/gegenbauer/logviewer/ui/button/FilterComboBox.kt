@@ -336,15 +336,14 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
     }
 
     abstract inner class HighlighterEditor : ComboBoxEditor {
-        val colorManager = ColorManager.getInstance()
         fun updateHighlighter(textComponent: JTextComponent) {
             if (textComponent.selectedText == null) {
                 val painterInclude: Highlighter.HighlightPainter =
-                    DefaultHighlighter.DefaultHighlightPainter(colorManager.filterStyleInclude)
+                    DefaultHighlighter.DefaultHighlightPainter(ColorManager.filterStyleInclude)
                 val painterExclude: Highlighter.HighlightPainter =
-                    DefaultHighlighter.DefaultHighlightPainter(colorManager.filterStyleExclude)
+                    DefaultHighlighter.DefaultHighlightPainter(ColorManager.filterStyleExclude)
                 val painterSeparator: Highlighter.HighlightPainter =
-                    DefaultHighlighter.DefaultHighlightPainter(colorManager.filterStyleSeparator)
+                    DefaultHighlighter.DefaultHighlightPainter(ColorManager.filterStyleSeparator)
                 val text = textComponent.text
                 val separator = "|"
                 try {
@@ -362,7 +361,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                                 textComponent.highlighter.addHighlight(startPos, endPos, painterExclude)
                             } else if (useColorTag && text[startPos] == '#' && startPos < (endPos - 1) && text[startPos + 1].isDigit()) {
                                 val color =
-                                    Color.decode(colorManager.filterTableColor.strFilteredBGs[text[startPos + 1].digitToInt()])
+                                    Color.decode(ColorManager.filterTableColor.strFilteredBGs[text[startPos + 1].digitToInt()])
                                 val painterColor: Highlighter.HighlightPainter =
                                     DefaultHighlighter.DefaultHighlightPainter(color)
                                 textComponent.highlighter.addHighlight(startPos, startPos + 2, painterColor)
@@ -433,8 +432,8 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                     }
                 }
 
-                colorManager.addFilterStyleEventListener(colorEventListener)
-                colorManager.addColorEventListener(colorEventListener)
+                ColorManager.addFilterStyleEventListener(colorEventListener)
+                ColorManager.addColorEventListener(colorEventListener)
             }
 
             fun setUpdateHighlighter(updateHighlighter: Boolean) {

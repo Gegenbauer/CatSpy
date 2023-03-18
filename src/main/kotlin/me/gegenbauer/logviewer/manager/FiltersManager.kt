@@ -8,8 +8,6 @@ import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
 class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI, logPanel){
-    private val configManager = ConfigManager.getInstance()
-
     private val listSelectionHandler = ListSelectionHandler()
     private val mouseHandler = MouseHandler()
     private val keyHandler = KeyHandler()
@@ -19,11 +17,11 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mai
     }
 
     override fun loadList(): ArrayList<CustomElement> {
-        return configManager.loadFilters()
+        return ConfigManager.loadFilters()
     }
 
     override fun saveList(list: ArrayList<CustomElement>) {
-        configManager.saveFilters(list)
+        ConfigManager.saveFilters(list)
     }
 
     override fun getFirstElement(): CustomElement {

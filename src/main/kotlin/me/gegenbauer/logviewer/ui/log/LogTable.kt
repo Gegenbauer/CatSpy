@@ -13,7 +13,6 @@ import javax.swing.table.DefaultTableCellRenderer
 
 class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
     private val tableColor: ColorManager.TableColor
-    private val bookmarkManager = BookmarkManager.getInstance()
 
     companion object {
         const val VIEW_LINE_ONE = 0
@@ -44,9 +43,9 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
         addKeyListener(TableKeyHandler())
 
         tableColor = if (this.tableModel.isFullDataModel()) {
-            ColorManager.getInstance().fullTableColor
+            ColorManager.fullTableColor
         } else {
-            ColorManager.getInstance().filterTableColor
+            ColorManager.filterTableColor
         }
     }
 
@@ -182,7 +181,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
     }
 
     private fun getNewBackground(num: Int, row: Int): Color {
-        return if (bookmarkManager.bookmarks.contains(num)) {
+        return if (BookmarkManager.bookmarks.contains(num)) {
             if (isRowSelected(row)) {
                 tableColor.bookmarkSelectedBG
             } else {
@@ -277,7 +276,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
                 val value = this.tableModel.getValueAt(row, 0)
                 val bookmark = value.toString().trim().toInt()
 
-                if (!bookmarkManager.isBookmark(bookmark)) {
+                if (!BookmarkManager.isBookmark(bookmark)) {
                     isAdd = true
                     break
                 }
@@ -288,19 +287,19 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
                 val bookmark = value.toString().trim().toInt()
 
                 if (isAdd) {
-                    if (!bookmarkManager.isBookmark(bookmark)) {
-                        bookmarkManager.addBookmark(bookmark)
+                    if (!BookmarkManager.isBookmark(bookmark)) {
+                        BookmarkManager.addBookmark(bookmark)
                     }
                 } else {
-                    if (bookmarkManager.isBookmark(bookmark)) {
-                        bookmarkManager.removeBookmark(bookmark)
+                    if (BookmarkManager.isBookmark(bookmark)) {
+                        BookmarkManager.removeBookmark(bookmark)
                     }
                 }
             }
         } else {
             val value = this.tableModel.getValueAt(targetRow, 0)
             val bookmark = value.toString().trim().toInt()
-            bookmarkManager.updateBookmark(bookmark)
+            BookmarkManager.updateBookmark(bookmark)
         }
     }
 

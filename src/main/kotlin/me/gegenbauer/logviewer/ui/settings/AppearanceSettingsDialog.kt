@@ -229,11 +229,10 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
 
         private var confirmLabel: JLabel
 
-        private val colorManager = ColorManager.getInstance()
-        private val titleLabelArray = arrayOfNulls<ColorLabel>(colorManager.filterStyle.size)
-        private val colorLabelArray = arrayOfNulls<ColorLabel>(colorManager.filterStyle.size)
+        private val titleLabelArray = arrayOfNulls<ColorLabel>(ColorManager.filterStyle.size)
+        private val colorLabelArray = arrayOfNulls<ColorLabel>(ColorManager.filterStyle.size)
         private val mouseHandler = MouseHandler()
-        private val prevColorArray = arrayOfNulls<String>(colorManager.filterStyle.size)
+        private val prevColorArray = arrayOfNulls<String>(ColorManager.filterStyle.size)
         private var isNeedRestore = true
 
         init {
@@ -307,9 +306,9 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             titleLabelPanel.layout = BoxLayout(titleLabelPanel, BoxLayout.Y_AXIS)
 
             for (idx in colorLabelArray.indices) {
-                prevColorArray[idx] = colorManager.filterStyle[idx].strColor
+                prevColorArray[idx] = ColorManager.filterStyle[idx].strColor
                 colorLabelArray[idx] = ColorLabel(idx)
-                colorLabelArray[idx]!!.text = " ${colorManager.filterStyle[idx].name} ${colorManager.filterStyle[idx].strColor} "
+                colorLabelArray[idx]!!.text = " ${ColorManager.filterStyle[idx].name} ${ColorManager.filterStyle[idx].strColor} "
                 colorLabelArray[idx]!!.toolTipText = colorLabelArray[idx]!!.text
                 colorLabelArray[idx]!!.isOpaque = true
                 colorLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
@@ -322,7 +321,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
                 colorLabelArray[idx]!!.addMouseListener(mouseHandler)
 
                 titleLabelArray[idx] = ColorLabel(idx)
-                titleLabelArray[idx]!!.text = " ${colorManager.filterStyle[idx].name}"
+                titleLabelArray[idx]!!.text = " ${ColorManager.filterStyle[idx].name}"
                 titleLabelArray[idx]!!.toolTipText = colorLabelArray[idx]!!.text
                 titleLabelArray[idx]!!.isOpaque = true
                 titleLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
@@ -339,7 +338,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
 
             for (order in colorLabelArray.indices) {
                 for (idx in colorLabelArray.indices) {
-                    if (order == colorManager.filterStyle[idx].order) {
+                    if (order == ColorManager.filterStyle[idx].order) {
                         colorLabelPanel.add(colorLabelArray[idx])
                         colorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
                         titleLabelPanel.add(titleLabelArray[idx])
@@ -369,9 +368,9 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
 
             schemeBtn.addActionListener {
                 if (radioLight.isSelected) {
-                    applyColorScheme(ColorManager.getInstance().filterColorSchemeLight)
+                    applyColorScheme(ColorManager.filterColorSchemeLight)
                 } else if (radioDark.isSelected) {
-                    applyColorScheme(ColorManager.getInstance().filterColorSchemeDark)
+                    applyColorScheme(ColorManager.filterColorSchemeDark)
                 }
             }
 
@@ -400,9 +399,9 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
 
             if (isNeedRestore) {
                 for (idx in colorLabelArray.indices) {
-                    colorManager.filterStyle[idx].strColor = prevColorArray[idx]!!
+                    ColorManager.filterStyle[idx].strColor = prevColorArray[idx]!!
                 }
-                colorManager.applyFilterStyle()
+                ColorManager.applyFilterStyle()
             } else {
                 val keys = arrayOf(
                     ConfigManager.ITEM_SHOW_LOG_STYLE,
@@ -417,7 +416,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
                         styleComboArray[ComboIdx.TID.value]!!.selectedIndex.toString(),
                         styleComboArray[ComboIdx.BOLD.value]!!.selectedIndex.toString())
 
-                mainUI.configManager.saveFilterStyle(keys, values)
+                ConfigManager.saveFilterStyle(keys, values)
             }
         }
 
@@ -447,12 +446,12 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
 
         private fun applyColorScheme(scheme: Array<String>) {
             for(idx in scheme.indices) {
-                colorLabelArray[idx]!!.text = " ${colorManager.filterStyle[idx].name} ${scheme[idx]} "
-                colorManager.filterStyle[idx].strColor = scheme[idx]
+                colorLabelArray[idx]!!.text = " ${ColorManager.filterStyle[idx].name} ${scheme[idx]} "
+                ColorManager.filterStyle[idx].strColor = scheme[idx]
                 colorLabelArray[idx]!!.background = Color.decode(scheme[idx])
             }
 
-            colorManager.applyFilterStyle()
+            ColorManager.applyFilterStyle()
             updateLabelColor()
             val selectedItem = exampleCombo.selectedItem
             exampleCombo.selectedItem = ""
@@ -464,7 +463,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
 
             for (idx in colorLabelArray.indices) {
                 colorLabelArray[idx]!!.foreground = commonFg
-                colorLabelArray[idx]!!.background = Color.decode(colorManager.filterStyle[idx].strColor)
+                colorLabelArray[idx]!!.background = Color.decode(ColorManager.filterStyle[idx].strColor)
             }
         }
 
@@ -496,10 +495,10 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
                     val ret = JOptionPane.showConfirmDialog(this@AppearanceSettingsDialog, rgbPanel, "Color Chooser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
                     if (ret == JOptionPane.OK_OPTION) {
                         val hex = "#" + Integer.toHexString(colorChooser.color.rgb).substring(2).uppercase()
-                        colorLabel.text = " ${colorManager.filterStyle[idx].name} $hex "
-                        colorManager.filterStyle[idx].strColor = hex
+                        colorLabel.text = " ${ColorManager.filterStyle[idx].name} $hex "
+                        ColorManager.filterStyle[idx].strColor = hex
                         colorLabel.background = colorChooser.color
-                        colorManager.applyFilterStyle()
+                        ColorManager.applyFilterStyle()
                         updateLabelColor()
                         val selectedItem = exampleCombo.selectedItem
                         exampleCombo.selectedItem = ""
@@ -520,9 +519,8 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
         private var exampleLabel: JLabel
         private val prevFont = mainUI.customFont
 
-        private val colorManager = ColorManager.getInstance()
-        private val fullTableColor = colorManager.fullTableColor
-        private val filterTableColor = colorManager.filterTableColor
+        private val fullTableColor = ColorManager.fullTableColor
+        private val filterTableColor = ColorManager.filterTableColor
 
         private val titleLabelArray = arrayOfNulls<ColorLabel>(fullTableColor.colorArray.size)
         private val fullColorLabelArray = arrayOfNulls<ColorLabel>(fullTableColor.colorArray.size)
@@ -688,9 +686,9 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
 
             schemeBtn.addActionListener(ActionListener {
                 val scheme: Array<String> = if (radioLight.isSelected) {
-                    ColorManager.getInstance().colorSchemeLight
+                    ColorManager.colorSchemeLight
                 } else if (radioDark.isSelected) {
-                    ColorManager.getInstance().colorSchemeDark
+                    ColorManager.colorSchemeDark
                 } else {
                     GLog.d(TAG, "Scheme is not selected")
                     return@ActionListener
@@ -763,7 +761,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
                 mainUI.customFont = prevFont
             }
             else {
-                mainUI.configManager.saveFontColors(mainUI.customFont.family, mainUI.customFont.size)
+                ConfigManager.saveFontColors(mainUI.customFont.family, mainUI.customFont.size)
             }
         }
 

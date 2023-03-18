@@ -42,7 +42,6 @@ class LogPanel constructor(
     private val vStatusPanel: VStatusPanel
     private val table: LogTable
     private var selectedRow = -1
-    private val bookmarkManager = BookmarkManager.getInstance()
     private val adjustmentHandler = AdjustmentHandler()
     private val listSelectionHandler = ListSelectionHandler()
     private val tableModelHandler = TableModelHandler()
@@ -111,7 +110,7 @@ class LogPanel constructor(
 
         vStatusPanel = VStatusPanel(table)
 
-        bookmarkManager.addBookmarkEventListener(bookmarkHandler)
+        BookmarkManager.addBookmarkEventListener(bookmarkHandler)
 
         scrollPane.verticalScrollBar.setUI(BasicScrollBarUI())
         scrollPane.horizontalScrollBar.setUI(BasicScrollBarUI())
@@ -271,9 +270,9 @@ class LogPanel constructor(
 
     override fun repaint() {
         val bg = if (basePanel != null) {
-            ColorManager.getInstance().filterTableColor.logBG
+            ColorManager.filterTableColor.logBG
         } else {
-            ColorManager.getInstance().fullTableColor.logBG
+            ColorManager.fullTableColor.logBG
         }
 
         if (bg != background) {

@@ -145,9 +145,9 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, STRINGS.ui.
         fun saveConfiguration(laFGroup: ButtonGroup, parent: MainUI, fontSlider: JSlider) {
             for (item in laFGroup.elements) {
                 if (item.isSelected) {
-                    ConfigManager.getInstance().saveItem(ConfigManager.ITEM_LOOK_AND_FEEL, item.text)
-                    ConfigManager.getInstance().saveItem(ConfigManager.ITEM_UI_FONT_SIZE, fontSlider.value.toString())
-                    ConfigManager.getInstance().saveItem(
+                    ConfigManager.saveItem(ConfigManager.ITEM_LOOK_AND_FEEL, item.text)
+                    ConfigManager.saveItem(ConfigManager.ITEM_UI_FONT_SIZE, fontSlider.value.toString())
+                    ConfigManager.saveItem(
                         ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE,
                         parent.logSplitPane.dividerSize.toString()
                     )

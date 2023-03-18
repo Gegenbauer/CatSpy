@@ -1,22 +1,23 @@
 package me.gegenbauer.logviewer
 
+import com.formdev.flatlaf.FlatLightLaf
 import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.theme.Theme
 import me.gegenbauer.logviewer.log.GLog
+import me.gegenbauer.logviewer.manager.ColorManager
+import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.theme.ThemeManager
 import me.gegenbauer.logviewer.ui.MainUI
 import java.awt.Container
 import javax.swing.SwingUtilities
 
 
-private const val TAG = "Main"
 const val VERSION: String = "0.3.0"
 const val NAME: String = "LogViewer"
+private const val TAG = "Main"
 
 fun main(args: Array<String>) {
-    System.setProperty("awt.useSystemAAFontSettings", "on")
-    System.setProperty("swing.aatext", "true")
-
+    loadConfig()
 
     SwingUtilities.invokeLater {
         val mainUI = MainUI(NAME)
@@ -28,6 +29,16 @@ fun main(args: Array<String>) {
         // need call after main ui created
         ThemeManager.init()
     }
+}
+
+private fun loadConfig() {
+    ConfigManager.loadConfig()
+    ColorManager.fullTableColor.getConfig()
+    ColorManager.fullTableColor.applyColor()
+    ColorManager.filterTableColor.getConfig()
+    ColorManager.filterTableColor.applyColor()
+    ColorManager.getConfigFilterStyle()
+    ConfigManager.saveConfig()
 }
 
 // TODO removed

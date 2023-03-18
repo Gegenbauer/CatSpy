@@ -35,11 +35,10 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
     private val okBtn: JButton = JButton(STRINGS.ui.ok)
     private val cancelBtn: JButton = JButton(STRINGS.ui.cancel)
 
-    private val colorManager = ColorManager.getInstance()
-    private val titleLabelArray = arrayOfNulls<ColorLabel>(colorManager.filterStyle.size)
-    private val colorLabelArray = arrayOfNulls<ColorLabel>(colorManager.filterStyle.size)
+    private val titleLabelArray = arrayOfNulls<ColorLabel>(ColorManager.filterStyle.size)
+    private val colorLabelArray = arrayOfNulls<ColorLabel>(ColorManager.filterStyle.size)
     private val mouseHandler = MouseHandler()
-    private val prevColorArray = arrayOfNulls<String>(colorManager.filterStyle.size)
+    private val prevColorArray = arrayOfNulls<String>(ColorManager.filterStyle.size)
     private var isNeedRestore = true
 
     init {
@@ -111,10 +110,10 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
         titleLabelPanel.layout = BoxLayout(titleLabelPanel, BoxLayout.Y_AXIS)
 
         for (idx in colorLabelArray.indices) {
-            prevColorArray[idx] = colorManager.filterStyle[idx].strColor
+            prevColorArray[idx] = ColorManager.filterStyle[idx].strColor
             colorLabelArray[idx] = ColorLabel(idx)
             colorLabelArray[idx]!!.text =
-                " ${colorManager.filterStyle[idx].name} ${colorManager.filterStyle[idx].strColor} "
+                " ${ColorManager.filterStyle[idx].name} ${ColorManager.filterStyle[idx].strColor} "
             colorLabelArray[idx]!!.toolTipText = colorLabelArray[idx]!!.text
             colorLabelArray[idx]!!.isOpaque = true
             colorLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
@@ -127,7 +126,7 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
             colorLabelArray[idx]!!.addMouseListener(mouseHandler)
 
             titleLabelArray[idx] = ColorLabel(idx)
-            titleLabelArray[idx]!!.text = " ${colorManager.filterStyle[idx].name}"
+            titleLabelArray[idx]!!.text = " ${ColorManager.filterStyle[idx].name}"
             titleLabelArray[idx]!!.toolTipText = colorLabelArray[idx]!!.text
             titleLabelArray[idx]!!.isOpaque = true
             titleLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
@@ -144,7 +143,7 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
 
         for (order in colorLabelArray.indices) {
             for (idx in colorLabelArray.indices) {
-                if (order == colorManager.filterStyle[idx].order) {
+                if (order == ColorManager.filterStyle[idx].order) {
                     colorLabelPanel.add(colorLabelArray[idx])
                     colorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
                     titleLabelPanel.add(titleLabelArray[idx])
@@ -191,9 +190,9 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
 
                 if (isNeedRestore) {
                     for (idx in colorLabelArray.indices) {
-                        colorManager.filterStyle[idx].strColor = prevColorArray[idx]!!
+                        ColorManager.filterStyle[idx].strColor = prevColorArray[idx]!!
                     }
-                    colorManager.applyFilterStyle()
+                    ColorManager.applyFilterStyle()
                 } else {
                     val keys = arrayOf(
                         ConfigManager.ITEM_SHOW_LOG_STYLE,
@@ -210,7 +209,7 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
                         styleComboArray[ComboIdx.BOLD.value]!!.selectedIndex.toString()
                     )
 
-                    parent.configManager.saveFilterStyle(keys, values)
+                    ConfigManager.saveFilterStyle(keys, values)
                 }
             }
         })
@@ -224,7 +223,7 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
 
         for (idx in colorLabelArray.indices) {
             colorLabelArray[idx]!!.foreground = commonFg
-            colorLabelArray[idx]!!.background = Color.decode(colorManager.filterStyle[idx].strColor)
+            colorLabelArray[idx]!!.background = Color.decode(ColorManager.filterStyle[idx].strColor)
         }
     }
 
@@ -265,10 +264,10 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
                 )
                 if (ret == JOptionPane.OK_OPTION) {
                     val hex = "#" + Integer.toHexString(colorChooser.color.rgb).substring(2).uppercase()
-                    colorLabel.text = " ${colorManager.filterStyle[idx].name} $hex "
-                    colorManager.filterStyle[idx].strColor = hex
+                    colorLabel.text = " ${ColorManager.filterStyle[idx].name} $hex "
+                    ColorManager.filterStyle[idx].strColor = hex
                     colorLabel.background = colorChooser.color
-                    colorManager.applyFilterStyle()
+                    ColorManager.applyFilterStyle()
                     updateLabelColor()
                     val selectedItem = exampleCombo.selectedItem
                     exampleCombo.selectedItem = ""

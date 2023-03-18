@@ -41,11 +41,11 @@ class FileMenu : JMenu() {
         }
     }
 
-    private var onFileSelected: (File) -> Unit = {}
-    private var onFileListSelected: (Array<File>) -> Unit = {}
-    private var onFilesAppendSelected: (Array<File>) -> Unit = {}
-    private var onFileFollowSelected: (File) -> Unit = {}
-    private var onExit: () -> Unit = {}
+    var onFileSelected: (File) -> Unit = {}
+    var onFileListSelected: (Array<File>) -> Unit = {}
+    var onFilesAppendSelected: (Array<File>) -> Unit = {}
+    var onFileFollowSelected: (File) -> Unit = {}
+    var onExit: () -> Unit = {}
 
     init {
         text = STRINGS.ui.file
@@ -68,26 +68,6 @@ class FileMenu : JMenu() {
 
         itemFileExit.addActionListener(actionHandler)
         add(itemFileExit)
-    }
-
-    fun setOnFileSelected(onFileSelected: (File) -> Unit) {
-        this.onFileSelected = onFileSelected
-    }
-
-    fun setOnFileListSelected(onFileListSelected: (Array<File>) -> Unit) {
-        this.onFileListSelected = onFileListSelected
-    }
-
-    fun setOnFilesAppendSelected(onFilesAppendSelected: (Array<File>) -> Unit) {
-        this.onFilesAppendSelected = onFilesAppendSelected
-    }
-
-    fun setOnFileFollowSelected(onFileFollowChanged: (File) -> Unit) {
-        this.onFileFollowSelected = onFileFollowChanged
-    }
-
-    fun setOnExit(onExit: () -> Unit) {
-        this.onExit = onExit
     }
 
     private fun onClickFileOpen() {

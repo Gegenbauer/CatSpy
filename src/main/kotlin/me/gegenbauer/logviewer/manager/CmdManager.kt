@@ -10,7 +10,6 @@ import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
 class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI, logPanel){
-    private val configManager = ConfigManager.getInstance()
     private val listSelectionHandler = ListSelectionHandler()
     private val mouseHandler = MouseHandler()
     private val keyHandler = KeyHandler()
@@ -20,11 +19,11 @@ class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI,
     }
 
     override fun loadList(): ArrayList<CustomElement> {
-        return configManager.loadCmd()
+        return ConfigManager.loadCmd()
     }
 
     override fun saveList(list: ArrayList<CustomElement>) {
-        configManager.saveCommands(list)
+        ConfigManager.saveCommands(list)
     }
 
     override fun getFirstElement(): CustomElement {
@@ -94,9 +93,9 @@ class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI,
 
         fun replaceAdbCmdWithTargetDevice(cmd: String): String {
             return if (cmd.startsWith("adb ")) {
-                cmd.replaceFirst("adb ", "${LogCmdManager.getInstance().adbCmd} -s ${LogCmdManager.getInstance().targetDevice} ")
+                cmd.replaceFirst("adb ", "${LogCmdManager.adbCmd} -s ${LogCmdManager.targetDevice} ")
             } else if (cmd.startsWith("adb.exe ")) {
-                cmd.replaceFirst("adb.exe ", "${LogCmdManager.getInstance().adbCmd} -s ${LogCmdManager.getInstance().targetDevice} ")
+                cmd.replaceFirst("adb.exe ", "${LogCmdManager.adbCmd} -s ${LogCmdManager.targetDevice} ")
             } else {
                 cmd
             }

@@ -16,7 +16,6 @@ import javax.swing.JPanel
 
 
 class VStatusPanel(private val logTable: LogTable) : JPanel() {
-    private val bookmarkManager = BookmarkManager.getInstance()
 
     companion object {
         private const val TAG = "VStatusPanel"
@@ -43,7 +42,7 @@ class VStatusPanel(private val logTable: LogTable) : JPanel() {
         }
         for (row in 0 until logTable.rowCount) {
             val num = logTable.getValueAt(row, 0).toString().trim().toInt()
-            if (bookmarkManager.bookmarks.contains(num)) {
+            if (BookmarkManager.bookmarks.contains(num)) {
                 g.fillRect(0, row * height / logTable.rowCount, width, 1)
             }
         }

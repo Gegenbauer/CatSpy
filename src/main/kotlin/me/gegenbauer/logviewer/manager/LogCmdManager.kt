@@ -8,7 +8,27 @@ import java.util.*
 import javax.swing.JOptionPane
 
 
-class LogCmdManager private constructor() {
+object LogCmdManager {
+    private const val TAG = "LogCmdManager"
+    const val DEFAULT_PREFIX = NAME
+
+    const val EVENT_NONE = 0
+    const val EVENT_SUCCESS = 1
+    const val EVENT_FAIL = 2
+
+    const val CMD_CONNECT = 1
+    const val CMD_GET_DEVICES = 2
+    const val CMD_LOGCAT = 3
+    const val CMD_DISCONNECT = 4
+
+    const val DEFAULT_LOGCAT = "logcat -v threadtime"
+    const val LOG_CMD_MAX = 10
+
+    const val TYPE_CMD_PREFIX = "CMD:"
+    const val TYPE_CMD_PREFIX_LEN = 4
+    const val TYPE_LOGCAT = 0
+    const val TYPE_CMD = 1
+
     var prefix: String = DEFAULT_PREFIX
     var adbCmd = "adb"
     var logSavePath: String = "."
@@ -17,34 +37,6 @@ class LogCmdManager private constructor() {
     var devices = ArrayList<String>()
     private val eventListeners = ArrayList<AdbEventListener>()
     private var mainUI: MainUI? = null
-
-    companion object {
-        private const val TAG = "LogCmdManager"
-        const val DEFAULT_PREFIX = NAME
-
-        const val EVENT_NONE = 0
-        const val EVENT_SUCCESS = 1
-        const val EVENT_FAIL = 2
-
-        const val CMD_CONNECT = 1
-        const val CMD_GET_DEVICES = 2
-        const val CMD_LOGCAT = 3
-        const val CMD_DISCONNECT = 4
-
-        const val DEFAULT_LOGCAT = "logcat -v threadtime"
-        const val LOG_CMD_MAX = 10
-
-        const val TYPE_CMD_PREFIX = "CMD:"
-        const val TYPE_CMD_PREFIX_LEN = 4
-        const val TYPE_LOGCAT = 0
-        const val TYPE_CMD = 1
-
-        private val instance: LogCmdManager = LogCmdManager()
-
-        fun getInstance(): LogCmdManager {
-            return instance
-        }
-    }
 
     fun setMainUI(mainUI: MainUI) {
         this.mainUI = mainUI

@@ -16,6 +16,7 @@ import me.gegenbauer.logviewer.ui.log.*
 import me.gegenbauer.logviewer.ui.menu.FileMenu
 import me.gegenbauer.logviewer.ui.menu.HelpMenu
 import me.gegenbauer.logviewer.ui.menu.SettingsMenu
+import me.gegenbauer.logviewer.ui.menu.ViewMenu
 import me.gegenbauer.logviewer.utils.getEnum
 import me.gegenbauer.logviewer.utils.getImageFile
 import java.awt.*
@@ -57,13 +58,6 @@ class MainUI(title: String) : JFrame() {
 
         const val DEFAULT_FONT_NAME = "DialogInput"
 
-        const val VERBOSE = "Verbose"
-        const val DEBUG = "Debug"
-        const val INFO = "Info"
-        const val WARNING = "Warning"
-        const val ERROR = "Error"
-        const val FATAL = "Fatal"
-
         const val CROSS_PLATFORM_LAF = "Cross Platform"
         const val SYSTEM_LAF = "System"
         const val FLAT_LIGHT_LAF = "Flat Light"
@@ -72,22 +66,15 @@ class MainUI(title: String) : JFrame() {
         var IsCreatingUI = true
     }
 
-    private val settingsMenu = SettingsMenu().apply {
-        setLogLevelChangedListener {
-            filteredTableModel.filterLevel = it
-            configManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, it.logName)
-        }
-    }
-
     private val fileMenu = FileMenu().apply {
-        setOnFileSelected { file ->
+        onFileSelected = { file ->
             openFile(file.absolutePath, false)
         }
-        setOnFileFollowSelected { file ->
+        onFileFollowSelected = { file ->
             setFollowLogFile(file.absolutePath)
             startFileFollow()
         }
-        setOnFileListSelected { files ->
+        onFileListSelected = { files ->
             var isFirst = true
             for (file in files) {
                 if (isFirst) {
@@ -98,22 +85,82 @@ class MainUI(title: String) : JFrame() {
                 }
             }
         }
-        setOnFilesAppendSelected { files ->
+        onFilesAppendSelected = { files ->
             for (file in files) {
                 openFile(file.absolutePath, true)
             }
         }
-        setOnExit {
+        onExit = {
             exit()
         }
     }
 
-    private lateinit var menuBar: JMenuBar
+    private val viewMenu = ViewMenu().apply {
+        onItemFullClicked = {
+            if (itemFull.state) {
+                attachLogPanel(fullLogPanel)
+            } else {
+                windowedModeLogPanel(fullLogPanel)
+            }
 
-    private lateinit var menuView: JMenu
-    private lateinit var itemFull: JCheckBoxMenuItem
-    private lateinit var itemSearch: JCheckBoxMenuItem
-    private lateinit var itemRotation: JMenuItem
+            ConfigManager.saveItem(ConfigManager.ITEM_VIEW_FULL, itemFull.state.toString())
+        }
+        onItemSearchClicked = {
+            searchPanel.isVisible = !searchPanel.isVisible
+            itemSearch.state = searchPanel.isVisible
+        }
+        onItemRotationClicked = {
+            rotationStatus++
+
+            if (rotationStatus > ROTATION_MAX) {
+                rotationStatus = ROTATION_LEFT_RIGHT
+            }
+
+            ConfigManager.saveItem(ConfigManager.ITEM_ROTATION, rotationStatus.toString())
+
+            logSplitPane.remove(filteredLogPanel)
+            logSplitPane.remove(fullLogPanel)
+            when (rotationStatus) {
+                ROTATION_LEFT_RIGHT -> {
+                    logSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
+                    logSplitPane.add(filteredLogPanel)
+                    logSplitPane.add(fullLogPanel)
+                    logSplitPane.resizeWeight = SPLIT_WEIGHT
+                }
+
+                ROTATION_RIGHT_LEFT -> {
+                    logSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
+                    logSplitPane.add(fullLogPanel)
+                    logSplitPane.add(filteredLogPanel)
+                    logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
+                }
+
+                ROTATION_TOP_BOTTOM -> {
+                    logSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
+                    logSplitPane.add(filteredLogPanel)
+                    logSplitPane.add(fullLogPanel)
+                    logSplitPane.resizeWeight = SPLIT_WEIGHT
+                }
+
+                ROTATION_BOTTOM_TOP -> {
+                    logSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
+                    logSplitPane.add(fullLogPanel)
+                    logSplitPane.add(filteredLogPanel)
+                    logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
+                }
+            }
+        }
+    }
+    private val settingsMenu = SettingsMenu().apply {
+        onLogLevelChangedListener = {
+            filteredTableModel.filterLevel = it
+            ConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, it.logName)
+        }
+    }
+
+    private val helpMenu = HelpMenu()
+
+    private lateinit var menuBar: JMenuBar
 
     private lateinit var filterPanel: JPanel
     private lateinit var filterLeftPanel: JPanel
@@ -203,10 +250,6 @@ class MainUI(title: String) : JFrame() {
     private val componentHandler = ComponentHandler()
     private val statusChangeListener = StatusChangeListener()
 
-    val configManager = ConfigManager.getInstance()
-    private val colorManager = ColorManager.getInstance()
-
-    private val logCmdManager = LogCmdManager.getInstance()
     lateinit var filtersManager: FiltersManager
     lateinit var cmdManager: CmdManager
 
@@ -230,12 +273,11 @@ class MainUI(title: String) : JFrame() {
     var uiFontPercent = 100
 
     init {
-        loadConfigOnCreate()
-        logCmdManager.setMainUI(this)
+        LogCmdManager.setMainUI(this)
 
         configureWindow(title)
 
-        val laf = configManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
+        val laf = ConfigManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
 
         if (laf == null) {
             ConfigManager.LaF = FLAT_LIGHT_LAF
@@ -243,7 +285,7 @@ class MainUI(title: String) : JFrame() {
             ConfigManager.LaF = laf
         }
 
-        val uiFontSize = configManager.getItem(ConfigManager.ITEM_UI_FONT_SIZE)
+        val uiFontSize = ConfigManager.getItem(ConfigManager.ITEM_UI_FONT_SIZE)
         if (!uiFontSize.isNullOrEmpty()) {
             uiFontPercent = uiFontSize.toInt()
         }
@@ -256,94 +298,94 @@ class MainUI(title: String) : JFrame() {
 
         setLaF(ConfigManager.LaF)
 
-        val cmd = configManager.getItem(ConfigManager.ITEM_ADB_CMD)
+        val cmd = ConfigManager.getItem(ConfigManager.ITEM_ADB_CMD)
         if (!cmd.isNullOrEmpty()) {
-            logCmdManager.adbCmd = cmd
+            LogCmdManager.adbCmd = cmd
         } else {
             val os = System.getProperty("os.name")
             GLog.d(TAG, "OS : $os")
             if (os.lowercase().contains("windows")) {
-                logCmdManager.adbCmd = "adb.exe"
+                LogCmdManager.adbCmd = "adb.exe"
             } else {
-                logCmdManager.adbCmd = "adb"
+                LogCmdManager.adbCmd = "adb"
             }
         }
-        logCmdManager.addEventListener(AdbHandler())
-        val logSavePath = configManager.getItem(ConfigManager.ITEM_ADB_LOG_SAVE_PATH)
+        LogCmdManager.addEventListener(AdbHandler())
+        val logSavePath = ConfigManager.getItem(ConfigManager.ITEM_ADB_LOG_SAVE_PATH)
         if (logSavePath.isNullOrEmpty()) {
-            logCmdManager.logSavePath = "."
+            LogCmdManager.logSavePath = "."
         } else {
-            logCmdManager.logSavePath = logSavePath
+            LogCmdManager.logSavePath = logSavePath
         }
 
-        val logCmd = configManager.getItem(ConfigManager.ITEM_ADB_LOG_CMD)
+        val logCmd = ConfigManager.getItem(ConfigManager.ITEM_ADB_LOG_CMD)
         if (logCmd.isNullOrEmpty()) {
-            logCmdManager.logCmd = LogCmdManager.DEFAULT_LOGCAT
+            LogCmdManager.logCmd = LogCmdManager.DEFAULT_LOGCAT
         } else {
-            logCmdManager.logCmd = logCmd
+            LogCmdManager.logCmd = logCmd
         }
 
-        val prefix = configManager.getItem(ConfigManager.ITEM_ADB_PREFIX)
+        val prefix = ConfigManager.getItem(ConfigManager.ITEM_ADB_PREFIX)
         if (prefix.isNullOrEmpty()) {
-            logCmdManager.prefix = LogCmdManager.DEFAULT_PREFIX
+            LogCmdManager.prefix = LogCmdManager.DEFAULT_PREFIX
         } else {
-            logCmdManager.prefix = prefix
+            LogCmdManager.prefix = prefix
         }
 
-        var prop = configManager.getItem(ConfigManager.ITEM_FRAME_X)
+        var prop = ConfigManager.getItem(ConfigManager.ITEM_FRAME_X)
         if (!prop.isNullOrEmpty()) {
             frameX = prop.toInt()
         }
-        prop = configManager.getItem(ConfigManager.ITEM_FRAME_Y)
+        prop = ConfigManager.getItem(ConfigManager.ITEM_FRAME_Y)
         if (!prop.isNullOrEmpty()) {
             frameY = prop.toInt()
         }
-        prop = configManager.getItem(ConfigManager.ITEM_FRAME_WIDTH)
+        prop = ConfigManager.getItem(ConfigManager.ITEM_FRAME_WIDTH)
         if (!prop.isNullOrEmpty()) {
             frameWidth = prop.toInt()
         }
-        prop = configManager.getItem(ConfigManager.ITEM_FRAME_HEIGHT)
+        prop = ConfigManager.getItem(ConfigManager.ITEM_FRAME_HEIGHT)
         if (!prop.isNullOrEmpty()) {
             frameHeight = prop.toInt()
         }
-        prop = configManager.getItem(ConfigManager.ITEM_FRAME_EXTENDED_STATE)
+        prop = ConfigManager.getItem(ConfigManager.ITEM_FRAME_EXTENDED_STATE)
         if (!prop.isNullOrEmpty()) {
             frameExtendedState = prop.toInt()
         }
-        prop = configManager.getItem(ConfigManager.ITEM_ROTATION)
+        prop = ConfigManager.getItem(ConfigManager.ITEM_ROTATION)
         if (!prop.isNullOrEmpty()) {
             rotationStatus = prop.toInt()
         }
 
-        prop = configManager.getItem(ConfigManager.ITEM_SHOW_LOG_STYLE)
+        prop = ConfigManager.getItem(ConfigManager.ITEM_SHOW_LOG_STYLE)
         showLogComboStyle = if (!prop.isNullOrEmpty()) {
             getEnum(prop.toInt())
         } else {
             FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT
         }
 
-        prop = configManager.getItem(ConfigManager.ITEM_BOLD_LOG_STYLE)
+        prop = ConfigManager.getItem(ConfigManager.ITEM_BOLD_LOG_STYLE)
         boldLogComboStyle = if (!prop.isNullOrEmpty()) {
             getEnum(prop.toInt())
         } else {
             FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
-        prop = configManager.getItem(ConfigManager.ITEM_SHOW_TAG_STYLE)
+        prop = ConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG_STYLE)
         showTagComboStyle = if (!prop.isNullOrEmpty()) {
             getEnum(prop.toInt())
         } else {
             FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
-        prop = configManager.getItem(ConfigManager.ITEM_SHOW_PID_STYLE)
+        prop = ConfigManager.getItem(ConfigManager.ITEM_SHOW_PID_STYLE)
         showPidComboStyle = if (!prop.isNullOrEmpty()) {
             getEnum(prop.toInt())
         } else {
             FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
-        prop = configManager.getItem(ConfigManager.ITEM_SHOW_TID_STYLE)
+        prop = ConfigManager.getItem(ConfigManager.ITEM_SHOW_TID_STYLE)
         showTidComboStyle = if (!prop.isNullOrEmpty()) {
             getEnum(prop.toInt())
         } else {
@@ -352,8 +394,8 @@ class MainUI(title: String) : JFrame() {
 
         createUI()
 
-        if (logCmdManager.getType() == LogCmdManager.TYPE_LOGCAT) {
-            logCmdManager.getDevices()
+        if (LogCmdManager.getType() == LogCmdManager.TYPE_LOGCAT) {
+            LogCmdManager.getDevices()
         }
     }
 
@@ -372,59 +414,49 @@ class MainUI(title: String) : JFrame() {
         saveConfigOnDestroy()
         filteredTableModel.stopScan()
         fullTableModel.stopScan()
-        logCmdManager.stop()
+        LogCmdManager.stop()
         exitProcess(0)
     }
 
-    private fun loadConfigOnCreate() {
-        configManager.loadConfig()
-        colorManager.fullTableColor.getConfig()
-        colorManager.fullTableColor.applyColor()
-        colorManager.filterTableColor.getConfig()
-        colorManager.filterTableColor.applyColor()
-        colorManager.getConfigFilterStyle()
-        configManager.saveConfig()
-    }
-
     private fun saveConfigOnDestroy() {
-        configManager.loadConfig()
+        ConfigManager.loadConfig()
 
         try {
-            configManager.setItem(ConfigManager.ITEM_FRAME_X, location.x.toString())
+            ConfigManager.setItem(ConfigManager.ITEM_FRAME_X, location.x.toString())
         } catch (e: NullPointerException) {
-            configManager.setItem(ConfigManager.ITEM_FRAME_X, "0")
+            ConfigManager.setItem(ConfigManager.ITEM_FRAME_X, "0")
         }
 
         try {
-            configManager.setItem(ConfigManager.ITEM_FRAME_Y, location.y.toString())
+            ConfigManager.setItem(ConfigManager.ITEM_FRAME_Y, location.y.toString())
         } catch (e: NullPointerException) {
-            configManager.setItem(ConfigManager.ITEM_FRAME_Y, "0")
+            ConfigManager.setItem(ConfigManager.ITEM_FRAME_Y, "0")
         }
 
         try {
-            configManager.setItem(ConfigManager.ITEM_FRAME_WIDTH, size.width.toString())
+            ConfigManager.setItem(ConfigManager.ITEM_FRAME_WIDTH, size.width.toString())
         } catch (e: NullPointerException) {
-            configManager.setItem(ConfigManager.ITEM_FRAME_WIDTH, "1280")
+            ConfigManager.setItem(ConfigManager.ITEM_FRAME_WIDTH, "1280")
         }
 
         try {
-            configManager.setItem(ConfigManager.ITEM_FRAME_HEIGHT, size.height.toString())
+            ConfigManager.setItem(ConfigManager.ITEM_FRAME_HEIGHT, size.height.toString())
         } catch (e: NullPointerException) {
-            configManager.setItem(ConfigManager.ITEM_FRAME_HEIGHT, "720")
+            ConfigManager.setItem(ConfigManager.ITEM_FRAME_HEIGHT, "720")
         }
 
-        configManager.setItem(ConfigManager.ITEM_FRAME_EXTENDED_STATE, extendedState.toString())
+        ConfigManager.setItem(ConfigManager.ITEM_FRAME_EXTENDED_STATE, extendedState.toString())
 
         var nCount = showLogCombo.itemCount
         if (nCount > ConfigManager.COUNT_SHOW_LOG) {
             nCount = ConfigManager.COUNT_SHOW_LOG
         }
         for (i in 0 until nCount) {
-            configManager.setItem(ConfigManager.ITEM_SHOW_LOG + i, showLogCombo.getItemAt(i).toString())
+            ConfigManager.setItem(ConfigManager.ITEM_SHOW_LOG + i, showLogCombo.getItemAt(i).toString())
         }
 
         for (i in nCount until ConfigManager.COUNT_SHOW_LOG) {
-            configManager.removeConfigItem(ConfigManager.ITEM_SHOW_LOG + i)
+            ConfigManager.removeConfigItem(ConfigManager.ITEM_SHOW_LOG + i)
         }
 
         nCount = showTagCombo.itemCount
@@ -432,10 +464,10 @@ class MainUI(title: String) : JFrame() {
             nCount = ConfigManager.COUNT_SHOW_TAG
         }
         for (i in 0 until nCount) {
-            configManager.setItem(ConfigManager.ITEM_SHOW_TAG + i, showTagCombo.getItemAt(i).toString())
+            ConfigManager.setItem(ConfigManager.ITEM_SHOW_TAG + i, showTagCombo.getItemAt(i).toString())
         }
         for (i in nCount until ConfigManager.COUNT_SHOW_TAG) {
-            configManager.removeConfigItem(ConfigManager.ITEM_SHOW_TAG + i)
+            ConfigManager.removeConfigItem(ConfigManager.ITEM_SHOW_TAG + i)
         }
 
         nCount = boldLogCombo.itemCount
@@ -443,10 +475,10 @@ class MainUI(title: String) : JFrame() {
             nCount = ConfigManager.COUNT_HIGHLIGHT_LOG
         }
         for (i in 0 until nCount) {
-            configManager.setItem(ConfigManager.ITEM_HIGHLIGHT_LOG + i, boldLogCombo.getItemAt(i).toString())
+            ConfigManager.setItem(ConfigManager.ITEM_HIGHLIGHT_LOG + i, boldLogCombo.getItemAt(i).toString())
         }
         for (i in nCount until ConfigManager.COUNT_HIGHLIGHT_LOG) {
-            configManager.removeConfigItem(ConfigManager.ITEM_HIGHLIGHT_LOG + i)
+            ConfigManager.removeConfigItem(ConfigManager.ITEM_HIGHLIGHT_LOG + i)
         }
 
         nCount = searchPanel.searchCombo.itemCount
@@ -454,30 +486,30 @@ class MainUI(title: String) : JFrame() {
             nCount = ConfigManager.COUNT_SEARCH_LOG
         }
         for (i in 0 until nCount) {
-            configManager.setItem(ConfigManager.ITEM_SEARCH_LOG + i, searchPanel.searchCombo.getItemAt(i).toString())
+            ConfigManager.setItem(ConfigManager.ITEM_SEARCH_LOG + i, searchPanel.searchCombo.getItemAt(i).toString())
         }
         for (i in nCount until ConfigManager.COUNT_SEARCH_LOG) {
-            configManager.removeConfigItem(ConfigManager.ITEM_SEARCH_LOG + i)
+            ConfigManager.removeConfigItem(ConfigManager.ITEM_SEARCH_LOG + i)
         }
 
         try {
-            configManager.setItem(ConfigManager.ITEM_ADB_DEVICE, logCmdManager.targetDevice)
+            ConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, LogCmdManager.targetDevice)
         } catch (e: NullPointerException) {
-            configManager.setItem(ConfigManager.ITEM_ADB_DEVICE, "0.0.0.0")
+            ConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, "0.0.0.0")
         }
 
         try {
-            configManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, logCmdCombo.editor.item.toString())
+            ConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, logCmdCombo.editor.item.toString())
         } catch (e: NullPointerException) {
-            configManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, LogCmdManager.DEFAULT_LOGCAT)
+            ConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, LogCmdManager.DEFAULT_LOGCAT)
         }
 
-        configManager.setItem(ConfigManager.ITEM_DIVIDER_LOCATION, logSplitPane.dividerLocation.toString())
+        ConfigManager.setItem(ConfigManager.ITEM_DIVIDER_LOCATION, logSplitPane.dividerLocation.toString())
         if (logSplitPane.lastDividerLocation != -1) {
-            configManager.setItem(ConfigManager.ITEM_LAST_DIVIDER_LOCATION, logSplitPane.lastDividerLocation.toString())
+            ConfigManager.setItem(ConfigManager.ITEM_LAST_DIVIDER_LOCATION, logSplitPane.lastDividerLocation.toString())
         }
 
-        configManager.saveConfig()
+        ConfigManager.saveConfig()
     }
 
     private fun createUI() {
@@ -485,32 +517,9 @@ class MainUI(title: String) : JFrame() {
 
         menuBar = JMenuBar()
         menuBar.add(fileMenu)
-
-        menuView = JMenu(STRINGS.ui.view)
-        menuView.mnemonic = KeyEvent.VK_V
-
-        itemFull = JCheckBoxMenuItem(STRINGS.ui.viewFull)
-        itemFull.addActionListener(actionHandler)
-        menuView.add(itemFull)
-
-        menuView.addSeparator()
-
-        itemSearch = JCheckBoxMenuItem(STRINGS.ui.search)
-        itemSearch.addActionListener(actionHandler)
-        menuView.add(itemSearch)
-
-        menuView.addSeparator()
-
-        itemRotation = JMenuItem(STRINGS.ui.rotation)
-        itemRotation.addActionListener(actionHandler)
-        menuView.add(itemRotation)
-
-        menuBar.add(menuView)
-
+        menuBar.add(viewMenu)
         menuBar.add(settingsMenu)
-
-        menuBar.add(HelpMenu())
-
+        menuBar.add(helpMenu)
         jMenuBar = menuBar
 
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
@@ -615,7 +624,7 @@ class MainUI(title: String) : JFrame() {
         showLogToggle.margin = Insets(0, 0, 0, 0)
         showLogTogglePanel = JPanel(GridLayout(1, 1))
         showLogTogglePanel.add(showLogToggle)
-        showLogTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        showLogTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         showLogToggle.addItemListener(itemHandler)
 
         boldLogPanel = JPanel()
@@ -632,7 +641,7 @@ class MainUI(title: String) : JFrame() {
         boldLogToggle.margin = Insets(0, 0, 0, 0)
         boldLogTogglePanel = JPanel(GridLayout(1, 1))
         boldLogTogglePanel.add(boldLogToggle)
-        boldLogTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        boldLogTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         boldLogToggle.addItemListener(itemHandler)
 
         showTagPanel = JPanel()
@@ -648,7 +657,7 @@ class MainUI(title: String) : JFrame() {
         showTagToggle.margin = Insets(0, 0, 0, 0)
         showTagTogglePanel = JPanel(GridLayout(1, 1))
         showTagTogglePanel.add(showTagToggle)
-        showTagTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        showTagTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         showTagToggle.addItemListener(itemHandler)
 
         showPidPanel = JPanel()
@@ -664,7 +673,7 @@ class MainUI(title: String) : JFrame() {
         showPidToggle.margin = Insets(0, 0, 0, 0)
         showPidTogglePanel = JPanel(GridLayout(1, 1))
         showPidTogglePanel.add(showPidToggle)
-        showPidTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        showPidTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         showPidToggle.addItemListener(itemHandler)
 
         showTidPanel = JPanel()
@@ -680,7 +689,7 @@ class MainUI(title: String) : JFrame() {
         showTidToggle.margin = Insets(0, 0, 0, 0)
         showTidTogglePanel = JPanel(GridLayout(1, 1))
         showTidTogglePanel.add(showTidToggle)
-        showTidTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        showTidTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         showTidToggle.addItemListener(itemHandler)
 
         logCmdCombo = JComboBox()
@@ -690,7 +699,7 @@ class MainUI(title: String) : JFrame() {
         logCmdCombo.addItemListener(itemHandler)
         logCmdCombo.editor.editorComponent.addMouseListener(mouseHandler)
         logCmdCombo.addPopupMenuListener(popupMenuHandler)
-        
+
         deviceStatus = JLabel("None", JLabel.LEFT)
         deviceStatus.isEnabled = false
         val deviceComboPanel = JPanel(BorderLayout())
@@ -720,7 +729,7 @@ class MainUI(title: String) : JFrame() {
         matchCaseToggle.addItemListener(itemHandler)
         matchCaseTogglePanel = JPanel(GridLayout(1, 1))
         matchCaseTogglePanel.add(matchCaseToggle)
-        matchCaseTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        matchCaseTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
 
         showLogPanel.layout = BorderLayout()
         showLogPanel.add(showLogTogglePanel, BorderLayout.WEST)
@@ -861,7 +870,7 @@ class MainUI(title: String) : JFrame() {
         filterPanel.add(searchPanel, BorderLayout.SOUTH)
 
         searchPanel.isVisible = false
-        itemSearch.state = searchPanel.isVisible
+        viewMenu.itemSearch.state = searchPanel.isVisible
 
         layout = BorderLayout()
 
@@ -870,8 +879,8 @@ class MainUI(title: String) : JFrame() {
 
         fullLogPanel = LogPanel(this, fullTableModel, null, FocusHandler(false))
         filteredLogPanel = LogPanel(this, filteredTableModel, fullLogPanel, FocusHandler(true))
-        fullLogPanel.updateTableBar(configManager.loadCmd())
-        filteredLogPanel.updateTableBar(configManager.loadFilters())
+        fullLogPanel.updateTableBar(ConfigManager.loadCmd())
+        filteredLogPanel.updateTableBar(ConfigManager.loadFilters())
 
         filtersManager = FiltersManager(this, filteredLogPanel)
         cmdManager = CmdManager(this, fullLogPanel)
@@ -881,21 +890,24 @@ class MainUI(title: String) : JFrame() {
                 logSplitPane = JSplitPane(JSplitPane.HORIZONTAL_SPLIT, false, filteredLogPanel, fullLogPanel)
                 logSplitPane.resizeWeight = SPLIT_WEIGHT
             }
+
             ROTATION_RIGHT_LEFT -> {
                 logSplitPane = JSplitPane(JSplitPane.HORIZONTAL_SPLIT, false, fullLogPanel, filteredLogPanel)
                 logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
             }
+
             ROTATION_TOP_BOTTOM -> {
                 logSplitPane = JSplitPane(JSplitPane.VERTICAL_SPLIT, false, filteredLogPanel, fullLogPanel)
                 logSplitPane.resizeWeight = SPLIT_WEIGHT
             }
+
             ROTATION_BOTTOM_TOP -> {
                 logSplitPane = JSplitPane(JSplitPane.VERTICAL_SPLIT, false, fullLogPanel, filteredLogPanel)
                 logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
             }
         }
 
-        val dividerSize = configManager.getItem(ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE)
+        val dividerSize = ConfigManager.getItem(ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE)
         if (!dividerSize.isNullOrEmpty()) {
             logSplitPane.dividerSize = dividerSize.toInt()
         }
@@ -947,7 +959,7 @@ class MainUI(title: String) : JFrame() {
 
         var item: String?
         for (i in 0 until ConfigManager.COUNT_SHOW_LOG) {
-            item = configManager.getItem(ConfigManager.ITEM_SHOW_LOG + i)
+            item = ConfigManager.getItem(ConfigManager.ITEM_SHOW_LOG + i)
             if (item == null) {
                 break
             }
@@ -963,7 +975,7 @@ class MainUI(title: String) : JFrame() {
             showLogCombo.selectedIndex = 0
         }
 
-        var check = configManager.getItem(ConfigManager.ITEM_SHOW_LOG_CHECK)
+        var check = ConfigManager.getItem(ConfigManager.ITEM_SHOW_LOG_CHECK)
         if (!check.isNullOrEmpty()) {
             showLogToggle.isSelected = check.toBoolean()
         } else {
@@ -972,7 +984,7 @@ class MainUI(title: String) : JFrame() {
         showLogCombo.isEnabled = showLogToggle.isSelected
 
         for (i in 0 until ConfigManager.COUNT_SHOW_TAG) {
-            item = configManager.getItem(ConfigManager.ITEM_SHOW_TAG + i)
+            item = ConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG + i)
             if (item == null) {
                 break
             }
@@ -984,7 +996,7 @@ class MainUI(title: String) : JFrame() {
 
         showTagCombo.updateTooltip()
 
-        check = configManager.getItem(ConfigManager.ITEM_SHOW_TAG_CHECK)
+        check = ConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG_CHECK)
         if (!check.isNullOrEmpty()) {
             showTagToggle.isSelected = check.toBoolean()
         } else {
@@ -992,7 +1004,7 @@ class MainUI(title: String) : JFrame() {
         }
         showTagCombo.setEnabledFilter(showTagToggle.isSelected)
 
-        check = configManager.getItem(ConfigManager.ITEM_SHOW_PID_CHECK)
+        check = ConfigManager.getItem(ConfigManager.ITEM_SHOW_PID_CHECK)
         if (!check.isNullOrEmpty()) {
             showPidToggle.isSelected = check.toBoolean()
         } else {
@@ -1000,7 +1012,7 @@ class MainUI(title: String) : JFrame() {
         }
         showPidCombo.setEnabledFilter(showPidToggle.isSelected)
 
-        check = configManager.getItem(ConfigManager.ITEM_SHOW_TID_CHECK)
+        check = ConfigManager.getItem(ConfigManager.ITEM_SHOW_TID_CHECK)
         if (!check.isNullOrEmpty()) {
             showTidToggle.isSelected = check.toBoolean()
         } else {
@@ -1009,7 +1021,7 @@ class MainUI(title: String) : JFrame() {
         showTidCombo.setEnabledFilter(showTidToggle.isSelected)
 
         for (i in 0 until ConfigManager.COUNT_HIGHLIGHT_LOG) {
-            item = configManager.getItem(ConfigManager.ITEM_HIGHLIGHT_LOG + i)
+            item = ConfigManager.getItem(ConfigManager.ITEM_HIGHLIGHT_LOG + i)
             if (item == null) {
                 break
             }
@@ -1021,7 +1033,7 @@ class MainUI(title: String) : JFrame() {
 
         boldLogCombo.updateTooltip()
 
-        check = configManager.getItem(ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK)
+        check = ConfigManager.getItem(ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK)
         if (!check.isNullOrEmpty()) {
             boldLogToggle.isSelected = check.toBoolean()
         } else {
@@ -1030,7 +1042,7 @@ class MainUI(title: String) : JFrame() {
         boldLogCombo.setEnabledFilter(boldLogToggle.isSelected)
 
         for (i in 0 until ConfigManager.COUNT_SEARCH_LOG) {
-            item = configManager.getItem(ConfigManager.ITEM_SEARCH_LOG + i)
+            item = ConfigManager.getItem(ConfigManager.ITEM_SEARCH_LOG + i)
             if (item == null) {
                 break
             }
@@ -1044,11 +1056,11 @@ class MainUI(title: String) : JFrame() {
 
         updateLogCmdCombo(true)
 
-        val targetDevice = configManager.getItem(ConfigManager.ITEM_ADB_DEVICE)
+        val targetDevice = ConfigManager.getItem(ConfigManager.ITEM_ADB_DEVICE)
         deviceCombo.insertItemAt(targetDevice, 0)
         deviceCombo.selectedIndex = 0
 
-        if (logCmdManager.devices.contains(targetDevice)) {
+        if (LogCmdManager.devices.contains(targetDevice)) {
             deviceStatus.text = STRINGS.ui.connected
             setDeviceComboColor(true)
         } else {
@@ -1056,13 +1068,13 @@ class MainUI(title: String) : JFrame() {
             setDeviceComboColor(false)
         }
 
-        var fontName = configManager.getItem(ConfigManager.ITEM_FONT_NAME)
+        var fontName = ConfigManager.getItem(ConfigManager.ITEM_FONT_NAME)
         if (fontName.isNullOrEmpty()) {
             fontName = DEFAULT_FONT_NAME
         }
 
         var fontSize = 12
-        check = configManager.getItem(ConfigManager.ITEM_FONT_SIZE)
+        check = ConfigManager.getItem(ConfigManager.ITEM_FONT_SIZE)
         if (!check.isNullOrEmpty()) {
             fontSize = check.toInt()
         }
@@ -1071,12 +1083,12 @@ class MainUI(title: String) : JFrame() {
         filteredLogPanel.customFont = customFont
         fullLogPanel.customFont = customFont
 
-        var divider = configManager.getItem(ConfigManager.ITEM_LAST_DIVIDER_LOCATION)
+        var divider = ConfigManager.getItem(ConfigManager.ITEM_LAST_DIVIDER_LOCATION)
         if (!divider.isNullOrEmpty()) {
             logSplitPane.lastDividerLocation = divider.toInt()
         }
 
-        divider = configManager.getItem(ConfigManager.ITEM_DIVIDER_LOCATION)
+        divider = ConfigManager.getItem(ConfigManager.ITEM_DIVIDER_LOCATION)
         if (!divider.isNullOrEmpty() && logSplitPane.lastDividerLocation != -1) {
             logSplitPane.dividerLocation = divider.toInt()
         }
@@ -1114,17 +1126,17 @@ class MainUI(title: String) : JFrame() {
             filteredTableModel.filterTid = ""
         }
 
-        check = configManager.getItem(ConfigManager.ITEM_VIEW_FULL)
+        check = ConfigManager.getItem(ConfigManager.ITEM_VIEW_FULL)
         if (!check.isNullOrEmpty()) {
-            itemFull.state = check.toBoolean()
+            viewMenu.itemFull.state = check.toBoolean()
         } else {
-            itemFull.state = true
+            viewMenu.itemFull.state = true
         }
-        if (!itemFull.state) {
+        if (!viewMenu.itemFull.state) {
             windowedModeLogPanel(fullLogPanel)
         }
 
-        check = configManager.getItem(ConfigManager.ITEM_SCROLL_BACK)
+        check = ConfigManager.getItem(ConfigManager.ITEM_SCROLL_BACK)
         if (!check.isNullOrEmpty()) {
             scrollBackTF.text = check
         } else {
@@ -1132,7 +1144,7 @@ class MainUI(title: String) : JFrame() {
         }
         filteredTableModel.scrollback = scrollBackTF.text.toInt()
 
-        check = configManager.getItem(ConfigManager.ITEM_SCROLL_BACK_SPLIT_FILE)
+        check = ConfigManager.getItem(ConfigManager.ITEM_SCROLL_BACK_SPLIT_FILE)
         if (!check.isNullOrEmpty()) {
             scrollBackSplitFileToggle.isSelected = check.toBoolean()
         } else {
@@ -1140,7 +1152,7 @@ class MainUI(title: String) : JFrame() {
         }
         filteredTableModel.scrollBackSplitFile = scrollBackSplitFileToggle.isSelected
 
-        check = configManager.getItem(ConfigManager.ITEM_MATCH_CASE)
+        check = ConfigManager.getItem(ConfigManager.ITEM_MATCH_CASE)
         if (!check.isNullOrEmpty()) {
             matchCaseToggle.isSelected = check.toBoolean()
         } else {
@@ -1148,7 +1160,7 @@ class MainUI(title: String) : JFrame() {
         }
         filteredTableModel.matchCase = matchCaseToggle.isSelected
 
-        check = configManager.getItem(ConfigManager.ITEM_SEARCH_MATCH_CASE)
+        check = ConfigManager.getItem(ConfigManager.ITEM_SEARCH_MATCH_CASE)
         if (!check.isNullOrEmpty()) {
             searchPanel.searchMatchCaseToggle.isSelected = check.toBoolean()
         } else {
@@ -1156,24 +1168,26 @@ class MainUI(title: String) : JFrame() {
         }
         filteredTableModel.searchMatchCase = searchPanel.searchMatchCaseToggle.isSelected
 
-        check = configManager.getItem(ConfigManager.ITEM_RETRY_ADB)
+        check = ConfigManager.getItem(ConfigManager.ITEM_RETRY_ADB)
         if (!check.isNullOrEmpty()) {
             retryAdbToggle.isSelected = check.toBoolean()
         } else {
             retryAdbToggle.isSelected = false
         }
 
-        check = configManager.getItem(ConfigManager.ITEM_ICON_TEXT)
+        check = ConfigManager.getItem(ConfigManager.ITEM_ICON_TEXT)
         if (!check.isNullOrEmpty()) {
             when (check) {
                 ConfigManager.VALUE_ICON_TEXT_I -> {
                     setBtnIcons(true)
                     setBtnTexts(false)
                 }
+
                 ConfigManager.VALUE_ICON_TEXT_T -> {
                     setBtnIcons(false)
                     setBtnTexts(true)
                 }
+
                 else -> {
                     setBtnIcons(true)
                     setBtnTexts(true)
@@ -1193,7 +1207,7 @@ class MainUI(title: String) : JFrame() {
         IsCreatingUI = false
     }
 
-    private fun setBtnIcons(isShow:Boolean) {
+    private fun setBtnIcons(isShow: Boolean) {
         if (isShow) {
             startBtn.icon = ImageIcon(getImageFile<URL>("start.png"))
             stopBtn.icon = ImageIcon(getImageFile<URL>("stop.png"))
@@ -1214,8 +1228,7 @@ class MainUI(title: String) : JFrame() {
                 pauseToggle.selectedIcon = ImageIcon(getImageFile<URL>("pause_on_dark.png"))
                 scrollBackKeepToggle.selectedIcon = ImageIcon(getImageFile<URL>("keeplog_on_dark.png"))
                 scrollBackSplitFileToggle.selectedIcon = ImageIcon(getImageFile<URL>("splitfile_on_dark.png"))
-            }
-            else {
+            } else {
                 retryAdbToggle.selectedIcon = ImageIcon(getImageFile<URL>("retry_on.png"))
                 pauseToggle.selectedIcon = ImageIcon(getImageFile<URL>("pause_on.png"))
                 scrollBackKeepToggle.selectedIcon = ImageIcon(getImageFile<URL>("keeplog_on.png"))
@@ -1223,8 +1236,7 @@ class MainUI(title: String) : JFrame() {
             }
 
             scrollBackLabel.icon = ImageIcon(getImageFile<URL>("scrollback.png"))
-        }
-        else {
+        } else {
             startBtn.icon = null
             stopBtn.icon = null
             clearViewsBtn.icon = null
@@ -1247,7 +1259,7 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    private fun setBtnTexts(isShow:Boolean) {
+    private fun setBtnTexts(isShow: Boolean) {
         if (isShow) {
             startBtn.text = STRINGS.ui.start
             retryAdbToggle.text = STRINGS.ui.retryAdb
@@ -1262,8 +1274,7 @@ class MainUI(title: String) : JFrame() {
             scrollBackKeepToggle.text = STRINGS.ui.keep
             scrollBackSplitFileToggle.text = STRINGS.ui.splitFile
             scrollBackLabel.text = STRINGS.ui.scrollBackLines
-        }
-        else {
+        } else {
             startBtn.text = null
             stopBtn.text = null
             clearViewsBtn.text = null
@@ -1305,46 +1316,53 @@ class MainUI(title: String) : JFrame() {
                 val path: Path = Paths.get(statusTF.text)
                 path.fileName.toString()
             }
+
             STRINGS.ui.adb, STRINGS.ui.cmd, "${STRINGS.ui.adb} ${STRINGS.ui.stop}", "${STRINGS.ui.cmd} ${STRINGS.ui.stop}" -> {
-                logCmdManager.targetDevice.ifEmpty { NAME }
+                LogCmdManager.targetDevice.ifEmpty { NAME }
             }
+
             else -> {
                 NAME
             }
         }
     }
-    private fun setLaF(laf:String) {
+
+    private fun setLaF(laf: String) {
         ConfigManager.LaF = laf
         when (laf) {
-            CROSS_PLATFORM_LAF ->{
+            CROSS_PLATFORM_LAF -> {
                 try {
                     UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName())
                 } catch (ex: Exception) {
                     GLog.d(TAG, "Failed to initialize CrossPlatformLaf")
                 }
             }
-            SYSTEM_LAF ->{
+
+            SYSTEM_LAF -> {
                 try {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
                 } catch (ex: Exception) {
                     GLog.d(TAG, "Failed to initialize SystemLaf")
                 }
             }
-            FLAT_LIGHT_LAF ->{
+
+            FLAT_LIGHT_LAF -> {
                 try {
                     UIManager.setLookAndFeel(FlatLightLaf())
                 } catch (ex: Exception) {
                     GLog.d(TAG, "Failed to initialize FlatLightLaf")
                 }
             }
-            FLAT_DARK_LAF ->{
+
+            FLAT_DARK_LAF -> {
                 try {
                     UIManager.setLookAndFeel(FlatDarkLaf())
                 } catch (ex: Exception) {
                     GLog.d(TAG, "Failed to initialize FlatDarkLaf")
                 }
             }
-            else->{
+
+            else -> {
                 try {
                     UIManager.setLookAndFeel(FlatLightLaf())
                 } catch (ex: Exception) {
@@ -1355,14 +1373,13 @@ class MainUI(title: String) : JFrame() {
         SwingUtilities.updateComponentTreeUI(this)
     }
 
-    private fun addVSeparator(panel:JPanel) {
+    private fun addVSeparator(panel: JPanel) {
         val separator1 = JSeparator(SwingConstants.VERTICAL)
         separator1.preferredSize = Dimension(separator1.preferredSize.width, 20)
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             separator1.foreground = Color.GRAY
             separator1.background = Color.GRAY
-        }
-        else {
+        } else {
             separator1.foreground = Color.DARK_GRAY
             separator1.background = Color.DARK_GRAY
         }
@@ -1371,8 +1388,7 @@ class MainUI(title: String) : JFrame() {
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             separator2.foreground = Color.GRAY
             separator2.background = Color.GRAY
-        }
-        else {
+        } else {
             separator2.background = Color.DARK_GRAY
             separator2.foreground = Color.DARK_GRAY
         }
@@ -1384,14 +1400,13 @@ class MainUI(title: String) : JFrame() {
         panel.add(Box.createHorizontalStrut(5))
     }
 
-    private fun addVSeparator2(panel:JPanel) {
+    private fun addVSeparator2(panel: JPanel) {
         val separator1 = JSeparator(SwingConstants.VERTICAL)
         separator1.preferredSize = Dimension(separator1.preferredSize.width / 2, 20)
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             separator1.foreground = Color.GRAY
             separator1.background = Color.GRAY
-        }
-        else {
+        } else {
             separator1.foreground = Color.DARK_GRAY
             separator1.background = Color.DARK_GRAY
         }
@@ -1421,9 +1436,9 @@ class MainUI(title: String) : JFrame() {
     fun windowedModeLogPanel(logPanel: LogPanel) {
         if (logPanel.parent == logSplitPane) {
             logPanel.isWindowedMode = true
-            itemRotation.isEnabled = false
+            viewMenu.itemRotation.isEnabled = false
             logSplitPane.remove(logPanel)
-            if (itemFull.state) {
+            if (viewMenu.itemFull.state) {
                 val logTableDialog = LogTableDialog(this@MainUI, logPanel)
                 logTableDialog.isVisible = true
             }
@@ -1433,7 +1448,7 @@ class MainUI(title: String) : JFrame() {
     fun attachLogPanel(logPanel: LogPanel) {
         if (logPanel.parent != logSplitPane) {
             logPanel.isWindowedMode = false
-            itemRotation.isEnabled = true
+            viewMenu.itemRotation.isEnabled = true
             logSplitPane.remove(filteredLogPanel)
             logSplitPane.remove(fullLogPanel)
             when (rotationStatus) {
@@ -1443,18 +1458,21 @@ class MainUI(title: String) : JFrame() {
                     logSplitPane.add(fullLogPanel)
                     logSplitPane.resizeWeight = SPLIT_WEIGHT
                 }
+
                 ROTATION_RIGHT_LEFT -> {
                     logSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
                     logSplitPane.add(fullLogPanel)
                     logSplitPane.add(filteredLogPanel)
                     logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
                 }
+
                 ROTATION_TOP_BOTTOM -> {
                     logSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
                     logSplitPane.add(filteredLogPanel)
                     logSplitPane.add(fullLogPanel)
                     logSplitPane.resizeWeight = SPLIT_WEIGHT
                 }
+
                 ROTATION_BOTTOM_TOP -> {
                     logSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
                     logSplitPane.add(fullLogPanel)
@@ -1482,8 +1500,7 @@ class MainUI(title: String) : JFrame() {
 
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             statusMethod.background = Color(0x50, 0x50, 0x00)
-        }
-        else {
+        } else {
             statusMethod.background = Color(0xF0, 0xF0, 0x30)
         }
         enabledFollowBtn(true)
@@ -1497,11 +1514,12 @@ class MainUI(title: String) : JFrame() {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH.mm.ss")
         var device = deviceCombo.selectedItem!!.toString()
         device = device.substringBefore(":")
-        if (logCmdManager.prefix.isEmpty()) {
-            logCmdManager.prefix = LogCmdManager.DEFAULT_PREFIX
+        if (LogCmdManager.prefix.isEmpty()) {
+            LogCmdManager.prefix = LogCmdManager.DEFAULT_PREFIX
         }
 
-        val filePath = "${logCmdManager.logSavePath}/${logCmdManager.prefix}_${device}_${dtf.format(LocalDateTime.now())}.txt"
+        val filePath =
+            "${LogCmdManager.logSavePath}/${LogCmdManager.prefix}_${device}_${dtf.format(LocalDateTime.now())}.txt"
         var file = File(filePath)
         var idx = 1
         var filePathSaved = filePath
@@ -1516,10 +1534,9 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun startAdbScan(reconnect: Boolean) {
-        if (logCmdManager.getType() == LogCmdManager.TYPE_CMD) {
+        if (LogCmdManager.getType() == LogCmdManager.TYPE_CMD) {
             statusMethod.text = " ${STRINGS.ui.cmd} "
-        }
-        else {
+        } else {
             statusMethod.text = " ${STRINGS.ui.adb} "
         }
 
@@ -1528,14 +1545,13 @@ class MainUI(title: String) : JFrame() {
         pauseToggle.isSelected = false
         setSaveLogFile()
         if (reconnect) {
-            logCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
-            logCmdManager.startLogcat()
+            LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
+            LogCmdManager.startLogcat()
         }
         filteredTableModel.startScan()
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             statusMethod.background = Color(0x00, 0x50, 0x00)
-        }
-        else {
+        } else {
             statusMethod.background = Color(0x90, 0xE0, 0x90)
         }
 
@@ -1543,10 +1559,9 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun stopAdbScan() {
-        if (logCmdManager.getType() == LogCmdManager.TYPE_CMD) {
+        if (LogCmdManager.getType() == LogCmdManager.TYPE_CMD) {
             statusMethod.text = " ${STRINGS.ui.cmd} ${STRINGS.ui.stop} "
-        }
-        else {
+        } else {
             statusMethod.text = " ${STRINGS.ui.adb} ${STRINGS.ui.stop} "
         }
 
@@ -1557,8 +1572,7 @@ class MainUI(title: String) : JFrame() {
         filteredTableModel.stopScan()
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             statusMethod.background = Color(0x50, 0x50, 0x50)
-        }
-        else {
+        } else {
             statusMethod.background = Color.LIGHT_GRAY
         }
 
@@ -1571,9 +1585,9 @@ class MainUI(title: String) : JFrame() {
 
     fun restartAdbLogcat() {
         GLog.d(TAG, "Restart Adb Logcat")
-        logCmdManager.stop()
-        logCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
-        logCmdManager.startLogcat()
+        LogCmdManager.stop()
+        LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
+        LogCmdManager.startLogcat()
     }
 
     fun pauseAdbScan(pause: Boolean) {
@@ -1598,8 +1612,7 @@ class MainUI(title: String) : JFrame() {
 
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             statusMethod.background = Color(0x00, 0x00, 0x50)
-        }
-        else {
+        } else {
             statusMethod.background = Color(0xA0, 0xA0, 0xF0)
         }
 
@@ -1615,8 +1628,7 @@ class MainUI(title: String) : JFrame() {
         filteredTableModel.stopFollow()
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             statusMethod.background = Color(0x50, 0x50, 0x50)
-        }
-        else {
+        } else {
             statusMethod.background = Color.LIGHT_GRAY
         }
         enabledFollowBtn(true)
@@ -1640,31 +1652,21 @@ class MainUI(title: String) : JFrame() {
     internal inner class ActionHandler : ActionListener {
         override fun actionPerformed(event: ActionEvent) {
             when (event.source) {
-                itemFull -> {
-                    if (itemFull.state) {
-                        attachLogPanel(fullLogPanel)
-                    } else {
-                        windowedModeLogPanel(fullLogPanel)
-                    }
-
-                    configManager.saveItem(ConfigManager.ITEM_VIEW_FULL, itemFull.state.toString())
-                }
-                itemSearch -> {
-                    searchPanel.isVisible = !searchPanel.isVisible
-                    itemSearch.state = searchPanel.isVisible
-                }
                 adbConnectBtn -> {
                     stopAdbScan()
-                    logCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
-                    logCmdManager.connect()
+                    LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
+                    LogCmdManager.connect()
                 }
+
                 adbRefreshBtn -> {
-                    logCmdManager.getDevices()
+                    LogCmdManager.getDevices()
                 }
+
                 adbDisconnectBtn -> {
                     stopAdbScan()
-                    logCmdManager.disconnect()
+                    LogCmdManager.disconnect()
                 }
+
                 scrollBackApplyBtn -> {
                     try {
                         filteredTableModel.scrollback = scrollBackTF.text.toString().trim().toInt()
@@ -1674,69 +1676,39 @@ class MainUI(title: String) : JFrame() {
                     }
                     filteredTableModel.scrollBackSplitFile = scrollBackSplitFileToggle.isSelected
 
-                    configManager.saveItem(ConfigManager.ITEM_SCROLL_BACK, scrollBackTF.text)
-                    configManager.saveItem(ConfigManager.ITEM_SCROLL_BACK_SPLIT_FILE, scrollBackSplitFileToggle.isSelected.toString())
+                    ConfigManager.saveItem(ConfigManager.ITEM_SCROLL_BACK, scrollBackTF.text)
+                    ConfigManager.saveItem(
+                        ConfigManager.ITEM_SCROLL_BACK_SPLIT_FILE,
+                        scrollBackSplitFileToggle.isSelected.toString()
+                    )
                 }
+
                 startBtn -> {
                     startAdbScan(true)
                 }
+
                 stopBtn -> {
                     stopAdbScan()
-                    logCmdManager.stop()
+                    LogCmdManager.stop()
                 }
+
                 clearViewsBtn -> {
                     filteredTableModel.clearItems()
                     repaint()
                 }
+
                 saveBtn -> {
                     if (filteredTableModel.isScanning()) {
                         setSaveLogFile()
-                    }
-                    else {
+                    } else {
                         GLog.d(TAG, "SaveBtn : not adb scanning mode")
                     }
                 }
-                itemRotation -> {
-                    rotationStatus++
 
-                    if (rotationStatus > ROTATION_MAX) {
-                        rotationStatus = ROTATION_LEFT_RIGHT
-                    }
-
-                    configManager.saveItem(ConfigManager.ITEM_ROTATION, rotationStatus.toString())
-
-                    logSplitPane.remove(filteredLogPanel)
-                    logSplitPane.remove(fullLogPanel)
-                    when (rotationStatus) {
-                        ROTATION_LEFT_RIGHT -> {
-                            logSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
-                            logSplitPane.add(filteredLogPanel)
-                            logSplitPane.add(fullLogPanel)
-                            logSplitPane.resizeWeight = SPLIT_WEIGHT
-                        }
-                        ROTATION_RIGHT_LEFT -> {
-                            logSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
-                            logSplitPane.add(fullLogPanel)
-                            logSplitPane.add(filteredLogPanel)
-                            logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-                        }
-                        ROTATION_TOP_BOTTOM -> {
-                            logSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
-                            logSplitPane.add(filteredLogPanel)
-                            logSplitPane.add(fullLogPanel)
-                            logSplitPane.resizeWeight = SPLIT_WEIGHT
-                        }
-                        ROTATION_BOTTOM_TOP -> {
-                            logSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
-                            logSplitPane.add(fullLogPanel)
-                            logSplitPane.add(filteredLogPanel)
-                            logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-                        }
-                    }
-                }
                 startFollowBtn -> {
                     startFileFollow()
                 }
+
                 stopFollowBtn -> {
                     stopFileFollow()
                 }
@@ -1751,35 +1723,39 @@ class MainUI(title: String) : JFrame() {
         private val actionHandler = ActionHandler()
 
         init {
-           itemIconText.addActionListener(actionHandler)
+            itemIconText.addActionListener(actionHandler)
             add(itemIconText)
-           itemIcon.addActionListener(actionHandler)
+            itemIcon.addActionListener(actionHandler)
             add(itemIcon)
-           itemText.addActionListener(actionHandler)
+            itemText.addActionListener(actionHandler)
             add(itemText)
         }
+
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
                 when (event.source) {
-                   itemIconText -> {
+                    itemIconText -> {
                         setBtnIcons(true)
                         setBtnTexts(true)
-                        configManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I_T)
+                        ConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I_T)
                     }
-                   itemIcon -> {
+
+                    itemIcon -> {
                         setBtnIcons(true)
                         setBtnTexts(false)
-                        configManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I)
+                        ConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I)
                     }
-                   itemText -> {
+
+                    itemText -> {
                         setBtnIcons(false)
                         setBtnTexts(true)
-                        configManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I)
+                        ConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I)
                     }
                 }
             }
         }
     }
+
     internal inner class FrameMouseListener(private val frame: JFrame) : MouseAdapter() {
         private var mouseDownCompCoords: Point? = null
 
@@ -1792,8 +1768,7 @@ class MainUI(title: String) : JFrame() {
                     popupMenu = FramePopUp()
                     popupMenu?.show(e.component, e.x, e.y)
                 }
-            }
-            else {
+            } else {
                 popupMenu?.isVisible = false
             }
         }
@@ -1827,22 +1802,26 @@ class MainUI(title: String) : JFrame() {
             add(reconnectItem)
             this.combo = combo
         }
+
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
                 when (event.source) {
                     selectAllItem -> {
                         combo?.editor?.selectAll()
                     }
+
                     copyItem -> {
                         val editorCom = combo?.editor?.editorComponent as JTextComponent
                         val stringSelection = StringSelection(editorCom.selectedText)
                         val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
                         clipboard.setContents(stringSelection, null)
                     }
+
                     pasteItem -> {
                         val editorCom = combo?.editor?.editorComponent as JTextComponent
                         editorCom.paste()
                     }
+
                     reconnectItem -> {
                         reconnectAdb()
                     }
@@ -1887,42 +1866,48 @@ class MainUI(title: String) : JFrame() {
                     val num = idx + 1
                     val item = JMenuItem("Add Color Tag : #$num")
                     item.isOpaque = true
-                    item.foreground = Color.decode(ColorManager.getInstance().filterTableColor.strFilteredFGs[num])
-                    item.background = Color.decode(ColorManager.getInstance().filterTableColor.strFilteredBGs[num])
+                    item.foreground = Color.decode(ColorManager.filterTableColor.strFilteredFGs[num])
+                    item.background = Color.decode(ColorManager.filterTableColor.strFilteredBGs[num])
                     item.addActionListener(actionHandler)
                     addColorTagItems.add(item)
                     add(item)
                 }
             }
         }
+
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
                 when (event.source) {
                     selectAllItem -> {
                         combo.editor?.selectAll()
                     }
+
                     copyItem -> {
                         val editorCom = combo.editor?.editorComponent as JTextComponent
                         val stringSelection = StringSelection(editorCom.selectedText)
                         val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
                         clipboard.setContents(stringSelection, null)
                     }
+
                     pasteItem -> {
                         val editorCom = combo.editor?.editorComponent as JTextComponent
                         editorCom.paste()
                     }
+
                     removeColorTagsItem -> {
                         combo.removeAllColorTags()
                         if (combo == showLogCombo) {
                             applyShowLogComboEditor()
                         }
                     }
+
                     removeOneColorTagItem -> {
                         combo.removeColorTag()
                         if (combo == showLogCombo) {
                             applyShowLogComboEditor()
                         }
                     }
+
                     else -> {
                         val item = event.source as JMenuItem
                         if (addColorTagItems.contains(item)) {
@@ -1953,21 +1938,26 @@ class MainUI(title: String) : JFrame() {
                         popupMenu = PopUpCombobox(deviceCombo)
                         popupMenu?.show(event.component, event.x, event.y)
                     }
+
                     showLogCombo.editor.editorComponent, boldLogCombo.editor.editorComponent, showTagCombo.editor.editorComponent, showPidCombo.editor.editorComponent, showTidCombo.editor.editorComponent -> {
                         lateinit var combo: FilterComboBox
                         when (event.source) {
                             showLogCombo.editor.editorComponent -> {
                                 combo = showLogCombo
                             }
+
                             boldLogCombo.editor.editorComponent -> {
                                 combo = boldLogCombo
                             }
+
                             showTagCombo.editor.editorComponent -> {
                                 combo = showTagCombo
                             }
+
                             showPidCombo.editor.editorComponent -> {
                                 combo = showPidCombo
                             }
+
                             showTidCombo.editor.editorComponent -> {
                                 combo = showTidCombo
                             }
@@ -1975,15 +1965,24 @@ class MainUI(title: String) : JFrame() {
                         popupMenu = PopUpFilterCombobox(combo)
                         popupMenu?.show(event.component, event.x, event.y)
                     }
+
                     else -> {
                         val compo = event.source as JComponent
-                        val event = MouseEvent(compo.parent, event.id, event.`when`, event.modifiersEx, event.x + compo.x, event.y + compo.y, event.clickCount, event.isPopupTrigger)
+                        val event = MouseEvent(
+                            compo.parent,
+                            event.id,
+                            event.`when`,
+                            event.modifiersEx,
+                            event.x + compo.x,
+                            event.y + compo.y,
+                            event.clickCount,
+                            event.isPopupTrigger
+                        )
 
                         compo.parent.dispatchEvent(event)
                     }
                 }
-            }
-            else {
+            } else {
                 popupMenu?.isVisible = false
             }
 
@@ -2031,30 +2030,30 @@ class MainUI(title: String) : JFrame() {
         }.start()
     }
 
-    fun getTextShowLogCombo() : String {
+    fun getTextShowLogCombo(): String {
         if (showLogCombo.selectedItem == null) {
-           return ""
+            return ""
         }
         return showLogCombo.selectedItem!!.toString()
     }
 
-    fun setTextShowLogCombo(text : String) {
+    fun setTextShowLogCombo(text: String) {
         showLogCombo.selectedItem = text
         showLogCombo.updateTooltip()
     }
 
-    fun getTextSearchCombo() : String {
+    fun getTextSearchCombo(): String {
         if (searchPanel.searchCombo.selectedItem == null) {
             return ""
         }
         return searchPanel.searchCombo.selectedItem!!.toString()
     }
 
-    fun setTextSearchCombo(text : String) {
+    fun setTextSearchCombo(text: String) {
         searchPanel.searchCombo.selectedItem = text
         filteredTableModel.filterSearchLog = searchPanel.searchCombo.selectedItem!!.toString()
         searchPanel.isVisible = true
-        itemSearch.state = searchPanel.isVisible
+        viewMenu.itemSearch.state = searchPanel.isVisible
     }
 
     fun applyShowLogCombo() {
@@ -2069,19 +2068,18 @@ class MainUI(title: String) : JFrame() {
         setTextShowLogCombo(text)
         applyShowLogCombo()
     }
+
     fun setDeviceComboColor(isConnected: Boolean) {
         if (isConnected) {
             if (ConfigManager.LaF == FLAT_DARK_LAF) {
                 deviceCombo.editor.editorComponent.foreground = Color(0x7070C0)
-            }
-            else {
+            } else {
                 deviceCombo.editor.editorComponent.foreground = Color.BLUE
             }
         } else {
             if (ConfigManager.LaF == FLAT_DARK_LAF) {
                 deviceCombo.editor.editorComponent.foreground = Color(0xC07070)
-            }
-            else {
+            } else {
                 deviceCombo.editor.editorComponent.foreground = Color.RED
             }
         }
@@ -2093,7 +2091,7 @@ class MainUI(title: String) : JFrame() {
             val currLogCmd = logCmdCombo.editor.item.toString()
             logCmdCombo.removeAllItems()
             for (i in 0 until LogCmdManager.LOG_CMD_MAX) {
-                logCmd = configManager.getItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$i")
+                logCmd = ConfigManager.getItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$i")
                 if (logCmd.isNullOrBlank()) {
                     continue
                 }
@@ -2102,27 +2100,24 @@ class MainUI(title: String) : JFrame() {
             }
             logCmdCombo.selectedIndex = -1
             if (currLogCmd.isBlank()) {
-                logCmdCombo.editor.item = logCmdManager.logCmd
-            }
-            else {
+                logCmdCombo.editor.item = LogCmdManager.logCmd
+            } else {
                 logCmdCombo.editor.item = currLogCmd
             }
         }
 
-        logCmdCombo.toolTipText = "\"${logCmdManager.logCmd}\"\n\n${STRINGS.toolTip.logCmdCombo}"
+        logCmdCombo.toolTipText = "\"${LogCmdManager.logCmd}\"\n\n${STRINGS.toolTip.logCmdCombo}"
 
-        if (logCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
+        if (LogCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
             if (ConfigManager.LaF == FLAT_DARK_LAF) {
                 logCmdCombo.editor.editorComponent.foreground = Color(0x7070C0)
-            }
-            else {
+            } else {
                 logCmdCombo.editor.editorComponent.foreground = Color.BLUE
             }
         } else {
             if (ConfigManager.LaF == FLAT_DARK_LAF) {
                 logCmdCombo.editor.editorComponent.foreground = Color(0xC07070)
-            }
-            else {
+            } else {
                 logCmdCombo.editor.editorComponent.foreground = Color.RED
             }
         }
@@ -2142,47 +2137,53 @@ class MainUI(title: String) : JFrame() {
                         resetComboItem(combo, item)
                         filteredTableModel.filterLog = item
                     }
+
                     event.source == boldLogCombo.editor.editorComponent && boldLogToggle.isSelected -> {
                         val combo = boldLogCombo
                         val item = combo.selectedItem!!.toString()
                         resetComboItem(combo, item)
                         filteredTableModel.filterHighlightLog = item
                     }
+
                     event.source == showTagCombo.editor.editorComponent && showTagToggle.isSelected -> {
                         val combo = showTagCombo
                         val item = combo.selectedItem!!.toString()
                         resetComboItem(combo, item)
                         filteredTableModel.filterTag = item
                     }
+
                     event.source == showPidCombo.editor.editorComponent && showPidToggle.isSelected -> {
                         val combo = showPidCombo
                         val item = combo.selectedItem!!.toString()
                         resetComboItem(combo, item)
                         filteredTableModel.filterPid = item
                     }
+
                     event.source == showTidCombo.editor.editorComponent && showTidToggle.isSelected -> {
                         val combo = showTidCombo
                         val item = combo.selectedItem!!.toString()
                         resetComboItem(combo, item)
                         filteredTableModel.filterTid = item
                     }
+
                     event.source == logCmdCombo.editor.editorComponent -> {
-                        if (logCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
+                        if (LogCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
                             reconnectAdb()
-                        }
-                        else {
+                        } else {
                             val item = logCmdCombo.editor.item.toString().trim()
 
                             if (item.isEmpty()) {
                                 logCmdCombo.editor.item = LogCmdManager.DEFAULT_LOGCAT
                             }
-                            logCmdManager.logCmd = logCmdCombo.editor.item.toString()
+                            LogCmdManager.logCmd = logCmdCombo.editor.item.toString()
                             updateLogCmdCombo(false)
                         }
                     }
+
                     event.source == deviceCombo.editor.editorComponent -> {
                         reconnectAdb()
                     }
+
                     event.source == scrollBackTF -> {
                         scrollBackApplyBtn.doClick()
                     }
@@ -2193,18 +2194,22 @@ class MainUI(title: String) : JFrame() {
                         val item = showLogCombo.editor.item.toString()
                         filteredTableModel.filterLog = item
                     }
+
                     event.source == boldLogCombo.editor.editorComponent && boldLogToggle.isSelected -> {
                         val item = boldLogCombo.editor.item.toString()
                         filteredTableModel.filterHighlightLog = item
                     }
+
                     event.source == showTagCombo.editor.editorComponent && showTagToggle.isSelected -> {
                         val item = showTagCombo.editor.item.toString()
                         filteredTableModel.filterTag = item
                     }
+
                     event.source == showPidCombo.editor.editorComponent && showPidToggle.isSelected -> {
                         val item = showPidCombo.editor.item.toString()
                         filteredTableModel.filterPid = item
                     }
+
                     event.source == showTidCombo.editor.editorComponent && showTidToggle.isSelected -> {
                         val item = showTidCombo.editor.item.toString()
                         filteredTableModel.filterTid = item
@@ -2221,15 +2226,19 @@ class MainUI(title: String) : JFrame() {
                 showLogToggle -> {
                     showLogCombo.setEnabledFilter(showLogToggle.isSelected)
                 }
+
                 boldLogToggle -> {
                     boldLogCombo.setEnabledFilter(boldLogToggle.isSelected)
                 }
+
                 showTagToggle -> {
                     showTagCombo.setEnabledFilter(showTagToggle.isSelected)
                 }
+
                 showPidToggle -> {
                     showPidCombo.setEnabledFilter(showPidToggle.isSelected)
                 }
+
                 showTidToggle -> {
                     showTidCombo.setEnabledFilter(showTidToggle.isSelected)
                 }
@@ -2245,53 +2254,62 @@ class MainUI(title: String) : JFrame() {
                     } else {
                         filteredTableModel.filterLog = ""
                     }
-                    configManager.saveItem(ConfigManager.ITEM_SHOW_LOG_CHECK, showLogToggle.isSelected.toString())
+                    ConfigManager.saveItem(ConfigManager.ITEM_SHOW_LOG_CHECK, showLogToggle.isSelected.toString())
                 }
+
                 boldLogToggle -> {
                     if (boldLogToggle.isSelected && boldLogCombo.selectedItem != null) {
                         filteredTableModel.filterHighlightLog = boldLogCombo.selectedItem!!.toString()
                     } else {
                         filteredTableModel.filterHighlightLog = ""
                     }
-                    configManager.saveItem(ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK, boldLogToggle.isSelected.toString())
+                    ConfigManager.saveItem(ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK, boldLogToggle.isSelected.toString())
                 }
+
                 showTagToggle -> {
                     if (showTagToggle.isSelected && showTagCombo.selectedItem != null) {
                         filteredTableModel.filterTag = showTagCombo.selectedItem!!.toString()
                     } else {
                         filteredTableModel.filterTag = ""
                     }
-                    configManager.saveItem(ConfigManager.ITEM_SHOW_TAG_CHECK, showTagToggle.isSelected.toString())
+                    ConfigManager.saveItem(ConfigManager.ITEM_SHOW_TAG_CHECK, showTagToggle.isSelected.toString())
                 }
+
                 showPidToggle -> {
                     if (showPidToggle.isSelected && showPidCombo.selectedItem != null) {
                         filteredTableModel.filterPid = showPidCombo.selectedItem!!.toString()
                     } else {
                         filteredTableModel.filterPid = ""
                     }
-                    configManager.saveItem(ConfigManager.ITEM_SHOW_PID_CHECK, showPidToggle.isSelected.toString())
+                    ConfigManager.saveItem(ConfigManager.ITEM_SHOW_PID_CHECK, showPidToggle.isSelected.toString())
                 }
+
                 showTidToggle -> {
                     if (showTidToggle.isSelected && showTidCombo.selectedItem != null) {
                         filteredTableModel.filterTid = showTidCombo.selectedItem!!.toString()
                     } else {
                         filteredTableModel.filterTid = ""
                     }
-                    configManager.saveItem(ConfigManager.ITEM_SHOW_TID_CHECK, showTidToggle.isSelected.toString())
+                    ConfigManager.saveItem(ConfigManager.ITEM_SHOW_TID_CHECK, showTidToggle.isSelected.toString())
                 }
+
                 matchCaseToggle -> {
                     filteredTableModel.matchCase = matchCaseToggle.isSelected
-                    configManager.saveItem(ConfigManager.ITEM_MATCH_CASE, matchCaseToggle.isSelected.toString())
+                    ConfigManager.saveItem(ConfigManager.ITEM_MATCH_CASE, matchCaseToggle.isSelected.toString())
                 }
+
                 scrollBackKeepToggle -> {
                     filteredTableModel.scrollBackKeep = scrollBackKeepToggle.isSelected
                 }
+
                 retryAdbToggle -> {
-                    configManager.saveItem(ConfigManager.ITEM_RETRY_ADB, retryAdbToggle.isSelected.toString())
+                    ConfigManager.saveItem(ConfigManager.ITEM_RETRY_ADB, retryAdbToggle.isSelected.toString())
                 }
+
                 pauseToggle -> {
                     pauseAdbScan(pauseToggle.isSelected)
                 }
+
                 pauseFollowToggle -> {
                     pauseFileFollow(pauseFollowToggle.isSelected)
                 }
@@ -2303,28 +2321,29 @@ class MainUI(title: String) : JFrame() {
         override fun changedStatus(event: LogCmdManager.AdbEvent) {
             when (event.cmd) {
                 LogCmdManager.CMD_CONNECT -> {
-                    logCmdManager.getDevices()
+                    LogCmdManager.getDevices()
                 }
+
                 LogCmdManager.CMD_GET_DEVICES -> {
                     if (IsCreatingUI) {
                         return
                     }
                     var selectedItem = deviceCombo.selectedItem
                     deviceCombo.removeAllItems()
-                    for (item in logCmdManager.devices) {
+                    for (item in LogCmdManager.devices) {
                         deviceCombo.addItem(item)
                     }
                     if (selectedItem == null) {
                         selectedItem = ""
                     }
 
-                    if (logCmdManager.devices.contains(selectedItem.toString())) {
+                    if (LogCmdManager.devices.contains(selectedItem.toString())) {
                         deviceStatus.text = STRINGS.ui.connected
                         setDeviceComboColor(true)
                     } else {
                         var isExist = false
                         val deviceChk = "$selectedItem:"
-                        for (device in logCmdManager.devices) {
+                        for (device in LogCmdManager.devices) {
                             if (device.contains(deviceChk)) {
                                 isExist = true
                                 selectedItem = device
@@ -2341,8 +2360,9 @@ class MainUI(title: String) : JFrame() {
                     }
                     deviceCombo.selectedItem = selectedItem
                 }
+
                 LogCmdManager.CMD_DISCONNECT -> {
-                    logCmdManager.getDevices()
+                    LogCmdManager.getDevices()
                 }
             }
         }
@@ -2369,6 +2389,7 @@ class MainUI(title: String) : JFrame() {
                     filteredTableModel.filterLog = item
                     combo.updateTooltip()
                 }
+
                 boldLogCombo -> {
                     if (boldLogCombo.selectedIndex < 0) {
                         return
@@ -2379,6 +2400,7 @@ class MainUI(title: String) : JFrame() {
                     filteredTableModel.filterHighlightLog = item
                     combo.updateTooltip()
                 }
+
                 showTagCombo -> {
                     if (showTagCombo.selectedIndex < 0) {
                         return
@@ -2389,6 +2411,7 @@ class MainUI(title: String) : JFrame() {
                     filteredTableModel.filterTag = item
                     combo.updateTooltip()
                 }
+
                 showPidCombo -> {
                     if (showPidCombo.selectedIndex < 0) {
                         return
@@ -2399,6 +2422,7 @@ class MainUI(title: String) : JFrame() {
                     filteredTableModel.filterPid = item
                     combo.updateTooltip()
                 }
+
                 showTidCombo -> {
                     if (showTidCombo.selectedIndex < 0) {
                         return
@@ -2416,7 +2440,7 @@ class MainUI(title: String) : JFrame() {
                     }
                     val combo = logCmdCombo
                     val item = combo.selectedItem!!.toString()
-                    logCmdManager.logCmd = item
+                    LogCmdManager.logCmd = item
                     updateLogCmdCombo(false)
                 }
             }
@@ -2520,7 +2544,7 @@ class MainUI(title: String) : JFrame() {
             boldLogCombo.parent.revalidate()
             boldLogCombo.parent.repaint()
         }
-        colorManager.applyFilterStyle()
+        ColorManager.applyFilterStyle()
 
         showLogCombo.enabledTfTooltip = true
         showTagCombo.enabledTfTooltip = true
@@ -2669,8 +2693,7 @@ class MainUI(title: String) : JFrame() {
         fun moveToNext() {
             if (isInternalTargetView) {
                 filteredTableModel.moveToNextSearch()
-            }
-            else {
+            } else {
                 fullTableModel.moveToNextSearch()
             }
         }
@@ -2678,8 +2701,7 @@ class MainUI(title: String) : JFrame() {
         fun moveToPrev() {
             if (isInternalTargetView) {
                 filteredTableModel.moveToPrevSearch()
-            }
-            else {
+            } else {
                 fullTableModel.moveToPrevSearch()
             }
         }
@@ -2690,12 +2712,14 @@ class MainUI(title: String) : JFrame() {
                     upBtn -> {
                         moveToPrev()
                     }
+
                     downBtn -> {
                         moveToNext()
                     }
+
                     closeBtn -> {
                         searchPanel.isVisible = false
-                        itemSearch.state = searchPanel.isVisible
+                        viewMenu.itemSearch.state = searchPanel.isVisible
                     }
                 }
             }
@@ -2711,8 +2735,7 @@ class MainUI(title: String) : JFrame() {
                             filteredTableModel.filterSearchLog = item
                             if (KeyEvent.SHIFT_MASK == event.modifiersEx) {
                                 moveToPrev()
-                            }
-                            else {
+                            } else {
                                 moveToNext()
                             }
                         }
@@ -2721,6 +2744,7 @@ class MainUI(title: String) : JFrame() {
                 super.keyReleased(event)
             }
         }
+
         internal inner class SearchPopupMenuHandler : PopupMenuListener {
             private var isCanceled = false
             override fun popupMenuWillBecomeInvisible(event: PopupMenuEvent) {
@@ -2763,7 +2787,10 @@ class MainUI(title: String) : JFrame() {
                 when (event.source) {
                     searchMatchCaseToggle -> {
                         filteredTableModel.searchMatchCase = searchMatchCaseToggle.isSelected
-                        configManager.saveItem(ConfigManager.ITEM_SEARCH_MATCH_CASE, searchMatchCaseToggle.isSelected.toString())
+                        ConfigManager.saveItem(
+                            ConfigManager.ITEM_SEARCH_MATCH_CASE,
+                            searchMatchCaseToggle.isSelected.toString()
+                        )
                     }
                 }
             }
@@ -2776,7 +2803,7 @@ class MainUI(title: String) : JFrame() {
         var action: Action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
                 searchPanel.isVisible = false
-                itemSearch.state = searchPanel.isVisible
+                viewMenu.itemSearch.state = searchPanel.isVisible
             }
         }
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
@@ -2787,7 +2814,7 @@ class MainUI(title: String) : JFrame() {
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
                 searchPanel.isVisible = true
-                itemSearch.state = searchPanel.isVisible
+                viewMenu.itemSearch.state = searchPanel.isVisible
             }
         }
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
@@ -2821,17 +2848,17 @@ class MainUI(title: String) : JFrame() {
     fun showSearchResultTooltip(isNext: Boolean, result: String) {
         val targetPanel = if (searchPanel.isInternalTargetView) {
             filteredLogPanel
-        }
-        else {
+        } else {
             fullLogPanel
         }
 
         targetPanel.toolTipText = result
         if (isNext) {
-            ToolTipManager.sharedInstance().mouseMoved(MouseEvent(targetPanel, 0, 0, 0, targetPanel.width / 3, targetPanel.height - 50, 0, false))
-        }
-        else {
-            ToolTipManager.sharedInstance().mouseMoved(MouseEvent(targetPanel, 0, 0, 0, targetPanel.width / 3, 0, 0, false))
+            ToolTipManager.sharedInstance()
+                .mouseMoved(MouseEvent(targetPanel, 0, 0, 0, targetPanel.width / 3, targetPanel.height - 50, 0, false))
+        } else {
+            ToolTipManager.sharedInstance()
+                .mouseMoved(MouseEvent(targetPanel, 0, 0, 0, targetPanel.width / 3, 0, 0, false))
         }
 
         val clearThread = Thread {

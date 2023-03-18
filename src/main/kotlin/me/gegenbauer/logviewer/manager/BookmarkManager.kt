@@ -12,14 +12,7 @@ interface BookmarkEventListener {
     fun bookmarkChanged(event: BookmarkEvent)
 }
 
-class BookmarkManager private constructor(){
-    companion object {
-        private val instance: BookmarkManager = BookmarkManager()
-
-        fun getInstance(): BookmarkManager {
-            return instance
-        }
-    }
+object BookmarkManager {
 
     val bookmarks = ArrayList<Int>()
     private val eventListeners = ArrayList<BookmarkEventListener>()

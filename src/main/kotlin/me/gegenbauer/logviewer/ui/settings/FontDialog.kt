@@ -3,6 +3,7 @@ package me.gegenbauer.logviewer.ui.settings
 import me.gegenbauer.logviewer.Utils
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
+import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import java.awt.*
@@ -29,9 +30,8 @@ class FontDialog(parent: MainUI) : JDialog(parent, STRINGS.ui.font + " & " + STR
     private var parent = parent
     private val prevFont = parent.customFont
 
-    private val colorManager = ColorManager.getInstance()
-    private val fullTableColor = colorManager.fullTableColor
-    private val filterTableColor = colorManager.filterTableColor
+    private val fullTableColor = ColorManager.fullTableColor
+    private val filterTableColor = ColorManager.filterTableColor
 
     private val titleLabelArray = arrayOfNulls<ColorLabel>(fullTableColor.colorArray.size)
     private val fullColorLabelArray = arrayOfNulls<ColorLabel>(fullTableColor.colorArray.size)
@@ -192,9 +192,9 @@ class FontDialog(parent: MainUI) : JDialog(parent, STRINGS.ui.font + " & " + STR
 
         schemeBtn.addActionListener {
             if (radioLight.isSelected) {
-                applyColorScheme(ColorManager.getInstance().colorSchemeLight)
+                applyColorScheme(ColorManager.colorSchemeLight)
             } else if (radioDark.isSelected) {
-                applyColorScheme(ColorManager.getInstance().colorSchemeDark)
+                applyColorScheme(ColorManager.colorSchemeDark)
             }
         }
 
@@ -243,7 +243,7 @@ class FontDialog(parent: MainUI) : JDialog(parent, STRINGS.ui.font + " & " + STR
                     filterTableColor.applyColor()
                     parent.customFont = prevFont
                 } else {
-                    parent.configManager.saveFontColors(parent.customFont.family, parent.customFont.size)
+                    ConfigManager.saveFontColors(parent.customFont.family, parent.customFont.size)
                 }
             }
         })
