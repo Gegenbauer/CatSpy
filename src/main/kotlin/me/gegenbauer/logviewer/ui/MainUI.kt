@@ -12,15 +12,7 @@ import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
 import me.gegenbauer.logviewer.ui.button.FilterComboBox
 import me.gegenbauer.logviewer.ui.button.WrapablePanel
-import me.gegenbauer.logviewer.ui.log.LogPanel
-import me.gegenbauer.logviewer.ui.log.LogTableDialog
-import me.gegenbauer.logviewer.ui.log.LogTableModel
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_DEBUG
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_ERROR
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_FATAL
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_INFO
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_VERBOSE
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_WARNING
+import me.gegenbauer.logviewer.ui.log.*
 import me.gegenbauer.logviewer.ui.menu.FileMenu
 import me.gegenbauer.logviewer.ui.menu.HelpMenu
 import me.gegenbauer.logviewer.ui.menu.SettingsMenu
@@ -83,7 +75,7 @@ class MainUI(title: String) : JFrame() {
     private val settingsMenu = SettingsMenu().apply {
         setLogLevelChangedListener {
             filteredTableModel.filterLevel = it
-            configManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, SettingsMenu.parseLogLevel(it))
+            configManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, it.logName)
         }
     }
 
@@ -1089,14 +1081,7 @@ class MainUI(title: String) : JFrame() {
             logSplitPane.dividerLocation = divider.toInt()
         }
 
-        when (settingsMenu.logLevel) {
-            VERBOSE ->filteredTableModel.filterLevel = LEVEL_VERBOSE
-            DEBUG ->filteredTableModel.filterLevel = LEVEL_DEBUG
-            INFO ->filteredTableModel.filterLevel = LEVEL_INFO
-            WARNING ->filteredTableModel.filterLevel = LEVEL_WARNING
-            ERROR ->filteredTableModel.filterLevel = LEVEL_ERROR
-            FATAL ->filteredTableModel.filterLevel = LEVEL_FATAL
-        }
+        filteredTableModel.filterLevel = getLevelFromName(settingsMenu.logLevel)
 
         if (showLogToggle.isSelected && showLogCombo.selectedItem != null) {
             filteredTableModel.filterLog = showLogCombo.selectedItem!!.toString()

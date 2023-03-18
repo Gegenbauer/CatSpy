@@ -5,13 +5,8 @@ import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.log.LogCmdSettingsDialog
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_DEBUG
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_ERROR
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_FATAL
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_INFO
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_NONE
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_VERBOSE
-import me.gegenbauer.logviewer.ui.log.LogTableModel.Companion.LEVEL_WARNING
+import me.gegenbauer.logviewer.ui.log.LogLevel
+import me.gegenbauer.logviewer.ui.log.getLevelFromName
 import me.gegenbauer.logviewer.ui.settings.AppearanceSettingsDialog
 import me.gegenbauer.logviewer.utils.findFrameFromParent
 import java.awt.event.ActionListener
@@ -33,7 +28,7 @@ class SettingsMenu : JMenu() {
                 val item = it.source as JRadioButtonMenuItem
                 if (item.isSelected) {
                     logLevel = item.text
-                    onLogLevelChangedListener(parseLogLevel(item.text))
+                    onLogLevelChangedListener(getLevelFromName(item.text.first().toString()))
                 }
             }
         }
@@ -49,8 +44,8 @@ class SettingsMenu : JMenu() {
             itemThemeSettings -> openThemeConfigurationDialog()
         }
     }
-    private var onLogLevelChangedListener: (Int) -> Unit = {}
-    var logLevel: String? = null
+    private var onLogLevelChangedListener: (LogLevel) -> Unit = {}
+    var logLevel: String = ""
     val filterIncremental: Boolean
         get() = itemFilterIncremental.state
 
@@ -58,7 +53,7 @@ class SettingsMenu : JMenu() {
         text = STRINGS.ui.setting
         mnemonic = KeyEvent.VK_S
 
-        logLevel = ConfigManager.getInstance().getItem(ConfigManager.ITEM_LOG_LEVEL)
+        logLevel = ConfigManager.getInstance().getItem(ConfigManager.ITEM_LOG_LEVEL) ?: ""
         logLevelGroup.apply {
             add(JRadioButtonMenuItem(MainUI.VERBOSE).apply {
                 isSelected = logLevel == MainUI.VERBOSE
@@ -116,7 +111,7 @@ class SettingsMenu : JMenu() {
         add(itemThemeSettings)
     }
 
-    fun setLogLevelChangedListener(listener: (Int) -> Unit) {
+    fun setLogLevelChangedListener(listener: (LogLevel) -> Unit) {
         onLogLevelChangedListener = listener
     }
 
@@ -137,27 +132,5 @@ class SettingsMenu : JMenu() {
     private fun openThemeConfigurationDialog() {
         val frame = findFrameFromParent(this)
         ThemeSettings.showSettingsDialog(frame as MainUI)
-    }
-
-    companion object {
-        fun parseLogLevel(level: String): Int = when (level) {
-            MainUI.VERBOSE -> LEVEL_VERBOSE
-            MainUI.DEBUG -> LEVEL_DEBUG
-            MainUI.INFO -> LEVEL_INFO
-            MainUI.WARNING -> LEVEL_WARNING
-            MainUI.ERROR -> LEVEL_ERROR
-            MainUI.FATAL -> LEVEL_FATAL
-            else -> LEVEL_NONE
-        }
-
-        fun parseLogLevel(level: Int): String = when (level) {
-            LEVEL_VERBOSE -> MainUI.VERBOSE
-            LEVEL_DEBUG -> MainUI.DEBUG
-            LEVEL_INFO -> MainUI.INFO
-            LEVEL_WARNING -> MainUI.WARNING
-            LEVEL_ERROR -> MainUI.ERROR
-            LEVEL_FATAL -> MainUI.FATAL
-            else -> throw IllegalArgumentException("Unknown log level: $level")
-        }
     }
 }

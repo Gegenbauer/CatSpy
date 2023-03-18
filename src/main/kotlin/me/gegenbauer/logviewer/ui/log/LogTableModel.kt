@@ -35,7 +35,7 @@ interface LogTableModelListener {
     fun tableChanged(event: LogTableModelEvent)
 }
 
-class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableModel() {
+class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableModel() {
     private var patternSearchLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
     private var matcherSearchLog: Matcher = patternSearchLog.matcher("")
     private var normalSearchLogSplit: List<String>? = null
@@ -54,9 +54,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     var selectionChanged = false
 
-    private val mainUI = mainUI
-
-    var filterLevel = 0
+    var filterLevel: LogLevel = LogLevel.NONE
         set(value) {
             if (field != value) {
                 isFilterUpdated = true
@@ -489,37 +487,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         }
     }
 
-    private fun levelToInt(text: String): Int {
-        var level = LEVEL_NONE
-        when (text) {
-            "V" -> {
-                level = LEVEL_VERBOSE
-            }
-
-            "D" -> {
-                level = LEVEL_DEBUG
-            }
-
-            "I" -> {
-                level = LEVEL_INFO
-            }
-
-            "W" -> {
-                level = LEVEL_WARNING
-            }
-
-            "E" -> {
-                level = LEVEL_ERROR
-            }
-
-            "F" -> {
-                level = LEVEL_FATAL
-            }
-        }
-
-        return level
-    }
-
     private fun loadFile(isAppend: Boolean) {
         val logFile = Log.file
         if (logFile == null) {
@@ -532,7 +499,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 val item = logItems.last()
                 num = item.num.toInt()
                 num++
-                logItems.add(LogItem(num.toString(), "LogViewer - APPEND LOG : $logFile", "", "", "", LEVEL_ERROR))
+                logItems.add(LogItem(num.toString(), "LogViewer - APPEND LOG : $logFile", "", "", "", LogLevel.ERROR))
                 num++
             }
         } else {
@@ -544,7 +511,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
         val bufferedReader = BufferedReader(FileReader(logFile!!))
         var line: String?
-        var level: Int
+        var level: LogLevel
         var tag: String
         var pid: String
         var tid: String
@@ -557,29 +524,29 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
             if (textSplited.size > TAG_INDEX) {
                 if (Character.isDigit(textSplited[PID_INDEX][0])) {
-                    level = levelToInt(textSplited[LEVEL_INDEX])
+                    level = getLevelFromFlag(textSplited[LEVEL_INDEX])
                     tag = textSplited[TAG_INDEX]
                     pid = textSplited[PID_INDEX]
                     tid = textSplited[TID_INDEX]
                 } else if (Character.isAlphabetic(textSplited[PID_INDEX][0].code)) {
-                    level = levelToInt(textSplited[PID_INDEX][0].toString())
+                    level = getLevelFromFlag(textSplited[PID_INDEX][0].toString())
                     tag = ""
                     pid = ""
                     tid = ""
                 } else {
-                    level = LEVEL_NONE
+                    level = LogLevel.NONE
                     tag = ""
                     pid = ""
                     tid = ""
                 }
             } else {
-                level = LEVEL_NONE
+                level = LogLevel.NONE
                 tag = ""
                 pid = ""
                 tid = ""
             }
 
-            if (level != LEVEL_NONE) {
+            if (level != LogLevel.NONE) {
                 logcatLogCount++
             }
 
@@ -650,49 +617,49 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         return columnNames[column]
     }
 
-    private fun checkLevel(item: LogItem): Int {
+    private fun checkLevel(item: LogItem): LogLevel {
         if (sIsLogcatLog) {
             return item.level
         } else {
             val logLine = item.logLine
 
             if (patternError.matcher(logLine).find()) {
-                return LEVEL_ERROR
+                return LogLevel.ERROR
             } else if (patternWarning.matcher(logLine).find()) {
-                return LEVEL_WARNING
+                return LogLevel.WARN
             } else if (patternInfo.matcher(logLine).find()) {
-                return LEVEL_INFO
+                return LogLevel.INFO
             } else if (patternDebug.matcher(logLine).find()) {
-                return LEVEL_DEBUG
+                return LogLevel.DEBUG
             }
         }
 
-        return LEVEL_NONE
+        return LogLevel.NONE
     }
 
     fun getFgColor(row: Int): Color {
         return when (checkLevel(logItems[row])) {
-            LEVEL_VERBOSE -> {
+            LogLevel.VERBOSE -> {
                 tableColor.logLevelVerbose
             }
 
-            LEVEL_DEBUG -> {
+            LogLevel.DEBUG -> {
                 tableColor.logLevelDebug
             }
 
-            LEVEL_INFO -> {
+            LogLevel.INFO -> {
                 tableColor.logLevelInfo
             }
 
-            LEVEL_WARNING -> {
+            LogLevel.WARN -> {
                 tableColor.logLevelWarning
             }
 
-            LEVEL_ERROR -> {
+            LogLevel.ERROR -> {
                 tableColor.logLevelError
             }
 
-            LEVEL_FATAL -> {
+            LogLevel.FATAL -> {
                 tableColor.logLevelFatal
             }
 
@@ -704,27 +671,27 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     private fun getFgStrColor(row: Int): String {
         return when (checkLevel(logItems[row])) {
-            LEVEL_VERBOSE -> {
+            LogLevel.VERBOSE -> {
                 tableColor.strLogLevelVerbose
             }
 
-            LEVEL_DEBUG -> {
+            LogLevel.DEBUG -> {
                 tableColor.strLogLevelDebug
             }
 
-            LEVEL_INFO -> {
+            LogLevel.INFO -> {
                 tableColor.strLogLevelInfo
             }
 
-            LEVEL_WARNING -> {
+            LogLevel.WARN -> {
                 tableColor.strLogLevelWarning
             }
 
-            LEVEL_ERROR -> {
+            LogLevel.ERROR -> {
                 tableColor.strLogLevelError
             }
 
-            LEVEL_FATAL -> {
+            LogLevel.FATAL -> {
                 tableColor.strLogLevelFatal
             }
 
@@ -1152,7 +1119,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         val tag: String,
         val pid: String,
         val tid: String,
-        val level: Int
+        val level: LogLevel
     )
 
     private fun makePattenPrintValue() {
@@ -1294,7 +1261,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                     isShow = true
 
                     if (!fullMode) {
-                        if (item.level != LEVEL_NONE && item.level < filterLevel) {
+                        if (item.level != LogLevel.NONE && item.level < filterLevel) {
                             isShow = false
                         } else if ((filterHideLog.isNotEmpty() && patternHideLog.matcher(item.logLine).find())
                             || (filterHideTag.isNotEmpty() && patternHideTag.matcher(item.tag).find())
@@ -1401,7 +1368,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 var line: String?
                 var num = 0
                 var saveNum = 0
-                var level: Int
+                var level: LogLevel
                 var tag: String
                 var pid: String
                 var tid: String
@@ -1479,15 +1446,15 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                             for (tempLine in logLines) {
                                 val textSplited = tempLine.trim().split(Regex("\\s+"))
                                 if (textSplited.size > TAG_INDEX) {
-                                    level = levelToInt(textSplited[LEVEL_INDEX])
+                                    level = getLevelFromFlag(textSplited[LEVEL_INDEX])
                                     tag = textSplited[TAG_INDEX]
                                     pid = textSplited[PID_INDEX]
                                     tid = textSplited[TID_INDEX]
                                 } else {
                                     level = if (tempLine.startsWith(NAME)) {
-                                        LEVEL_ERROR
+                                        LogLevel.ERROR
                                     } else {
-                                        LEVEL_VERBOSE
+                                        LogLevel.VERBOSE
                                     }
                                     tag = ""
                                     pid = ""
@@ -1678,7 +1645,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 val scanner = Scanner(MyFileInputStream(currLogFile))
                 var line: String? = null
                 var num = 0
-                var level: Int
+                var level: LogLevel
                 var tag: String
                 var pid: String
                 var tid: String
@@ -1745,15 +1712,15 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                             for (tempLine in logLines) {
                                 val textSplited = tempLine.trim().split(Regex("\\s+"))
                                 if (textSplited.size > TAG_INDEX) {
-                                    level = levelToInt(textSplited[LEVEL_INDEX])
+                                    level = getLevelFromFlag(textSplited[LEVEL_INDEX])
                                     tag = textSplited[TAG_INDEX]
                                     pid = textSplited[PID_INDEX]
                                     tid = textSplited[TID_INDEX]
                                 } else {
                                     level = if (tempLine.startsWith(NAME)) {
-                                        LEVEL_ERROR
+                                        LogLevel.ERROR
                                     } else {
-                                        LEVEL_VERBOSE
+                                        LogLevel.VERBOSE
                                     }
                                     tag = ""
                                     pid = ""
@@ -1819,7 +1786,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                     selectionChanged = false
                                 }
 
-                                if (filterItem.item.level != LEVEL_NONE) {
+                                if (filterItem.item.level != LogLevel.NONE) {
                                     logcatLogCount++
                                 }
 
@@ -1965,13 +1932,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     }
 
     companion object {
-        const val LEVEL_NONE = -1
-        const val LEVEL_VERBOSE = 0
-        const val LEVEL_DEBUG = 1
-        const val LEVEL_INFO = 2
-        const val LEVEL_WARNING = 3
-        const val LEVEL_ERROR = 4
-        const val LEVEL_FATAL = 5
 
         private const val TAG = "LogTableModel"
         private const val COLUMN_NUM = 0

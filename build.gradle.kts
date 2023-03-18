@@ -17,6 +17,7 @@ kotlin {
             implementation(files("libs/flatlaf-2.1.jar"))
             implementation("com.github.weisj:darklaf-core:3.0.2")
             implementation("com.google.code.gson:gson:2.10.1")
+            implementation(kotlin("reflect"))
         }
     }
 }
