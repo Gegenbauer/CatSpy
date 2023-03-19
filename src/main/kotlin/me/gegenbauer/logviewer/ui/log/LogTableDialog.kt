@@ -20,7 +20,7 @@ class LogTableDialog (private val parent: MainUI, private val logPanel: LogPanel
     private var frameExtendedState = java.awt.Frame.MAXIMIZED_BOTH
 
     init {
-        val img = ImageIcon(getImageFile<URL>("logo.png"))
+        val img = ImageIcon(getImageFile("logo.png"))
         iconImage = img.image
 
         defaultCloseOperation = DISPOSE_ON_CLOSE

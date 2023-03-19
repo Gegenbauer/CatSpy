@@ -10,14 +10,15 @@
  */
 package me.gegenbauer.logviewer.log
 
+import java.util.logging.Level
+
 object GLog: ILogger {
     val DEBUG = true
-    private const val TAG = "FLLogger"
 
     private val logger = if (DEBUG) {
-        DebugLogger
+        GLogger(Level.ALL)
     } else {
-        FormalLogger
+        GLogger(Level.INFO)
     }
 
     override fun v(tag: String, msg: String) {

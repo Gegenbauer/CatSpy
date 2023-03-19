@@ -8,7 +8,7 @@ import javax.swing.JToggleButton
 
 class ColorToggleButton(title: String) : JToggleButton(title) {
     init {
-        icon = ImageIcon(getImageFile<URL>("toggle_off.png"))
-        selectedIcon = ImageIcon(getImageFile<URL>("toggle_on.png"))
+        icon = ImageIcon(getImageFile("toggle_off.png"))
+        selectedIcon = ImageIcon(getImageFile("toggle_on.png"))
     }
 }

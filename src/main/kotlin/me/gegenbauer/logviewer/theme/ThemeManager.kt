@@ -4,21 +4,30 @@ import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.settings.SettingsConfiguration
 import com.github.weisj.darklaf.settings.ThemeSettings
 import com.github.weisj.darklaf.theme.Theme
-import com.github.weisj.darklaf.theme.spec.AccentColorRule
-import com.github.weisj.darklaf.theme.spec.FontSizeRule
 import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
-import me.gegenbauer.logviewer.utils.getThemeFile
+import me.gegenbauer.logviewer.utils.appendPath
+import me.gegenbauer.logviewer.utils.loadResource
 import me.gegenbauer.logviewer.utils.toArgb
 import java.io.File
 import java.util.*
 
 object ThemeManager {
+    private const val DEFAULT_THEME_DIR = "themes"
+    private const val DEFAULT_THEME_FILENAME = "default.json"
     private const val THEME_FILENAME = "global.json"
-    private val themeFile: File = getThemeFile(THEME_FILENAME)
+    private val userDir = System.getProperty("user.dir")
+    private val themeFile = File(userDir, THEME_FILENAME)
     private val settingsConfiguration: SettingsConfiguration by lazy { loadThemeSettings() }
 
     init {
+        if (!themeFile.exists()) {
+            themeFile.createNewFile()
+            val defaultThemeJson = loadResource(DEFAULT_THEME_DIR.appendPath(DEFAULT_THEME_FILENAME))
+                .bufferedReader()
+                .use { it.readText() }
+            themeFile.writeText(defaultThemeJson)
+        }
         LafManager.install()
         ThemeSettings.getInstance().setConfiguration(settingsConfiguration)
         ThemeSettings.getInstance().apply()
@@ -33,7 +42,6 @@ object ThemeManager {
     }
 
     private fun loadTheme(): GTheme {
-        val themeFile: File = getThemeFile(THEME_FILENAME)
         JsonReader(themeFile.reader()).use {
             return Gson().fromJson(it, GTheme::class.java)
         }
@@ -43,8 +51,8 @@ object ThemeManager {
         val gTheme = loadTheme()
         return SettingsConfiguration().apply {
             theme = getTheme(gTheme.theme)
-            fontSizeRule = FontSizeRule.relativeAdjustment(gTheme.fontScalePercentage)
-            accentColorRule = AccentColorRule.fromColor(gTheme.accentColor.toArgb(), gTheme.selectionColor.toArgb())
+            fontSizeRule = gTheme.fontSizeRule()
+            accentColorRule = gTheme.accentColorRule()
             isSystemPreferencesEnabled = gTheme.isSystemPreferencesEnabled
             isAccentColorFollowsSystem = gTheme.isAccentColorFollowsSystem
             isSelectionColorFollowsSystem = gTheme.isSelectionColorFollowsSystem

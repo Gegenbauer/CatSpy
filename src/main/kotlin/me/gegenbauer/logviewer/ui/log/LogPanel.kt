@@ -63,13 +63,13 @@ class LogPanel constructor(
         layout = BorderLayout()
         ctrlMainPanel = WrapablePanel()
         firstBtn = JButton("")
-        firstBtn.icon = ImageIcon(getImageFile<URL>("top.png"))
+        firstBtn.icon = ImageIcon(getImageFile("top.png"))
         firstBtn.toolTipText = STRINGS.toolTip.viewFirstBtn
         firstBtn.margin = Insets(2, 3, 1, 3)
 
         firstBtn.addActionListener(actionHandler)
         lastBtn = JButton("")
-        lastBtn.icon = ImageIcon(getImageFile<URL>("bottom.png"))
+        lastBtn.icon = ImageIcon(getImageFile("bottom.png"))
         lastBtn.toolTipText = STRINGS.toolTip.viewLastBtn
         lastBtn.margin = Insets(2, 3, 1, 3)
         lastBtn.addActionListener(actionHandler)
@@ -158,7 +158,7 @@ class LogPanel constructor(
 
     private fun updateTableBarFilters(customArray: ArrayList<CustomListManager.CustomElement>?) {
         val filtersBtn = TableBarButton(STRINGS.ui.filters)
-        filtersBtn.icon = ImageIcon(getImageFile<URL>("filterscmds.png"))
+        filtersBtn.icon = ImageIcon(getImageFile("filterscmds.png"))
         filtersBtn.toolTipText = STRINGS.toolTip.addFilterBtn
         filtersBtn.margin = Insets(0, 3, 0, 3)
         filtersBtn.addActionListener {
@@ -166,7 +166,7 @@ class LogPanel constructor(
         }
         ctrlMainPanel.add(filtersBtn)
 
-        val icon = ImageIcon(getImageFile<URL>("filterscmdsitem.png"))
+        val icon = ImageIcon(getImageFile("filterscmdsitem.png"))
         if (customArray != null) {
             for (item in customArray) {
                 if (!item.tableBar) {
@@ -202,7 +202,7 @@ class LogPanel constructor(
 
     private fun updateTableBarCommands(customArray: ArrayList<CustomListManager.CustomElement>?) {
         val cmdsBtn = TableBarButton(STRINGS.ui.commands)
-        cmdsBtn.icon = ImageIcon(getImageFile<URL>("filterscmds.png"))
+        cmdsBtn.icon = ImageIcon(getImageFile("filterscmds.png"))
         cmdsBtn.toolTipText = STRINGS.toolTip.addCmdBtn
         cmdsBtn.margin = Insets(0, 3, 0, 3)
         cmdsBtn.addActionListener {
@@ -210,7 +210,7 @@ class LogPanel constructor(
         }
         ctrlMainPanel.add(cmdsBtn)
 
-        val icon = ImageIcon(getImageFile<URL>("filterscmdsitem.png"))
+        val icon = ImageIcon(getImageFile("filterscmdsitem.png"))
         if (customArray != null) {
             for (item in customArray) {
                 if (!item.tableBar) {
