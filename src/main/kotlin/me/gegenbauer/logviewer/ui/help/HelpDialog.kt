@@ -20,7 +20,7 @@ class HelpDialog(parent: JFrame) : JDialog(parent, STRINGS.ui.help, true), Actio
         helpTextPane = JTextPane()
         helpTextPane.contentType = "text/html"
 
-        helpTextPane.text = helpText
+        helpTextPane.text = STRINGS.ui.helpText
 
         helpTextPane.caretPosition = 0
         val scrollPane = JScrollPane(helpTextPane)

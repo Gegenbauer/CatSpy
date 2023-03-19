@@ -1,8 +1,9 @@
 package me.gegenbauer.logviewer.manager
 
-import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.NAME
 import me.gegenbauer.logviewer.log.GLog
+import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.strings.app
+import me.gegenbauer.logviewer.ui.MainUI
 import java.io.IOException
 import java.util.*
 import javax.swing.JOptionPane
@@ -10,7 +11,6 @@ import javax.swing.JOptionPane
 
 object LogCmdManager {
     private const val TAG = "LogCmdManager"
-    const val DEFAULT_PREFIX = NAME
 
     const val EVENT_NONE = 0
     const val EVENT_SUCCESS = 1
@@ -29,7 +29,7 @@ object LogCmdManager {
     const val TYPE_LOGCAT = 0
     const val TYPE_CMD = 1
 
-    var prefix: String = DEFAULT_PREFIX
+    var prefix: String = STRINGS.ui.app
     var adbCmd = "adb"
     var logSavePath: String = "."
     var targetDevice: String = ""

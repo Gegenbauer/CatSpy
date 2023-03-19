@@ -1,12 +1,12 @@
 package me.gegenbauer.logviewer.ui.log
 
-import me.gegenbauer.logviewer.NAME
 import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.BookmarkManager
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.LogCmdManager
 import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.FilterComboBox
 import java.awt.Color
@@ -1449,7 +1449,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                                     pid = textSplited[PID_INDEX]
                                     tid = textSplited[TID_INDEX]
                                 } else {
-                                    level = if (tempLine.startsWith(NAME)) {
+                                    level = if (tempLine.startsWith(STRINGS.ui.app)) {
                                         LogLevel.ERROR
                                     } else {
                                         LogLevel.VERBOSE
@@ -1715,7 +1715,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                                     pid = textSplited[PID_INDEX]
                                     tid = textSplited[TID_INDEX]
                                 } else {
-                                    level = if (tempLine.startsWith(NAME)) {
+                                    level = if (tempLine.startsWith(STRINGS.ui.app)) {
                                         LogLevel.ERROR
                                     } else {
                                         LogLevel.VERBOSE
@@ -1863,9 +1863,9 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
 
     private fun moveToSearch(isNext: Boolean) {
         val selectedRow = if (baseModel != null) {
-            mainUI.filteredLogPanel.getSelectedRow()
+            mainUI.splitLogPane.filteredLogPanel.getSelectedRow()
         } else {
-            mainUI.fullLogPanel.getSelectedRow()
+            mainUI.splitLogPane.fullLogPanel.getSelectedRow()
         }
 
         var startRow = 0
@@ -1920,9 +1920,9 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
 
         if (idxFound >= 0) {
             if (baseModel != null) {
-                mainUI.filteredLogPanel.goToRow(idxFound, 0)
+                mainUI.splitLogPane.filteredLogPanel.goToRow(idxFound, 0)
             } else {
-                mainUI.fullLogPanel.goToRow(idxFound, 0)
+                mainUI.splitLogPane.fullLogPanel.goToRow(idxFound, 0)
             }
         } else {
             mainUI.showSearchResultTooltip(isNext, "\"${filterSearchLog}\" ${STRINGS.ui.notFound}")

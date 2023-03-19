@@ -11,7 +11,7 @@ data class Strings(
     val toolTip: StringToolTip
 )
 
-inline val helpText: String
+inline val StringUI.helpText: String
     get() = when (locale) {
         Locale.ENGLISH -> {
             HelpText.textEn
@@ -23,6 +23,13 @@ inline val helpText: String
             HelpText.textCn
         }
     }
+
+inline val StringUI.version: String
+    get() = "1.0.0"
+
+inline val StringUI.app: String
+    get() = "LogViewer"
+
 
 data class StringUI(
     @SerializedName("FILE")

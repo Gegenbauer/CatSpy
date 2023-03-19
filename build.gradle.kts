@@ -35,6 +35,9 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+val version = "1.0.0"
+val appName = "LogViewer"
+
 // TODO 更改应用安装后的图标
 compose.desktop {
     application {
@@ -42,8 +45,8 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             modules += "jdk.unsupported"
-            packageName = "LogViewer"
-            packageVersion = "1.0.0"
+            packageName = appName
+            packageVersion = version
             group = "me.gegenbauer"
         }
     }

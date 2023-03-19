@@ -14,7 +14,6 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.event.*
 import java.io.File
 import java.net.URI
-import java.net.URL
 import java.util.*
 import javax.swing.*
 import javax.swing.event.ListSelectionEvent
@@ -26,7 +25,7 @@ class LogPanel constructor(
     val mainUI: MainUI,
     tableModel: LogTableModel,
     var basePanel: LogPanel?,
-    val focusHandler: MainUI.FocusHandler
+    val focusHandler: FocusListener
 ) : JPanel() {
     private val ctrlMainPanel: WrapablePanel
     private var firstBtn: JButton

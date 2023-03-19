@@ -3,31 +3,28 @@ package me.gegenbauer.logviewer
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
+import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.strings.app
 import me.gegenbauer.logviewer.theme.ThemeManager
 import me.gegenbauer.logviewer.ui.MainUI
 import java.awt.Container
 import javax.swing.SwingUtilities
 
-
-const val VERSION: String = "0.3.0"
-const val NAME: String = "LogViewer"
-private const val TAG = "Main"
-
 class Main {
     companion object {
+        private const val TAG = "Main"
         @JvmStatic
         fun main(args: Array<String>) {
             loadConfig()
 
             SwingUtilities.invokeLater {
-                val mainUI = MainUI(NAME)
-                mainUI.isVisible = true
+                val mainUI = MainUI(STRINGS.ui.app)
                 mainUI.updateUIAfterVisible(args)
 
                 addClickListenerForAllComponents(mainUI.components)
-
                 // need call after main ui created
                 ThemeManager.init()
+                mainUI.isVisible = true
             }
         }
 

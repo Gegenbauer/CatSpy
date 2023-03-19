@@ -93,7 +93,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
         private var laFGroup: ButtonGroup
         private var exampleLabel: JLabel
         private var baseFontSize = 0
-        private val prevDividerSize = mainUI.logSplitPane.dividerSize
+        private val prevDividerSize = mainUI.splitLogPane.dividerSize
 
         init {
             layout = FlowLayout(FlowLayout.LEFT)
@@ -160,9 +160,9 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             lafSizePanel.add(sizePanel, BorderLayout.CENTER)
 
             val dividerPanel = JPanel(FlowLayout(FlowLayout.LEFT))
-            val dividerLabel = JLabel("Divider Size(1 ~ 20) [${mainUI.logSplitPane.dividerSize}]")
+            val dividerLabel = JLabel("Divider Size(1 ~ 20) [${mainUI.splitLogPane.dividerSize}]")
             dividerPanel.add(dividerLabel)
-            dividerSlider = JSlider(0, MAX_DIVIDER_POS, mainUI.logSplitPane.dividerSize)
+            dividerSlider = JSlider(0, MAX_DIVIDER_POS, mainUI.splitLogPane.dividerSize)
             dividerSlider.majorTickSpacing = 5
             dividerSlider.minorTickSpacing = 1
             dividerSlider.paintTicks = true
@@ -171,8 +171,8 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
                 if (dividerSlider.value == 0) {
                     dividerSlider.value = MIN_DIVIDER_POS
                 }
-                mainUI.logSplitPane.dividerSize = dividerSlider.value
-                dividerLabel.text = "Divider Size(1 ~ 20) [${mainUI.logSplitPane.dividerSize}]"
+                mainUI.splitLogPane.dividerSize = dividerSlider.value
+                dividerLabel.text = "Divider Size(1 ~ 20) [${mainUI.splitLogPane.dividerSize}]"
             }
             dividerPanel.add(dividerSlider)
 
@@ -205,7 +205,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             if (isOK) {
                 AppearanceDialog.saveConfiguration(laFGroup, mainUI, fontSlider)
             } else {
-                mainUI.logSplitPane.dividerSize = prevDividerSize
+                mainUI.splitLogPane.dividerSize = prevDividerSize
             }
         }
     }
@@ -803,9 +803,9 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             }
 
             val logPanel = if (type == ColorManager.TableColorType.FULL_LOG_TABLE) {
-                mainUI.fullLogPanel
+                mainUI.splitLogPane.fullLogPanel
             } else {
-                mainUI.filteredLogPanel
+                mainUI.splitLogPane.filteredLogPanel
             }
 
             for (idx in colorLabelArray.indices) {
@@ -829,8 +829,8 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
         private fun applyColorScheme(scheme: Array<String>) {
             applyColorScheme(ColorManager.TableColorType.FULL_LOG_TABLE, scheme, false)
             applyColorScheme(ColorManager.TableColorType.FILTER_LOG_TABLE, scheme, false)
-            mainUI.fullLogPanel.repaint()
-            mainUI.filteredLogPanel.repaint()
+            mainUI.splitLogPane.fullLogPanel.repaint()
+            mainUI.splitLogPane.filteredLogPanel.repaint()
         }
 
         fun updateLabelColor(type: ColorManager.TableColorType) {
@@ -1032,8 +1032,8 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
                             updateColor(filterColorLabelArray[colorLabel.idx]!!, colorChooser.color)
                         }
 
-                        mainUI.fullLogPanel.repaint()
-                        mainUI.filteredLogPanel.repaint()
+                        mainUI.splitLogPane.fullLogPanel.repaint()
+                        mainUI.splitLogPane.filteredLogPanel.repaint()
                     }
                 }
 

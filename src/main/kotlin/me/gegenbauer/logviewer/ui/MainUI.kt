@@ -4,11 +4,11 @@ import com.formdev.flatlaf.FlatDarkLaf
 import com.formdev.flatlaf.FlatLightLaf
 import com.github.weisj.darklaf.components.OverlayScrollPane
 import me.gegenbauer.logviewer.GoToDialog
-import me.gegenbauer.logviewer.NAME
 import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.*
 import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.strings.app
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
 import me.gegenbauer.logviewer.ui.button.FilterComboBox
 import me.gegenbauer.logviewer.ui.button.WrapablePanel
@@ -17,6 +17,7 @@ import me.gegenbauer.logviewer.ui.menu.FileMenu
 import me.gegenbauer.logviewer.ui.menu.HelpMenu
 import me.gegenbauer.logviewer.ui.menu.SettingsMenu
 import me.gegenbauer.logviewer.ui.menu.ViewMenu
+import me.gegenbauer.logviewer.ui.panel.SplitLogPane
 import me.gegenbauer.logviewer.utils.getEnum
 import me.gegenbauer.logviewer.utils.getImageFile
 import java.awt.*
@@ -26,7 +27,6 @@ import java.awt.event.*
 import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
 import java.io.File
-import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.LocalDateTime
@@ -66,6 +66,9 @@ class MainUI(title: String) : JFrame() {
         var IsCreatingUI = true
     }
 
+    private val fullTableModel = LogTableModel(this, null)
+    private val filteredTableModel = LogTableModel(this, fullTableModel)
+
     private val fileMenu = FileMenu().apply {
         onFileSelected = { file ->
             openFile(file.absolutePath, false)
@@ -95,12 +98,18 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
+    val splitLogPane = SplitLogPane(this, fullTableModel, filteredTableModel).apply {
+        onFocusGained = {
+            searchPanel.setTargetView(it)
+        }
+    }
+
     private val viewMenu = ViewMenu().apply {
         onItemFullClicked = {
             if (itemFull.state) {
-                attachLogPanel(fullLogPanel)
+                attachLogPanel(splitLogPane.filteredLogPanel)
             } else {
-                windowedModeLogPanel(fullLogPanel)
+                windowedModeLogPanel(splitLogPane.fullLogPanel)
             }
 
             ConfigManager.saveItem(ConfigManager.ITEM_VIEW_FULL, itemFull.state.toString())
@@ -110,45 +119,9 @@ class MainUI(title: String) : JFrame() {
             itemSearch.state = searchPanel.isVisible
         }
         onItemRotationClicked = {
-            rotationStatus++
+            ConfigManager.saveItem(ConfigManager.ITEM_ROTATION, splitLogPane.rotation.ordinal.toString())
 
-            if (rotationStatus > ROTATION_MAX) {
-                rotationStatus = ROTATION_LEFT_RIGHT
-            }
-
-            ConfigManager.saveItem(ConfigManager.ITEM_ROTATION, rotationStatus.toString())
-
-            logSplitPane.remove(filteredLogPanel)
-            logSplitPane.remove(fullLogPanel)
-            when (rotationStatus) {
-                ROTATION_LEFT_RIGHT -> {
-                    logSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
-                    logSplitPane.add(filteredLogPanel)
-                    logSplitPane.add(fullLogPanel)
-                    logSplitPane.resizeWeight = SPLIT_WEIGHT
-                }
-
-                ROTATION_RIGHT_LEFT -> {
-                    logSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
-                    logSplitPane.add(fullLogPanel)
-                    logSplitPane.add(filteredLogPanel)
-                    logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-                }
-
-                ROTATION_TOP_BOTTOM -> {
-                    logSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
-                    logSplitPane.add(filteredLogPanel)
-                    logSplitPane.add(fullLogPanel)
-                    logSplitPane.resizeWeight = SPLIT_WEIGHT
-                }
-
-                ROTATION_BOTTOM_TOP -> {
-                    logSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
-                    logSplitPane.add(fullLogPanel)
-                    logSplitPane.add(filteredLogPanel)
-                    logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-                }
-            }
+            splitLogPane.rotate()
         }
     }
     private val settingsMenu = SettingsMenu().apply {
@@ -221,15 +194,6 @@ class MainUI(title: String) : JFrame() {
     private lateinit var scrollBackApplyBtn: JButton
     private lateinit var scrollBackKeepToggle: ColorToggleButton
 
-    lateinit var filteredTableModel: LogTableModel
-        private set
-
-    private lateinit var fullTableModel: LogTableModel
-
-    lateinit var logSplitPane: JSplitPane
-
-    lateinit var filteredLogPanel: LogPanel
-    lateinit var fullLogPanel: LogPanel
     private var selectedLine = 0
 
     private lateinit var statusBar: JPanel
@@ -259,14 +223,12 @@ class MainUI(title: String) : JFrame() {
     private var frameHeight = 720
     private var frameExtendedState = Frame.MAXIMIZED_BOTH
 
-    private var rotationStatus = ROTATION_LEFT_RIGHT
-
     var customFont: Font = Font(DEFAULT_FONT_NAME, Font.PLAIN, 12)
         set(value) {
             field = value
             if (!IsCreatingUI) {
-                filteredLogPanel.customFont = value
-                fullLogPanel.customFont = value
+                splitLogPane.filteredLogPanel.customFont = value
+                splitLogPane.fullLogPanel.customFont = value
             }
         }
 
@@ -327,7 +289,7 @@ class MainUI(title: String) : JFrame() {
 
         val prefix = ConfigManager.getItem(ConfigManager.ITEM_ADB_PREFIX)
         if (prefix.isNullOrEmpty()) {
-            LogCmdManager.prefix = LogCmdManager.DEFAULT_PREFIX
+            LogCmdManager.prefix = STRINGS.ui.app
         } else {
             LogCmdManager.prefix = prefix
         }
@@ -354,7 +316,7 @@ class MainUI(title: String) : JFrame() {
         }
         prop = ConfigManager.getItem(ConfigManager.ITEM_ROTATION)
         if (!prop.isNullOrEmpty()) {
-            rotationStatus = prop.toInt()
+            splitLogPane.rotate(getEnum(prop.toInt()))
         }
 
         prop = ConfigManager.getItem(ConfigManager.ITEM_SHOW_LOG_STYLE)
@@ -504,9 +466,9 @@ class MainUI(title: String) : JFrame() {
             ConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, LogCmdManager.DEFAULT_LOGCAT)
         }
 
-        ConfigManager.setItem(ConfigManager.ITEM_DIVIDER_LOCATION, logSplitPane.dividerLocation.toString())
-        if (logSplitPane.lastDividerLocation != -1) {
-            ConfigManager.setItem(ConfigManager.ITEM_LAST_DIVIDER_LOCATION, logSplitPane.lastDividerLocation.toString())
+        ConfigManager.setItem(ConfigManager.ITEM_DIVIDER_LOCATION, splitLogPane.dividerLocation.toString())
+        if (splitLogPane.lastDividerLocation != -1) {
+            ConfigManager.setItem(ConfigManager.ITEM_LAST_DIVIDER_LOCATION, splitLogPane.lastDividerLocation.toString())
         }
 
         ConfigManager.saveConfig()
@@ -541,11 +503,11 @@ class MainUI(title: String) : JFrame() {
 
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher { event ->
             if (event.keyCode == KeyEvent.VK_PAGE_DOWN && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
-                filteredLogPanel.goToLast()
-                fullLogPanel.goToLast()
+                splitLogPane.filteredLogPanel.goToLast()
+                splitLogPane.fullLogPanel.goToLast()
             } else if (event.keyCode == KeyEvent.VK_PAGE_UP && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
-                filteredLogPanel.goToFirst()
-                fullLogPanel.goToFirst()
+                splitLogPane.filteredLogPanel.goToFirst()
+                splitLogPane.fullLogPanel.goToFirst()
             } else if (event.keyCode == KeyEvent.VK_L && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
                 deviceCombo.requestFocus()
             } else if (event.keyCode == KeyEvent.VK_R && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
@@ -874,45 +836,18 @@ class MainUI(title: String) : JFrame() {
 
         layout = BorderLayout()
 
-        fullTableModel = LogTableModel(this, null)
-        filteredTableModel = LogTableModel(this, fullTableModel)
+        splitLogPane.fullLogPanel.updateTableBar(ConfigManager.loadCmd())
+        splitLogPane.filteredLogPanel.updateTableBar(ConfigManager.loadFilters())
 
-        fullLogPanel = LogPanel(this, fullTableModel, null, FocusHandler(false))
-        filteredLogPanel = LogPanel(this, filteredTableModel, fullLogPanel, FocusHandler(true))
-        fullLogPanel.updateTableBar(ConfigManager.loadCmd())
-        filteredLogPanel.updateTableBar(ConfigManager.loadFilters())
-
-        filtersManager = FiltersManager(this, filteredLogPanel)
-        cmdManager = CmdManager(this, fullLogPanel)
-
-        when (rotationStatus) {
-            ROTATION_LEFT_RIGHT -> {
-                logSplitPane = JSplitPane(JSplitPane.HORIZONTAL_SPLIT, false, filteredLogPanel, fullLogPanel)
-                logSplitPane.resizeWeight = SPLIT_WEIGHT
-            }
-
-            ROTATION_RIGHT_LEFT -> {
-                logSplitPane = JSplitPane(JSplitPane.HORIZONTAL_SPLIT, false, fullLogPanel, filteredLogPanel)
-                logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-            }
-
-            ROTATION_TOP_BOTTOM -> {
-                logSplitPane = JSplitPane(JSplitPane.VERTICAL_SPLIT, false, filteredLogPanel, fullLogPanel)
-                logSplitPane.resizeWeight = SPLIT_WEIGHT
-            }
-
-            ROTATION_BOTTOM_TOP -> {
-                logSplitPane = JSplitPane(JSplitPane.VERTICAL_SPLIT, false, fullLogPanel, filteredLogPanel)
-                logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-            }
-        }
+        filtersManager = FiltersManager(this, splitLogPane.filteredLogPanel)
+        cmdManager = CmdManager(this, splitLogPane.fullLogPanel)
 
         val dividerSize = ConfigManager.getItem(ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE)
         if (!dividerSize.isNullOrEmpty()) {
-            logSplitPane.dividerSize = dividerSize.toInt()
+            splitLogPane.dividerSize = dividerSize.toInt()
         }
 
-        logSplitPane.isOneTouchExpandable = false
+        splitLogPane.isOneTouchExpandable = false
 
         statusBar = JPanel(BorderLayout())
         statusBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
@@ -1080,17 +1015,17 @@ class MainUI(title: String) : JFrame() {
         }
 
         customFont = Font(fontName, Font.PLAIN, fontSize)
-        filteredLogPanel.customFont = customFont
-        fullLogPanel.customFont = customFont
+        splitLogPane.filteredLogPanel.customFont = customFont
+        splitLogPane.fullLogPanel.customFont = customFont
 
         var divider = ConfigManager.getItem(ConfigManager.ITEM_LAST_DIVIDER_LOCATION)
         if (!divider.isNullOrEmpty()) {
-            logSplitPane.lastDividerLocation = divider.toInt()
+            splitLogPane.lastDividerLocation = divider.toInt()
         }
 
         divider = ConfigManager.getItem(ConfigManager.ITEM_DIVIDER_LOCATION)
-        if (!divider.isNullOrEmpty() && logSplitPane.lastDividerLocation != -1) {
-            logSplitPane.dividerLocation = divider.toInt()
+        if (!divider.isNullOrEmpty() && splitLogPane.lastDividerLocation != -1) {
+            splitLogPane.dividerLocation = divider.toInt()
         }
 
         filteredTableModel.filterLevel = getLevelFromName(settingsMenu.logLevel)
@@ -1133,7 +1068,7 @@ class MainUI(title: String) : JFrame() {
             viewMenu.itemFull.state = true
         }
         if (!viewMenu.itemFull.state) {
-            windowedModeLogPanel(fullLogPanel)
+            windowedModeLogPanel(splitLogPane.fullLogPanel)
         }
 
         check = ConfigManager.getItem(ConfigManager.ITEM_SCROLL_BACK)
@@ -1199,7 +1134,7 @@ class MainUI(title: String) : JFrame() {
         }
 
         add(filterPanel, BorderLayout.NORTH)
-        add(logSplitPane, BorderLayout.CENTER)
+        add(splitLogPane, BorderLayout.CENTER)
         add(statusBar, BorderLayout.SOUTH)
 
         registerSearchStroke()
@@ -1318,11 +1253,11 @@ class MainUI(title: String) : JFrame() {
             }
 
             STRINGS.ui.adb, STRINGS.ui.cmd, "${STRINGS.ui.adb} ${STRINGS.ui.stop}", "${STRINGS.ui.cmd} ${STRINGS.ui.stop}" -> {
-                LogCmdManager.targetDevice.ifEmpty { NAME }
+                LogCmdManager.targetDevice.ifEmpty { STRINGS.ui.app }
             }
 
             else -> {
-                NAME
+                STRINGS.ui.app
             }
         }
     }
@@ -1434,10 +1369,10 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun windowedModeLogPanel(logPanel: LogPanel) {
-        if (logPanel.parent == logSplitPane) {
+        if (logPanel.parent == splitLogPane) {
             logPanel.isWindowedMode = true
             viewMenu.itemRotation.isEnabled = false
-            logSplitPane.remove(logPanel)
+            splitLogPane.remove(logPanel)
             if (viewMenu.itemFull.state) {
                 val logTableDialog = LogTableDialog(this@MainUI, logPanel)
                 logTableDialog.isVisible = true
@@ -1446,40 +1381,9 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun attachLogPanel(logPanel: LogPanel) {
-        if (logPanel.parent != logSplitPane) {
+        if (logPanel.parent != splitLogPane) {
             logPanel.isWindowedMode = false
             viewMenu.itemRotation.isEnabled = true
-            logSplitPane.remove(filteredLogPanel)
-            logSplitPane.remove(fullLogPanel)
-            when (rotationStatus) {
-                ROTATION_LEFT_RIGHT -> {
-                    logSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
-                    logSplitPane.add(filteredLogPanel)
-                    logSplitPane.add(fullLogPanel)
-                    logSplitPane.resizeWeight = SPLIT_WEIGHT
-                }
-
-                ROTATION_RIGHT_LEFT -> {
-                    logSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
-                    logSplitPane.add(fullLogPanel)
-                    logSplitPane.add(filteredLogPanel)
-                    logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-                }
-
-                ROTATION_TOP_BOTTOM -> {
-                    logSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
-                    logSplitPane.add(filteredLogPanel)
-                    logSplitPane.add(fullLogPanel)
-                    logSplitPane.resizeWeight = SPLIT_WEIGHT
-                }
-
-                ROTATION_BOTTOM_TOP -> {
-                    logSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
-                    logSplitPane.add(fullLogPanel)
-                    logSplitPane.add(filteredLogPanel)
-                    logSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-                }
-            }
         }
     }
 
@@ -1515,7 +1419,7 @@ class MainUI(title: String) : JFrame() {
         var device = deviceCombo.selectedItem!!.toString()
         device = device.substringBefore(":")
         if (LogCmdManager.prefix.isEmpty()) {
-            LogCmdManager.prefix = LogCmdManager.DEFAULT_PREFIX
+            LogCmdManager.prefix = STRINGS.ui.app
         }
 
         val filePath =
@@ -2488,7 +2392,7 @@ class MainUI(title: String) : JFrame() {
         for (idx in 0 until filteredTableModel.rowCount) {
             num = filteredTableModel.getValueAt(idx, 0).toString().trim().toInt()
             if (line <= num) {
-                filteredLogPanel.goToRow(idx, 0)
+                splitLogPane.filteredLogPanel.goToRow(idx, 0)
                 break
             }
         }
@@ -2497,7 +2401,7 @@ class MainUI(title: String) : JFrame() {
             for (idx in 0 until fullTableModel.rowCount) {
                 num = fullTableModel.getValueAt(idx, 0).toString().trim().toInt()
                 if (line <= num) {
-                    fullLogPanel.goToRow(idx, 0)
+                    splitLogPane.fullLogPanel.goToRow(idx, 0)
                     break
                 }
             }
@@ -2508,7 +2412,7 @@ class MainUI(title: String) : JFrame() {
         if (IsCreatingUI) {
             return
         }
-        selectedLine = filteredLogPanel.getSelectedLine()
+        selectedLine = splitLogPane.filteredLogPanel.getSelectedLine()
     }
 
     fun getMarkLine(): Int {
@@ -2847,9 +2751,9 @@ class MainUI(title: String) : JFrame() {
 
     fun showSearchResultTooltip(isNext: Boolean, result: String) {
         val targetPanel = if (searchPanel.isInternalTargetView) {
-            filteredLogPanel
+            splitLogPane.filteredLogPanel
         } else {
-            fullLogPanel
+            splitLogPane.fullLogPanel
         }
 
         targetPanel.toolTipText = result
@@ -2872,13 +2776,7 @@ class MainUI(title: String) : JFrame() {
 
         clearThread.start()
     }
-
-    inner class FocusHandler(isFilter: Boolean) : FocusAdapter() {
-        val isFilter = isFilter
-        override fun focusGained(e: FocusEvent) {
-            super.focusGained(e)
-            searchPanel.setTargetView(isFilter)
-        }
-    }
 }
+
+
 

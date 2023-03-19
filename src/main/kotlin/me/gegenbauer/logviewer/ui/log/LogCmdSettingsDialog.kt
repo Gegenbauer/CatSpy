@@ -5,6 +5,7 @@ import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.manager.LogCmdManager
 import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
 import java.awt.*
@@ -231,7 +232,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
             }
 
             if (prefix.isEmpty()) {
-                LogCmdManager.prefix = LogCmdManager.DEFAULT_PREFIX
+                LogCmdManager.prefix = STRINGS.ui.app
             } else {
                 LogCmdManager.prefix = prefix
             }
