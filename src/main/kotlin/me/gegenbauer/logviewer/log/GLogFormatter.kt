@@ -10,7 +10,7 @@ import java.util.logging.Formatter
 import java.util.logging.Level
 import java.util.logging.LogRecord
 
-class GLogFormatter(val tagFetcher: () -> String): Formatter() {
+class GLogFormatter: Formatter() {
     private val dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
         .withLocale(Locale.UK)
         .withZone(ZoneId.systemDefault())
@@ -29,7 +29,7 @@ class GLogFormatter(val tagFetcher: () -> String): Formatter() {
         builder.append(ANSI_RESET)
         builder.append(ANSI_BOLD_ON)
         builder.append(" [")
-        builder.append(tagFetcher.invoke())
+        builder.append(record.loggerName)
         builder.append("]")
         builder.append(ANSI_BOLD_OFF)
         builder.append(getMessageColor(record))

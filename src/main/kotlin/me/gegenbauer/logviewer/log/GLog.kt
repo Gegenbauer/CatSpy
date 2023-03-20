@@ -10,54 +10,54 @@
  */
 package me.gegenbauer.logviewer.log
 
+import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Level
 
-object GLog: ILogger {
-    val DEBUG = true
-
-    private val logger = if (DEBUG) {
-        GLogger(Level.ALL)
-    } else {
-        GLogger(Level.INFO)
-    }
+object GLog : ILogger {
+    var DEBUG = true
+        set(value) {
+            field = value
+            loggers.forEach { it.value.setLevel(level) }
+        }
+    private val loggers = ConcurrentHashMap<String, GLogger>()
+    private val level: Level
+        get() = if (DEBUG) {
+            Level.ALL
+        } else {
+            Level.INFO
+        }
 
     override fun v(tag: String, msg: String) {
-        logger.v(tag, msg)
-    }
-
-    override fun v(tag: String, msg: String, tr: Throwable) {
-        logger.v(tag, msg, tr)
+        getLogger(tag).v("", msg)
     }
 
     override fun d(tag: String, msg: String) {
-        logger.d(tag, msg)
-    }
-
-    override fun d(tag: String, msg: String, tr: Throwable) {
-        logger.d(tag, msg, tr)
+        getLogger(tag).d("", msg)
     }
 
     override fun i(tag: String, msg: String) {
-        logger.i(tag, msg)
-    }
-
-    override fun i(tag: String, msg: String, tr: Throwable) {
-        logger.i(tag, msg, tr)
+        getLogger(tag).i("", msg)
     }
 
     override fun w(tag: String, msg: String) {
-        logger.w(tag, msg)
+        getLogger(tag).w("", msg)
     }
 
     override fun w(tag: String, msg: String, tr: Throwable) {
-        logger.w(tag, msg, tr)
+        getLogger(tag).w("", msg, tr)
     }
 
     override fun e(tag: String, msg: String) {
-        logger.e(tag, msg)
+        getLogger(tag).e("", msg)
     }
 
     override fun e(tag: String, msg: String, tr: Throwable) {
-        logger.e(tag, msg, tr)
+        getLogger(tag).e("", msg, tr)
+    }
+
+    private fun getLogger(tag: String): GLogger {
+        return loggers.getOrPut(tag) {
+            GLogger(level, tag)
+        }
     }
 }
