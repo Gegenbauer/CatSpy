@@ -4,6 +4,7 @@ import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
+import me.gegenbauer.logviewer.utils.currentPlatform
 import java.io.IOException
 import java.util.*
 import javax.swing.JOptionPane
@@ -37,6 +38,32 @@ object LogCmdManager {
     var devices = ArrayList<String>()
     private val eventListeners = ArrayList<AdbEventListener>()
     private var mainUI: MainUI? = null
+
+    init {
+        val cmd = ConfigManager.getItem(ConfigManager.ITEM_ADB_CMD)
+        adbCmd = if (!cmd.isNullOrEmpty()) cmd else currentPlatform.adbCommand
+
+        val logSavePath = ConfigManager.getItem(ConfigManager.ITEM_ADB_LOG_SAVE_PATH)
+        if (logSavePath.isNullOrEmpty()) {
+            LogCmdManager.logSavePath = "."
+        } else {
+            LogCmdManager.logSavePath = logSavePath
+        }
+
+        val logCmd = ConfigManager.getItem(ConfigManager.ITEM_ADB_LOG_CMD)
+        if (logCmd.isNullOrEmpty()) {
+            LogCmdManager.logCmd = DEFAULT_LOGCAT
+        } else {
+            LogCmdManager.logCmd = logCmd
+        }
+
+        val prefix = ConfigManager.getItem(ConfigManager.ITEM_ADB_PREFIX)
+        if (prefix.isNullOrEmpty()) {
+            LogCmdManager.prefix = STRINGS.ui.app
+        } else {
+            LogCmdManager.prefix = prefix
+        }
+    }
 
     fun setMainUI(mainUI: MainUI) {
         this.mainUI = mainUI

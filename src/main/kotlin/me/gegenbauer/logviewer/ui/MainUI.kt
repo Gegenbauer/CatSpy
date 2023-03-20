@@ -132,20 +132,18 @@ class MainUI(title: String) : JFrame() {
     }
 
     private val helpMenu = HelpMenu()
+    private val menuBar = JMenuBar()
+    private val filterPanel = JPanel()
+    private val filterLeftPanel = JPanel()
 
-    private lateinit var menuBar: JMenuBar
-
-    private lateinit var filterPanel: JPanel
-    private lateinit var filterLeftPanel: JPanel
-
-    private lateinit var logToolBar: WrapablePanel
-    private lateinit var startBtn: JButton
-    private lateinit var retryAdbToggle: ColorToggleButton
-    private lateinit var stopBtn: JButton
-    private lateinit var pauseToggle: ColorToggleButton
-    private lateinit var clearViewsBtn: JButton
-    private lateinit var saveBtn: JButton
-    internal lateinit var searchPanel: SearchPanel
+    private val logToolBar = WrapablePanel()
+    private val startBtn = JButton(STRINGS.ui.start)
+    private val retryAdbToggle = ColorToggleButton(STRINGS.ui.retryAdb)
+    private val stopBtn = JButton(STRINGS.ui.stop)
+    private val pauseToggle = ColorToggleButton(STRINGS.ui.pause)
+    private val clearViewsBtn = JButton(STRINGS.ui.clearViews)
+    private val saveBtn = JButton(STRINGS.ui.save)
+    internal val searchPanel = SearchPanel()
 
     private lateinit var logPanel: JPanel
     private lateinit var showLogPanel: JPanel
@@ -260,39 +258,7 @@ class MainUI(title: String) : JFrame() {
 
         setLaF(ConfigManager.LaF)
 
-        val cmd = ConfigManager.getItem(ConfigManager.ITEM_ADB_CMD)
-        if (!cmd.isNullOrEmpty()) {
-            LogCmdManager.adbCmd = cmd
-        } else {
-            val os = System.getProperty("os.name")
-            GLog.d(TAG, "OS : $os")
-            if (os.lowercase().contains("windows")) {
-                LogCmdManager.adbCmd = "adb.exe"
-            } else {
-                LogCmdManager.adbCmd = "adb"
-            }
-        }
         LogCmdManager.addEventListener(AdbHandler())
-        val logSavePath = ConfigManager.getItem(ConfigManager.ITEM_ADB_LOG_SAVE_PATH)
-        if (logSavePath.isNullOrEmpty()) {
-            LogCmdManager.logSavePath = "."
-        } else {
-            LogCmdManager.logSavePath = logSavePath
-        }
-
-        val logCmd = ConfigManager.getItem(ConfigManager.ITEM_ADB_LOG_CMD)
-        if (logCmd.isNullOrEmpty()) {
-            LogCmdManager.logCmd = LogCmdManager.DEFAULT_LOGCAT
-        } else {
-            LogCmdManager.logCmd = logCmd
-        }
-
-        val prefix = ConfigManager.getItem(ConfigManager.ITEM_ADB_PREFIX)
-        if (prefix.isNullOrEmpty()) {
-            LogCmdManager.prefix = STRINGS.ui.app
-        } else {
-            LogCmdManager.prefix = prefix
-        }
 
         var prop = ConfigManager.getItem(ConfigManager.ITEM_FRAME_X)
         if (!prop.isNullOrEmpty()) {
@@ -477,7 +443,6 @@ class MainUI(title: String) : JFrame() {
     private fun createUI() {
         addComponentListener(componentHandler)
 
-        menuBar = JMenuBar()
         menuBar.add(fileMenu)
         menuBar.add(viewMenu)
         menuBar.add(settingsMenu)
@@ -526,46 +491,33 @@ class MainUI(title: String) : JFrame() {
             false
         }
 
-        filterPanel = JPanel()
-        filterLeftPanel = JPanel()
-
-        logToolBar = WrapablePanel()
         logToolBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         logToolBar.addMouseListener(mouseHandler)
 
-        searchPanel = SearchPanel()
-
         val btnMargin = Insets(2, 5, 2, 5)
-        startBtn = JButton(STRINGS.ui.start)
         startBtn.margin = btnMargin
         startBtn.toolTipText = STRINGS.toolTip.startBtn
         startBtn.icon = ImageIcon(getImageFile("start.png"))
         startBtn.addActionListener(actionHandler)
         startBtn.addMouseListener(mouseHandler)
-        retryAdbToggle = ColorToggleButton(STRINGS.ui.retryAdb)
         retryAdbToggle.toolTipText = STRINGS.toolTip.retryAdbToggle
         retryAdbToggle.margin = btnMargin
         retryAdbToggle.addItemListener(itemHandler)
 
-        pauseToggle = ColorToggleButton(STRINGS.ui.pause)
         pauseToggle.toolTipText = STRINGS.toolTip.pauseBtn
         pauseToggle.margin = btnMargin
         pauseToggle.addItemListener(itemHandler)
 
-
-        stopBtn = JButton(STRINGS.ui.stop)
         stopBtn.margin = btnMargin
         stopBtn.toolTipText = STRINGS.toolTip.stopBtn
         stopBtn.addActionListener(actionHandler)
         stopBtn.addMouseListener(mouseHandler)
-        clearViewsBtn = JButton(STRINGS.ui.clearViews)
         clearViewsBtn.margin = btnMargin
         clearViewsBtn.toolTipText = STRINGS.toolTip.clearBtn
         clearViewsBtn.icon = ImageIcon(getImageFile("clear.png"))
 
         clearViewsBtn.addActionListener(actionHandler)
         clearViewsBtn.addMouseListener(mouseHandler)
-        saveBtn = JButton(STRINGS.ui.save)
         saveBtn.margin = btnMargin
         saveBtn.toolTipText = STRINGS.toolTip.saveBtn
         saveBtn.addActionListener(actionHandler)

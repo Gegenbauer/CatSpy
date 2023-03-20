@@ -15,26 +15,10 @@ class GLogger(private val level: Level, tag: String) : ILogger {
         fileHandler.level = this@GLogger.level
     }
 
-    init {
-        kotlin.runCatching {
-            checkLogFile()
-        }.onFailure {
-            it.printStackTrace()
-        }
-    }
-
     fun setLevel(level: Level) {
         logger.level = level
         consoleHandler.level = level
         fileHandler.level = level
-    }
-
-    private fun checkLogFile() {
-        val file = File(logFilePath)
-        println("[checkLogFile] logFile: $logFilePath")
-        if (file.exists().not()) {
-            file.createNewFile()
-        }
     }
 
     override fun v(tag: String, msg: String) {

@@ -8,6 +8,8 @@ import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
 import me.gegenbauer.logviewer.ui.button.TableBarButton
 import me.gegenbauer.logviewer.ui.button.WrapablePanel
+import me.gegenbauer.logviewer.ui.popup.PopUpLogPanel
+import me.gegenbauer.logviewer.utils.currentPlatform
 import me.gegenbauer.logviewer.utils.getImageFile
 import java.awt.*
 import java.awt.datatransfer.DataFlavor
@@ -46,7 +48,7 @@ class LogPanel constructor(
     private val tableModelHandler = TableModelHandler()
     private val actionHandler = ActionHandler()
     private val bookmarkHandler = BookmarkHandler()
-    private val componentHandler = ComponenetHandler()
+    private val componentHandler = ComponentHandler()
 
     private var oldLogVPos = -1
     private var oldLogHPos = -1
@@ -584,13 +586,9 @@ class LogPanel constructor(
             }
 
             if (fileList.size > 0) {
-                val os = System.getProperty("os.name").lowercase(Locale.getDefault())
+                val os = currentPlatform
                 GLog.d(TAG, "os = $os, drop = ${info.dropAction}, source drop = ${info.sourceDropActions}, user drop = ${info.userDropAction}")
-                val action = if (os.contains("windows")) {
-                    info.dropAction
-                } else {
-                    info.sourceDropActions
-                }
+                val action = os.getFileDropAction(info)
 
                 var value = 1
                 if (action == COPY) {
@@ -638,53 +636,12 @@ class LogPanel constructor(
         }
     }
 
-    internal inner class ComponenetHandler : ComponentAdapter() {
+    internal inner class ComponentHandler : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent) {
             if (e != null) {
                 table.updateColumnWidth(e.component.width, scrollPane.verticalScrollBar.width)
             }
             super.componentResized(e)
-        }
-    }
-
-    internal inner class PopUpLogPanel : JPopupMenu() {
-        var reconnectItem = JMenuItem("Reconnect adb")
-        var startItem = JMenuItem("Start")
-        var stopItem = JMenuItem("Stop")
-        var clearItem = JMenuItem("Clear")
-        private val actionHandler = ActionHandler()
-
-        init {
-            reconnectItem.addActionListener(actionHandler)
-            add(reconnectItem)
-            startItem.addActionListener(actionHandler)
-            add(startItem)
-            stopItem.addActionListener(actionHandler)
-            add(stopItem)
-            clearItem.addActionListener(actionHandler)
-            add(clearItem)
-        }
-
-        internal inner class ActionHandler : ActionListener {
-            override fun actionPerformed(event: ActionEvent) {
-                when (event.source) {
-                    reconnectItem -> {
-                        mainUI.reconnectAdb()
-                    }
-
-                    startItem -> {
-                        mainUI.startAdbLog()
-                    }
-
-                    stopItem -> {
-                        mainUI.stopAdbLog()
-                    }
-
-                    clearItem -> {
-                        mainUI.clearAdbLog()
-                    }
-                }
-            }
         }
     }
 
@@ -696,7 +653,7 @@ class LogPanel constructor(
         private var popupMenu: JPopupMenu? = null
         override fun mouseReleased(event: MouseEvent) {
             if (SwingUtilities.isRightMouseButton(event)) {
-                popupMenu = PopUpLogPanel()
+                popupMenu = PopUpLogPanel(mainUI)
                 popupMenu?.show(event.component, event.x, event.y)
             } else {
                 popupMenu?.isVisible = false
