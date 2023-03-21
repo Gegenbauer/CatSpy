@@ -3,6 +3,8 @@ package me.gegenbauer.logviewer.utils
 import me.gegenbauer.logviewer.log.GLog
 import javax.swing.TransferHandler.TransferSupport
 
+val userDir: String = System.getProperty("user.dir")
+
 interface IPlatform {
     val adbCommand: String
         get() = "adb"

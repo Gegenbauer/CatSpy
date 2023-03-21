@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatDarkLaf
 import com.formdev.flatlaf.FlatLightLaf
 import com.github.weisj.darklaf.components.OverlayScrollPane
 import me.gegenbauer.logviewer.GoToDialog
+import me.gegenbauer.logviewer.configuration.UIConfigurationManager
 import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.*
@@ -119,8 +120,7 @@ class MainUI(title: String) : JFrame() {
             itemSearch.state = searchPanel.isVisible
         }
         onItemRotationClicked = {
-            ConfigManager.saveItem(ConfigManager.ITEM_ROTATION, splitLogPane.rotation.ordinal.toString())
-
+            UIConfigurationManager.ui.rotation = splitLogPane.rotation.ordinal
             splitLogPane.rotate()
         }
     }
@@ -235,6 +235,13 @@ class MainUI(title: String) : JFrame() {
     init {
         LogCmdManager.setMainUI(this)
 
+        if (UIConfigurationManager.ui.frameX != 0) frameX = UIConfigurationManager.ui.frameX
+        if (UIConfigurationManager.ui.frameY != 0) frameY = UIConfigurationManager.ui.frameY
+        if (UIConfigurationManager.ui.frameWidth != 0) frameWidth = UIConfigurationManager.ui.frameWidth
+        if (UIConfigurationManager.ui.frameHeight != 0) frameHeight = UIConfigurationManager.ui.frameHeight
+        if (UIConfigurationManager.ui.frameExtendedState != 0) frameExtendedState = UIConfigurationManager.ui.frameExtendedState
+        if (UIConfigurationManager.ui.rotation != 0) splitLogPane.rotate(getEnum(UIConfigurationManager.ui.rotation))
+
         configureWindow(title)
 
         val laf = ConfigManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
@@ -260,32 +267,7 @@ class MainUI(title: String) : JFrame() {
 
         LogCmdManager.addEventListener(AdbHandler())
 
-        var prop = ConfigManager.getItem(ConfigManager.ITEM_FRAME_X)
-        if (!prop.isNullOrEmpty()) {
-            frameX = prop.toInt()
-        }
-        prop = ConfigManager.getItem(ConfigManager.ITEM_FRAME_Y)
-        if (!prop.isNullOrEmpty()) {
-            frameY = prop.toInt()
-        }
-        prop = ConfigManager.getItem(ConfigManager.ITEM_FRAME_WIDTH)
-        if (!prop.isNullOrEmpty()) {
-            frameWidth = prop.toInt()
-        }
-        prop = ConfigManager.getItem(ConfigManager.ITEM_FRAME_HEIGHT)
-        if (!prop.isNullOrEmpty()) {
-            frameHeight = prop.toInt()
-        }
-        prop = ConfigManager.getItem(ConfigManager.ITEM_FRAME_EXTENDED_STATE)
-        if (!prop.isNullOrEmpty()) {
-            frameExtendedState = prop.toInt()
-        }
-        prop = ConfigManager.getItem(ConfigManager.ITEM_ROTATION)
-        if (!prop.isNullOrEmpty()) {
-            splitLogPane.rotate(getEnum(prop.toInt()))
-        }
-
-        prop = ConfigManager.getItem(ConfigManager.ITEM_SHOW_LOG_STYLE)
+        var prop = ConfigManager.getItem(ConfigManager.ITEM_SHOW_LOG_STYLE)
         showLogComboStyle = if (!prop.isNullOrEmpty()) {
             getEnum(prop.toInt())
         } else {
@@ -349,31 +331,15 @@ class MainUI(title: String) : JFrame() {
     private fun saveConfigOnDestroy() {
         ConfigManager.loadConfig()
 
-        try {
-            ConfigManager.setItem(ConfigManager.ITEM_FRAME_X, location.x.toString())
-        } catch (e: NullPointerException) {
-            ConfigManager.setItem(ConfigManager.ITEM_FRAME_X, "0")
-        }
+        UIConfigurationManager.ui.frameX = location.x
+        UIConfigurationManager.ui.frameY = location.y
+        UIConfigurationManager.ui.frameWidth = size.width
+        UIConfigurationManager.ui.frameHeight = size.height
+        UIConfigurationManager.ui.frameExtendedState = extendedState
+        UIConfigurationManager.ui.lastDividerLocation = splitLogPane.lastDividerLocation
+        UIConfigurationManager.ui.dividerLocation = splitLogPane.dividerLocation
 
-        try {
-            ConfigManager.setItem(ConfigManager.ITEM_FRAME_Y, location.y.toString())
-        } catch (e: NullPointerException) {
-            ConfigManager.setItem(ConfigManager.ITEM_FRAME_Y, "0")
-        }
-
-        try {
-            ConfigManager.setItem(ConfigManager.ITEM_FRAME_WIDTH, size.width.toString())
-        } catch (e: NullPointerException) {
-            ConfigManager.setItem(ConfigManager.ITEM_FRAME_WIDTH, "1280")
-        }
-
-        try {
-            ConfigManager.setItem(ConfigManager.ITEM_FRAME_HEIGHT, size.height.toString())
-        } catch (e: NullPointerException) {
-            ConfigManager.setItem(ConfigManager.ITEM_FRAME_HEIGHT, "720")
-        }
-
-        ConfigManager.setItem(ConfigManager.ITEM_FRAME_EXTENDED_STATE, extendedState.toString())
+        UIConfigurationManager.saveUI()
 
         var nCount = showLogCombo.itemCount
         if (nCount > ConfigManager.COUNT_SHOW_LOG) {
@@ -430,11 +396,6 @@ class MainUI(title: String) : JFrame() {
             ConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, logCmdCombo.editor.item.toString())
         } catch (e: NullPointerException) {
             ConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, LogCmdManager.DEFAULT_LOGCAT)
-        }
-
-        ConfigManager.setItem(ConfigManager.ITEM_DIVIDER_LOCATION, splitLogPane.dividerLocation.toString())
-        if (splitLogPane.lastDividerLocation != -1) {
-            ConfigManager.setItem(ConfigManager.ITEM_LAST_DIVIDER_LOCATION, splitLogPane.lastDividerLocation.toString())
         }
 
         ConfigManager.saveConfig()
@@ -970,15 +931,8 @@ class MainUI(title: String) : JFrame() {
         splitLogPane.filteredLogPanel.customFont = customFont
         splitLogPane.fullLogPanel.customFont = customFont
 
-        var divider = ConfigManager.getItem(ConfigManager.ITEM_LAST_DIVIDER_LOCATION)
-        if (!divider.isNullOrEmpty()) {
-            splitLogPane.lastDividerLocation = divider.toInt()
-        }
-
-        divider = ConfigManager.getItem(ConfigManager.ITEM_DIVIDER_LOCATION)
-        if (!divider.isNullOrEmpty() && splitLogPane.lastDividerLocation != -1) {
-            splitLogPane.dividerLocation = divider.toInt()
-        }
+        if (UIConfigurationManager.ui.lastDividerLocation > 0) splitLogPane.lastDividerLocation = UIConfigurationManager.ui.lastDividerLocation
+        if (UIConfigurationManager.ui.dividerLocation > 0) splitLogPane.dividerLocation = UIConfigurationManager.ui.dividerLocation
 
         filteredTableModel.filterLevel = getLevelFromName(settingsMenu.logLevel)
 

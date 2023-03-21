@@ -15,14 +15,6 @@ object ConfigManager {
     private const val CONFIG_FILE = "log_viewer.xml"
     val APP_HOME: String? = System.getenv("LOG_VIEWER_HOME")
     const val ITEM_CONFIG_VERSION = "CONFIG_VERSION"
-    const val ITEM_FRAME_X = "FRAME_X"
-    const val ITEM_FRAME_Y = "FRAME_Y"
-    const val ITEM_FRAME_WIDTH = "FRAME_WIDTH"
-    const val ITEM_FRAME_HEIGHT = "FRAME_HEIGHT"
-    const val ITEM_FRAME_EXTENDED_STATE = "FRAME_EXTENDED_STATE"
-    const val ITEM_ROTATION = "ROTATION"
-    const val ITEM_DIVIDER_LOCATION = "DIVIDER_LOCATION"
-    const val ITEM_LAST_DIVIDER_LOCATION = "LAST_DIVIDER_LOCATION"
 
     const val ITEM_LANG = "LANG"
 

@@ -9,6 +9,7 @@ import com.google.gson.stream.JsonReader
 import me.gegenbauer.logviewer.utils.appendPath
 import me.gegenbauer.logviewer.utils.loadResource
 import me.gegenbauer.logviewer.utils.toArgb
+import me.gegenbauer.logviewer.utils.userDir
 import java.io.File
 import java.util.*
 
@@ -16,7 +17,6 @@ object ThemeManager {
     private const val DEFAULT_THEME_DIR = "themes"
     private const val DEFAULT_THEME_FILENAME = "default.json"
     private const val THEME_FILENAME = "global.json"
-    private val userDir = System.getProperty("user.dir")
     private val themeFile = File(userDir, THEME_FILENAME)
     private val settingsConfiguration: SettingsConfiguration by lazy { loadThemeSettings() }
 
