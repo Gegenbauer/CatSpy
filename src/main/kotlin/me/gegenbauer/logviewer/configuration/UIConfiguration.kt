@@ -10,4 +10,8 @@ data class UI(
     var rotation: Int = 0,
     var dividerLocation: Int = 0,
     var lastDividerLocation: Int = 0,
+    val logFilterHistory: MutableList<String> = mutableListOf(),
+    val tagFilterHistory: MutableList<String> = mutableListOf(),
+    val highlightHistory: MutableList<String> = mutableListOf(),
+    val searchHistory: MutableList<String> = mutableListOf(),
 )
