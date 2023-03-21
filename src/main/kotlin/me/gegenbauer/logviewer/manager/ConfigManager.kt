@@ -105,40 +105,22 @@ object ConfigManager {
     }
 
     fun loadConfig() {
-        var fileInput: FileInputStream? = null
-
-        try {
-            fileInput = FileInputStream(configPath)
-            properties.loadFromXML(fileInput)
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-            setDefaultConfig()
-        } finally {
-            if (null != fileInput) {
-                try {
-                    fileInput.close()
-                } catch (ex: IOException) {
-                    ex.printStackTrace()
-                }
+        kotlin.runCatching {
+            FileInputStream(configPath).use {
+                properties.loadFromXML(it)
             }
+        }.onFailure {
+            GLog.e(TAG, "[loadConfig] ${it.message}")
         }
     }
 
     fun saveConfig() {
-        var fileOutput: FileOutputStream? = null
-        try {
-            fileOutput = FileOutputStream(configPath)
-            properties.storeToXML(fileOutput, "")
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        } finally {
-            if (null != fileOutput) {
-                try {
-                    fileOutput.close()
-                } catch (ex: IOException) {
-                    ex.printStackTrace()
-                }
+        kotlin.runCatching {
+            FileOutputStream(configPath).use {
+                properties.storeToXML(it, "")
             }
+        }.onFailure {
+            GLog.e(TAG, "[loadConfig] ${it.message}")
         }
     }
 

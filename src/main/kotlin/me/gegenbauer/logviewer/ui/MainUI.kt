@@ -215,12 +215,6 @@ class MainUI(title: String) : JFrame() {
     lateinit var filtersManager: FiltersManager
     lateinit var cmdManager: CmdManager
 
-    private var frameX = 0
-    private var frameY = 0
-    private var frameWidth = 1280
-    private var frameHeight = 720
-    private var frameExtendedState = Frame.MAXIMIZED_BOTH
-
     var customFont: Font = Font(DEFAULT_FONT_NAME, Font.PLAIN, 12)
         set(value) {
             field = value
@@ -235,14 +229,9 @@ class MainUI(title: String) : JFrame() {
     init {
         LogCmdManager.setMainUI(this)
 
-        if (UIConfigurationManager.ui.frameX != 0) frameX = UIConfigurationManager.ui.frameX
-        if (UIConfigurationManager.ui.frameY != 0) frameY = UIConfigurationManager.ui.frameY
-        if (UIConfigurationManager.ui.frameWidth != 0) frameWidth = UIConfigurationManager.ui.frameWidth
-        if (UIConfigurationManager.ui.frameHeight != 0) frameHeight = UIConfigurationManager.ui.frameHeight
-        if (UIConfigurationManager.ui.frameExtendedState != 0) frameExtendedState = UIConfigurationManager.ui.frameExtendedState
-        if (UIConfigurationManager.ui.rotation != 0) splitLogPane.rotate(getEnum(UIConfigurationManager.ui.rotation))
-
         configureWindow(title)
+
+        if (UIConfigurationManager.ui.rotation != 0) splitLogPane.rotate(getEnum(UIConfigurationManager.ui.rotation))
 
         val laf = ConfigManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
 
@@ -311,13 +300,30 @@ class MainUI(title: String) : JFrame() {
 
     private fun configureWindow(title: String) {
         setTitle(title)
-
         iconImage = ImageIcon(getImageFile("logo.png")).image
-
         defaultCloseOperation = EXIT_ON_CLOSE
-        setLocation(frameX, frameY)
-        setSize(frameWidth, frameHeight)
+
+        val frameX = UIConfigurationManager.ui.frameX
+        val frameY = UIConfigurationManager.ui.frameY
+        val frameWidth = UIConfigurationManager.ui.frameWidth
+        val frameHeight = UIConfigurationManager.ui.frameHeight
+        val frameExtendedState = UIConfigurationManager.ui.frameExtendedState
+        if (frameX != 0 && frameY != 0) {
+            setLocation(frameX, frameY)
+        }
+        if (frameWidth != 0 && frameHeight != 0) {
+            setSize(frameWidth, frameHeight)
+        }
         extendedState = frameExtendedState
+    }
+
+    override fun setSize(width: Int, height: Int) {
+        super.setSize(width, height)
+
+    }
+
+    override fun setSize(d: Dimension?) {
+        super.setSize(d)
     }
 
     private fun exit() {
@@ -931,8 +937,10 @@ class MainUI(title: String) : JFrame() {
         splitLogPane.filteredLogPanel.customFont = customFont
         splitLogPane.fullLogPanel.customFont = customFont
 
-        if (UIConfigurationManager.ui.lastDividerLocation > 0) splitLogPane.lastDividerLocation = UIConfigurationManager.ui.lastDividerLocation
-        if (UIConfigurationManager.ui.dividerLocation > 0) splitLogPane.dividerLocation = UIConfigurationManager.ui.dividerLocation
+        if (UIConfigurationManager.ui.lastDividerLocation > 0) splitLogPane.lastDividerLocation =
+            UIConfigurationManager.ui.lastDividerLocation
+        if (UIConfigurationManager.ui.dividerLocation > 0) splitLogPane.dividerLocation =
+            UIConfigurationManager.ui.dividerLocation
 
         filteredTableModel.filterLevel = getLevelFromName(settingsMenu.logLevel)
 
