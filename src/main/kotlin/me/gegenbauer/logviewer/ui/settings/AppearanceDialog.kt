@@ -1,6 +1,7 @@
 package me.gegenbauer.logviewer.ui.settings
 
 import me.gegenbauer.logviewer.Utils
+import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
@@ -145,12 +146,9 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, STRINGS.ui.
         fun saveConfiguration(laFGroup: ButtonGroup, parent: MainUI, fontSlider: JSlider) {
             for (item in laFGroup.elements) {
                 if (item.isSelected) {
-                    ConfigManager.saveItem(ConfigManager.ITEM_LOOK_AND_FEEL, item.text)
-                    ConfigManager.saveItem(ConfigManager.ITEM_UI_FONT_SIZE, fontSlider.value.toString())
-                    ConfigManager.saveItem(
-                        ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE,
-                        parent.splitLogPane.dividerSize.toString()
-                    )
+                    UIConfManager.uiConf.laf = item.text
+                    UIConfManager.uiConf.uiFontScale = fontSlider.value
+                    UIConfManager.uiConf.dividerSize = parent.splitLogPane.dividerSize
                     break
                 }
             }

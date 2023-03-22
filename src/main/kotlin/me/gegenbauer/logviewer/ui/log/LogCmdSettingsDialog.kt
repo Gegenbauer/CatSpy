@@ -1,6 +1,7 @@
 package me.gegenbauer.logviewer.ui.log
 
 import me.gegenbauer.logviewer.Utils
+import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.manager.LogCmdManager
@@ -242,17 +243,13 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
             }
             ConfigManager.saveConfig()
 
-            val keys = arrayOf(
-                ConfigManager.ITEM_ADB_CMD,
-                ConfigManager.ITEM_ADB_LOG_SAVE_PATH,
-                ConfigManager.ITEM_ADB_PREFIX,
-                ConfigManager.ITEM_ADB_LOG_CMD
-            )
-            val values = arrayOf(LogCmdManager.adbCmd, LogCmdManager.logSavePath, LogCmdManager.prefix, LogCmdManager.logCmd)
 
-            ConfigManager.saveItems(keys, values)
+            UIConfManager.uiConf.adbLogSavePath = LogCmdManager.logSavePath
+            UIConfManager.uiConf.adbLogCommand = LogCmdManager.logCmd
+            UIConfManager.uiConf.adbCommand = LogCmdManager.adbCmd
+            UIConfManager.uiConf.adbPrefix = LogCmdManager.prefix
             mainUI.updateLogCmdCombo(true)
-
+            UIConfManager.saveUI()
             dispose()
         } else if (e.source == cancelBtn) {
             dispose()

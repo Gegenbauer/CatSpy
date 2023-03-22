@@ -4,7 +4,7 @@ import com.formdev.flatlaf.FlatDarkLaf
 import com.formdev.flatlaf.FlatLightLaf
 import com.github.weisj.darklaf.components.OverlayScrollPane
 import me.gegenbauer.logviewer.GoToDialog
-import me.gegenbauer.logviewer.configuration.UIConfigurationManager
+import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.*
@@ -42,6 +42,7 @@ import javax.swing.plaf.ColorUIResource
 import javax.swing.plaf.FontUIResource
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.text.JTextComponent
+import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 
@@ -113,21 +114,21 @@ class MainUI(title: String) : JFrame() {
                 windowedModeLogPanel(splitLogPane.fullLogPanel)
             }
 
-            ConfigManager.saveItem(ConfigManager.ITEM_VIEW_FULL, itemFull.state.toString())
+            UIConfManager.uiConf.logFullViewEnabled = itemFull.state
         }
         onItemSearchClicked = {
             searchPanel.isVisible = !searchPanel.isVisible
             itemSearch.state = searchPanel.isVisible
         }
         onItemRotationClicked = {
-            UIConfigurationManager.ui.rotation = splitLogPane.rotation.ordinal
+            UIConfManager.uiConf.rotation = splitLogPane.rotation.ordinal
             splitLogPane.rotate()
         }
     }
     private val settingsMenu = SettingsMenu().apply {
         onLogLevelChangedListener = {
             filteredTableModel.filterLevel = it
-            ConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, it.logName)
+            UIConfManager.uiConf.logLevel = it.logName
         }
     }
 
@@ -155,7 +156,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var showLogTogglePanel: JPanel
 
     private lateinit var boldLogPanel: JPanel
-    private lateinit var boldLogCombo: FilterComboBox
+    private lateinit var hightlightLogCombo: FilterComboBox
     var boldLogComboStyle: FilterComboBox.Mode
     private lateinit var boldLogToggle: ColorToggleButton
     private lateinit var boldLogTogglePanel: JPanel
@@ -231,20 +232,17 @@ class MainUI(title: String) : JFrame() {
 
         configureWindow(title)
 
-        if (UIConfigurationManager.ui.rotation != 0) splitLogPane.rotate(getEnum(UIConfigurationManager.ui.rotation))
+        if (UIConfManager.uiConf.rotation != 0) splitLogPane.rotate(getEnum(UIConfManager.uiConf.rotation))
 
-        val laf = ConfigManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
+        val laf = UIConfManager.uiConf.laf
 
-        if (laf == null) {
+        if (laf.isEmpty()) {
             ConfigManager.LaF = FLAT_LIGHT_LAF
         } else {
             ConfigManager.LaF = laf
         }
 
-        val uiFontSize = ConfigManager.getItem(ConfigManager.ITEM_UI_FONT_SIZE)
-        if (!uiFontSize.isNullOrEmpty()) {
-            uiFontPercent = uiFontSize.toInt()
-        }
+        if (UIConfManager.uiConf.uiFontScale > 0) uiFontPercent = UIConfManager.uiConf.uiFontScale
 
         if (ConfigManager.LaF == FLAT_LIGHT_LAF || ConfigManager.LaF == FLAT_DARK_LAF) {
             System.setProperty("flatlaf.uiScale", "$uiFontPercent%")
@@ -303,11 +301,11 @@ class MainUI(title: String) : JFrame() {
         iconImage = ImageIcon(getImageFile("logo.png")).image
         defaultCloseOperation = EXIT_ON_CLOSE
 
-        val frameX = UIConfigurationManager.ui.frameX
-        val frameY = UIConfigurationManager.ui.frameY
-        val frameWidth = UIConfigurationManager.ui.frameWidth
-        val frameHeight = UIConfigurationManager.ui.frameHeight
-        val frameExtendedState = UIConfigurationManager.ui.frameExtendedState
+        val frameX = UIConfManager.uiConf.frameX
+        val frameY = UIConfManager.uiConf.frameY
+        val frameWidth = UIConfManager.uiConf.frameWidth
+        val frameHeight = UIConfManager.uiConf.frameHeight
+        val frameExtendedState = UIConfManager.uiConf.frameExtendedState
         if (frameX != 0 && frameY != 0) {
             setLocation(frameX, frameY)
         }
@@ -337,72 +335,24 @@ class MainUI(title: String) : JFrame() {
     private fun saveConfigOnDestroy() {
         ConfigManager.loadConfig()
 
-        UIConfigurationManager.ui.frameX = location.x
-        UIConfigurationManager.ui.frameY = location.y
-        UIConfigurationManager.ui.frameWidth = size.width
-        UIConfigurationManager.ui.frameHeight = size.height
-        UIConfigurationManager.ui.frameExtendedState = extendedState
-        UIConfigurationManager.ui.lastDividerLocation = splitLogPane.lastDividerLocation
-        UIConfigurationManager.ui.dividerLocation = splitLogPane.dividerLocation
-
-        UIConfigurationManager.saveUI()
-
-        var nCount = showLogCombo.itemCount
-        if (nCount > ConfigManager.COUNT_SHOW_LOG) {
-            nCount = ConfigManager.COUNT_SHOW_LOG
-        }
-        for (i in 0 until nCount) {
-            ConfigManager.setItem(ConfigManager.ITEM_SHOW_LOG + i, showLogCombo.getItemAt(i).toString())
-        }
-
-        for (i in nCount until ConfigManager.COUNT_SHOW_LOG) {
-            ConfigManager.removeConfigItem(ConfigManager.ITEM_SHOW_LOG + i)
-        }
-
-        nCount = showTagCombo.itemCount
-        if (nCount > ConfigManager.COUNT_SHOW_TAG) {
-            nCount = ConfigManager.COUNT_SHOW_TAG
-        }
-        for (i in 0 until nCount) {
-            ConfigManager.setItem(ConfigManager.ITEM_SHOW_TAG + i, showTagCombo.getItemAt(i).toString())
-        }
-        for (i in nCount until ConfigManager.COUNT_SHOW_TAG) {
-            ConfigManager.removeConfigItem(ConfigManager.ITEM_SHOW_TAG + i)
-        }
-
-        nCount = boldLogCombo.itemCount
-        if (nCount > ConfigManager.COUNT_HIGHLIGHT_LOG) {
-            nCount = ConfigManager.COUNT_HIGHLIGHT_LOG
-        }
-        for (i in 0 until nCount) {
-            ConfigManager.setItem(ConfigManager.ITEM_HIGHLIGHT_LOG + i, boldLogCombo.getItemAt(i).toString())
-        }
-        for (i in nCount until ConfigManager.COUNT_HIGHLIGHT_LOG) {
-            ConfigManager.removeConfigItem(ConfigManager.ITEM_HIGHLIGHT_LOG + i)
-        }
-
-        nCount = searchPanel.searchCombo.itemCount
-        if (nCount > ConfigManager.COUNT_SEARCH_LOG) {
-            nCount = ConfigManager.COUNT_SEARCH_LOG
-        }
-        for (i in 0 until nCount) {
-            ConfigManager.setItem(ConfigManager.ITEM_SEARCH_LOG + i, searchPanel.searchCombo.getItemAt(i).toString())
-        }
-        for (i in nCount until ConfigManager.COUNT_SEARCH_LOG) {
-            ConfigManager.removeConfigItem(ConfigManager.ITEM_SEARCH_LOG + i)
-        }
-
-        try {
-            ConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, LogCmdManager.targetDevice)
-        } catch (e: NullPointerException) {
-            ConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, "0.0.0.0")
-        }
-
-        try {
-            ConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, logCmdCombo.editor.item.toString())
-        } catch (e: NullPointerException) {
-            ConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, LogCmdManager.DEFAULT_LOGCAT)
-        }
+        UIConfManager.uiConf.frameX = location.x
+        UIConfManager.uiConf.frameY = location.y
+        UIConfManager.uiConf.frameWidth = size.width
+        UIConfManager.uiConf.frameHeight = size.height
+        UIConfManager.uiConf.frameExtendedState = extendedState
+        UIConfManager.uiConf.lastDividerLocation = splitLogPane.lastDividerLocation
+        UIConfManager.uiConf.dividerLocation = splitLogPane.dividerLocation
+        UIConfManager.uiConf.logFilterHistory.clear()
+        UIConfManager.uiConf.logFilterHistory.addAll(showLogCombo.getAllItems())
+        UIConfManager.uiConf.tagFilterHistory.clear()
+        UIConfManager.uiConf.tagFilterHistory.addAll(showTagCombo.getAllItems())
+        UIConfManager.uiConf.highlightHistory.clear()
+        UIConfManager.uiConf.highlightHistory.addAll(hightlightLogCombo.getAllItems())
+        UIConfManager.uiConf.searchHistory.clear()
+        UIConfManager.uiConf.searchHistory.addAll(searchPanel.searchCombo.getAllItems())
+        UIConfManager.uiConf.adbDevice = LogCmdManager.targetDevice
+        UIConfManager.uiConf.adbLogCommand = logCmdCombo.editor.item.toString()
+        UIConfManager.saveUI()
 
         ConfigManager.saveConfig()
     }
@@ -509,14 +459,14 @@ class MainUI(title: String) : JFrame() {
         showLogToggle.addItemListener(itemHandler)
 
         boldLogPanel = JPanel()
-        boldLogCombo = FilterComboBox(boldLogComboStyle, false)
-        boldLogCombo.toolTipText = STRINGS.toolTip.boldCombo
-        boldLogCombo.enabledTfTooltip = false
-        boldLogCombo.isEditable = true
-        boldLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
-        boldLogCombo.editor.editorComponent.addKeyListener(keyHandler)
-        boldLogCombo.addItemListener(itemHandler)
-        boldLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
+        hightlightLogCombo = FilterComboBox(boldLogComboStyle, false)
+        hightlightLogCombo.toolTipText = STRINGS.toolTip.boldCombo
+        hightlightLogCombo.enabledTfTooltip = false
+        hightlightLogCombo.isEditable = true
+        hightlightLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
+        hightlightLogCombo.editor.editorComponent.addKeyListener(keyHandler)
+        hightlightLogCombo.addItemListener(itemHandler)
+        hightlightLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
         boldLogToggle = ColorToggleButton(STRINGS.ui.bold)
         boldLogToggle.toolTipText = STRINGS.toolTip.boldToggle
         boldLogToggle.margin = Insets(0, 0, 0, 0)
@@ -622,10 +572,10 @@ class MainUI(title: String) : JFrame() {
         boldLogPanel.layout = BorderLayout()
         boldLogPanel.add(boldLogTogglePanel, BorderLayout.WEST)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            boldLogCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+            hightlightLogCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
         }
-        boldLogCombo.preferredSize = Dimension(170, boldLogCombo.preferredSize.height)
-        boldLogPanel.add(boldLogCombo, BorderLayout.CENTER)
+        hightlightLogCombo.preferredSize = Dimension(170, hightlightLogCombo.preferredSize.height)
+        boldLogPanel.add(hightlightLogCombo, BorderLayout.CENTER)
 
         showTagPanel.layout = BorderLayout()
         showTagPanel.add(showTagTogglePanel, BorderLayout.WEST)
@@ -755,16 +705,14 @@ class MainUI(title: String) : JFrame() {
 
         layout = BorderLayout()
 
-        splitLogPane.fullLogPanel.updateTableBar(ConfigManager.loadCmd())
-        splitLogPane.filteredLogPanel.updateTableBar(ConfigManager.loadFilters())
+        splitLogPane.fullLogPanel.updateTableBar(ArrayList(UIConfManager.uiConf.commands))
+        splitLogPane.filteredLogPanel.updateTableBar(ArrayList(UIConfManager.uiConf.filters))
 
-        filtersManager = FiltersManager(this, splitLogPane.filteredLogPanel)
+        filtersManager = FiltersManager(this, splitLogPane.filteredLogPanel
+        )
         cmdManager = CmdManager(this, splitLogPane.fullLogPanel)
 
-        val dividerSize = ConfigManager.getItem(ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE)
-        if (!dividerSize.isNullOrEmpty()) {
-            splitLogPane.dividerSize = dividerSize.toInt()
-        }
+        if (UIConfManager.uiConf.dividerSize > 0) splitLogPane.dividerSize = UIConfManager.uiConf.dividerSize
 
         splitLogPane.isOneTouchExpandable = false
 
@@ -811,106 +759,48 @@ class MainUI(title: String) : JFrame() {
         statusBar.add(statusTF, BorderLayout.CENTER)
         statusBar.add(followPanel, BorderLayout.EAST)
 
-        var item: String?
-        for (i in 0 until ConfigManager.COUNT_SHOW_LOG) {
-            item = ConfigManager.getItem(ConfigManager.ITEM_SHOW_LOG + i)
-            if (item == null) {
-                break
-            }
-
-            if (!showLogCombo.isExistItem(item)) {
-                showLogCombo.addItem(item)
-            }
-        }
-
-        showLogCombo.updateTooltip()
-
+        showLogCombo.addAllItems(UIConfManager.uiConf.logFilterHistory)
         if (showLogCombo.itemCount > 0) {
             showLogCombo.selectedIndex = 0
         }
+        showLogCombo.updateTooltip()
 
-        var check = ConfigManager.getItem(ConfigManager.ITEM_SHOW_LOG_CHECK)
-        if (!check.isNullOrEmpty()) {
-            showLogToggle.isSelected = check.toBoolean()
-        } else {
-            showLogToggle.isSelected = true
+        showLogToggle.isSelected = UIConfManager.uiConf.logFilterEnabled
+        showLogCombo.isEnabled = UIConfManager.uiConf.logFilterEnabled
+
+        showTagCombo.addAllItems(UIConfManager.uiConf.tagFilterHistory)
+        if (showTagCombo.itemCount > 0) {
+            showTagCombo.selectedIndex = 0
         }
-        showLogCombo.isEnabled = showLogToggle.isSelected
-
-        for (i in 0 until ConfigManager.COUNT_SHOW_TAG) {
-            item = ConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG + i)
-            if (item == null) {
-                break
-            }
-            showTagCombo.insertItemAt(item, i)
-            if (i == 0) {
-                showTagCombo.selectedIndex = 0
-            }
-        }
-
         showTagCombo.updateTooltip()
 
-        check = ConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG_CHECK)
-        if (!check.isNullOrEmpty()) {
-            showTagToggle.isSelected = check.toBoolean()
-        } else {
-            showTagToggle.isSelected = true
+        showTagToggle.isSelected = UIConfManager.uiConf.tagFilterEnabled
+        showTagCombo.setEnabledFilter(UIConfManager.uiConf.tagFilterEnabled)
+
+        showPidToggle.isSelected = UIConfManager.uiConf.pidFilterEnabled
+        showPidCombo.setEnabledFilter(UIConfManager.uiConf.pidFilterEnabled)
+
+        showTidToggle.isSelected = UIConfManager.uiConf.tidFilterEnabled
+        showTidCombo.setEnabledFilter(UIConfManager.uiConf.tidFilterEnabled)
+
+        hightlightLogCombo.addAllItems(UIConfManager.uiConf.highlightHistory)
+        if (hightlightLogCombo.itemCount > 0) {
+            hightlightLogCombo.selectedIndex = 0
         }
-        showTagCombo.setEnabledFilter(showTagToggle.isSelected)
+        hightlightLogCombo.updateTooltip()
 
-        check = ConfigManager.getItem(ConfigManager.ITEM_SHOW_PID_CHECK)
-        if (!check.isNullOrEmpty()) {
-            showPidToggle.isSelected = check.toBoolean()
-        } else {
-            showPidToggle.isSelected = true
+        boldLogToggle.isSelected = UIConfManager.uiConf.highlightEnabled
+        hightlightLogCombo.setEnabledFilter(UIConfManager.uiConf.highlightEnabled)
+
+        searchPanel.searchCombo.addAllItems(UIConfManager.uiConf.searchHistory)
+        if (searchPanel.searchCombo.itemCount > 0) {
+            searchPanel.searchCombo.selectedIndex = 0
         }
-        showPidCombo.setEnabledFilter(showPidToggle.isSelected)
-
-        check = ConfigManager.getItem(ConfigManager.ITEM_SHOW_TID_CHECK)
-        if (!check.isNullOrEmpty()) {
-            showTidToggle.isSelected = check.toBoolean()
-        } else {
-            showTidToggle.isSelected = true
-        }
-        showTidCombo.setEnabledFilter(showTidToggle.isSelected)
-
-        for (i in 0 until ConfigManager.COUNT_HIGHLIGHT_LOG) {
-            item = ConfigManager.getItem(ConfigManager.ITEM_HIGHLIGHT_LOG + i)
-            if (item == null) {
-                break
-            }
-            boldLogCombo.insertItemAt(item, i)
-            if (i == 0) {
-                boldLogCombo.selectedIndex = 0
-            }
-        }
-
-        boldLogCombo.updateTooltip()
-
-        check = ConfigManager.getItem(ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK)
-        if (!check.isNullOrEmpty()) {
-            boldLogToggle.isSelected = check.toBoolean()
-        } else {
-            boldLogToggle.isSelected = true
-        }
-        boldLogCombo.setEnabledFilter(boldLogToggle.isSelected)
-
-        for (i in 0 until ConfigManager.COUNT_SEARCH_LOG) {
-            item = ConfigManager.getItem(ConfigManager.ITEM_SEARCH_LOG + i)
-            if (item == null) {
-                break
-            }
-            searchPanel.searchCombo.insertItemAt(item, i)
-            if (i == 0) {
-                searchPanel.searchCombo.selectedIndex = 0
-            }
-        }
-
         searchPanel.searchCombo.updateTooltip()
 
         updateLogCmdCombo(true)
 
-        val targetDevice = ConfigManager.getItem(ConfigManager.ITEM_ADB_DEVICE)
+        val targetDevice = UIConfManager.uiConf.adbDevice
         deviceCombo.insertItemAt(targetDevice, 0)
         deviceCombo.selectedIndex = 0
 
@@ -922,25 +812,18 @@ class MainUI(title: String) : JFrame() {
             setDeviceComboColor(false)
         }
 
-        var fontName = ConfigManager.getItem(ConfigManager.ITEM_FONT_NAME)
-        if (fontName.isNullOrEmpty()) {
-            fontName = DEFAULT_FONT_NAME
-        }
+        val fontName = UIConfManager.uiConf.logFontName.ifEmpty { DEFAULT_FONT_NAME }
 
-        var fontSize = 12
-        check = ConfigManager.getItem(ConfigManager.ITEM_FONT_SIZE)
-        if (!check.isNullOrEmpty()) {
-            fontSize = check.toInt()
-        }
+        val fontSize = UIConfManager.uiConf.logFontSize.takeIf { it > 0 } ?: 12
 
         customFont = Font(fontName, Font.PLAIN, fontSize)
         splitLogPane.filteredLogPanel.customFont = customFont
         splitLogPane.fullLogPanel.customFont = customFont
 
-        if (UIConfigurationManager.ui.lastDividerLocation > 0) splitLogPane.lastDividerLocation =
-            UIConfigurationManager.ui.lastDividerLocation
-        if (UIConfigurationManager.ui.dividerLocation > 0) splitLogPane.dividerLocation =
-            UIConfigurationManager.ui.dividerLocation
+        if (UIConfManager.uiConf.lastDividerLocation > 0) splitLogPane.lastDividerLocation =
+            UIConfManager.uiConf.lastDividerLocation
+        if (UIConfManager.uiConf.dividerLocation > 0) splitLogPane.dividerLocation =
+            UIConfManager.uiConf.dividerLocation
 
         filteredTableModel.filterLevel = getLevelFromName(settingsMenu.logLevel)
 
@@ -949,8 +832,8 @@ class MainUI(title: String) : JFrame() {
         } else {
             filteredTableModel.filterLog = ""
         }
-        if (boldLogToggle.isSelected && boldLogCombo.selectedItem != null) {
-            filteredTableModel.filterHighlightLog = boldLogCombo.selectedItem!!.toString()
+        if (boldLogToggle.isSelected && hightlightLogCombo.selectedItem != null) {
+            filteredTableModel.filterHighlightLog = hightlightLogCombo.selectedItem!!.toString()
         } else {
             filteredTableModel.filterHighlightLog = ""
         }
@@ -975,49 +858,22 @@ class MainUI(title: String) : JFrame() {
             filteredTableModel.filterTid = ""
         }
 
-        check = ConfigManager.getItem(ConfigManager.ITEM_VIEW_FULL)
-        if (!check.isNullOrEmpty()) {
-            viewMenu.itemFull.state = check.toBoolean()
-        } else {
-            viewMenu.itemFull.state = true
-        }
+        viewMenu.itemFull.state = UIConfManager.uiConf.logFullViewEnabled
         if (!viewMenu.itemFull.state) {
             windowedModeLogPanel(splitLogPane.fullLogPanel)
         }
 
-        check = ConfigManager.getItem(ConfigManager.ITEM_SCROLL_BACK)
-        if (!check.isNullOrEmpty()) {
-            scrollBackTF.text = check
-        } else {
-            scrollBackTF.text = "0"
-        }
-        filteredTableModel.scrollback = scrollBackTF.text.toInt()
+        scrollBackTF.text = UIConfManager.uiConf.logScrollBackCount.toString()
+        filteredTableModel.scrollback = UIConfManager.uiConf.logScrollBackCount
+        scrollBackSplitFileToggle.isSelected = UIConfManager.uiConf.logScrollBackSplitFileEnabled
+        filteredTableModel.scrollBackSplitFile = UIConfManager.uiConf.logScrollBackSplitFileEnabled
+        matchCaseToggle.isSelected = UIConfManager.uiConf.filterMatchCaseEnabled
+        filteredTableModel.matchCase = UIConfManager.uiConf.filterMatchCaseEnabled
 
-        check = ConfigManager.getItem(ConfigManager.ITEM_SCROLL_BACK_SPLIT_FILE)
-        if (!check.isNullOrEmpty()) {
-            scrollBackSplitFileToggle.isSelected = check.toBoolean()
-        } else {
-            scrollBackSplitFileToggle.isSelected = false
-        }
-        filteredTableModel.scrollBackSplitFile = scrollBackSplitFileToggle.isSelected
+        searchPanel.searchMatchCaseToggle.isSelected = UIConfManager.uiConf.searchMatchCaseEnabled
+        filteredTableModel.searchMatchCase = UIConfManager.uiConf.searchMatchCaseEnabled
 
-        check = ConfigManager.getItem(ConfigManager.ITEM_MATCH_CASE)
-        if (!check.isNullOrEmpty()) {
-            matchCaseToggle.isSelected = check.toBoolean()
-        } else {
-            matchCaseToggle.isSelected = false
-        }
-        filteredTableModel.matchCase = matchCaseToggle.isSelected
-
-        check = ConfigManager.getItem(ConfigManager.ITEM_SEARCH_MATCH_CASE)
-        if (!check.isNullOrEmpty()) {
-            searchPanel.searchMatchCaseToggle.isSelected = check.toBoolean()
-        } else {
-            searchPanel.searchMatchCaseToggle.isSelected = false
-        }
-        filteredTableModel.searchMatchCase = searchPanel.searchMatchCaseToggle.isSelected
-
-        check = ConfigManager.getItem(ConfigManager.ITEM_RETRY_ADB)
+        var check = ConfigManager.getItem(ConfigManager.ITEM_RETRY_ADB)
         if (!check.isNullOrEmpty()) {
             retryAdbToggle.isSelected = check.toBoolean()
         } else {
@@ -1493,12 +1349,8 @@ class MainUI(title: String) : JFrame() {
                         scrollBackTF.text = "0"
                     }
                     filteredTableModel.scrollBackSplitFile = scrollBackSplitFileToggle.isSelected
-
-                    ConfigManager.saveItem(ConfigManager.ITEM_SCROLL_BACK, scrollBackTF.text)
-                    ConfigManager.saveItem(
-                        ConfigManager.ITEM_SCROLL_BACK_SPLIT_FILE,
-                        scrollBackSplitFileToggle.isSelected.toString()
-                    )
+                    UIConfManager.uiConf.logScrollBackCount = scrollBackTF.text.toInt()
+                    UIConfManager.uiConf.logScrollBackSplitFileEnabled = scrollBackSplitFileToggle.isSelected
                 }
 
                 startBtn -> {
@@ -1757,15 +1609,15 @@ class MainUI(title: String) : JFrame() {
                         popupMenu?.show(event.component, event.x, event.y)
                     }
 
-                    showLogCombo.editor.editorComponent, boldLogCombo.editor.editorComponent, showTagCombo.editor.editorComponent, showPidCombo.editor.editorComponent, showTidCombo.editor.editorComponent -> {
+                    showLogCombo.editor.editorComponent, hightlightLogCombo.editor.editorComponent, showTagCombo.editor.editorComponent, showPidCombo.editor.editorComponent, showTidCombo.editor.editorComponent -> {
                         lateinit var combo: FilterComboBox
                         when (event.source) {
                             showLogCombo.editor.editorComponent -> {
                                 combo = showLogCombo
                             }
 
-                            boldLogCombo.editor.editorComponent -> {
-                                combo = boldLogCombo
+                            hightlightLogCombo.editor.editorComponent -> {
+                                combo = hightlightLogCombo
                             }
 
                             showTagCombo.editor.editorComponent -> {
@@ -1956,8 +1808,8 @@ class MainUI(title: String) : JFrame() {
                         filteredTableModel.filterLog = item
                     }
 
-                    event.source == boldLogCombo.editor.editorComponent && boldLogToggle.isSelected -> {
-                        val combo = boldLogCombo
+                    event.source == hightlightLogCombo.editor.editorComponent && boldLogToggle.isSelected -> {
+                        val combo = hightlightLogCombo
                         val item = combo.selectedItem!!.toString()
                         resetComboItem(combo, item)
                         filteredTableModel.filterHighlightLog = item
@@ -2013,8 +1865,8 @@ class MainUI(title: String) : JFrame() {
                         filteredTableModel.filterLog = item
                     }
 
-                    event.source == boldLogCombo.editor.editorComponent && boldLogToggle.isSelected -> {
-                        val item = boldLogCombo.editor.item.toString()
+                    event.source == hightlightLogCombo.editor.editorComponent && boldLogToggle.isSelected -> {
+                        val item = hightlightLogCombo.editor.item.toString()
                         filteredTableModel.filterHighlightLog = item
                     }
 
@@ -2046,7 +1898,7 @@ class MainUI(title: String) : JFrame() {
                 }
 
                 boldLogToggle -> {
-                    boldLogCombo.setEnabledFilter(boldLogToggle.isSelected)
+                    hightlightLogCombo.setEnabledFilter(boldLogToggle.isSelected)
                 }
 
                 showTagToggle -> {
@@ -2072,16 +1924,16 @@ class MainUI(title: String) : JFrame() {
                     } else {
                         filteredTableModel.filterLog = ""
                     }
-                    ConfigManager.saveItem(ConfigManager.ITEM_SHOW_LOG_CHECK, showLogToggle.isSelected.toString())
+                    UIConfManager.uiConf.logFilterEnabled = showLogToggle.isSelected
                 }
 
                 boldLogToggle -> {
-                    if (boldLogToggle.isSelected && boldLogCombo.selectedItem != null) {
-                        filteredTableModel.filterHighlightLog = boldLogCombo.selectedItem!!.toString()
+                    if (boldLogToggle.isSelected && hightlightLogCombo.selectedItem != null) {
+                        filteredTableModel.filterHighlightLog = hightlightLogCombo.selectedItem!!.toString()
                     } else {
                         filteredTableModel.filterHighlightLog = ""
                     }
-                    ConfigManager.saveItem(ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK, boldLogToggle.isSelected.toString())
+                    UIConfManager.uiConf.highlightEnabled = boldLogToggle.isSelected
                 }
 
                 showTagToggle -> {
@@ -2090,7 +1942,7 @@ class MainUI(title: String) : JFrame() {
                     } else {
                         filteredTableModel.filterTag = ""
                     }
-                    ConfigManager.saveItem(ConfigManager.ITEM_SHOW_TAG_CHECK, showTagToggle.isSelected.toString())
+                    UIConfManager.uiConf.tagFilterEnabled = showTagToggle.isSelected
                 }
 
                 showPidToggle -> {
@@ -2099,7 +1951,7 @@ class MainUI(title: String) : JFrame() {
                     } else {
                         filteredTableModel.filterPid = ""
                     }
-                    ConfigManager.saveItem(ConfigManager.ITEM_SHOW_PID_CHECK, showPidToggle.isSelected.toString())
+                    UIConfManager.uiConf.pidFilterEnabled = showPidToggle.isSelected
                 }
 
                 showTidToggle -> {
@@ -2108,12 +1960,12 @@ class MainUI(title: String) : JFrame() {
                     } else {
                         filteredTableModel.filterTid = ""
                     }
-                    ConfigManager.saveItem(ConfigManager.ITEM_SHOW_TID_CHECK, showTidToggle.isSelected.toString())
+                    UIConfManager.uiConf.tidFilterEnabled = showTidToggle.isSelected
                 }
 
                 matchCaseToggle -> {
                     filteredTableModel.matchCase = matchCaseToggle.isSelected
-                    ConfigManager.saveItem(ConfigManager.ITEM_MATCH_CASE, matchCaseToggle.isSelected.toString())
+                    UIConfManager.uiConf.filterMatchCaseEnabled = matchCaseToggle.isSelected
                 }
 
                 scrollBackKeepToggle -> {
@@ -2208,11 +2060,11 @@ class MainUI(title: String) : JFrame() {
                     combo.updateTooltip()
                 }
 
-                boldLogCombo -> {
-                    if (boldLogCombo.selectedIndex < 0) {
+                hightlightLogCombo -> {
+                    if (hightlightLogCombo.selectedIndex < 0) {
                         return
                     }
-                    val combo = boldLogCombo
+                    val combo = hightlightLogCombo
                     val item = combo.selectedItem!!.toString()
                     resetComboItem(combo, item)
                     filteredTableModel.filterHighlightLog = item
@@ -2355,12 +2207,12 @@ class MainUI(title: String) : JFrame() {
             showTagCombo.parent.revalidate()
             showTagCombo.parent.repaint()
         }
-        if (boldLogCombo.selectedIndex >= 0 && (boldLogComboStyle == FilterComboBox.Mode.MULTI_LINE || boldLogComboStyle == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
-            val selectedItem = boldLogCombo.selectedItem
-            boldLogCombo.selectedItem = ""
-            boldLogCombo.selectedItem = selectedItem
-            boldLogCombo.parent.revalidate()
-            boldLogCombo.parent.repaint()
+        if (hightlightLogCombo.selectedIndex >= 0 && (boldLogComboStyle == FilterComboBox.Mode.MULTI_LINE || boldLogComboStyle == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
+            val selectedItem = hightlightLogCombo.selectedItem
+            hightlightLogCombo.selectedItem = ""
+            hightlightLogCombo.selectedItem = selectedItem
+            hightlightLogCombo.parent.revalidate()
+            hightlightLogCombo.parent.repaint()
         }
         ColorManager.applyFilterStyle()
 
@@ -2605,10 +2457,7 @@ class MainUI(title: String) : JFrame() {
                 when (event.source) {
                     searchMatchCaseToggle -> {
                         filteredTableModel.searchMatchCase = searchMatchCaseToggle.isSelected
-                        ConfigManager.saveItem(
-                            ConfigManager.ITEM_SEARCH_MATCH_CASE,
-                            searchMatchCaseToggle.isSelected.toString()
-                        )
+                        UIConfManager.uiConf.searchMatchCaseEnabled = searchMatchCaseToggle.isSelected
                     }
                 }
             }

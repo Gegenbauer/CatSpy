@@ -666,6 +666,18 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         }
     }
 
+    fun getAllItems(): List<String> {
+        return mutableListOf<String>().apply {
+            for (i in 0 until itemCount) {
+                add(getItemAt(i))
+            }
+        }
+    }
+
+    fun addAllItems(items: List<String>) {
+        items.forEach { addItem(it) }
+    }
+
     companion object {
         private fun updateToolTipStrToHtml(toolTipStr: String): String {
             if (toolTipStr.isEmpty()) return toolTipStr

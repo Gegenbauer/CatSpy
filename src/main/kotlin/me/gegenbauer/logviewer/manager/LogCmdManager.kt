@@ -1,5 +1,6 @@
 package me.gegenbauer.logviewer.manager
 
+import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.strings.app
@@ -40,29 +41,12 @@ object LogCmdManager {
     private var mainUI: MainUI? = null
 
     init {
-        val cmd = ConfigManager.getItem(ConfigManager.ITEM_ADB_CMD)
-        adbCmd = if (!cmd.isNullOrEmpty()) cmd else currentPlatform.adbCommand
+        val cmd = UIConfManager.uiConf.adbCommand
+        adbCmd = cmd.ifEmpty { currentPlatform.adbCommand }
 
-        val logSavePath = ConfigManager.getItem(ConfigManager.ITEM_ADB_LOG_SAVE_PATH)
-        if (logSavePath.isNullOrEmpty()) {
-            LogCmdManager.logSavePath = "."
-        } else {
-            LogCmdManager.logSavePath = logSavePath
-        }
-
-        val logCmd = ConfigManager.getItem(ConfigManager.ITEM_ADB_LOG_CMD)
-        if (logCmd.isNullOrEmpty()) {
-            LogCmdManager.logCmd = DEFAULT_LOGCAT
-        } else {
-            LogCmdManager.logCmd = logCmd
-        }
-
-        val prefix = ConfigManager.getItem(ConfigManager.ITEM_ADB_PREFIX)
-        if (prefix.isNullOrEmpty()) {
-            LogCmdManager.prefix = STRINGS.ui.app
-        } else {
-            LogCmdManager.prefix = prefix
-        }
+        logSavePath = UIConfManager.uiConf.adbLogSavePath.ifEmpty { "." }
+        logCmd = UIConfManager.uiConf.adbLogCommand.ifEmpty { DEFAULT_LOGCAT }
+        prefix = UIConfManager.uiConf.adbPrefix.ifEmpty { STRINGS.ui.app }
     }
 
     fun setMainUI(mainUI: MainUI) {

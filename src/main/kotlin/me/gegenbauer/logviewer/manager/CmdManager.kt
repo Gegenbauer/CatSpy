@@ -1,5 +1,6 @@
 package me.gegenbauer.logviewer.manager
 
+import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.log.LogPanel
@@ -19,11 +20,13 @@ class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI,
     }
 
     override fun loadList(): ArrayList<CustomElement> {
-        return ConfigManager.loadCmd()
+        return ArrayList(UIConfManager.uiConf.commands)
     }
 
     override fun saveList(list: ArrayList<CustomElement>) {
-        ConfigManager.saveCommands(list)
+        UIConfManager.uiConf.commands.clear()
+        UIConfManager.uiConf.commands.addAll(list)
+        UIConfManager.saveUI()
     }
 
     override fun getFirstElement(): CustomElement {

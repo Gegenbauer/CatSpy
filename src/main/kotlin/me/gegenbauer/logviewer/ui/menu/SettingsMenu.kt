@@ -1,6 +1,7 @@
 package me.gegenbauer.logviewer.ui.menu
 
 import com.github.weisj.darklaf.settings.ThemeSettings
+import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
@@ -38,7 +39,7 @@ class SettingsMenu : JMenu() {
         when (it.source) {
             itemLogCommand -> openLogCommandConfigurationDialog()
             itemLogFile -> openLogCommandConfigurationDialog()
-            itemFilterIncremental -> ConfigManager.saveItem(ConfigManager.ITEM_FILTER_INCREMENTAL, itemFilterIncremental.state.toString())
+            itemFilterIncremental -> UIConfManager.uiConf.filterIncrementalEnabled = itemFilterIncremental.state
             itemAppearance -> openAppearanceConfigurationDialog()
             itemThemeSettings -> openThemeConfigurationDialog()
         }
@@ -52,7 +53,7 @@ class SettingsMenu : JMenu() {
         text = STRINGS.ui.setting
         mnemonic = KeyEvent.VK_S
 
-        logLevel = ConfigManager.getItem(ConfigManager.ITEM_LOG_LEVEL) ?: ""
+        logLevel = UIConfManager.uiConf.logLevel
         logLevelGroup.apply {
             add(JRadioButtonMenuItem(LogLevel.VERBOSE.logName).apply {
                 isSelected = logLevel == LogLevel.VERBOSE.logName
@@ -86,12 +87,7 @@ class SettingsMenu : JMenu() {
             })
         }
 
-        val check = ConfigManager.getItem(ConfigManager.ITEM_FILTER_INCREMENTAL)
-        if (!check.isNullOrEmpty()) {
-            itemFilterIncremental.state = check.toBoolean()
-        } else {
-            itemFilterIncremental.state = false
-        }
+        itemFilterIncremental.state = UIConfManager.uiConf.filterIncrementalEnabled
 
         itemLogFile.addActionListener(itemClickListener)
         itemLogCommand.addActionListener(itemClickListener)

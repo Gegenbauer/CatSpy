@@ -1,5 +1,6 @@
 package me.gegenbauer.logviewer.manager
 
+import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.log.LogPanel
 import java.awt.event.*
@@ -17,11 +18,13 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mai
     }
 
     override fun loadList(): ArrayList<CustomElement> {
-        return ConfigManager.loadFilters()
+        return ArrayList(UIConfManager.uiConf.filters)
     }
 
     override fun saveList(list: ArrayList<CustomElement>) {
-        ConfigManager.saveFilters(list)
+        UIConfManager.uiConf.filters.clear()
+        UIConfManager.uiConf.filters.addAll(list)
+        UIConfManager.saveUI()
     }
 
     override fun getFirstElement(): CustomElement {

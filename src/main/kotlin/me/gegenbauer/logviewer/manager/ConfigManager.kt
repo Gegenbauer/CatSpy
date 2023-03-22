@@ -1,71 +1,18 @@
 package me.gegenbauer.logviewer.manager
 
+import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
-import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.ui.log.LogLevel
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
 import java.util.*
 
 // TODO refactor
 object ConfigManager {
     private const val TAG = "ConfigManager"
     private const val CONFIG_FILE = "log_viewer.xml"
-    val APP_HOME: String? = System.getenv("LOG_VIEWER_HOME")
-    const val ITEM_CONFIG_VERSION = "CONFIG_VERSION"
 
-    const val ITEM_LANG = "LANG"
-
-    const val ITEM_SHOW_LOG = "SHOW_LOG_"
-    const val COUNT_SHOW_LOG = 20
-    const val ITEM_SHOW_TAG = "SHOW_TAG_"
-    const val COUNT_SHOW_TAG = 10
-
-    const val ITEM_HIGHLIGHT_LOG = "HIGHLIGHT_LOG_"
-    const val COUNT_HIGHLIGHT_LOG = 10
-
-    const val ITEM_SEARCH_LOG = "SEARCH_LOG_"
-    const val COUNT_SEARCH_LOG = 10
-
-    const val ITEM_SEARCH_MATCH_CASE = "SEARCH_MATCH_CASE"
-
-    const val ITEM_SHOW_LOG_CHECK = "SHOW_LOG_CHECK"
-    const val ITEM_SHOW_TAG_CHECK = "SHOW_TAG_CHECK"
-    const val ITEM_SHOW_PID_CHECK = "SHOW_PID_CHECK"
-    const val ITEM_SHOW_TID_CHECK = "SHOW_TID_CHECK"
-
-    const val ITEM_HIGHLIGHT_LOG_CHECK = "HIGHLIGHT_LOG_CHECK"
-
-    const val ITEM_LOG_LEVEL = "LOG_LEVEL"
-
-    const val ITEM_LOOK_AND_FEEL = "LOOK_AND_FEEL"
-    const val ITEM_UI_FONT_SIZE = "UI_FONT_SIZE"
-    const val ITEM_APPEARANCE_DIVIDER_SIZE = "APPEARANCE_DIVIDER_SIZE"
-
-    const val ITEM_ADB_DEVICE = "ADB_DEVICE"
-    const val ITEM_ADB_CMD = "ADB_CMD"
     const val ITEM_ADB_LOG_CMD = "ADB_LOG_CMD"
-    const val ITEM_ADB_LOG_SAVE_PATH = "ADB_LOG_SAVE_PATH"
-    const val ITEM_ADB_PREFIX = "ADB_PREFIX"
-
-    const val ITEM_FONT_NAME = "FONT_NAME"
-    const val ITEM_FONT_SIZE = "FONT_SIZE"
-    const val ITEM_VIEW_FULL = "VIEW_FULL"
-    const val ITEM_FILTER_INCREMENTAL = "FILTER_INCREMENTAL"
-
-    const val ITEM_SCROLL_BACK = "SCROLL_BACK"
-    const val ITEM_SCROLL_BACK_SPLIT_FILE = "SCROLL_BACK_SPLIT_FILE"
-    const val ITEM_MATCH_CASE = "MATCH_CASE"
-
-    const val ITEM_FILTERS_TITLE = "FILTERS_TITLE_"
-    const val ITEM_FILTERS_FILTER = "FILTERS_FILTER_"
-    const val ITEM_FILTERS_TABLE_BAR = "FILTERS_TABLE_BAR"
-
-    const val ITEM_CMD_TITLE = "CMD_TITLE_"
-    const val ITEM_CMD_CMD = "CMD_CMD_"
-    const val ITEM_CMD_TABLE_BAR = "CMD_TABLE_BAR"
 
     const val ITEM_COLOR_MANAGER = "COLOR_MANAGER_"
     const val ITEM_COLOR_FILTER_STYLE = "COLOR_FILTER_STYLE"
@@ -88,20 +35,11 @@ object ConfigManager {
     private var configPath = CONFIG_FILE
 
     init {
-        if (APP_HOME != null) {
-            configPath = "$APP_HOME${File.separator}$CONFIG_FILE"
+        if (UIConfManager.uiConf.appHome.isNotEmpty()) {
+            configPath = "${UIConfManager.uiConf.appHome}${File.separator}$CONFIG_FILE"
         }
         GLog.d(TAG, "Config Path : $configPath")
         manageVersion()
-    }
-
-    private fun setDefaultConfig() {
-        properties[ITEM_LOG_LEVEL] = LogLevel.VERBOSE.logName
-        properties[ITEM_SHOW_LOG_CHECK] = "true"
-        properties[ITEM_SHOW_TAG_CHECK] = "true"
-        properties[ITEM_SHOW_PID_CHECK] = "true"
-        properties[ITEM_SHOW_TID_CHECK] = "true"
-        properties[ITEM_HIGHLIGHT_LOG_CHECK] = "true"
     }
 
     fun loadConfig() {
@@ -130,12 +68,6 @@ object ConfigManager {
         saveConfig()
     }
 
-    fun saveItems(keys: Array<String>, values: Array<String>) {
-        loadConfig()
-        setItems(keys, values)
-        saveConfig()
-    }
-
     fun getItem(key: String): String? {
         return properties[key] as String?
     }
@@ -154,15 +86,11 @@ object ConfigManager {
         }
     }
 
-    fun removeConfigItem(key: String) {
-        properties.remove(key)
-    }
-
     fun saveFontColors(family: String, size: Int) {
         loadConfig()
 
-        properties[ITEM_FONT_NAME] = family
-        properties[ITEM_FONT_SIZE] = size.toString()
+        UIConfManager.uiConf.logFontName = family
+        UIConfManager.uiConf.logFontSize = size
         ColorManager.fullTableColor.putConfig()
         ColorManager.filterTableColor.putConfig()
 
@@ -176,121 +104,11 @@ object ConfigManager {
         saveConfig()
     }
 
-    fun loadFilters() : ArrayList<CustomListManager.CustomElement> {
-        val filters = ArrayList<CustomListManager.CustomElement>()
-
-        var title: String?
-        var filter: String?
-        var check: String?
-        var tableBar: Boolean
-        for (i in 0 until FiltersManager.MAX_FILTERS) {
-            title = properties[ITEM_FILTERS_TITLE + i] as? String
-            if (title == null) {
-                break
-            }
-            filter = properties[ITEM_FILTERS_FILTER + i] as? String
-            if (filter == null) {
-                filter = "null"
-            }
-
-            check = properties[ITEM_FILTERS_TABLE_BAR + i] as? String
-            tableBar = if (!check.isNullOrEmpty()) {
-                check.toBoolean()
-            } else {
-                false
-            }
-            filters.add(CustomListManager.CustomElement(title, filter, tableBar))
-        }
-
-        return filters
-    }
-
-    fun saveFilters(filters : ArrayList<CustomListManager.CustomElement>) {
-        loadConfig()
-
-        var nCount = filters.size
-        if (nCount > FiltersManager.MAX_FILTERS) {
-            nCount = FiltersManager.MAX_FILTERS
-        }
-
-        for (i in 0 until FiltersManager.MAX_FILTERS) {
-            val title = properties[ITEM_FILTERS_TITLE + i] as? String ?: break
-            properties.remove(ITEM_FILTERS_TITLE + i)
-            properties.remove(ITEM_FILTERS_FILTER + i)
-            properties.remove(ITEM_FILTERS_TABLE_BAR + i)
-        }
-
-        for (i in 0 until nCount) {
-            properties[ITEM_FILTERS_TITLE + i] = filters[i].title
-            properties[ITEM_FILTERS_FILTER + i] = filters[i].value
-            properties[ITEM_FILTERS_TABLE_BAR + i] = filters[i].tableBar.toString()
-        }
-
-        saveConfig()
-        return
-    }
-
-    fun loadCmd() : ArrayList<CustomListManager.CustomElement> {
-        val commands = ArrayList<CustomListManager.CustomElement>()
-
-        var title: String?
-        var cmd: String?
-        var check: String?
-        var tableBar: Boolean
-        for (i in 0 until CmdManager.MAX_CMD_COUNT) {
-            title = properties[ITEM_CMD_TITLE + i] as? String
-            if (title == null) {
-                break
-            }
-            cmd = properties[ITEM_CMD_CMD + i] as? String
-            if (cmd == null) {
-                cmd = "null"
-            }
-
-            check = properties[ITEM_CMD_TABLE_BAR + i] as? String
-            tableBar = if (!check.isNullOrEmpty()) {
-                check.toBoolean()
-            } else {
-                false
-            }
-            commands.add(CustomListManager.CustomElement(title, cmd, tableBar))
-        }
-
-        return commands
-    }
-
-    fun saveCommands(commands : ArrayList<CustomListManager.CustomElement>) {
-        loadConfig()
-
-        var nCount = commands.size
-        if (nCount > CmdManager.MAX_CMD_COUNT) {
-            nCount = CmdManager.MAX_CMD_COUNT
-        }
-
-        for (i in 0 until CmdManager.MAX_CMD_COUNT) {
-            val title = properties[ITEM_CMD_TITLE + i] as? String ?: break
-            properties.remove(ITEM_CMD_TITLE + i)
-            properties.remove(ITEM_CMD_CMD + i)
-            properties.remove(ITEM_CMD_TABLE_BAR + i)
-        }
-
-        for (i in 0 until nCount) {
-            properties[ITEM_CMD_TITLE + i] = commands[i].title
-            properties[ITEM_CMD_CMD + i] = commands[i].value
-            properties[ITEM_CMD_TABLE_BAR + i] = commands[i].tableBar.toString()
-        }
-
-        saveConfig()
-        return
-    }
-
     private fun manageVersion() {
         loadConfig()
-        var confVer = properties[ITEM_CONFIG_VERSION] as String?
-        if (confVer == null) {
+        if (UIConfManager.uiConf.versionCode == 0) {
             updateConfigFromV0ToV1()
-            confVer = properties[ITEM_CONFIG_VERSION] as String?
-            GLog.d(TAG, "manageVersion : $confVer applied")
+            GLog.d(TAG, "manageVersion : ${UIConfManager.uiConf.versionCode} applied")
         }
 
         saveConfig()
@@ -317,7 +135,7 @@ object ConfigManager {
                 properties.remove("$ITEM_COLOR_MANAGER$idx")
             }
         }
-        properties[ITEM_CONFIG_VERSION] = "1"
+        UIConfManager.uiConf.versionCode = 1
         GLog.d(TAG, "updateConfigFromV0ToV1 : --")
     }
 }
