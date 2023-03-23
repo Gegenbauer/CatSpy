@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer
+package me.gegenbauer.logviewer.ui.panel
 
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.BookmarkManager

@@ -1,7 +1,7 @@
 package me.gegenbauer.logviewer.ui.menu
 
 import me.gegenbauer.logviewer.file.Log
-import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.utils.findFrameFromParent
 import java.awt.FileDialog
 import java.awt.event.ActionListener

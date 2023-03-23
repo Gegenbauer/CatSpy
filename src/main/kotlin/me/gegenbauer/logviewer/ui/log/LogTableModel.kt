@@ -4,9 +4,9 @@ import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.BookmarkManager
 import me.gegenbauer.logviewer.manager.ColorManager
-import me.gegenbauer.logviewer.manager.LogCmdManager
-import me.gegenbauer.logviewer.strings.STRINGS
-import me.gegenbauer.logviewer.strings.app
+import me.gegenbauer.logviewer.command.LogCmdManager
+import me.gegenbauer.logviewer.resource.strings.STRINGS
+import me.gegenbauer.logviewer.resource.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
 import java.awt.Color

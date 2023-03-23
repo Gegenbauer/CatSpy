@@ -1,6 +1,6 @@
 package me.gegenbauer.logviewer.ui.menu
 
-import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.resource.strings.STRINGS
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent

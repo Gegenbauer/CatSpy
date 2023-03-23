@@ -1,8 +1,8 @@
-package me.gegenbauer.logviewer.ui.help
+package me.gegenbauer.logviewer.ui.dialog
 
-import me.gegenbauer.logviewer.Utils
-import me.gegenbauer.logviewer.strings.STRINGS
-import me.gegenbauer.logviewer.strings.helpText
+import me.gegenbauer.logviewer.utils.Utils
+import me.gegenbauer.logviewer.resource.strings.STRINGS
+import me.gegenbauer.logviewer.resource.strings.helpText
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ActionEvent

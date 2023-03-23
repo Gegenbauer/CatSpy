@@ -1,17 +1,16 @@
 package me.gegenbauer.logviewer.command.adb
 
 import kotlinx.coroutines.*
+import me.gegenbauer.logviewer.concurrency.ModelScope
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import kotlin.coroutines.CoroutineContext
 
-object AdbManager: CoroutineScope {
+object AdbManager {
     private val packageToPidMapper = mutableMapOf<String, String>()
-    override val coroutineContext: CoroutineContext
-        get() = SupervisorJob() + Dispatchers.Main
+    private val scope = ModelScope()
 
     init {
-        launch {
+        scope.launch {
             repeat(Int.MAX_VALUE) {
                 delay(1000)
                 fetchPackageToPidMap()
@@ -20,7 +19,7 @@ object AdbManager: CoroutineScope {
     }
 
     private suspend fun fetchPackageToPidMap() {
-        withContext(Dispatchers.IO) {
+        withContext(scope.coroutineContext) {
             val process = Runtime.getRuntime().exec("adb shell ps | awk '{print \$2 \" \" \$9}' | sed '1d'")
             val reader = BufferedReader(InputStreamReader(process.inputStream))
             reader.forEachLine {
@@ -30,5 +29,9 @@ object AdbManager: CoroutineScope {
                 }
             }
         }
+    }
+
+    fun destroy() {
+        scope.cancel()
     }
 }

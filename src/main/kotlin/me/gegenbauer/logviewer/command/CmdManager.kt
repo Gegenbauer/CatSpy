@@ -1,7 +1,8 @@
-package me.gegenbauer.logviewer.manager
+package me.gegenbauer.logviewer.command
 
 import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
+import me.gegenbauer.logviewer.manager.CustomListManager
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.log.LogPanel
 import java.awt.event.*

@@ -2,13 +2,12 @@ package me.gegenbauer.logviewer.ui.menu
 
 import com.github.weisj.darklaf.settings.ThemeSettings
 import me.gegenbauer.logviewer.configuration.UIConfManager
-import me.gegenbauer.logviewer.manager.ConfigManager
-import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.ui.log.LogCmdSettingsDialog
+import me.gegenbauer.logviewer.ui.dialog.LogCmdSettingsDialog
 import me.gegenbauer.logviewer.ui.log.LogLevel
 import me.gegenbauer.logviewer.ui.log.getLevelFromName
-import me.gegenbauer.logviewer.ui.settings.AppearanceSettingsDialog
+import me.gegenbauer.logviewer.ui.dialog.AppearanceSettingsDialog
 import me.gegenbauer.logviewer.utils.findFrameFromParent
 import java.awt.event.ActionListener
 import java.awt.event.ItemListener

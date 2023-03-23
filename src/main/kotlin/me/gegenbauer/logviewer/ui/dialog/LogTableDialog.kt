@@ -1,13 +1,13 @@
-package me.gegenbauer.logviewer.ui.log
+package me.gegenbauer.logviewer.ui.dialog
 
 import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.Utils
+import me.gegenbauer.logviewer.utils.Utils
 import me.gegenbauer.logviewer.log.GLog
+import me.gegenbauer.logviewer.ui.log.LogPanel
 import me.gegenbauer.logviewer.utils.getImageFile
 import java.awt.BorderLayout
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
-import java.net.URL
 import javax.swing.ImageIcon
 import javax.swing.JFrame
 import javax.swing.JPanel

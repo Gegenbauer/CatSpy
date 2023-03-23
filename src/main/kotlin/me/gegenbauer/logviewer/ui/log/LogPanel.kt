@@ -1,9 +1,10 @@
 package me.gegenbauer.logviewer.ui.log
 
-import me.gegenbauer.logviewer.VStatusPanel
+import me.gegenbauer.logviewer.ui.panel.VStatusPanel
+import me.gegenbauer.logviewer.command.CmdManager
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.*
-import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
 import me.gegenbauer.logviewer.ui.button.TableBarButton

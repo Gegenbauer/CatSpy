@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer.theme
+package me.gegenbauer.logviewer.configuration
 
 import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.settings.SettingsConfiguration
@@ -6,6 +6,11 @@ import com.github.weisj.darklaf.settings.ThemeSettings
 import com.github.weisj.darklaf.theme.Theme
 import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.gegenbauer.logviewer.concurrency.ModelScope
+import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.utils.appendPath
 import me.gegenbauer.logviewer.utils.loadResource
 import me.gegenbauer.logviewer.utils.toArgb
@@ -18,30 +23,42 @@ object ThemeManager {
     private const val DEFAULT_THEME_FILENAME = "default.json"
     private const val THEME_FILENAME = "global.json"
     private val themeFile = File(userDir, THEME_FILENAME)
-    private val settingsConfiguration: SettingsConfiguration by lazy { loadThemeSettings() }
-
-    init {
-        if (!themeFile.exists()) {
-            themeFile.createNewFile()
-            val defaultThemeJson = loadResource(DEFAULT_THEME_DIR.appendPath(DEFAULT_THEME_FILENAME))
-                .bufferedReader()
-                .use { it.readText() }
-            themeFile.writeText(defaultThemeJson)
-        }
-        LafManager.install()
-        LafManager.registerDefaultsAdjustmentTask { t: Theme, _: Properties ->
-            updateTheme(t)
-            saveThemeSettings()
-        }
-    }
+    private val settingsConfiguration: SettingsConfiguration by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { loadThemeSettings() }
+    private val scope = ModelScope()
 
     fun init() {
-        // empty function to initialize the object
+        scope.launch {
+            if (!themeFile.exists()) {
+                createThemeFile()
+            }
+        }
+        LafManager.registerDefaultsAdjustmentTask { t: Theme, _: Properties ->
+            updateTheme(t)
+            scope.launch {
+                saveThemeSettings()
+            }
+        }
     }
 
-    fun applyTempTheme() {
-        ThemeSettings.getInstance().setConfiguration(settingsConfiguration)
-        ThemeSettings.getInstance().apply()
+    suspend fun installTheme() {
+        withContext(Dispatchers.UI) {
+            LafManager.install()
+        }
+    }
+
+    private fun createThemeFile() {
+        themeFile.createNewFile()
+        val defaultThemeJson = loadResource(DEFAULT_THEME_DIR.appendPath(DEFAULT_THEME_FILENAME))
+            .bufferedReader()
+            .use { it.readText() }
+        themeFile.writeText(defaultThemeJson)
+    }
+
+    suspend fun applyTempTheme() {
+        withContext(Dispatchers.UI) {
+            ThemeSettings.getInstance().setConfiguration(settingsConfiguration)
+            ThemeSettings.getInstance().apply()
+        }
     }
 
     private fun loadTheme(): GTheme {
@@ -63,7 +80,7 @@ object ThemeManager {
         }
     }
 
-    private fun saveThemeSettings(settingsConfiguration: SettingsConfiguration = this.settingsConfiguration) {
+    private fun saveThemeSettings(settingsConfiguration: SettingsConfiguration = ThemeManager.settingsConfiguration) {
         val gTheme = GTheme(
             settingsConfiguration.theme.name,
             settingsConfiguration.fontSizeRule.percentage,

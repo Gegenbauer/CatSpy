@@ -51,6 +51,7 @@ data class UIConf(
     var logFontSize: Int = 0,
     var logFullViewEnabled: Boolean = false,
     var filterIncrementalEnabled: Boolean = false,
+    val strColorList: MutableList<String> = mutableListOf(),
     /** 界面主题 end **/
 
     /** 日志命令配置 start **/

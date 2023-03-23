@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer.strings
+package me.gegenbauer.logviewer.resource.strings
 
 import com.google.gson.Gson
 import com.google.gson.stream.JsonReader

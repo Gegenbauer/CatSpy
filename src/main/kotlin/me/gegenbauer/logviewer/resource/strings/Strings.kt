@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer.strings
+package me.gegenbauer.logviewer.resource.strings
 
 import com.google.gson.annotations.SerializedName
 import java.util.Locale

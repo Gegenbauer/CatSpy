@@ -1,30 +1,36 @@
 package me.gegenbauer.logviewer
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.gegenbauer.logviewer.concurrency.APP_LAUNCH
+import me.gegenbauer.logviewer.concurrency.AppScope
+import me.gegenbauer.logviewer.concurrency.UI
+import me.gegenbauer.logviewer.configuration.ThemeManager
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
-import me.gegenbauer.logviewer.strings.STRINGS
-import me.gegenbauer.logviewer.strings.app
-import me.gegenbauer.logviewer.theme.ThemeManager
+import me.gegenbauer.logviewer.resource.strings.STRINGS
+import me.gegenbauer.logviewer.resource.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
 import java.awt.Container
-import javax.swing.SwingUtilities
 
 class Main {
     companion object {
         private const val TAG = "Main"
+
         @JvmStatic
         fun main(args: Array<String>) {
-            loadConfig()
-            // need call after main ui created
-            ThemeManager.init()
-
-            SwingUtilities.invokeLater {
+            AppScope.launch(Dispatchers.UI) {
+                withContext(Dispatchers.APP_LAUNCH) {
+                    ThemeManager.init()
+                    loadConfig()
+                }
                 val mainUI = MainUI(STRINGS.ui.app)
                 mainUI.updateUIAfterVisible(args)
-
-                addClickListenerForAllComponents(mainUI.components)
+                ThemeManager.installTheme()
                 ThemeManager.applyTempTheme()
+                addClickListenerForAllComponents(mainUI.components)
                 mainUI.isVisible = true
             }
         }

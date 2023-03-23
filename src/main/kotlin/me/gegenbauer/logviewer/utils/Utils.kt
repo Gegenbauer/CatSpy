@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer
+package me.gegenbauer.logviewer.utils
 
 import me.gegenbauer.logviewer.log.GLog
 import java.awt.Window

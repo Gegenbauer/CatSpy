@@ -3,7 +3,8 @@ package me.gegenbauer.logviewer.ui.log
 import me.gegenbauer.logviewer.manager.BookmarkManager
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.VStatusPanel
+import me.gegenbauer.logviewer.ui.panel.VStatusPanel
+import me.gegenbauer.logviewer.ui.dialog.LogViewDialog
 import java.awt.*
 import java.awt.event.*
 import javax.swing.*

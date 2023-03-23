@@ -1,7 +1,7 @@
 package me.gegenbauer.logviewer.manager
 
-import me.gegenbauer.logviewer.Utils
-import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.utils.Utils
+import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.MainUI.Companion.FLAT_DARK_LAF
 import me.gegenbauer.logviewer.ui.log.LogPanel

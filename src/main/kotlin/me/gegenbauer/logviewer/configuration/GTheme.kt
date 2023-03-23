@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer.theme
+package me.gegenbauer.logviewer.configuration
 
 import com.github.weisj.darklaf.theme.*
 import com.github.weisj.darklaf.theme.spec.AccentColorRule

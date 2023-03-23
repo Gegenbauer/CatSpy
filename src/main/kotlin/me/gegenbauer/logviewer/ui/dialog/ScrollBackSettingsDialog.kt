@@ -1,6 +1,6 @@
-package me.gegenbauer.logviewer.ui.settings
+package me.gegenbauer.logviewer.ui.dialog
 
-import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener

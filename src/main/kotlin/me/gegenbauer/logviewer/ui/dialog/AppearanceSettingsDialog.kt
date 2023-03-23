@@ -1,11 +1,11 @@
-package me.gegenbauer.logviewer.ui.settings
+package me.gegenbauer.logviewer.ui.dialog
 
-import me.gegenbauer.logviewer.Utils
+import me.gegenbauer.logviewer.utils.Utils
 import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
-import me.gegenbauer.logviewer.strings.STRINGS
+import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox

@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer
+package me.gegenbauer.logviewer.ui.dialog
 
 import java.awt.BorderLayout
 import java.awt.Dimension
