@@ -16,14 +16,15 @@ class Main {
         @JvmStatic
         fun main(args: Array<String>) {
             loadConfig()
+            // need call after main ui created
+            ThemeManager.init()
 
             SwingUtilities.invokeLater {
                 val mainUI = MainUI(STRINGS.ui.app)
                 mainUI.updateUIAfterVisible(args)
 
                 addClickListenerForAllComponents(mainUI.components)
-                // need call after main ui created
-                ThemeManager.init()
+                ThemeManager.applyTempTheme()
                 mainUI.isVisible = true
             }
         }

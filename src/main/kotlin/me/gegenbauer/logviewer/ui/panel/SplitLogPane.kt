@@ -21,37 +21,7 @@ class SplitLogPane(
         set(value) {
             if (field == value) return
             field = value
-            remove(filteredLogPanel)
-            remove(fullLogPanel)
-            when (value) {
-                Orientation.ROTATION_LEFT_RIGHT -> {
-                    setOrientation(HORIZONTAL_SPLIT)
-                    add(fullLogPanel, LEFT)
-                    add(filteredLogPanel, RIGHT)
-                    resizeWeight = SPLIT_WEIGHT
-                }
-
-                Orientation.ROTATION_TOP_BOTTOM -> {
-                    setOrientation(VERTICAL_SPLIT)
-                    add(fullLogPanel, TOP)
-                    add(filteredLogPanel, BOTTOM)
-                    resizeWeight = SPLIT_WEIGHT
-                }
-
-                Orientation.ROTATION_RIGHT_LEFT -> {
-                    setOrientation(HORIZONTAL_SPLIT)
-                    add(fullLogPanel, RIGHT)
-                    add(filteredLogPanel, LEFT)
-                    resizeWeight = 1 - SPLIT_WEIGHT
-                }
-
-                Orientation.ROTATION_BOTTOM_TOP -> {
-                    setOrientation(VERTICAL_SPLIT)
-                    add(fullLogPanel, BOTTOM)
-                    add(filteredLogPanel, TOP)
-                    resizeWeight = 1 - SPLIT_WEIGHT
-                }
-            }
+            forceRotate(value)
         }
 
     init {
@@ -59,6 +29,40 @@ class SplitLogPane(
         orientation = HORIZONTAL_SPLIT
         add(fullLogPanel, LEFT)
         add(filteredLogPanel, RIGHT)
+    }
+
+    fun forceRotate(orientation: Orientation = rotation) {
+        remove(filteredLogPanel)
+        remove(fullLogPanel)
+        when (orientation) {
+            Orientation.ROTATION_LEFT_RIGHT -> {
+                setOrientation(HORIZONTAL_SPLIT)
+                add(fullLogPanel, LEFT)
+                add(filteredLogPanel, RIGHT)
+                resizeWeight = SPLIT_WEIGHT
+            }
+
+            Orientation.ROTATION_TOP_BOTTOM -> {
+                setOrientation(VERTICAL_SPLIT)
+                add(fullLogPanel, TOP)
+                add(filteredLogPanel, BOTTOM)
+                resizeWeight = SPLIT_WEIGHT
+            }
+
+            Orientation.ROTATION_RIGHT_LEFT -> {
+                setOrientation(HORIZONTAL_SPLIT)
+                add(fullLogPanel, RIGHT)
+                add(filteredLogPanel, LEFT)
+                resizeWeight = 1 - SPLIT_WEIGHT
+            }
+
+            Orientation.ROTATION_BOTTOM_TOP -> {
+                setOrientation(VERTICAL_SPLIT)
+                add(fullLogPanel, BOTTOM)
+                add(filteredLogPanel, TOP)
+                resizeWeight = 1 - SPLIT_WEIGHT
+            }
+        }
     }
 
     fun rotate(orientation: Orientation = rotation.next()) {

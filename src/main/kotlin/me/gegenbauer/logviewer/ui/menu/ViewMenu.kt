@@ -13,7 +13,7 @@ class ViewMenu : JMenu(), ActionListener {
     val itemSearch = JCheckBoxMenuItem(STRINGS.ui.search)
     val itemRotation = JMenuItem(STRINGS.ui.rotation)
 
-    var onItemFullClicked: () -> Unit = {}
+    var onItemFullClicked: (Boolean) -> Unit = {}
     var onItemSearchClicked: () -> Unit = {}
     var onItemRotationClicked: () -> Unit = {}
 
@@ -35,7 +35,7 @@ class ViewMenu : JMenu(), ActionListener {
     override fun actionPerformed(e: ActionEvent) {
         when (e.source) {
             itemFull -> {
-                onItemFullClicked()
+                onItemFullClicked(itemFull.state)
             }
             itemSearch -> {
                 onItemSearchClicked()

@@ -29,8 +29,6 @@ object ThemeManager {
             themeFile.writeText(defaultThemeJson)
         }
         LafManager.install()
-        ThemeSettings.getInstance().setConfiguration(settingsConfiguration)
-        ThemeSettings.getInstance().apply()
         LafManager.registerDefaultsAdjustmentTask { t: Theme, _: Properties ->
             updateTheme(t)
             saveThemeSettings()
@@ -39,6 +37,11 @@ object ThemeManager {
 
     fun init() {
         // empty function to initialize the object
+    }
+
+    fun applyTempTheme() {
+        ThemeSettings.getInstance().setConfiguration(settingsConfiguration)
+        ThemeSettings.getInstance().apply()
     }
 
     private fun loadTheme(): GTheme {

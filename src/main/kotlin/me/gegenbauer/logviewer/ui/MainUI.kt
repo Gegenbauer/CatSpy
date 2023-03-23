@@ -108,7 +108,7 @@ class MainUI(title: String) : JFrame() {
 
     private val viewMenu = ViewMenu().apply {
         onItemFullClicked = {
-            if (itemFull.state) {
+            if (it) {
                 attachLogPanel(splitLogPane.filteredLogPanel)
             } else {
                 windowedModeLogPanel(splitLogPane.fullLogPanel)
@@ -708,8 +708,7 @@ class MainUI(title: String) : JFrame() {
         splitLogPane.fullLogPanel.updateTableBar(ArrayList(UIConfManager.uiConf.commands))
         splitLogPane.filteredLogPanel.updateTableBar(ArrayList(UIConfManager.uiConf.filters))
 
-        filtersManager = FiltersManager(this, splitLogPane.filteredLogPanel
-        )
+        filtersManager = FiltersManager(this, splitLogPane.filteredLogPanel)
         cmdManager = CmdManager(this, splitLogPane.fullLogPanel)
 
         if (UIConfManager.uiConf.dividerSize > 0) splitLogPane.dividerSize = UIConfManager.uiConf.dividerSize
@@ -1151,10 +1150,9 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun attachLogPanel(logPanel: LogPanel) {
-        if (logPanel.parent != splitLogPane) {
-            logPanel.isWindowedMode = false
-            viewMenu.itemRotation.isEnabled = true
-        }
+        logPanel.isWindowedMode = false
+        viewMenu.itemRotation.isEnabled = true
+        splitLogPane.forceRotate()
     }
 
     fun openFile(path: String, isAppend: Boolean) {
