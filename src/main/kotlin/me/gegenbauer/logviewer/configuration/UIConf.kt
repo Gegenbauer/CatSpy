@@ -49,7 +49,7 @@ data class UIConf(
     var dividerSize: Int = 0,
     var logFontName: String = "",
     var logFontSize: Int = 0,
-    var logFullViewEnabled: Boolean = false,
+    var logFullViewEnabled: Boolean = true, // TODO 应用启动时，如果 panel 不可见，启动后再可见，样式没有使用 laf
     var filterIncrementalEnabled: Boolean = false,
     val strColorList: MutableList<String> = mutableListOf(),
     /** 界面主题 end **/

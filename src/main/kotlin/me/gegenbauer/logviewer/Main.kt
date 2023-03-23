@@ -28,9 +28,9 @@ class Main {
                 }
                 val mainUI = MainUI(STRINGS.ui.app)
                 mainUI.updateUIAfterVisible(args)
-                ThemeManager.installTheme()
-                ThemeManager.applyTempTheme()
-                addClickListenerForAllComponents(mainUI.components)
+                //ThemeManager.installTheme()
+                //ThemeManager.applyTempTheme()
+                //addClickListenerForAllComponents(mainUI.components)
                 mainUI.isVisible = true
             }
         }

@@ -1,7 +1,11 @@
 package me.gegenbauer.logviewer.ui.log
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.gegenbauer.logviewer.ui.panel.VStatusPanel
 import me.gegenbauer.logviewer.command.CmdManager
+import me.gegenbauer.logviewer.concurrency.AppScope
+import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.*
 import me.gegenbauer.logviewer.resource.strings.STRINGS
@@ -379,12 +383,8 @@ class LogPanel constructor(
             if (event.dataChange == LogTableModelEvent.EVENT_CLEARED) {
                 oldLogVPos = -1
             } else {
-                if (SwingUtilities.isEventDispatchThread()) {
+                AppScope.launch(Dispatchers.UI) {
                     tableChangedInternal(event)
-                } else {
-                    SwingUtilities.invokeAndWait {
-                        tableChangedInternal(event)
-                    }
                 }
             }
         }

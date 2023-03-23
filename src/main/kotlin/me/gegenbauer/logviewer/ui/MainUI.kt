@@ -3,9 +3,14 @@ package me.gegenbauer.logviewer.ui
 import com.formdev.flatlaf.FlatDarkLaf
 import com.formdev.flatlaf.FlatLightLaf
 import com.github.weisj.darklaf.components.OverlayScrollPane
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import me.gegenbauer.logviewer.ui.dialog.GoToDialog
 import me.gegenbauer.logviewer.command.CmdManager
 import me.gegenbauer.logviewer.command.LogCmdManager
+import me.gegenbauer.logviewer.concurrency.AppScope
+import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.log.GLog
@@ -2411,16 +2416,10 @@ class MainUI(title: String) : JFrame() {
                 .mouseMoved(MouseEvent(targetPanel, 0, 0, 0, targetPanel.width / 3, 0, 0, false))
         }
 
-        val clearThread = Thread {
-            run {
-                Thread.sleep(1000)
-                SwingUtilities.invokeAndWait {
-                    targetPanel.toolTipText = ""
-                }
-            }
+        AppScope.launch(Dispatchers.UI) {
+            delay(1000)
+            targetPanel.toolTipText = ""
         }
-
-        clearThread.start()
     }
 }
 

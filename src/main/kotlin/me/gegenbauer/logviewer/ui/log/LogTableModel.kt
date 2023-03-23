@@ -1,10 +1,14 @@
 package me.gegenbauer.logviewer.ui.log
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.BookmarkManager
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.command.LogCmdManager
+import me.gegenbauer.logviewer.concurrency.AppScope
+import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
@@ -19,7 +23,7 @@ import javax.swing.SwingUtilities
 import javax.swing.table.AbstractTableModel
 
 
-data class LogTableModelEvent(val source: LogTableModel,val dataChange: Int,val  removedCount: Int) {
+data class LogTableModelEvent(val source: LogTableModel, val dataChange: Int, val removedCount: Int) {
     companion object {
         const val EVENT_ADDED = 0
         const val EVENT_REMOVED = 1
@@ -294,25 +298,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
     var scrollback = 0
         set(value) {
             field = value
-            if (SwingUtilities.isEventDispatchThread()) {
-                logItems.clear()
-                logItems = mutableListOf()
-                baseModel!!.logItems.clear()
-                baseModel!!.logItems = mutableListOf()
-                BookmarkManager.clear()
-                fireLogTableDataCleared()
-                baseModel!!.fireLogTableDataCleared()
-            } else {
-                SwingUtilities.invokeAndWait {
-                    logItems.clear()
-                    logItems = mutableListOf()
-                    baseModel!!.logItems.clear()
-                    baseModel!!.logItems = mutableListOf()
-                    BookmarkManager.clear()
-                    fireLogTableDataCleared()
-                    baseModel!!.fireLogTableDataCleared()
-                }
-            }
+            clear()
         }
 
     var scrollBackSplitFile = false
@@ -437,12 +423,8 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
     private var filteredItemsThread: Thread? = null
     fun loadItems(isAppend: Boolean) {
         if (baseModel == null) {
-            if (SwingUtilities.isEventDispatchThread()) {
+            AppScope.launch(Dispatchers.UI) {
                 loadFile(isAppend)
-            } else {
-                SwingUtilities.invokeAndWait {
-                    loadFile(isAppend)
-                }
             }
         } else {
             isFilterUpdated = true
@@ -1206,7 +1188,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
         } else {
             isFilterUpdated = false
         }
-        SwingUtilities.invokeAndWait {
+        AppScope.launch(Dispatchers.UI) {
             logItems.clear()
             logItems = mutableListOf()
 
@@ -1312,7 +1294,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                 }
             }
 
-            this.logItems = logItems
+            this@LogTableModel.logItems = logItems
         }
 
         if (!isFilterUpdated && isRedraw) {
@@ -1335,12 +1317,8 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
         sIsLogcatLog = true
         val logFile = Log.file ?: return
 
-        if (SwingUtilities.isEventDispatchThread()) {
+        AppScope.launch(Dispatchers.UI) {
             scanThread?.interrupt()
-        } else {
-            SwingUtilities.invokeAndWait {
-                scanThread?.interrupt()
-            }
         }
 
         goToLast = true
@@ -1348,15 +1326,7 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
 
         scanThread = Thread {
             run {
-                SwingUtilities.invokeAndWait {
-                    logItems.clear()
-                    logItems = mutableListOf()
-                    baseModel!!.logItems.clear()
-                    baseModel!!.logItems = mutableListOf()
-                    BookmarkManager.clear()
-                    fireLogTableDataCleared()
-                    baseModel!!.fireLogTableDataCleared()
-                }
+                clear()
                 fireLogTableDataChanged()
                 baseModel!!.fireLogTableDataChanged()
                 makePattenPrintValue()
@@ -1506,9 +1476,9 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                             }
                         }
 
-                        SwingUtilities.invokeAndWait {
+                        AppScope.launch(Dispatchers.UI) {
                             if (scanThread == null) {
-                                return@invokeAndWait
+                                return@launch
                             }
 
                             for (filterItem in logFilterItems) {
@@ -1532,7 +1502,6 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                                 }
                             }
                         }
-
                         fireLogTableDataChanged(removedCount)
                         removedCount = 0
 
@@ -1562,13 +1531,21 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
         return
     }
 
+    private fun clear() {
+        AppScope.launch(Dispatchers.UI) {
+            logItems.clear()
+            logItems = mutableListOf()
+            baseModel!!.logItems.clear()
+            baseModel!!.logItems = mutableListOf()
+            BookmarkManager.clear()
+            fireLogTableDataCleared()
+            baseModel!!.fireLogTableDataCleared()
+        }
+    }
+
     fun stopScan() {
-        if (SwingUtilities.isEventDispatchThread()) {
+        AppScope.launch(Dispatchers.UI) {
             scanThread?.interrupt()
-        } else {
-            SwingUtilities.invokeAndWait {
-                scanThread?.interrupt()
-            }
         }
         scanThread = null
         if (fileWriter != null) {
@@ -1612,12 +1589,8 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
         sIsLogcatLog = false
         val logFile = Log.file ?: return
 
-        if (SwingUtilities.isEventDispatchThread()) {
+        AppScope.launch(Dispatchers.UI) {
             followThread?.interrupt()
-        } else {
-            SwingUtilities.invokeAndWait {
-                followThread?.interrupt()
-            }
         }
 
         goToLast = true
@@ -1625,21 +1598,13 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
 
         followThread = Thread {
             run {
-                SwingUtilities.invokeAndWait {
-                    isKeepReading = true
-                    logItems.clear()
-                    logItems = mutableListOf()
-                    baseModel!!.logItems.clear()
-                    baseModel!!.logItems = mutableListOf()
-                    BookmarkManager.clear()
-                    fireLogTableDataCleared()
-                    baseModel!!.fireLogTableDataCleared()
-                }
+                isKeepReading = true
+                clear()
                 fireLogTableDataChanged()
                 baseModel!!.fireLogTableDataChanged()
                 makePattenPrintValue()
 
-                val currLogFile: File? = logFile
+                val currLogFile: File = logFile
                 val scanner = Scanner(MyFileInputStream(currLogFile))
                 var line: String? = null
                 var num = 0
@@ -1772,9 +1737,9 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
                             }
                         }
 
-                        SwingUtilities.invokeAndWait {
+                        AppScope.launch(Dispatchers.UI) {
                             if (followThread == null) {
-                                return@invokeAndWait
+                                return@launch
                             }
 
                             for (filterItem in logFilterItems) {
@@ -1830,14 +1795,9 @@ class LogTableModel(private val mainUI: MainUI, baseModel: LogTableModel?) : Abs
     }
 
     fun stopFollow() {
-        if (SwingUtilities.isEventDispatchThread()) {
+        AppScope.launch(Dispatchers.UI) {
             isKeepReading = false
             followThread?.interrupt()
-        } else {
-            SwingUtilities.invokeAndWait {
-                isKeepReading = false
-                followThread?.interrupt()
-            }
         }
         followThread = null
         return
