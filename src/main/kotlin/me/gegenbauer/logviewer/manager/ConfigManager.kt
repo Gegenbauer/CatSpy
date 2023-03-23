@@ -18,13 +18,6 @@ object ConfigManager {
     const val ITEM_COLOR_FILTER_STYLE = "COLOR_FILTER_STYLE"
 
     const val ITEM_RETRY_ADB = "RETRY_ADB"
-
-    const val ITEM_SHOW_LOG_STYLE = "SHOW_LOG_STYLE"
-    const val ITEM_SHOW_TAG_STYLE = "SHOW_TAG_STYLE"
-    const val ITEM_SHOW_PID_STYLE = "SHOW_PID_STYLE"
-    const val ITEM_SHOW_TID_STYLE = "SHOW_TID_STYLE"
-    const val ITEM_BOLD_LOG_STYLE = "BOLD_LOG_STYLE"
-
     const val ITEM_ICON_TEXT = "ICON_TEXT"
     const val VALUE_ICON_TEXT_I_T = "IconText"
     const val VALUE_ICON_TEXT_I = "Icon"

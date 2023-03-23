@@ -1,6 +1,5 @@
-package me.gegenbauer.logviewer.ui.button
+package me.gegenbauer.logviewer.ui.container
 
-import me.gegenbauer.logviewer.ui.container.WrapableLayout
 import javax.swing.JPanel
 
 class WrapablePanel : JPanel() {

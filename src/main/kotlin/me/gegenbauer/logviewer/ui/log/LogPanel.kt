@@ -7,7 +7,7 @@ import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
 import me.gegenbauer.logviewer.ui.button.TableBarButton
-import me.gegenbauer.logviewer.ui.button.WrapablePanel
+import me.gegenbauer.logviewer.ui.container.WrapablePanel
 import me.gegenbauer.logviewer.ui.popup.PopUpLogPanel
 import me.gegenbauer.logviewer.utils.currentPlatform
 import me.gegenbauer.logviewer.utils.getImageFile

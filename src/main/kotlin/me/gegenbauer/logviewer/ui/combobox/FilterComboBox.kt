@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer.ui.button
+package me.gegenbauer.logviewer.ui.combobox
 
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
@@ -13,7 +13,6 @@ import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter
 import javax.swing.text.Highlighter
 import javax.swing.text.JTextComponent
-
 
 class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboBox<String>() {
 
@@ -395,7 +394,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                 textComponent.text = item
                 textComponentWrapper.setUpdateHighlighter(true)
             } else {
-                textComponent.text = null
+                textComponent.text = ""
             }
         }
 
@@ -679,6 +678,10 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
     }
 
     companion object {
+        fun Mode.isMultiLine(): Boolean {
+            return this == Mode.MULTI_LINE || this == Mode.MULTI_LINE_HIGHLIGHT
+        }
+
         private fun updateToolTipStrToHtml(toolTipStr: String): String {
             if (toolTipStr.isEmpty()) return toolTipStr
             return toolTipStr.replace("&#09", "&amp;#09")

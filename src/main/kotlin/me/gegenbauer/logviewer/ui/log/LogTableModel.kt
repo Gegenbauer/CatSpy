@@ -8,7 +8,7 @@ import me.gegenbauer.logviewer.manager.LogCmdManager
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.ui.button.FilterComboBox
+import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
 import java.awt.Color
 import java.io.*
 import java.util.*

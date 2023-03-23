@@ -1,12 +1,13 @@
 package me.gegenbauer.logviewer.ui.settings
 
 import me.gegenbauer.logviewer.Utils
+import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
-import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.ui.button.FilterComboBox
+import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
+import me.gegenbauer.logviewer.utils.getEnum
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
@@ -81,15 +82,15 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
         }
 
         comboLabelArray[ComboIdx.LOG.value]!!.text = "Combo Style : Log"
-        styleComboArray[ComboIdx.LOG.value]!!.selectedIndex = parent.showLogComboStyle.value
+        styleComboArray[ComboIdx.LOG.value]!!.selectedIndex = UIConfManager.uiConf.logFilterComboStyle.ordinal
         comboLabelArray[ComboIdx.TAG.value]!!.text = "Combo Style : Tag"
-        styleComboArray[ComboIdx.TAG.value]!!.selectedIndex = parent.showTagComboStyle.value
+        styleComboArray[ComboIdx.TAG.value]!!.selectedIndex = UIConfManager.uiConf.tagFilterComboStyle.ordinal
         comboLabelArray[ComboIdx.PID.value]!!.text = "Combo Style : PID"
-        styleComboArray[ComboIdx.PID.value]!!.selectedIndex = parent.showPidComboStyle.value
+        styleComboArray[ComboIdx.PID.value]!!.selectedIndex = UIConfManager.uiConf.pidFilterComboStyle.ordinal
         comboLabelArray[ComboIdx.TID.value]!!.text = "Combo Style : TID"
-        styleComboArray[ComboIdx.TID.value]!!.selectedIndex = parent.showTidComboStyle.value
+        styleComboArray[ComboIdx.TID.value]!!.selectedIndex = UIConfManager.uiConf.tidFilterComboStyle.ordinal
         comboLabelArray[ComboIdx.BOLD.value]!!.text = "Combo Style : BOLD"
-        styleComboArray[ComboIdx.BOLD.value]!!.selectedIndex = parent.boldLogComboStyle.value
+        styleComboArray[ComboIdx.BOLD.value]!!.selectedIndex = UIConfManager.uiConf.highlightComboStyle.ordinal
 
         for (idx in comboLabelArray.indices) {
             styleLabelPanel.add(comboLabelArray[idx])
@@ -194,22 +195,12 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
                     }
                     ColorManager.applyFilterStyle()
                 } else {
-                    val keys = arrayOf(
-                        ConfigManager.ITEM_SHOW_LOG_STYLE,
-                        ConfigManager.ITEM_SHOW_TAG_STYLE,
-                        ConfigManager.ITEM_SHOW_PID_STYLE,
-                        ConfigManager.ITEM_SHOW_TID_STYLE,
-                        ConfigManager.ITEM_BOLD_LOG_STYLE
-                    )
-                    val values = arrayOf(
-                        styleComboArray[ComboIdx.LOG.value]!!.selectedIndex.toString(),
-                        styleComboArray[ComboIdx.TAG.value]!!.selectedIndex.toString(),
-                        styleComboArray[ComboIdx.PID.value]!!.selectedIndex.toString(),
-                        styleComboArray[ComboIdx.TID.value]!!.selectedIndex.toString(),
-                        styleComboArray[ComboIdx.BOLD.value]!!.selectedIndex.toString()
-                    )
-
-                    ConfigManager.saveFilterStyle(keys, values)
+                    UIConfManager.uiConf.logFilterComboStyle = getEnum(styleComboArray[ComboIdx.LOG.value]!!.selectedIndex)
+                    UIConfManager.uiConf.tagFilterComboStyle = getEnum(styleComboArray[ComboIdx.TAG.value]!!.selectedIndex)
+                    UIConfManager.uiConf.pidFilterComboStyle = getEnum(styleComboArray[ComboIdx.PID.value]!!.selectedIndex)
+                    UIConfManager.uiConf.tidFilterComboStyle = getEnum(styleComboArray[ComboIdx.TID.value]!!.selectedIndex)
+                    UIConfManager.uiConf.highlightComboStyle = getEnum(styleComboArray[ComboIdx.BOLD.value]!!.selectedIndex)
+                    UIConfManager.saveUI()
                 }
             }
         })

@@ -11,8 +11,9 @@ import me.gegenbauer.logviewer.manager.*
 import me.gegenbauer.logviewer.strings.STRINGS
 import me.gegenbauer.logviewer.strings.app
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
-import me.gegenbauer.logviewer.ui.button.FilterComboBox
-import me.gegenbauer.logviewer.ui.button.WrapablePanel
+import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
+import me.gegenbauer.logviewer.ui.combobox.FilterComboBox.Companion.isMultiLine
+import me.gegenbauer.logviewer.ui.container.WrapablePanel
 import me.gegenbauer.logviewer.ui.log.*
 import me.gegenbauer.logviewer.ui.menu.FileMenu
 import me.gegenbauer.logviewer.ui.menu.HelpMenu
@@ -46,17 +47,9 @@ import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 
-
 class MainUI(title: String) : JFrame() {
     companion object {
         private const val TAG = "MainUI"
-        private const val SPLIT_WEIGHT = 0.7
-
-        private const val ROTATION_LEFT_RIGHT = 0
-        private const val ROTATION_TOP_BOTTOM = 1
-        private const val ROTATION_RIGHT_LEFT = 2
-        private const val ROTATION_BOTTOM_TOP = 3
-        private const val ROTATION_MAX = ROTATION_BOTTOM_TOP
 
         const val DEFAULT_FONT_NAME = "DialogInput"
 
@@ -146,36 +139,31 @@ class MainUI(title: String) : JFrame() {
     private val saveBtn = JButton(STRINGS.ui.save)
     internal val searchPanel = SearchPanel()
 
-    private lateinit var logPanel: JPanel
-    private lateinit var showLogPanel: JPanel
-    private lateinit var matchCaseToggle: ColorToggleButton
-    private lateinit var matchCaseTogglePanel: JPanel
-    lateinit var showLogCombo: FilterComboBox
-    var showLogComboStyle: FilterComboBox.Mode
+    private val logPanel = JPanel()
+    private val showLogPanel = JPanel()
+    private val matchCaseToggle = ColorToggleButton("Aa")
+    private val matchCaseTogglePanel = JPanel(GridLayout(1, 1))
+    val showLogCombo = FilterComboBox(UIConfManager.uiConf.logFilterComboStyle, true)
     private lateinit var showLogToggle: ColorToggleButton
     private lateinit var showLogTogglePanel: JPanel
 
     private lateinit var boldLogPanel: JPanel
     private lateinit var hightlightLogCombo: FilterComboBox
-    var boldLogComboStyle: FilterComboBox.Mode
     private lateinit var boldLogToggle: ColorToggleButton
     private lateinit var boldLogTogglePanel: JPanel
 
     private lateinit var showTagPanel: JPanel
     lateinit var showTagCombo: FilterComboBox
-    var showTagComboStyle: FilterComboBox.Mode
     private lateinit var showTagToggle: ColorToggleButton
     private lateinit var showTagTogglePanel: JPanel
 
     private lateinit var showPidPanel: JPanel
     lateinit var showPidCombo: FilterComboBox
-    var showPidComboStyle: FilterComboBox.Mode
     private lateinit var showPidToggle: ColorToggleButton
     private lateinit var showPidTogglePanel: JPanel
 
     private lateinit var showTidPanel: JPanel
     lateinit var showTidCombo: FilterComboBox
-    var showTidComboStyle: FilterComboBox.Mode
     private lateinit var showTidToggle: ColorToggleButton
     private lateinit var showTidTogglePanel: JPanel
 
@@ -254,41 +242,6 @@ class MainUI(title: String) : JFrame() {
 
         LogCmdManager.addEventListener(AdbHandler())
 
-        var prop = ConfigManager.getItem(ConfigManager.ITEM_SHOW_LOG_STYLE)
-        showLogComboStyle = if (!prop.isNullOrEmpty()) {
-            getEnum(prop.toInt())
-        } else {
-            FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT
-        }
-
-        prop = ConfigManager.getItem(ConfigManager.ITEM_BOLD_LOG_STYLE)
-        boldLogComboStyle = if (!prop.isNullOrEmpty()) {
-            getEnum(prop.toInt())
-        } else {
-            FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
-        }
-
-        prop = ConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG_STYLE)
-        showTagComboStyle = if (!prop.isNullOrEmpty()) {
-            getEnum(prop.toInt())
-        } else {
-            FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
-        }
-
-        prop = ConfigManager.getItem(ConfigManager.ITEM_SHOW_PID_STYLE)
-        showPidComboStyle = if (!prop.isNullOrEmpty()) {
-            getEnum(prop.toInt())
-        } else {
-            FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
-        }
-
-        prop = ConfigManager.getItem(ConfigManager.ITEM_SHOW_TID_STYLE)
-        showTidComboStyle = if (!prop.isNullOrEmpty()) {
-            getEnum(prop.toInt())
-        } else {
-            FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
-        }
-
         createUI()
 
         if (LogCmdManager.getType() == LogCmdManager.TYPE_LOGCAT) {
@@ -313,15 +266,6 @@ class MainUI(title: String) : JFrame() {
             setSize(frameWidth, frameHeight)
         }
         extendedState = frameExtendedState
-    }
-
-    override fun setSize(width: Int, height: Int) {
-        super.setSize(width, height)
-
-    }
-
-    override fun setSize(d: Dimension?) {
-        super.setSize(d)
     }
 
     private fun exit() {
@@ -440,9 +384,6 @@ class MainUI(title: String) : JFrame() {
         saveBtn.addActionListener(actionHandler)
         saveBtn.addMouseListener(mouseHandler)
 
-        logPanel = JPanel()
-        showLogPanel = JPanel()
-        showLogCombo = FilterComboBox(showLogComboStyle, true)
         showLogCombo.toolTipText = STRINGS.toolTip.logCombo
         showLogCombo.isEditable = true
         showLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -459,7 +400,7 @@ class MainUI(title: String) : JFrame() {
         showLogToggle.addItemListener(itemHandler)
 
         boldLogPanel = JPanel()
-        hightlightLogCombo = FilterComboBox(boldLogComboStyle, false)
+        hightlightLogCombo = FilterComboBox(UIConfManager.uiConf.highlightComboStyle, false)
         hightlightLogCombo.toolTipText = STRINGS.toolTip.boldCombo
         hightlightLogCombo.enabledTfTooltip = false
         hightlightLogCombo.isEditable = true
@@ -476,7 +417,7 @@ class MainUI(title: String) : JFrame() {
         boldLogToggle.addItemListener(itemHandler)
 
         showTagPanel = JPanel()
-        showTagCombo = FilterComboBox(showTagComboStyle, false)
+        showTagCombo = FilterComboBox(UIConfManager.uiConf.tagFilterComboStyle, false)
         showTagCombo.toolTipText = STRINGS.toolTip.tagCombo
         showTagCombo.isEditable = true
         showTagCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -492,7 +433,7 @@ class MainUI(title: String) : JFrame() {
         showTagToggle.addItemListener(itemHandler)
 
         showPidPanel = JPanel()
-        showPidCombo = FilterComboBox(showPidComboStyle, false)
+        showPidCombo = FilterComboBox(UIConfManager.uiConf.pidFilterComboStyle, false)
         showPidCombo.toolTipText = STRINGS.toolTip.pidCombo
         showPidCombo.isEditable = true
         showPidCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -508,7 +449,7 @@ class MainUI(title: String) : JFrame() {
         showPidToggle.addItemListener(itemHandler)
 
         showTidPanel = JPanel()
-        showTidCombo = FilterComboBox(showTidComboStyle, false)
+        showTidCombo = FilterComboBox(UIConfManager.uiConf.tidFilterComboStyle, false)
         showTidCombo.toolTipText = STRINGS.toolTip.tidCombo
         showTidCombo.isEditable = true
         showTidCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -554,11 +495,9 @@ class MainUI(title: String) : JFrame() {
         adbDisconnectBtn.addActionListener(actionHandler)
         adbDisconnectBtn.toolTipText = STRINGS.toolTip.disconnectBtn
 
-        matchCaseToggle = ColorToggleButton("Aa")
         matchCaseToggle.toolTipText = STRINGS.toolTip.caseToggle
         matchCaseToggle.margin = Insets(0, 0, 0, 0)
         matchCaseToggle.addItemListener(itemHandler)
-        matchCaseTogglePanel = JPanel(GridLayout(1, 1))
         matchCaseTogglePanel.add(matchCaseToggle)
         matchCaseTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
 
@@ -2183,29 +2122,22 @@ class MainUI(title: String) : JFrame() {
         return selectedLine
     }
 
-    fun goToMarkedLine() {
-        if (IsCreatingUI) {
-            return
-        }
-        goToLine(selectedLine)
-    }
-
     fun updateUIAfterVisible(args: Array<String>) {
-        if (showLogCombo.selectedIndex >= 0 && (showLogComboStyle == FilterComboBox.Mode.MULTI_LINE || showLogComboStyle == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
+        if (showLogCombo.selectedIndex >= 0 && UIConfManager.uiConf.logFilterComboStyle.isMultiLine()) {
             val selectedItem = showLogCombo.selectedItem
             showLogCombo.selectedItem = ""
             showLogCombo.selectedItem = selectedItem
             showLogCombo.parent.revalidate()
             showLogCombo.parent.repaint()
         }
-        if (showTagCombo.selectedIndex >= 0 && (showTagComboStyle == FilterComboBox.Mode.MULTI_LINE || showTagComboStyle == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
+        if (showTagCombo.selectedIndex >= 0 && UIConfManager.uiConf.tagFilterComboStyle.isMultiLine()) {
             val selectedItem = showTagCombo.selectedItem
             showTagCombo.selectedItem = ""
             showTagCombo.selectedItem = selectedItem
             showTagCombo.parent.revalidate()
             showTagCombo.parent.repaint()
         }
-        if (hightlightLogCombo.selectedIndex >= 0 && (boldLogComboStyle == FilterComboBox.Mode.MULTI_LINE || boldLogComboStyle == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
+        if (hightlightLogCombo.selectedIndex >= 0 && UIConfManager.uiConf.highlightComboStyle.isMultiLine()) {
             val selectedItem = hightlightLogCombo.selectedItem
             hightlightLogCombo.selectedItem = ""
             hightlightLogCombo.selectedItem = selectedItem
@@ -2231,9 +2163,6 @@ class MainUI(title: String) : JFrame() {
                 }
             }
         }
-    }
-
-    fun repaintUI() {
     }
 
     internal inner class StatusTextField(text: String?) : JTextField(text) {

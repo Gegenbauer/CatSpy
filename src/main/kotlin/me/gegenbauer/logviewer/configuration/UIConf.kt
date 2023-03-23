@@ -1,9 +1,10 @@
 package me.gegenbauer.logviewer.configuration
 
 import me.gegenbauer.logviewer.manager.CustomListManager
+import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
 import me.gegenbauer.logviewer.ui.log.LogLevel
 
-// TODO 日志全屏视图无法取消；日志过滤器无法添加；
+// TODO 日志过滤器无法添加；
 data class UIConf(
     /** 应用配置 start **/
     var versionCode: Int = 0,
@@ -35,6 +36,11 @@ data class UIConf(
     var tidFilterEnabled: Boolean = true,
     var highlightEnabled: Boolean = true,
     var filterMatchCaseEnabled: Boolean = false,
+    var logFilterComboStyle: FilterComboBox.Mode = FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT,
+    var highlightComboStyle: FilterComboBox.Mode = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT,
+    var tagFilterComboStyle: FilterComboBox.Mode = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT,
+    var pidFilterComboStyle: FilterComboBox.Mode = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT,
+    var tidFilterComboStyle: FilterComboBox.Mode = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT,
     /** 日志过滤项启用配置 end **/
 
     /** 界面主题 start **/
