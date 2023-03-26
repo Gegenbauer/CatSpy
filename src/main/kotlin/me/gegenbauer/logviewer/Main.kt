@@ -1,5 +1,8 @@
 package me.gegenbauer.logviewer
 
+import com.jgoodies.binding.PresentationModel
+import com.jgoodies.binding.binder.Binders
+import com.jgoodies.binding.binder.PresentationModelBinder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -7,6 +10,7 @@ import me.gegenbauer.logviewer.concurrency.APP_LAUNCH
 import me.gegenbauer.logviewer.concurrency.AppScope
 import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.configuration.ThemeManager
+import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
@@ -23,15 +27,18 @@ class Main {
         fun main(args: Array<String>) {
             AppScope.launch(Dispatchers.UI) {
                 withContext(Dispatchers.APP_LAUNCH) {
+                    GLog.DEBUG = UIConfManager.uiConf.debug
                     ThemeManager.init()
                     loadConfig()
                 }
+                ThemeManager.installTheme()
                 val mainUI = MainUI(STRINGS.ui.app)
                 mainUI.updateUIAfterVisible(args)
-                //ThemeManager.installTheme()
-                //ThemeManager.applyTempTheme()
-                //addClickListenerForAllComponents(mainUI.components)
+                ThemeManager.applyTempTheme()
                 mainUI.isVisible = true
+                if (GLog.DEBUG) {
+                    addClickListenerForAllComponents(mainUI.components)
+                }
             }
         }
 
