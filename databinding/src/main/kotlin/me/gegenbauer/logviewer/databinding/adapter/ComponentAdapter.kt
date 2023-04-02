@@ -1,0 +1,3 @@
+package me.gegenbauer.logviewer.databinding.adapter
+
+interface ComponentAdapter

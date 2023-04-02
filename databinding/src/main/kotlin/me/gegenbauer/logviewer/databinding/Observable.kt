@@ -6,51 +6,65 @@ import kotlin.concurrent.write
 
 interface Observable<T> {
 
-    fun addOnPropertyChangedCallback(callback: PropertyChangeListener<T>)
+    fun addObserver(observer: Observer<T>)
 
-    fun removeOnPropertyChangedCallback(callback: PropertyChangeListener<T>?)
+    fun removeObserver(observer: Observer<T>?)
 
 }
 
-fun interface PropertyChangeListener<T> {
-    fun onPropertyChange(source: ObservableProperty<*>, newValue: T?, oldValue: T?)
+fun interface Observer<T> {
+    fun onChange(newValue: T?)
 }
 
-open class ObservableProperty<T>(private var value: T? = null) : Observable<T>, PropertyChangeListener<T> {
+class ComponentPropertyObserver<T>(
+    private val callback: (newValue: T?) -> Unit
+) : Observer<T> {
+    override fun onChange(newValue: T?) {
+        callback(newValue)
+    }
+}
+
+class ViewModelPropertyObserver<T>(
+    private val callback: (newValue: T?) -> Unit
+) : Observer<T> {
+    override fun onChange(newValue: T?) {
+        callback(newValue)
+    }
+}
+
+
+open class ObservableProperty<T>(var value: T? = null) : Observable<T> {
     private val lock = ReentrantReadWriteLock()
 
-    private val callbacks = mutableListOf<PropertyChangeListener<T>>()
+    private val obs = mutableListOf<Observer<T>>()
 
-    fun setValue(value: T?, notifySelf: Boolean = false) {
-        val oldValue = this.value
-        if (oldValue == value) return
-        this.value = value
-        lock.read {
-            callbacks.forEach { it.onPropertyChange(this, value, oldValue) }
-        }
-        if (notifySelf) {
-            onPropertyChange(this, value, oldValue)
-        }
+    open fun updateValue(newValue: T?) {
+        if (this.value == newValue) return
+        this.value = newValue
+        lock.read { obs.forEach { it.onChange(newValue) } }
     }
 
-    fun getValue(): T? = value
-
-    override fun addOnPropertyChangedCallback(callback: PropertyChangeListener<T>) {
-        lock.write { callbacks.add(callback) }
+    // 获取泛型类型的类名称
+    protected fun getValueType(): String {
+        value ?: return "TYPE_NULL"
+        return value!!::class.java.simpleName
     }
 
-    override fun removeOnPropertyChangedCallback(callback: PropertyChangeListener<T>?) {
+    open fun getDisplayName(): String {
+        return getValueType()
+    }
+
+    override fun addObserver(observer: Observer<T>) {
+        lock.write { obs.add(observer) }
+    }
+
+    override fun removeObserver(observer: Observer<T>?) {
+        if (observer == null) {
+            return
+        }
         lock.write {
-            if (callback == null) {
-                callbacks.clear()
-                return@write
-            }
-            callbacks.remove(callback)
+            obs.remove(observer)
         }
-    }
-
-    override fun onPropertyChange(source: ObservableProperty<*>, newValue: T?, oldValue: T?) {
-        // do nothing
     }
 
 }

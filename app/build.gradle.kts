@@ -22,7 +22,6 @@ dependencies {
     implementation(FormDev.flatLaf.group, FormDev.flatLaf.artifact, FormDev.flatLaf.version)
     implementation(Weisj.darklafCore.group, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
     implementation(Gson.gson.group, Gson.gson.artifact, Gson.gson.version)
-    implementation(JGoodies.binding.group, JGoodies.binding.artifact, JGoodies.binding.version)
 }
 
 tasks.test {
