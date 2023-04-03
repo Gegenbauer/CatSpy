@@ -1,19 +1,18 @@
 package me.gegenbauer.logviewer.databinding.adapter.component
 
-import me.gegenbauer.logviewer.databinding.adapter.Disposable
 import me.gegenbauer.logviewer.databinding.adapter.property.SelectedAdapter
 import java.awt.event.ItemEvent
 import java.awt.event.ItemEvent.SELECTED
 import java.awt.event.ItemListener
-import javax.swing.JCheckBox
 import javax.swing.JComponent
+import javax.swing.JToggleButton
 
-class JCheckBoxAdapter(component: JComponent) : SelectedAdapter, Disposable {
+class JToggleButtonAdapter(component: JComponent) : SelectedAdapter, DisposableAdapter {
     private val itemListener = ItemListener { e: ItemEvent ->
         checkedStatusChangeObserver?.invoke(e.stateChange == SELECTED)
     }
     private var checkedStatusChangeObserver: ((Boolean) -> Unit)? = null
-    private val cb = component as JCheckBox
+    private val cb = component as JToggleButton
 
     init {
         cb.addItemListener(itemListener)
@@ -28,7 +27,7 @@ class JCheckBoxAdapter(component: JComponent) : SelectedAdapter, Disposable {
         checkedStatusChangeObserver = observer
     }
 
-    override fun dispose() {
+    override fun removeSelectedChangeListener() {
         cb.removeItemListener(itemListener)
     }
 }

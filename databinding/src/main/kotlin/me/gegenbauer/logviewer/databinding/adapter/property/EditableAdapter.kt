@@ -4,13 +4,13 @@ import me.gegenbauer.logviewer.databinding.adapter.ComponentAdapter
 import me.gegenbauer.logviewer.databinding.adapter.Disposable
 import java.beans.PropertyChangeListener
 
-interface EnabledAdapter: ComponentAdapter {
-    val enabledStatusChangeListener: PropertyChangeListener
+interface EditableAdapter: ComponentAdapter {
+    val editableChangeListener: PropertyChangeListener
 
-    fun updateEnabledStatus(value: Boolean?)
+    fun updateEditableStatus(value: Boolean?)
 
-    fun observeEnabledStatusChange(observer: (Boolean?) -> Unit)
+    fun observeEditableStatusChange(observer: (Boolean?) -> Unit)
 
     @Disposable
-    fun removeEnabledChangeListener()
+    fun removeEditableChangeListener()
 }

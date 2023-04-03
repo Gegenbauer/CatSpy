@@ -19,6 +19,7 @@ dependencies {
     implementation(compose.desktop.currentOs)
     implementation(projects.log)
     implementation(projects.concurrency)
+    implementation(projects.databinding)
     implementation(FormDev.flatLaf.group, FormDev.flatLaf.artifact, FormDev.flatLaf.version)
     implementation(Weisj.darklafCore.group, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
     implementation(Gson.gson.group, Gson.gson.artifact, Gson.gson.version)

@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.gegenbauer.logviewer.concurrency.AppScope
 import me.gegenbauer.logviewer.concurrency.UI
+import me.gegenbauer.logviewer.databinding.adapter.ComponentAdapter
 import me.gegenbauer.logviewer.databinding.adapter.ComponentAdapterFactory
 import me.gegenbauer.logviewer.log.GLog
 import java.awt.event.HierarchyEvent
@@ -13,7 +14,7 @@ abstract class ObservableComponentProperty<T>(
     val component: JComponent,
 ) : ObservableProperty<T>() {
     private var propertyChangeObserver: ((T?) -> Unit)? = null
-    val componentAdapter = ComponentAdapterFactory.getComponentAdapter(component)
+    val componentAdapter: ComponentAdapter? = ComponentAdapterFactory.getComponentAdapter(component)
 
     init {
         component.addHierarchyListener { e ->
@@ -26,7 +27,7 @@ abstract class ObservableComponentProperty<T>(
     }
 
     override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}${component.hashCode()}_${getValueType()}"
+        return "${component.javaClass.simpleName}_${component.hashCode()}_${getValueType()}"
     }
 
     final override fun updateValue(newValue: T?) {

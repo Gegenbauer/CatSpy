@@ -1,5 +1,5 @@
 package me.gegenbauer.logviewer.databinding.adapter
 
-interface Disposable {
-    fun dispose()
-}
+@Target(AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class Disposable
