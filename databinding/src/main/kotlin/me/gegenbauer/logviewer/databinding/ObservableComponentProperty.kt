@@ -6,6 +6,7 @@ import me.gegenbauer.logviewer.concurrency.AppScope
 import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.databinding.adapter.ComponentAdapter
 import me.gegenbauer.logviewer.databinding.adapter.ComponentAdapterFactory
+import me.gegenbauer.logviewer.databinding.adapter.component.DisposableAdapter
 import me.gegenbauer.logviewer.log.GLog
 import java.awt.event.HierarchyEvent
 import javax.swing.JComponent
@@ -22,6 +23,7 @@ abstract class ObservableComponentProperty<T>(
                 GLog.d(TAG, "[HierarchyListener] component " + "${component.javaClass.simpleName}_${component.hashCode()} isDisplayable = false")
                 // component is not displayable, cancel all coroutines
                 Bindings.unBind(this)
+                (componentAdapter as? DisposableAdapter)?.dispose()
             }
         }
     }
@@ -31,7 +33,7 @@ abstract class ObservableComponentProperty<T>(
     }
 
     final override fun updateValue(newValue: T?) {
-        if (value != newValue) {
+        if (value != newValue && newValue != null) {
             AppScope.launch(Dispatchers.UI) {
                 setProperty(newValue)
             }
