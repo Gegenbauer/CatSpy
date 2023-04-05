@@ -1,6 +1,5 @@
 package me.gegenbauer.logviewer.utils
 
-import com.github.weisj.darklaf.theme.Theme
 import me.gegenbauer.logviewer.Main
 import java.io.File
 import java.io.InputStream
