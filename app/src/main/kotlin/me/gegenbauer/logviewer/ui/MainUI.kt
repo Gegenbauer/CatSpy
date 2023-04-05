@@ -35,6 +35,7 @@ import me.gegenbauer.logviewer.ui.menu.ViewMenu
 import me.gegenbauer.logviewer.ui.panel.SplitLogPane
 import me.gegenbauer.logviewer.utils.getEnum
 import me.gegenbauer.logviewer.utils.getImageFile
+import me.gegenbauer.logviewer.viewmodel.MainViewModel
 import java.awt.*
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
@@ -153,10 +154,10 @@ class MainUI(title: String) : JFrame() {
 
     private val logPanel = JPanel()
     private val showLogPanel = JPanel()
-    private val matchCaseToggle = ColorToggleButton("Aa")
+    val matchCaseToggle = ColorToggleButton("Aa")
     private val matchCaseTogglePanel = JPanel(GridLayout(1, 1))
     val showLogCombo = FilterComboBox(UIConfManager.uiConf.logFilterComboStyle, true)
-    private val showLogToggle =  ColorToggleButton(STRINGS.ui.log)
+    val showLogToggle =  ColorToggleButton(STRINGS.ui.log)
     private val showLogTogglePanel = JPanel(GridLayout(1, 1))
 
     val showPidCombo = FilterComboBox(UIConfManager.uiConf.pidFilterComboStyle, false)
@@ -165,17 +166,17 @@ class MainUI(title: String) : JFrame() {
     private var selectedLine = 0
 
     private val boldLogPanel = JPanel()
-    private val highlightLogCombo = FilterComboBox(UIConfManager.uiConf.highlightComboStyle, false)
-    private val boldLogToggle = ColorToggleButton(STRINGS.ui.bold)
+    val highlightLogCombo = FilterComboBox(UIConfManager.uiConf.highlightComboStyle, false)
+    val boldLogToggle = ColorToggleButton(STRINGS.ui.bold)
     private val boldLogTogglePanel = JPanel(GridLayout(1, 1))
     private val showTagPanel = JPanel()
-    private val showTagToggle = ColorToggleButton(STRINGS.ui.tag)
+    val showTagToggle = ColorToggleButton(STRINGS.ui.tag)
     private val showTagTogglePanel = JPanel(GridLayout(1, 1))
     private val showPidPanel = JPanel()
-    private val showPidToggle = ColorToggleButton(STRINGS.ui.pid)
+    val showPidToggle = ColorToggleButton(STRINGS.ui.pid)
     private val showPidTogglePanel = JPanel(GridLayout(1, 1))
     private val showTidPanel = JPanel()
-    private val showTidToggle = ColorToggleButton(STRINGS.ui.tid)
+    val showTidToggle = ColorToggleButton(STRINGS.ui.tid)
     private val showTidTogglePanel = JPanel(GridLayout(1, 1))
     private val logCmdCombo = JComboBox<String>()
     private val deviceCombo = JComboBox<String>()
@@ -218,6 +219,7 @@ class MainUI(title: String) : JFrame() {
         }
 
     var uiFontPercent = 100
+    private val mainViewModel = MainViewModel()
 
     init {
         LogCmdManager.setMainUI(this)
@@ -247,6 +249,8 @@ class MainUI(title: String) : JFrame() {
         LogCmdManager.addEventListener(AdbHandler())
 
         createUI()
+
+        mainViewModel.bind(this)
 
         if (LogCmdManager.getType() == LogCmdManager.TYPE_LOGCAT) {
             LogCmdManager.getDevices()
@@ -668,22 +672,16 @@ class MainUI(title: String) : JFrame() {
         }
         showLogCombo.updateTooltip()
 
-        showLogToggle.isSelected = UIConfManager.uiConf.logFilterEnabled
-        showLogCombo.isEnabled = UIConfManager.uiConf.logFilterEnabled
-
         showTagCombo.addAllItems(UIConfManager.uiConf.tagFilterHistory)
         if (showTagCombo.itemCount > 0) {
             showTagCombo.selectedIndex = 0
         }
         showTagCombo.updateTooltip()
 
-        showTagToggle.isSelected = UIConfManager.uiConf.tagFilterEnabled
         showTagCombo.setEnabledFilter(UIConfManager.uiConf.tagFilterEnabled)
 
-        showPidToggle.isSelected = UIConfManager.uiConf.pidFilterEnabled
         showPidCombo.setEnabledFilter(UIConfManager.uiConf.pidFilterEnabled)
 
-        showTidToggle.isSelected = UIConfManager.uiConf.tidFilterEnabled
         showTidCombo.setEnabledFilter(UIConfManager.uiConf.tidFilterEnabled)
 
         highlightLogCombo.addAllItems(UIConfManager.uiConf.highlightHistory)
@@ -692,7 +690,6 @@ class MainUI(title: String) : JFrame() {
         }
         highlightLogCombo.updateTooltip()
 
-        boldLogToggle.isSelected = UIConfManager.uiConf.highlightEnabled
         highlightLogCombo.setEnabledFilter(UIConfManager.uiConf.highlightEnabled)
 
         searchPanel.searchCombo.addAllItems(UIConfManager.uiConf.searchHistory)
@@ -770,7 +767,6 @@ class MainUI(title: String) : JFrame() {
         filteredTableModel.scrollback = UIConfManager.uiConf.logScrollBackCount
         scrollBackSplitFileToggle.isSelected = UIConfManager.uiConf.logScrollBackSplitFileEnabled
         filteredTableModel.scrollBackSplitFile = UIConfManager.uiConf.logScrollBackSplitFileEnabled
-        matchCaseToggle.isSelected = UIConfManager.uiConf.filterMatchCaseEnabled
         filteredTableModel.matchCase = UIConfManager.uiConf.filterMatchCaseEnabled
 
         searchPanel.searchMatchCaseToggle.isSelected = UIConfManager.uiConf.searchMatchCaseEnabled
