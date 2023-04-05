@@ -4,13 +4,13 @@ import me.gegenbauer.logviewer.databinding.adapter.ComponentAdapter
 import me.gegenbauer.logviewer.databinding.adapter.Disposable
 import java.awt.event.ItemListener
 
-interface SelectedAdapter : ComponentAdapter {
-    val selectedChangeListener: ItemListener
+interface SelectedIndexAdapter: ComponentAdapter {
+    val selectedIndexChangeListener: ItemListener
 
-    fun updateSelectedStatus(value: Boolean?)
+    fun updateSelectedIndex(value: Int?)
 
-    fun observeSelectedStatusChange(observer: (Boolean?) -> Unit)
+    fun observeSelectedIndexChange(observer: (Int?) -> Unit)
 
     @Disposable
-    fun removeSelectedChangeListener()
+    fun removeSelectedIndexChangeListener()
 }

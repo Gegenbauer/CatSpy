@@ -1,5 +1,9 @@
 package me.gegenbauer.logviewer
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import me.gegenbauer.logviewer.concurrency.AppScope
+import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.databinding.BindType
 import me.gegenbauer.logviewer.databinding.Bindings
 import me.gegenbauer.logviewer.databinding.ObservableViewModelProperty
@@ -11,7 +15,7 @@ import java.awt.Dimension
 import javax.swing.*
 
 fun main() {
-    SwingUtilities.invokeLater {
+    AppScope.launch(Dispatchers.UI) {
         val frame = JFrame()
         GLog.DEBUG = true
         frame.size = Dimension(500, 500)
