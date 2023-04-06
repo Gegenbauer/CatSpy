@@ -1,7 +1,9 @@
 package me.gegenbauer.logviewer.databinding.adapter
 
 import me.gegenbauer.logviewer.databinding.ObservableComponentProperty
+import me.gegenbauer.logviewer.databinding.adapter.component.CustomComponentAdapter
 import me.gegenbauer.logviewer.databinding.adapter.property.*
+import me.gegenbauer.logviewer.databinding.setField
 import me.gegenbauer.logviewer.log.GLog
 import javax.swing.JComponent
 
@@ -102,5 +104,25 @@ fun selectedIndexProperty(component: JComponent) = object : ObservableComponentP
     override fun setProperty(newValue: Int?) {
         super.setProperty(newValue)
         adapter?.updateSelectedIndex(newValue)
+    }
+}
+
+fun <T> customProperty(component: JComponent, propertyName: String, initValue: T) = object : ObservableComponentProperty<T>(component) {
+    private val adapter: CustomComponentAdapter<T>
+
+    init {
+        val componentAdapter = CustomComponentAdapter<T>(component, propertyName)
+        adapter = componentAdapter
+        this.componentAdapter = componentAdapter
+        adapter.updateValue(initValue)
+    }
+
+    override fun getDisplayName(): String {
+        return "${component.javaClass.simpleName}_${component.hashCode()}_$propertyName}"
+    }
+
+    override fun setProperty(newValue: T?) {
+        super.setProperty(newValue)
+        adapter.updateValue(newValue)
     }
 }

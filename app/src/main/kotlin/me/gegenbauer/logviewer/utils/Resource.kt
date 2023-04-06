@@ -5,6 +5,7 @@ import java.io.File
 import java.io.InputStream
 import java.net.URL
 import java.util.*
+import javax.swing.ImageIcon
 
 fun String.appendPath(path: String): String {
     return "$this${File.separator}$path"
@@ -26,6 +27,10 @@ private const val IMAGE_RES_DIR = "images"
 
 fun getImageFile(img: String): URL {
     return resources(IMAGE_RES_DIR.appendPath(img))
+}
+
+fun getImageIcon(img: String): ImageIcon {
+    return ImageIcon(getImageFile(img))
 }
 
 private const val STRING_RES_DIR = "strings"

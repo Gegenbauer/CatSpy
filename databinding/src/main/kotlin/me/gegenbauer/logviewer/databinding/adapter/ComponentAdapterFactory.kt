@@ -17,6 +17,7 @@ object ComponentAdapterFactory {
         adapters.putIfAbsent(JToggleButton::class.java, JToggleButtonAdapter::class.java)
         adapters.putIfAbsent(JTextComponent::class.java, JTextComponentAdapter::class.java)
         adapters.putIfAbsent(JComboBox::class.java, JComboBoxAdapter::class.java)
+        adapters.putIfAbsent(JComboBox::class.java, JComboBoxAdapter::class.java)
     }
 
     fun getComponentAdapter(component: JComponent): ComponentAdapter? {

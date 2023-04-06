@@ -15,7 +15,7 @@ abstract class ObservableComponentProperty<T>(
     val component: JComponent,
 ) : ObservableProperty<T>() {
     private var propertyChangeObserver: ((T?) -> Unit)? = null
-    val componentAdapter: ComponentAdapter? = ComponentAdapterFactory.getComponentAdapter(component)
+    protected var componentAdapter: ComponentAdapter? = ComponentAdapterFactory.getComponentAdapter(component)
 
     init {
         component.addHierarchyListener { e ->
