@@ -19,12 +19,16 @@ import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.manager.FiltersManager
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
+import me.gegenbauer.logviewer.ui.button.ButtonDisplayMode
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
+import me.gegenbauer.logviewer.ui.button.StatefulButton
+import me.gegenbauer.logviewer.ui.button.StatefulToggleButton
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox.Companion.isMultiLine
 import me.gegenbauer.logviewer.ui.container.WrapablePanel
 import me.gegenbauer.logviewer.ui.dialog.GoToDialog
 import me.gegenbauer.logviewer.ui.dialog.LogTableDialog
+import me.gegenbauer.logviewer.ui.icon.DayNightIcon
 import me.gegenbauer.logviewer.ui.log.LogPanel
 import me.gegenbauer.logviewer.ui.log.LogTableModel
 import me.gegenbauer.logviewer.ui.log.getLevelFromName
@@ -35,6 +39,7 @@ import me.gegenbauer.logviewer.ui.menu.ViewMenu
 import me.gegenbauer.logviewer.ui.panel.SplitLogPane
 import me.gegenbauer.logviewer.utils.getEnum
 import me.gegenbauer.logviewer.utils.getImageFile
+import me.gegenbauer.logviewer.utils.getImageIcon
 import me.gegenbauer.logviewer.viewmodel.MainViewModel
 import java.awt.*
 import java.awt.datatransfer.Clipboard
@@ -144,12 +149,20 @@ class MainUI(title: String) : JFrame() {
     private val filterLeftPanel = JPanel()
 
     private val logToolBar = WrapablePanel()
-    private val startBtn = JButton(STRINGS.ui.start)
-    private val retryAdbToggle = ColorToggleButton(STRINGS.ui.retryAdb)
-    private val stopBtn = JButton(STRINGS.ui.stop)
-    private val pauseToggle = ColorToggleButton(STRINGS.ui.pause)
-    private val clearViewsBtn = JButton(STRINGS.ui.clearViews)
-    private val saveBtn = JButton(STRINGS.ui.save)
+    val startBtn = StatefulButton(getImageIcon("start.png"), STRINGS.ui.start)
+    val stopBtn = StatefulButton(getImageIcon("stop.png"), STRINGS.ui.stop)
+    val saveBtn = StatefulButton(getImageIcon("save.png"), STRINGS.ui.save)
+    val clearViewsBtn = StatefulButton(getImageIcon("clear.png"), STRINGS.ui.clearViews)
+    val retryAdbToggle = StatefulToggleButton(
+        getImageIcon("retry_off.png"),
+        DayNightIcon(getImageFile("retry_on.png"), getImageFile("retry_on_dark.png")),
+        STRINGS.ui.retryAdb
+    )
+    val pauseToggle = StatefulToggleButton(
+        getImageIcon("pause_off.png"),
+        DayNightIcon(getImageFile("pause_on.png"), getImageFile("pause_on_dark.png")),
+        STRINGS.ui.pause
+    )
     internal val searchPanel = SearchPanel()
 
     private val logPanel = JPanel()
@@ -157,7 +170,7 @@ class MainUI(title: String) : JFrame() {
     val matchCaseToggle = ColorToggleButton("Aa")
     private val matchCaseTogglePanel = JPanel(GridLayout(1, 1))
     val showLogCombo = FilterComboBox(UIConfManager.uiConf.logFilterComboStyle, true)
-    val showLogToggle =  ColorToggleButton(STRINGS.ui.log)
+    val showLogToggle = ColorToggleButton(STRINGS.ui.log)
     private val showLogTogglePanel = JPanel(GridLayout(1, 1))
 
     val showPidCombo = FilterComboBox(UIConfManager.uiConf.pidFilterComboStyle, false)
@@ -181,14 +194,24 @@ class MainUI(title: String) : JFrame() {
     private val logCmdCombo = JComboBox<String>()
     private val deviceCombo = JComboBox<String>()
     private val deviceStatus = JLabel("None", JLabel.LEFT)
-    private val adbConnectBtn = JButton(STRINGS.ui.connect)
-    private val adbRefreshBtn = JButton(STRINGS.ui.refresh)
-    private val adbDisconnectBtn = JButton(STRINGS.ui.disconnect)
-    private val scrollBackLabel = JLabel(STRINGS.ui.scrollBackLines)
-    private val scrollBackTF = JTextField()
-    private val scrollBackSplitFileToggle = ColorToggleButton(STRINGS.ui.splitFile)
-    private val scrollBackApplyBtn = JButton(STRINGS.ui.apply)
-    private val scrollBackKeepToggle = ColorToggleButton(STRINGS.ui.keep)
+    val adbConnectBtn = StatefulButton(getImageIcon("connect.png"), STRINGS.ui.connect)
+    val adbRefreshBtn = StatefulButton(getImageIcon("refresh.png"), STRINGS.ui.refresh)
+    val adbDisconnectBtn = StatefulButton(getImageIcon("disconnect.png"), STRINGS.ui.disconnect)
+    val scrollBackLabel = JLabel(STRINGS.ui.scrollBackLines)
+    val scrollBackTF = JTextField()
+    val scrollBackSplitFileToggle = StatefulToggleButton(
+        getImageIcon("splitfile_off.png"),
+        DayNightIcon(getImageFile("splitfile_on.png"), getImageFile("splitfile_on_dark.png")),
+        STRINGS.ui.splitFile,
+        getImageIcon("toggle_on_warn.png")
+    )
+    val scrollBackApplyBtn = StatefulButton(getImageIcon("apply.png"), STRINGS.ui.apply)
+    val scrollBackKeepToggle = StatefulToggleButton(
+        getImageIcon("keeplog_off.png"),
+        DayNightIcon(getImageFile("keeplog_on.png"), getImageFile("keeplog_on_dark.png")),
+        STRINGS.ui.keep,
+        getImageIcon("toggle_on_warn.png")
+    )
     private val statusBar = JPanel(BorderLayout())
     private val statusMethod = JLabel("")
     private val statusTF = StatusTextField(STRINGS.ui.none)
@@ -326,9 +349,7 @@ class MainUI(title: String) : JFrame() {
             UIManager.put("ComboBox.buttonDarkShadow", ColorUIResource(Color.black))
         }
 
-        addMouseListener(frameMouseListener)
-        addMouseMotionListener(frameMouseListener)
-        contentPane.addMouseListener(frameMouseListener)
+        logToolBar.addMouseListener(frameMouseListener)
 
         addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent) {
@@ -367,7 +388,6 @@ class MainUI(title: String) : JFrame() {
         val btnMargin = Insets(2, 5, 2, 5)
         startBtn.margin = btnMargin
         startBtn.toolTipText = STRINGS.toolTip.startBtn
-        startBtn.icon = ImageIcon(getImageFile("start.png"))
         startBtn.addActionListener(actionHandler)
         startBtn.addMouseListener(mouseHandler)
         retryAdbToggle.toolTipText = STRINGS.toolTip.retryAdbToggle
@@ -384,7 +404,6 @@ class MainUI(title: String) : JFrame() {
         stopBtn.addMouseListener(mouseHandler)
         clearViewsBtn.margin = btnMargin
         clearViewsBtn.toolTipText = STRINGS.toolTip.clearBtn
-        clearViewsBtn.icon = ImageIcon(getImageFile("clear.png"))
 
         clearViewsBtn.addActionListener(actionHandler)
         clearViewsBtn.addMouseListener(mouseHandler)
@@ -542,10 +561,6 @@ class MainUI(title: String) : JFrame() {
         scrollBackApplyBtn.toolTipText = STRINGS.toolTip.scrollBackApplyBtn
         scrollBackApplyBtn.addActionListener(actionHandler)
         scrollBackKeepToggle.toolTipText = STRINGS.toolTip.scrollBackKeepToggle
-        if (ConfigManager.LaF != CROSS_PLATFORM_LAF) {
-            val imgIcon = ImageIcon(getImageFile("toggle_on_warn.png"))
-            scrollBackKeepToggle.selectedIcon = imgIcon
-        }
 
         scrollBackKeepToggle.margin = btnMargin
         scrollBackKeepToggle.addItemListener(itemHandler)
@@ -772,36 +787,6 @@ class MainUI(title: String) : JFrame() {
         searchPanel.searchMatchCaseToggle.isSelected = UIConfManager.uiConf.searchMatchCaseEnabled
         filteredTableModel.searchMatchCase = UIConfManager.uiConf.searchMatchCaseEnabled
 
-        var check = ConfigManager.getItem(ConfigManager.ITEM_RETRY_ADB)
-        if (!check.isNullOrEmpty()) {
-            retryAdbToggle.isSelected = check.toBoolean()
-        } else {
-            retryAdbToggle.isSelected = false
-        }
-
-        check = ConfigManager.getItem(ConfigManager.ITEM_ICON_TEXT)
-        if (!check.isNullOrEmpty()) {
-            when (check) {
-                ConfigManager.VALUE_ICON_TEXT_I -> {
-                    setBtnIcons(true)
-                    setBtnTexts(false)
-                }
-
-                ConfigManager.VALUE_ICON_TEXT_T -> {
-                    setBtnIcons(false)
-                    setBtnTexts(true)
-                }
-
-                else -> {
-                    setBtnIcons(true)
-                    setBtnTexts(true)
-                }
-            }
-        } else {
-            setBtnIcons(true)
-            setBtnTexts(true)
-        }
-
         add(filterPanel, BorderLayout.NORTH)
         add(splitLogPane, BorderLayout.CENTER)
         add(statusBar, BorderLayout.SOUTH)
@@ -812,85 +797,19 @@ class MainUI(title: String) : JFrame() {
     }
 
     private fun setBtnIcons(isShow: Boolean) {
+        mainViewModel.buttonDisplayMode.updateValue(if (isShow) ButtonDisplayMode.ICON else ButtonDisplayMode.TEXT)
         if (isShow) {
-            startBtn.icon = ImageIcon(getImageFile("start.png"))
-            stopBtn.icon = ImageIcon(getImageFile("stop.png"))
-            clearViewsBtn.icon = ImageIcon(getImageFile("clear.png"))
-            saveBtn.icon = ImageIcon(getImageFile("save.png"))
-            adbConnectBtn.icon = ImageIcon(getImageFile("connect.png"))
-            adbRefreshBtn.icon = ImageIcon(getImageFile("refresh.png"))
-            adbDisconnectBtn.icon = ImageIcon(getImageFile("disconnect.png"))
-            scrollBackApplyBtn.icon = ImageIcon(getImageFile("apply.png"))
-
-            retryAdbToggle.icon = ImageIcon(getImageFile("retry_off.png"))
-            pauseToggle.icon = ImageIcon(getImageFile("pause_off.png"))
-            scrollBackKeepToggle.icon = ImageIcon(getImageFile("keeplog_off.png"))
-            scrollBackSplitFileToggle.icon = ImageIcon(getImageFile("splitfile_off.png"))
-
-            if (ConfigManager.LaF == FLAT_DARK_LAF) {
-                retryAdbToggle.selectedIcon = ImageIcon(getImageFile("retry_on_dark.png"))
-                pauseToggle.selectedIcon = ImageIcon(getImageFile("pause_on_dark.png"))
-                scrollBackKeepToggle.selectedIcon = ImageIcon(getImageFile("keeplog_on_dark.png"))
-                scrollBackSplitFileToggle.selectedIcon = ImageIcon(getImageFile("splitfile_on_dark.png"))
-            } else {
-                retryAdbToggle.selectedIcon = ImageIcon(getImageFile("retry_on.png"))
-                pauseToggle.selectedIcon = ImageIcon(getImageFile("pause_on.png"))
-                scrollBackKeepToggle.selectedIcon = ImageIcon(getImageFile("keeplog_on.png"))
-                scrollBackSplitFileToggle.selectedIcon = ImageIcon(getImageFile("splitfile_on.png"))
-            }
-
             scrollBackLabel.icon = ImageIcon(getImageFile("scrollback.png"))
         } else {
-            startBtn.icon = null
-            stopBtn.icon = null
-            clearViewsBtn.icon = null
-            saveBtn.icon = null
-            adbConnectBtn.icon = null
-            adbRefreshBtn.icon = null
-            adbDisconnectBtn.icon = null
-            scrollBackApplyBtn.icon = null
-
-            retryAdbToggle.icon = ImageIcon(getImageFile("toggle_off.png"))
-            retryAdbToggle.selectedIcon = ImageIcon(getImageFile("toggle_on.png"))
-            pauseToggle.icon = ImageIcon(getImageFile("toggle_off.png"))
-            pauseToggle.selectedIcon = ImageIcon(getImageFile("toggle_on.png"))
-            scrollBackKeepToggle.icon = ImageIcon(getImageFile("toggle_off.png"))
-            scrollBackKeepToggle.selectedIcon = ImageIcon(getImageFile("toggle_on_warn.png"))
-            scrollBackSplitFileToggle.icon = ImageIcon(getImageFile("toggle_off.png"))
-            scrollBackSplitFileToggle.selectedIcon = ImageIcon(getImageFile("toggle_on.png"))
-
             scrollBackLabel.icon = null
         }
     }
 
     private fun setBtnTexts(isShow: Boolean) {
+
         if (isShow) {
-            startBtn.text = STRINGS.ui.start
-            retryAdbToggle.text = STRINGS.ui.retryAdb
-            pauseToggle.text = STRINGS.ui.pause
-            stopBtn.text = STRINGS.ui.stop
-            clearViewsBtn.text = STRINGS.ui.clearViews
-            saveBtn.text = STRINGS.ui.save
-            adbConnectBtn.text = STRINGS.ui.connect
-            adbRefreshBtn.text = STRINGS.ui.refresh
-            adbDisconnectBtn.text = STRINGS.ui.disconnect
-            scrollBackApplyBtn.text = STRINGS.ui.apply
-            scrollBackKeepToggle.text = STRINGS.ui.keep
-            scrollBackSplitFileToggle.text = STRINGS.ui.splitFile
             scrollBackLabel.text = STRINGS.ui.scrollBackLines
         } else {
-            startBtn.text = null
-            stopBtn.text = null
-            clearViewsBtn.text = null
-            saveBtn.text = null
-            adbConnectBtn.text = null
-            adbRefreshBtn.text = null
-            adbDisconnectBtn.text = null
-            scrollBackApplyBtn.text = null
-            retryAdbToggle.text = null
-            pauseToggle.text = null
-            scrollBackKeepToggle.text = null
-            scrollBackSplitFileToggle.text = null
             scrollBackLabel.text = null
         }
     }
@@ -1285,41 +1204,25 @@ class MainUI(title: String) : JFrame() {
     }
 
     internal inner class FramePopUp : JPopupMenu() {
-        var itemIconText: JMenuItem = JMenuItem("IconText")
-        var itemIcon: JMenuItem = JMenuItem("Icon")
-        var itemText: JMenuItem = JMenuItem("Text")
+        var itemIconText: JMenuItem = JMenuItem("IconText").apply { putClientProperty("ButtonDisplayMode", ButtonDisplayMode.ALL) }
+        var itemIcon: JMenuItem = JMenuItem("Icon").apply { putClientProperty("ButtonDisplayMode", ButtonDisplayMode.ICON) }
+        var itemText: JMenuItem = JMenuItem("Text").apply { putClientProperty("ButtonDisplayMode", ButtonDisplayMode.TEXT) }
         private val actionHandler = ActionHandler()
 
         init {
-            itemIconText.addActionListener(actionHandler)
             add(itemIconText)
-            itemIcon.addActionListener(actionHandler)
             add(itemIcon)
-            itemText.addActionListener(actionHandler)
             add(itemText)
+            itemIconText.addActionListener(actionHandler)
+            itemIcon.addActionListener(actionHandler)
+            itemText.addActionListener(actionHandler)
         }
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
-                when (event.source) {
-                    itemIconText -> {
-                        setBtnIcons(true)
-                        setBtnTexts(true)
-                        ConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I_T)
-                    }
-
-                    itemIcon -> {
-                        setBtnIcons(true)
-                        setBtnTexts(false)
-                        ConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I)
-                    }
-
-                    itemText -> {
-                        setBtnIcons(false)
-                        setBtnTexts(true)
-                        ConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I)
-                    }
-                }
+                mainViewModel.buttonDisplayMode.updateValue(
+                    (event.source as JComponent).getClientProperty("ButtonDisplayMode") as ButtonDisplayMode
+                )
             }
         }
     }
@@ -1332,10 +1235,8 @@ class MainUI(title: String) : JFrame() {
             mouseDownCompCoords = null
 
             if (SwingUtilities.isRightMouseButton(e)) {
-                if (e.source == this@MainUI.contentPane) {
-                    popupMenu = FramePopUp()
-                    popupMenu?.show(e.component, e.x, e.y)
-                }
+                popupMenu = FramePopUp()
+                popupMenu?.show(e.component, e.x, e.y)
             } else {
                 popupMenu?.isVisible = false
             }
@@ -1790,28 +1691,6 @@ class MainUI(title: String) : JFrame() {
 
     internal inner class ItemHandler : ItemListener {
         override fun itemStateChanged(event: ItemEvent) {
-            when (event.source) {
-                showLogToggle -> {
-                    showLogCombo.setEnabledFilter(showLogToggle.isSelected)
-                }
-
-                boldLogToggle -> {
-                    highlightLogCombo.setEnabledFilter(boldLogToggle.isSelected)
-                }
-
-                showTagToggle -> {
-                    showTagCombo.setEnabledFilter(showTagToggle.isSelected)
-                }
-
-                showPidToggle -> {
-                    showPidCombo.setEnabledFilter(showPidToggle.isSelected)
-                }
-
-                showTidToggle -> {
-                    showTidCombo.setEnabledFilter(showTidToggle.isSelected)
-                }
-            }
-
             if (IsCreatingUI) {
                 return
             }

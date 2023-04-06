@@ -64,6 +64,7 @@ data class UIConf(
     var adbPrefix: String = "",
     var logScrollBackCount: Int = 0,
     var logScrollBackSplitFileEnabled: Boolean = false,
+    var retryAdbEnabled: Boolean = false,
     /** 日志命令配置 end **/
 
     /** 搜索框配置 start **/

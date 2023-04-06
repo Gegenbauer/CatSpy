@@ -18,10 +18,6 @@ object ConfigManager {
     const val ITEM_COLOR_FILTER_STYLE = "COLOR_FILTER_STYLE"
 
     const val ITEM_RETRY_ADB = "RETRY_ADB"
-    const val ITEM_ICON_TEXT = "ICON_TEXT"
-    const val VALUE_ICON_TEXT_I_T = "IconText"
-    const val VALUE_ICON_TEXT_I = "Icon"
-    const val VALUE_ICON_TEXT_T = "Text"
 
     var LaF = ""
     private val properties = Properties()
