@@ -11,3 +11,14 @@ interface ListAdapter<T>: ComponentAdapter {
     @Disposable
     fun removeListChangeListener()
 }
+
+fun <T> List<T>.updateListByLRU(lastUsedItem: T): List<T> {
+    return if (lastUsedItem in this) {
+        val list = this.toMutableList()
+        list.remove(lastUsedItem)
+        list.add(0, lastUsedItem)
+        list
+    } else {
+        this
+    }
+}

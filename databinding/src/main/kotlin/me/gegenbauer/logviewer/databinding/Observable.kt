@@ -1,5 +1,6 @@
 package me.gegenbauer.logviewer.databinding
 
+import me.gegenbauer.logviewer.log.GLog
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -40,8 +41,16 @@ open class ObservableProperty<T>(var value: T? = null) : Observable<T> {
 
     open fun updateValue(newValue: T?) {
         if (this.value == newValue) return
+        if (!filterStrategy(newValue)) {
+            GLog.d(ObservableComponentProperty.TAG, "[updateValue] ignored by filterStrategy")
+            return
+        }
         this.value = newValue
         lock.read { obs.forEach { it.onChange(newValue) } }
+    }
+
+    protected open fun filterStrategy(newValue: T?): Boolean {
+        return true
     }
 
     // 获取泛型类型的类名称

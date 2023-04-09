@@ -1,9 +1,8 @@
 package me.gegenbauer.logviewer.databinding.adapter
 
-import me.gegenbauer.logviewer.databinding.ObservableComponentProperty
+import me.gegenbauer.logviewer.databinding.*
 import me.gegenbauer.logviewer.databinding.adapter.component.CustomComponentAdapter
 import me.gegenbauer.logviewer.databinding.adapter.property.*
-import me.gegenbauer.logviewer.databinding.setField
 import me.gegenbauer.logviewer.log.GLog
 import javax.swing.JComponent
 
@@ -105,6 +104,10 @@ fun selectedIndexProperty(component: JComponent) = object : ObservableComponentP
         super.setProperty(newValue)
         adapter?.updateSelectedIndex(newValue)
     }
+
+    override fun filterStrategy(newValue: Int?): Boolean {
+        return (newValue ?: -1) >= 0
+    }
 }
 
 fun <T> customProperty(component: JComponent, propertyName: String, initValue: T) = object : ObservableComponentProperty<T>(component) {
@@ -125,4 +128,16 @@ fun <T> customProperty(component: JComponent, propertyName: String, initValue: T
         super.setProperty(newValue)
         adapter.updateValue(newValue)
     }
+}
+
+infix fun <T> ObservableComponentProperty<T>.bindDual(viewModelProperty: ObservableViewModelProperty<T>) {
+    Bindings.bind(this, viewModelProperty)
+}
+
+infix fun <T> ObservableComponentProperty<T>.bindRight(viewModelProperty: ObservableViewModelProperty<T>) {
+    Bindings.bind(this, viewModelProperty, BindType.ONE_WAY_TO_TARGET)
+}
+
+infix fun <T> ObservableComponentProperty<T>.bindLeft(viewModelProperty: ObservableViewModelProperty<T>) {
+    Bindings.bind(this, viewModelProperty, BindType.ONE_WAY_TO_SOURCE)
 }

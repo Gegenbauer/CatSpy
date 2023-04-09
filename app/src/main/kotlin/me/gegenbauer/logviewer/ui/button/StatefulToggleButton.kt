@@ -1,8 +1,8 @@
 package me.gegenbauer.logviewer.ui.button
 
+import me.gegenbauer.logviewer.databinding.componentName
 import me.gegenbauer.logviewer.ui.defaultToggleIconSelected
 import me.gegenbauer.logviewer.ui.defaultToggleIconUnselected
-import java.awt.Graphics
 import javax.swing.Icon
 import javax.swing.JToggleButton
 
@@ -39,7 +39,7 @@ class StatefulToggleButton(
             }
         }
 
-    override fun paint(g: Graphics?) {
-        super.paint(g)
+    init {
+        componentName = originalText ?: ""
     }
 }

@@ -1,5 +1,6 @@
 package me.gegenbauer.logviewer.ui.combobox
 
+import me.gegenbauer.logviewer.databinding.componentName
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.ui.MainUI
@@ -14,7 +15,7 @@ import javax.swing.text.DefaultHighlighter
 import javax.swing.text.Highlighter
 import javax.swing.text.JTextComponent
 
-class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboBox<String>() {
+class FilterComboBox(private val mode: Mode, val useColorTag: Boolean, componentName: String = "") : JComboBox<String>() {
 
     interface IFilterComboBoxMode {
         val editor: HighlighterEditor
@@ -85,6 +86,9 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         editorComponent.toolTipText = toolTipText
         editorComponent.addKeyListener(KeyHandler())
         editorComponent.document.addDocumentListener(DocumentHandler())
+        isEditable = true
+        this.componentName = componentName
+        editorComponent.componentName = componentName
     }
 
     fun setEnabledFilter(enabled: Boolean) {
@@ -315,9 +319,10 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
 
     internal class ComboBoxRenderer : BasicComboBoxRenderer() {
         override fun getListCellRendererComponent(
-            list: JList<*>, value: Any,
+            list: JList<*>?, value: Any?,
             index: Int, isSelected: Boolean, cellHasFocus: Boolean
         ): Component {
+            list ?: return this
             if (isSelected) {
                 background = list.selectionBackground
                 foreground = list.selectionForeground
@@ -612,12 +617,6 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
                             return
                         }
                     }
-
-                    if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
-                        combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height + 6)
-                    } else {
-                        combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height)
-                    }
                     combo.parent.revalidate()
                     combo.parent.repaint()
                 }
@@ -651,17 +650,6 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
 
         fun setComboBox(filterComboBox: FilterComboBox) {
             combo = filterComboBox
-        }
-
-        override fun setText(t: String?) {
-            super.setText(t)
-            if (t != null) {
-                if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
-                    combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height + 6)
-                } else {
-                    combo.preferredSize = Dimension(combo.preferredSize.width, preferredSize.height)
-                }
-            }
         }
     }
 

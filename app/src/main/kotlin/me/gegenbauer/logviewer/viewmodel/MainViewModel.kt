@@ -1,35 +1,43 @@
 package me.gegenbauer.logviewer.viewmodel
 
 import me.gegenbauer.logviewer.configuration.UIConfManager
-import me.gegenbauer.logviewer.databinding.Bindings
 import me.gegenbauer.logviewer.databinding.ObservableViewModelProperty
-import me.gegenbauer.logviewer.databinding.adapter.customProperty
-import me.gegenbauer.logviewer.databinding.adapter.enableProperty
-import me.gegenbauer.logviewer.databinding.adapter.selectedProperty
+import me.gegenbauer.logviewer.databinding.adapter.*
+import me.gegenbauer.logviewer.databinding.adapter.property.updateListByLRU
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.ButtonDisplayMode
+import javax.swing.JComponent
+import javax.swing.text.JTextComponent
 
-class MainViewModel {
+object MainViewModel {
     val logFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.logFilterEnabled)
-    val logFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.logFilterHistory)
+    val logFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.logFilterHistory.toList())
     val logFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val logFilterCurrentContent = ObservableViewModelProperty<String>()
 
     val tagFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.tagFilterEnabled)
-    val tagFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.tagFilterHistory)
+    val tagFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.tagFilterHistory.toList())
     val tagFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val tagFilterCurrentContent = ObservableViewModelProperty<String>()
 
     val pidFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.pidFilterEnabled)
+    val pidFilterHistory = ObservableViewModelProperty(arrayListOf<String>().toList())
+    val pidFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val pidFilterCurrentContent = ObservableViewModelProperty<String>()
 
     val tidFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.tidFilterEnabled)
+    val tidFilterHistory = ObservableViewModelProperty(arrayListOf<String>().toList())
+    val tidFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val tidFilterCurrentContent = ObservableViewModelProperty<String>()
 
     val highlightEnabled = ObservableViewModelProperty(UIConfManager.uiConf.highlightEnabled)
-    val highlightHistory = ObservableViewModelProperty(UIConfManager.uiConf.highlightHistory)
+    val highlightHistory = ObservableViewModelProperty(UIConfManager.uiConf.highlightHistory.toList())
     val highlightSelectedIndex = ObservableViewModelProperty<Int>()
     val highlightCurrentContent = ObservableViewModelProperty<String>()
+
+    val searchHistory = ObservableViewModelProperty(UIConfManager.uiConf.searchHistory.toList())
+    val searchSelectedIndex = ObservableViewModelProperty<Int>()
+    val searchCurrentContent = ObservableViewModelProperty<String>()
 
     val filterMatchCaseEnabled = ObservableViewModelProperty(UIConfManager.uiConf.filterMatchCaseEnabled)
 
@@ -47,53 +55,135 @@ class MainViewModel {
     val buttonDisplayMode = ObservableViewModelProperty(ButtonDisplayMode.ALL) // TODO save configuration of this
 
     fun bind(mainUI: MainUI) {
-        Bindings.bind(selectedProperty(mainUI.showLogToggle), logFilterEnabled)
-        Bindings.bind(enableProperty(mainUI.showLogCombo), logFilterEnabled)
+        mainUI.apply {
+            selectedProperty(showLogToggle) bindDual logFilterEnabled
+            enableProperty(showLogCombo) bindDual logFilterEnabled
+            listProperty<String>(showLogCombo) bindDual logFilterHistory
+            selectedIndexProperty(showLogCombo) bindLeft logFilterSelectedIndex
+            textProperty(showLogCombo.editor.editorComponent as JTextComponent) bindDual logFilterCurrentContent
 
-        Bindings.bind(selectedProperty(mainUI.showTagToggle), tagFilterEnabled)
-        Bindings.bind(enableProperty(mainUI.showTagCombo), tagFilterEnabled)
+            selectedProperty(showTagToggle) bindDual tagFilterEnabled
+            enableProperty(showTagCombo) bindDual tagFilterEnabled
+            listProperty<String>(showTagCombo) bindDual tagFilterHistory
+            selectedIndexProperty(showTagCombo) bindDual tagFilterSelectedIndex
+            textProperty(showTagCombo.editor.editorComponent as JTextComponent) bindDual tagFilterCurrentContent
 
-        Bindings.bind(selectedProperty(mainUI.showPidToggle), pidFilterEnabled)
-        Bindings.bind(enableProperty(mainUI.showPidCombo), pidFilterEnabled)
+            selectedProperty(showPidToggle) bindDual pidFilterEnabled
+            enableProperty(showPidCombo) bindDual pidFilterEnabled
+            listProperty<String>(showPidCombo) bindDual pidFilterHistory
+            selectedIndexProperty(showPidCombo) bindLeft pidFilterSelectedIndex
+            textProperty(showPidCombo.editor.editorComponent as JTextComponent) bindDual pidFilterCurrentContent
 
-        Bindings.bind(selectedProperty(mainUI.showTidToggle), tidFilterEnabled)
-        Bindings.bind(enableProperty(mainUI.showTidCombo), tidFilterEnabled)
+            selectedProperty(showTidToggle) bindDual tidFilterEnabled
+            enableProperty(showTidCombo) bindDual tidFilterEnabled
+            listProperty<String>(showTidCombo) bindDual tidFilterHistory
+            selectedIndexProperty(showTidCombo) bindLeft tidFilterSelectedIndex
+            textProperty(showTidCombo.editor.editorComponent as JTextComponent) bindDual tidFilterCurrentContent
 
-        Bindings.bind(selectedProperty(mainUI.boldLogToggle), highlightEnabled)
-        Bindings.bind(enableProperty(mainUI.highlightLogCombo), highlightEnabled)
-        Bindings.bind(selectedProperty(mainUI.matchCaseToggle), filterMatchCaseEnabled)
+            selectedProperty(boldLogToggle) bindDual highlightEnabled
+            enableProperty(highlightLogCombo) bindDual highlightEnabled
+            listProperty<String>(highlightLogCombo) bindDual highlightHistory
+            selectedIndexProperty(highlightLogCombo) bindLeft highlightSelectedIndex
+            textProperty(highlightLogCombo.editor.editorComponent as JTextComponent) bindDual highlightCurrentContent
 
-        Bindings.bind(customProperty(mainUI.startBtn, "buttonDisplayMode", ButtonDisplayMode.ALL), buttonDisplayMode)
-        Bindings.bind(customProperty(mainUI.stopBtn, "buttonDisplayMode", ButtonDisplayMode.ALL), buttonDisplayMode)
-        Bindings.bind(customProperty(mainUI.saveBtn, "buttonDisplayMode", ButtonDisplayMode.ALL), buttonDisplayMode)
-        Bindings.bind(customProperty(mainUI.clearViewsBtn, "buttonDisplayMode", ButtonDisplayMode.ALL), buttonDisplayMode)
-        Bindings.bind(customProperty(mainUI.adbConnectBtn, "buttonDisplayMode", ButtonDisplayMode.ALL), buttonDisplayMode)
-        Bindings.bind(customProperty(mainUI.adbRefreshBtn, "buttonDisplayMode", ButtonDisplayMode.ALL), buttonDisplayMode)
-        Bindings.bind(customProperty(mainUI.adbDisconnectBtn, "buttonDisplayMode", ButtonDisplayMode.ALL), buttonDisplayMode)
-        Bindings.bind(customProperty(mainUI.scrollBackApplyBtn, "buttonDisplayMode", ButtonDisplayMode.ALL), buttonDisplayMode)
+            listProperty<String>(searchPanel.searchCombo) bindDual searchHistory
+            selectedIndexProperty(searchPanel.searchCombo) bindLeft searchSelectedIndex
+            textProperty(searchPanel.searchCombo.editor.editorComponent as JTextComponent) bindDual searchCurrentContent
 
-        Bindings.bind(customProperty(mainUI.retryAdbToggle, "buttonDisplayMode", ButtonDisplayMode.ALL), buttonDisplayMode)
-        Bindings.bind(customProperty(mainUI.pauseToggle, "buttonDisplayMode", ButtonDisplayMode.ALL), buttonDisplayMode)
-        Bindings.bind(customProperty(mainUI.scrollBackSplitFileToggle, "buttonDisplayMode", ButtonDisplayMode.ALL), buttonDisplayMode)
-        Bindings.bind(customProperty(mainUI.scrollBackKeepToggle, "buttonDisplayMode", ButtonDisplayMode.ALL), buttonDisplayMode)
+            selectedProperty(matchCaseToggle) bindDual filterMatchCaseEnabled
 
-        Bindings.bind(selectedProperty(mainUI.retryAdbToggle), retryAdb)
+            selectedProperty(retryAdbToggle) bindDual retryAdb
 
+            bindWithButtonDisplayMode(
+                startBtn, stopBtn, pauseToggle, saveBtn, clearViewsBtn, adbConnectBtn, adbRefreshBtn, adbDisconnectBtn,
+                scrollBackApplyBtn, retryAdbToggle, retryAdbToggle, scrollBackSplitFileToggle, scrollBackKeepToggle
+            )
 
-        logFilterEnabled.addObserver {
-            mainUI.showLogCombo.setEnabledFilter(it ?: false)
+            filteredTableModel.filterLog
+
+            logFilterEnabled.addObserver {
+                showLogCombo.setEnabledFilter(it ?: false)
+            }
+            tagFilterEnabled.addObserver {
+                showTagCombo.setEnabledFilter(it ?: false)
+            }
+            pidFilterEnabled.addObserver {
+                showPidCombo.setEnabledFilter(it ?: false)
+            }
+            tidFilterEnabled.addObserver {
+                showTidCombo.setEnabledFilter(it ?: false)
+            }
+            highlightEnabled.addObserver {
+                highlightLogCombo.setEnabledFilter(it ?: false)
+            }
+
+            logFilterSelectedIndex.addObserver {selectedIndex ->
+                selectedIndex ?: return@addObserver
+                if (selectedIndex < 0) {
+                    return@addObserver
+                }
+                logFilterHistory.value?.let {
+                    logFilterHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
+                }
+            }
+
+            tagFilterSelectedIndex.addObserver {selectedIndex ->
+                selectedIndex ?: return@addObserver
+                if (selectedIndex < 0) {
+                    return@addObserver
+                }
+                tagFilterHistory.value?.let {
+                    tagFilterHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
+                }
+            }
+
+            tidFilterSelectedIndex.addObserver {selectedIndex ->
+                selectedIndex ?: return@addObserver
+                if (selectedIndex < 0) {
+                    return@addObserver
+                }
+                tidFilterHistory.value?.let {
+                    tidFilterHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
+                }
+            }
+
+            pidFilterSelectedIndex.addObserver {selectedIndex ->
+                selectedIndex ?: return@addObserver
+                if (selectedIndex < 0) {
+                    return@addObserver
+                }
+                pidFilterHistory.value?.let {
+                    pidFilterHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
+                }
+            }
+
+            highlightSelectedIndex.addObserver {selectedIndex ->
+                selectedIndex ?: return@addObserver
+                if (selectedIndex < 0) {
+                    return@addObserver
+                }
+                highlightHistory.value?.let {
+                    highlightHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
+                }
+            }
+
+            searchSelectedIndex.addObserver {selectedIndex ->
+                selectedIndex ?: return@addObserver
+                if (selectedIndex < 0) {
+                    return@addObserver
+                }
+                searchHistory.value?.let {
+                    searchHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
+                }
+            }
+
+            tagFilterCurrentContent.addObserver {
+                print(it)
+            }
         }
-        tagFilterEnabled.addObserver {
-            mainUI.showTagCombo.setEnabledFilter(it ?: false)
-        }
-        pidFilterEnabled.addObserver {
-            mainUI.showPidCombo.setEnabledFilter(it ?: false)
-        }
-        tidFilterEnabled.addObserver {
-            mainUI.showTidCombo.setEnabledFilter(it ?: false)
-        }
-        highlightEnabled.addObserver {
-            mainUI.highlightLogCombo.setEnabledFilter(it ?: false)
-        }
+    }
+
+    private fun bindWithButtonDisplayMode(vararg component: JComponent) {
+        component.forEach { customProperty(it, "buttonDisplayMode", ButtonDisplayMode.ALL) bindRight buttonDisplayMode }
     }
 }

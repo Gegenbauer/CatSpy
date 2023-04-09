@@ -31,7 +31,7 @@ fun Any.setField(fieldName: String, value: Any?) {
             invokeMethod("set${fieldName.capitalize()}", value)
         }
     }.onFailure {
-        GLog.e(TAG, "[setField] failed! fieldName: $fieldName, value: $value", it)
+        GLog.e(TAG, "[setField] failed! $this fieldName: $fieldName, value: $value", it)
     }
 }
 

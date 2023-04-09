@@ -25,16 +25,18 @@ class JTextComponentAdapter(component: JComponent) :
 
         override fun insertUpdate(e: DocumentEvent?) {
             removeJob?.cancel()
+            val text = textComponent.text
             scope.launch(Dispatchers.UI) {
                 delay(10)
-                textChangeObserver?.invoke(textComponent.text)
+                textChangeObserver?.invoke(text)
             }
         }
 
         override fun removeUpdate(e: DocumentEvent?) {
+            val text = textComponent.text
             removeJob = scope.launch(Dispatchers.UI) {
                 delay(10)
-                textChangeObserver?.invoke(textComponent.text)
+                textChangeObserver?.invoke(text)
             }
         }
 

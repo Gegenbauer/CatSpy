@@ -1,5 +1,6 @@
 package me.gegenbauer.logviewer.ui.button
 
+import me.gegenbauer.logviewer.databinding.componentName
 import javax.swing.Icon
 import javax.swing.JButton
 
@@ -28,4 +29,7 @@ class StatefulButton(
             }
         }
 
+    init {
+        componentName = originalText ?: ""
+    }
 }
