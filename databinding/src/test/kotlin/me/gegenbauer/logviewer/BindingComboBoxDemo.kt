@@ -7,6 +7,7 @@ import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.databinding.Bindings
 import me.gegenbauer.logviewer.databinding.ObservableViewModelProperty
 import me.gegenbauer.logviewer.databinding.adapter.listProperty
+import me.gegenbauer.logviewer.databinding.adapter.property.updateListByLRU
 import me.gegenbauer.logviewer.databinding.adapter.selectedIndexProperty
 import me.gegenbauer.logviewer.log.GLog
 import java.awt.Dimension
@@ -26,6 +27,7 @@ fun main() {
         val cb = JComboBox<String>()
         cb.preferredSize = Dimension(200, 30)
         panel.add(cb)
+        cb.isEditable = true
         val vm = ComboBoxViewModel()
         bt.addActionListener {
             vm.items.updateValue(listOf("A", "B", "C"))
@@ -33,7 +35,10 @@ fun main() {
         Bindings.bind(listProperty(cb), vm.items)
         Bindings.bind(selectedIndexProperty(cb), vm.selectedIndex)
         vm.selectedIndex.addObserver {
-            println("Selected index: $it")
+            it ?: return@addObserver
+            val currentItems = vm.items.value
+            currentItems ?: return@addObserver
+            vm.items.updateValue(currentItems.updateListByLRU(currentItems[it]))
         }
         frame.add(panel)
         frame.isVisible = true

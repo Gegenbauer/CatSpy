@@ -158,7 +158,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             private val valueTA: JTextArea
 
             override fun getListCellRendererComponent(
-                list: JList<*>,
+                list: JList<*>?,
                 value: Any?, index: Int, isSelected: Boolean,
                 hasFocus: Boolean
             ): Component {

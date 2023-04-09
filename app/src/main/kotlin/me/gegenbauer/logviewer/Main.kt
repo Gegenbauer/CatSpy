@@ -14,12 +14,10 @@ import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
-import java.awt.Container
+import me.gegenbauer.logviewer.viewmodel.GlobalPropertySynchronizer
 
 class Main {
     companion object {
-        private const val TAG = "Main"
-
         @JvmStatic
         fun main(args: Array<String>) {
             AppScope.launch(Dispatchers.UI) {
@@ -27,15 +25,13 @@ class Main {
                     GLog.DEBUG = UIConfManager.uiConf.debug
                     ThemeManager.init()
                     loadConfig()
+                    GlobalPropertySynchronizer.init()
                 }
                 ThemeManager.installTheme()
                 val mainUI = MainUI(STRINGS.ui.app)
                 mainUI.updateUIAfterVisible(args)
                 ThemeManager.applyTempTheme()
                 mainUI.isVisible = true
-                if (GLog.DEBUG) {
-                    addClickListenerForAllComponents(mainUI.components)
-                }
             }
         }
 
@@ -47,20 +43,6 @@ class Main {
             ColorManager.filterTableColor.applyColor()
             ColorManager.getConfigFilterStyle()
             ConfigManager.saveConfig()
-        }
-
-        // TODO removed
-        private fun addClickListenerForAllComponents(components: Array<java.awt.Component>) {
-            components.forEach { component ->
-                component.addMouseListener(object : java.awt.event.MouseAdapter() {
-                    override fun mouseClicked(e: java.awt.event.MouseEvent?) {
-                        GLog.d(TAG, component.javaClass.name)
-                    }
-                })
-                if (component is Container) {
-                    addClickListenerForAllComponents(component.components)
-                }
-            }
         }
     }
 }

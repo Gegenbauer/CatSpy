@@ -30,6 +30,7 @@ internal fun JComponent.getOrCreateBindingCache(): MutableMap<ObservableComponen
 
 /**
  * 一个 Component 的一个属性与一个 ViewModel 的一个属性构建一种类型的绑定关系
+ * Source means ComponentProperty, target means ViewModelProperty
  */
 enum class BindType : Bindable {
     ONE_WAY_TO_SOURCE {

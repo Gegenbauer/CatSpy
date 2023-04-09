@@ -106,7 +106,9 @@ class JComboBoxAdapter<T>(component: JComponent) : EditableAdapter, ListAdapter<
 
     override fun updateSelectedIndex(value: Int?) {
         value ?: return
-        comboBox.selectedIndex = value
+        if (value >= 0) {
+            comboBox.selectedIndex = value
+        }
     }
 
     override fun observeSelectedIndexChange(observer: (Int?) -> Unit) {
