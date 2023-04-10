@@ -8,18 +8,19 @@ import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.concurrency.ViewModelScope
 import me.gegenbauer.logviewer.databinding.adapter.property.EnabledAdapter
 import me.gegenbauer.logviewer.databinding.adapter.property.TextAdapter
+import me.gegenbauer.logviewer.databinding.adapter.property.VisibilityAdapter
 import javax.swing.JComponent
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.JTextComponent
 
 
-class JTextComponentAdapter(component: JComponent) :
-    TextAdapter, EnabledAdapter by JComponentAdapter(component), DisposableAdapter {
+class JTextComponentAdapter(component: JComponent) : TextAdapter, EnabledAdapter by JComponentAdapter(component),
+    DisposableAdapter, VisibilityAdapter by JComponentAdapter(component) {
     private val textComponent = component as JTextComponent
 
     // 给 text field 增加一个延迟，避免频繁地更新，保证最后一次更新能成功即可
-    private val documentListener = object : DocumentListener {
+    override val textChangeListener = object : DocumentListener {
         private val scope = ViewModelScope()
         private var removeJob: Job? = null
 
@@ -48,7 +49,7 @@ class JTextComponentAdapter(component: JComponent) :
     private var textChangeObserver: ((String) -> Unit)? = null
 
     init {
-        textComponent.document.addDocumentListener(documentListener)
+        textComponent.document.addDocumentListener(textChangeListener)
     }
 
     override fun updateText(value: String?) {
@@ -60,7 +61,7 @@ class JTextComponentAdapter(component: JComponent) :
     }
 
     override fun removeTextChangeListener() {
-        textComponent.document.removeDocumentListener(documentListener)
+        textComponent.document.removeDocumentListener(textChangeListener)
     }
 
     private fun JTextComponent.updateText(text: String?) {

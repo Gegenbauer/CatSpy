@@ -17,6 +17,7 @@ var JComponent.componentName: String
         putClientProperty(KEY_COMPONENT_NAME, value)
     }
 
-infix fun JComponent.withName(name: String) {
+inline infix fun <reified T: JComponent> T.withName(name: String): T {
     componentName = name
+    return this
 }

@@ -6,8 +6,11 @@ import javax.swing.event.ListDataListener
 
 interface ListAdapter<T>: ComponentAdapter {
     val listChangeListener: ListDataListener
+
     fun updateList(value: List<T>?)
+
     fun observeListChange(observer: (List<T>?) -> Unit)
+
     @Disposable
     fun removeListChangeListener()
 }
