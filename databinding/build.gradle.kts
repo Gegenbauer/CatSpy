@@ -9,6 +9,7 @@ dependencies {
     compileOnly(kotlin("reflect"))
     compileOnly(projects.log)
     compileOnly(Weisj.darklafCore.group, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
+    testImplementation(projects.app)
     testImplementation(projects.concurrency)
     testImplementation(kotlin("reflect"))
     testImplementation(projects.log)
