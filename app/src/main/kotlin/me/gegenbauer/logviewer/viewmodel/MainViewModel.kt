@@ -58,30 +58,35 @@ object MainViewModel {
         mainUI.apply {
             selectedProperty(showLogToggle) bindDual logFilterEnabled
             enableProperty(showLogCombo) bindDual logFilterEnabled
+            visibilityProperty(showLogCombo) bindDual logFilterEnabled
             listProperty<String>(showLogCombo) bindDual logFilterHistory
             selectedIndexProperty(showLogCombo) bindLeft logFilterSelectedIndex
             textProperty(showLogCombo.editor.editorComponent as JTextComponent) bindDual logFilterCurrentContent
 
             selectedProperty(showTagToggle) bindDual tagFilterEnabled
             enableProperty(showTagCombo) bindDual tagFilterEnabled
+            visibilityProperty(showTagCombo) bindDual tagFilterEnabled
             listProperty<String>(showTagCombo) bindDual tagFilterHistory
             selectedIndexProperty(showTagCombo) bindDual tagFilterSelectedIndex
             textProperty(showTagCombo.editor.editorComponent as JTextComponent) bindDual tagFilterCurrentContent
 
             selectedProperty(showPidToggle) bindDual pidFilterEnabled
             enableProperty(showPidCombo) bindDual pidFilterEnabled
+            visibilityProperty(showPidCombo) bindDual pidFilterEnabled
             listProperty<String>(showPidCombo) bindDual pidFilterHistory
             selectedIndexProperty(showPidCombo) bindLeft pidFilterSelectedIndex
             textProperty(showPidCombo.editor.editorComponent as JTextComponent) bindDual pidFilterCurrentContent
 
             selectedProperty(showTidToggle) bindDual tidFilterEnabled
             enableProperty(showTidCombo) bindDual tidFilterEnabled
+            visibilityProperty(showTidCombo) bindDual tidFilterEnabled
             listProperty<String>(showTidCombo) bindDual tidFilterHistory
             selectedIndexProperty(showTidCombo) bindLeft tidFilterSelectedIndex
             textProperty(showTidCombo.editor.editorComponent as JTextComponent) bindDual tidFilterCurrentContent
 
             selectedProperty(boldLogToggle) bindDual highlightEnabled
             enableProperty(highlightLogCombo) bindDual highlightEnabled
+            visibilityProperty(highlightLogCombo) bindDual highlightEnabled
             listProperty<String>(highlightLogCombo) bindDual highlightHistory
             selectedIndexProperty(highlightLogCombo) bindLeft highlightSelectedIndex
             textProperty(highlightLogCombo.editor.editorComponent as JTextComponent) bindDual highlightCurrentContent
@@ -96,26 +101,11 @@ object MainViewModel {
 
             bindWithButtonDisplayMode(
                 startBtn, stopBtn, pauseToggle, saveBtn, clearViewsBtn, adbConnectBtn, adbRefreshBtn, adbDisconnectBtn,
-                scrollBackApplyBtn, retryAdbToggle, retryAdbToggle, scrollBackSplitFileToggle, scrollBackKeepToggle
+                scrollBackApplyBtn, retryAdbToggle, retryAdbToggle, scrollBackSplitFileToggle, scrollBackKeepToggle,
+                scrollBackLabel
             )
 
             filteredTableModel.filterLog
-
-            logFilterEnabled.addObserver {
-                showLogCombo.setEnabledFilter(it ?: false)
-            }
-            tagFilterEnabled.addObserver {
-                showTagCombo.setEnabledFilter(it ?: false)
-            }
-            pidFilterEnabled.addObserver {
-                showPidCombo.setEnabledFilter(it ?: false)
-            }
-            tidFilterEnabled.addObserver {
-                showTidCombo.setEnabledFilter(it ?: false)
-            }
-            highlightEnabled.addObserver {
-                highlightLogCombo.setEnabledFilter(it ?: false)
-            }
 
             logFilterSelectedIndex.addObserver {selectedIndex ->
                 selectedIndex ?: return@addObserver
@@ -175,10 +165,6 @@ object MainViewModel {
                 searchHistory.value?.let {
                     searchHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
                 }
-            }
-
-            tagFilterCurrentContent.addObserver {
-                print(it)
             }
         }
     }

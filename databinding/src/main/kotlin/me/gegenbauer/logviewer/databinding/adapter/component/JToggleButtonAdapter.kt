@@ -6,13 +6,15 @@ import me.gegenbauer.logviewer.concurrency.AppScope
 import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.databinding.adapter.property.EnabledAdapter
 import me.gegenbauer.logviewer.databinding.adapter.property.SelectedAdapter
+import me.gegenbauer.logviewer.databinding.adapter.property.VisibilityAdapter
 import java.awt.event.ItemEvent
 import java.awt.event.ItemEvent.SELECTED
 import java.awt.event.ItemListener
 import javax.swing.JComponent
 import javax.swing.JToggleButton
 
-class JToggleButtonAdapter(component: JComponent) : SelectedAdapter, DisposableAdapter, EnabledAdapter by JComponentAdapter(component) {
+class JToggleButtonAdapter(component: JComponent) : SelectedAdapter, DisposableAdapter,
+    EnabledAdapter by JComponentAdapter(component), VisibilityAdapter by JComponentAdapter(component){
     override val selectedChangeListener: ItemListener
         get() = ItemListener { e: ItemEvent ->
             AppScope.launch(Dispatchers.UI) {

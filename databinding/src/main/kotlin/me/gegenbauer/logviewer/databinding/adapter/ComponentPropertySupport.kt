@@ -110,6 +110,31 @@ fun selectedIndexProperty(component: JComponent) = object : ObservableComponentP
     }
 }
 
+fun visibilityProperty(component: JComponent) = object : ObservableComponentProperty<Boolean>(component) {
+    private val adapter = componentAdapter as? VisibilityAdapter
+
+    init {
+        adapter ?: kotlin.run { GLog.e(TAG, "[initAdapter] component adapter does not container visibility property") }
+        adapter?.observeVisibilityChange { newValue ->
+            updateValue(newValue)
+        }
+    }
+
+    override fun getDisplayName(): String {
+        return "${component.javaClass.simpleName}_${component.hashCode()}_Visibility}"
+    }
+
+    override fun setProperty(newValue: Boolean?) {
+        super.setProperty(newValue)
+        newValue ?: return
+        adapter?.updateVisibility(newValue)
+    }
+
+    override fun filterStrategy(newValue: Boolean?): Boolean {
+        return newValue != null
+    }
+}
+
 fun <T> customProperty(component: JComponent, propertyName: String, initValue: T) = object : ObservableComponentProperty<T>(component) {
     private val adapter: CustomComponentAdapter<T>
 
@@ -121,7 +146,7 @@ fun <T> customProperty(component: JComponent, propertyName: String, initValue: T
     }
 
     override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_$propertyName}"
+        return "${component.javaClass.simpleName}_${component.hashCode()}_Custom_$propertyName}"
     }
 
     override fun setProperty(newValue: T?) {

@@ -6,10 +6,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.concurrency.ViewModelScope
-import me.gegenbauer.logviewer.databinding.adapter.property.EditableAdapter
-import me.gegenbauer.logviewer.databinding.adapter.property.EnabledAdapter
-import me.gegenbauer.logviewer.databinding.adapter.property.ListAdapter
-import me.gegenbauer.logviewer.databinding.adapter.property.SelectedIndexAdapter
+import me.gegenbauer.logviewer.databinding.adapter.property.*
 import java.awt.event.ItemListener
 import java.beans.PropertyChangeListener
 import javax.swing.JComboBox
@@ -17,7 +14,8 @@ import javax.swing.JComponent
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
-class JComboBoxAdapter<T>(component: JComponent) : EditableAdapter, ListAdapter<T>, SelectedIndexAdapter, EnabledAdapter by JComponentAdapter(component) {
+class JComboBoxAdapter<T>(component: JComponent) : EditableAdapter, ListAdapter<T>, SelectedIndexAdapter,
+    EnabledAdapter by JComponentAdapter(component), VisibilityAdapter by JComponentAdapter(component) {
 
     private val comboBox = component as JComboBox<T>
     private val scope = ViewModelScope()

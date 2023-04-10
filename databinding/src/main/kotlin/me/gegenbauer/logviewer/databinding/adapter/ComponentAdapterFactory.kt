@@ -1,6 +1,7 @@
 package me.gegenbauer.logviewer.databinding.adapter
 
 import me.gegenbauer.logviewer.databinding.adapter.component.JComboBoxAdapter
+import me.gegenbauer.logviewer.databinding.adapter.component.JComponentAdapter
 import me.gegenbauer.logviewer.databinding.adapter.component.JTextComponentAdapter
 import me.gegenbauer.logviewer.databinding.adapter.component.JToggleButtonAdapter
 import me.gegenbauer.logviewer.log.GLog
@@ -17,7 +18,7 @@ object ComponentAdapterFactory {
         adapters.putIfAbsent(JToggleButton::class.java, JToggleButtonAdapter::class.java)
         adapters.putIfAbsent(JTextComponent::class.java, JTextComponentAdapter::class.java)
         adapters.putIfAbsent(JComboBox::class.java, JComboBoxAdapter::class.java)
-        adapters.putIfAbsent(JComboBox::class.java, JComboBoxAdapter::class.java)
+        adapters.putIfAbsent(JComponent::class.java, JComponentAdapter::class.java)
     }
 
     fun getComponentAdapter(component: JComponent): ComponentAdapter? {
