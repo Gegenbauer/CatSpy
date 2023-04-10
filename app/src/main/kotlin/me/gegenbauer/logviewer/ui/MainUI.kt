@@ -13,6 +13,7 @@ import me.gegenbauer.logviewer.concurrency.AppScope
 import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.databinding.ObservableViewModelProperty
+import me.gegenbauer.logviewer.databinding.withName
 import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
@@ -20,12 +21,10 @@ import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.manager.FiltersManager
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
-import me.gegenbauer.logviewer.ui.button.ButtonDisplayMode
-import me.gegenbauer.logviewer.ui.button.ColorToggleButton
-import me.gegenbauer.logviewer.ui.button.StatefulButton
-import me.gegenbauer.logviewer.ui.button.StatefulToggleButton
+import me.gegenbauer.logviewer.ui.button.*
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox.Companion.isMultiLine
+import me.gegenbauer.logviewer.ui.combobox.getFilterComboBox
 import me.gegenbauer.logviewer.ui.container.WrapablePanel
 import me.gegenbauer.logviewer.ui.dialog.GoToDialog
 import me.gegenbauer.logviewer.ui.dialog.LogTableDialog
@@ -53,18 +52,14 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 import javax.swing.plaf.ColorUIResource
-import javax.swing.plaf.FontUIResource
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.text.JTextComponent
-import kotlin.collections.ArrayList
-import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 
 class MainUI(title: String) : JFrame() {
@@ -170,17 +165,17 @@ class MainUI(title: String) : JFrame() {
     private val showLogPanel = JPanel()
     val matchCaseToggle = ColorToggleButton("Aa")
     private val matchCaseTogglePanel = JPanel(GridLayout(1, 1))
-    val showLogCombo = FilterComboBox(UIConfManager.uiConf.logFilterComboStyle, true, STRINGS.ui.log)
+    val showLogCombo = getFilterComboBox(UIConfManager.uiConf.logFilterComboStyle, true) withName STRINGS.ui.log
     val showLogToggle = ColorToggleButton(STRINGS.ui.log)
     private val showLogTogglePanel = JPanel(GridLayout(1, 1))
 
-    val showPidCombo = FilterComboBox(UIConfManager.uiConf.pidFilterComboStyle, false, STRINGS.ui.pid)
-    val showTagCombo = FilterComboBox(UIConfManager.uiConf.tagFilterComboStyle, false, STRINGS.ui.tag)
-    val showTidCombo = FilterComboBox(UIConfManager.uiConf.tidFilterComboStyle, false, STRINGS.ui.tid)
+    val showPidCombo = getFilterComboBox(UIConfManager.uiConf.pidFilterComboStyle, false) withName STRINGS.ui.pid
+    val showTagCombo = getFilterComboBox(UIConfManager.uiConf.tagFilterComboStyle, false) withName STRINGS.ui.tag
+    val showTidCombo = getFilterComboBox(UIConfManager.uiConf.tidFilterComboStyle, false) withName STRINGS.ui.tid
     private var selectedLine = 0
 
     private val boldLogPanel = JPanel()
-    val highlightLogCombo = FilterComboBox(UIConfManager.uiConf.highlightComboStyle, false)
+    val highlightLogCombo = getFilterComboBox(UIConfManager.uiConf.highlightComboStyle, false)
     val boldLogToggle = ColorToggleButton(STRINGS.ui.bold)
     private val boldLogTogglePanel = JPanel(GridLayout(1, 1))
     private val showTagPanel = JPanel()
@@ -198,7 +193,7 @@ class MainUI(title: String) : JFrame() {
     val adbConnectBtn = StatefulButton(getImageIcon("connect.png"), STRINGS.ui.connect)
     val adbRefreshBtn = StatefulButton(getImageIcon("refresh.png"), STRINGS.ui.refresh)
     val adbDisconnectBtn = StatefulButton(getImageIcon("disconnect.png"), STRINGS.ui.disconnect)
-    val scrollBackLabel = JLabel(STRINGS.ui.scrollBackLines)
+    val scrollBackLabel = StatefulLabel(getImageIcon("scrollback.png"), STRINGS.ui.scrollBackLines)
     val scrollBackTF = JTextField()
     val scrollBackSplitFileToggle = StatefulToggleButton(
         getImageIcon("splitfile_off.png"),
@@ -406,7 +401,6 @@ class MainUI(title: String) : JFrame() {
         saveBtn.addMouseListener(mouseHandler)
 
         showLogCombo.toolTipText = STRINGS.toolTip.logCombo
-        showLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
         showLogCombo.editor.editorComponent.addKeyListener(keyHandler)
         showLogCombo.addItemListener(itemHandler)
         showLogCombo.addPopupMenuListener(popupMenuHandler)
@@ -418,7 +412,6 @@ class MainUI(title: String) : JFrame() {
 
         highlightLogCombo.toolTipText = STRINGS.toolTip.boldCombo
         highlightLogCombo.enabledTfTooltip = false
-        highlightLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
         highlightLogCombo.editor.editorComponent.addKeyListener(keyHandler)
         highlightLogCombo.addItemListener(itemHandler)
         highlightLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
@@ -428,7 +421,6 @@ class MainUI(title: String) : JFrame() {
         boldLogToggle.addItemListener(itemHandler)
 
         showTagCombo.toolTipText = STRINGS.toolTip.tagCombo
-        showTagCombo.renderer = FilterComboBox.ComboBoxRenderer()
         showTagCombo.editor.editorComponent.addKeyListener(keyHandler)
         showTagCombo.addItemListener(itemHandler)
         showTagCombo.editor.editorComponent.addMouseListener(mouseHandler)
@@ -438,7 +430,6 @@ class MainUI(title: String) : JFrame() {
         showTagToggle.addItemListener(itemHandler)
 
         showPidCombo.toolTipText = STRINGS.toolTip.pidCombo
-        showPidCombo.renderer = FilterComboBox.ComboBoxRenderer()
         showPidCombo.editor.editorComponent.addKeyListener(keyHandler)
         showPidCombo.addItemListener(itemHandler)
         showPidCombo.editor.editorComponent.addMouseListener(mouseHandler)
@@ -448,7 +439,6 @@ class MainUI(title: String) : JFrame() {
         showPidToggle.addItemListener(itemHandler)
 
         showTidCombo.toolTipText = STRINGS.toolTip.tidCombo
-        showTidCombo.renderer = FilterComboBox.ComboBoxRenderer()
         showTidCombo.editor.editorComponent.addKeyListener(keyHandler)
         showTidCombo.addItemListener(itemHandler)
         showTidCombo.editor.editorComponent.addMouseListener(mouseHandler)
@@ -639,15 +629,7 @@ class MainUI(title: String) : JFrame() {
 
         showTagCombo.updateTooltip()
 
-        showTagCombo.setEnabledFilter(UIConfManager.uiConf.tagFilterEnabled)
-
-        showPidCombo.setEnabledFilter(UIConfManager.uiConf.pidFilterEnabled)
-
-        showTidCombo.setEnabledFilter(UIConfManager.uiConf.tidFilterEnabled)
-
         highlightLogCombo.updateTooltip()
-
-        highlightLogCombo.setEnabledFilter(UIConfManager.uiConf.highlightEnabled)
 
         searchPanel.searchCombo.addAllItems(UIConfManager.uiConf.searchHistory)
         if (searchPanel.searchCombo.itemCount > 0) {
@@ -738,24 +720,6 @@ class MainUI(title: String) : JFrame() {
         IsCreatingUI = false
     }
 
-    private fun setBtnIcons(isShow: Boolean) {
-        MainViewModel.buttonDisplayMode.updateValue(if (isShow) ButtonDisplayMode.ICON else ButtonDisplayMode.TEXT)
-        if (isShow) {
-            scrollBackLabel.icon = ImageIcon(getImageFile("scrollback.png"))
-        } else {
-            scrollBackLabel.icon = null
-        }
-    }
-
-    private fun setBtnTexts(isShow: Boolean) {
-
-        if (isShow) {
-            scrollBackLabel.text = STRINGS.ui.scrollBackLines
-        } else {
-            scrollBackLabel.text = null
-        }
-    }
-
     inner class StatusChangeListener : PropertyChangeListener, DocumentListener {
         private var method = ""
         override fun propertyChange(evt: PropertyChangeEvent) {
@@ -808,14 +772,6 @@ class MainUI(title: String) : JFrame() {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
                 } catch (ex: Exception) {
                     GLog.d(TAG, "Failed to initialize SystemLaf")
-                }
-            }
-
-            FLAT_LIGHT_LAF -> {
-                try {
-                    UIManager.setLookAndFeel(FlatLightLaf())
-                } catch (ex: Exception) {
-                    GLog.d(TAG, "Failed to initialize FlatLightLaf")
                 }
             }
 
@@ -878,24 +834,6 @@ class MainUI(title: String) : JFrame() {
         panel.add(Box.createHorizontalStrut(2))
         panel.add(separator1)
         panel.add(Box.createHorizontalStrut(2))
-    }
-
-    private fun initFontSize(fontSize: Int) {
-        val multiplier = fontSize / 100.0f
-        val defaults = UIManager.getDefaults()
-        val e: Enumeration<*> = defaults.keys()
-        while (e.hasMoreElements()) {
-            val key = e.nextElement()
-            val value = defaults[key]
-            if (value is Font) {
-                val newSize = (value.size * multiplier).roundToInt()
-                if (value is FontUIResource) {
-                    defaults[key] = FontUIResource(value.name, value.style, newSize)
-                } else {
-                    defaults[key] = Font(value.name, value.style, newSize)
-                }
-            }
-        }
     }
 
     fun windowedModeLogPanel(logPanel: LogPanel) {
@@ -1351,29 +1289,7 @@ class MainUI(title: String) : JFrame() {
                     }
 
                     showLogCombo.editor.editorComponent, highlightLogCombo.editor.editorComponent, showTagCombo.editor.editorComponent, showPidCombo.editor.editorComponent, showTidCombo.editor.editorComponent -> {
-                        lateinit var combo: FilterComboBox
-                        when (event.source) {
-                            showLogCombo.editor.editorComponent -> {
-                                combo = showLogCombo
-                            }
-
-                            highlightLogCombo.editor.editorComponent -> {
-                                combo = highlightLogCombo
-                            }
-
-                            showTagCombo.editor.editorComponent -> {
-                                combo = showTagCombo
-                            }
-
-                            showPidCombo.editor.editorComponent -> {
-                                combo = showPidCombo
-                            }
-
-                            showTidCombo.editor.editorComponent -> {
-                                combo = showTidCombo
-                            }
-                        }
-                        popupMenu = PopUpFilterCombobox(combo)
+                        popupMenu = PopUpFilterCombobox((event.source as JComponent).parent as FilterComboBox)
                         popupMenu?.show(event.component, event.x, event.y)
                     }
 
@@ -1956,7 +1872,7 @@ class MainUI(title: String) : JFrame() {
 
     inner class SearchPanel : JPanel() {
         val closeBtn: JButton = JButton("X")
-        val searchCombo: FilterComboBox = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, false)
+        val searchCombo: FilterComboBox = getFilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, false)
         val searchMatchCaseToggle: ColorToggleButton = ColorToggleButton("Aa")
         private var targetLabel: JLabel
         private var upBtn: JButton
@@ -1976,7 +1892,6 @@ class MainUI(title: String) : JFrame() {
             searchCombo.toolTipText = STRINGS.toolTip.searchCombo
             searchCombo.enabledTfTooltip = false
             searchCombo.isEditable = true
-            searchCombo.renderer = FilterComboBox.ComboBoxRenderer()
             searchCombo.editor.editorComponent.addKeyListener(searchKeyHandler)
             searchCombo.addPopupMenuListener(searchPopupMenuHandler)
 

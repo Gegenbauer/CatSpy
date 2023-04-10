@@ -1,7 +1,7 @@
 package me.gegenbauer.logviewer.ui.dialog
 
-import me.gegenbauer.logviewer.utils.Utils
 import me.gegenbauer.logviewer.configuration.UIConfManager
+import me.gegenbauer.logviewer.databinding.withName
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
@@ -9,6 +9,8 @@ import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
+import me.gegenbauer.logviewer.ui.combobox.getFilterComboBox
+import me.gegenbauer.logviewer.utils.Utils
 import me.gegenbauer.logviewer.utils.getEnum
 import me.gegenbauer.logviewer.utils.getImageFile
 import java.awt.*
@@ -241,7 +243,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             confirmLabel = JLabel("To apply \"Style\" need to restart")
 
             exampleLabel = JLabel("Ex : ")
-            exampleCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, true)
+            exampleCombo = getFilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, true) withName "exampleCombo"
             exampleCombo.isEditable = true
             exampleCombo.preferredSize = Dimension(250, 30)
             exampleCombo.addItem("ABC|DEF|-GHI|JKL")
@@ -989,7 +991,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
                 }
 
                 if (rgbPanel != null) {
-                    val colorLabel = e!!.source as ColorLabel
+                    val colorLabel = e.source as ColorLabel
                     if (colorLabel.text.contains("BG")) {
                         colorChooser.color = colorLabel.background
                     } else {
