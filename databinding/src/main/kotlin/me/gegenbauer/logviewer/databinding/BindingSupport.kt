@@ -34,10 +34,13 @@ infix fun <T> ObservableComponentProperty<T>.bindLeft(viewModelProperty: Observa
     Bindings.bind(this, viewModelProperty, BindType.ONE_WAY_TO_SOURCE)
 }
 
-private const val PROPERTY_KEY_BINDING_ENABLED = "binding_enabled"
-
-var JComponent.isBindingEnabled: Boolean
-    get() = getClientProperty(PROPERTY_KEY_BINDING_ENABLED) as? Boolean ?: true
-    set(value) {
-        putClientProperty(PROPERTY_KEY_BINDING_ENABLED, value)
+fun <T> List<T>.updateListByLRU(lastUsedItem: T): List<T> {
+    return if (lastUsedItem in this) {
+        val list = this.toMutableList()
+        list.remove(lastUsedItem)
+        list.add(0, lastUsedItem)
+        list
+    } else {
+        this
     }
+}

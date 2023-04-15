@@ -1,3 +1,3 @@
 package me.gegenbauer.logviewer.databinding.adapter
 
-interface ComponentAdapter
+const val PROPERTY_ENABLED = "enabled"

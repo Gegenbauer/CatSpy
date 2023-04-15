@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer.databinding.adapter.component
+package me.gegenbauer.logviewer.databinding.adapter.property
 
 import me.gegenbauer.logviewer.databinding.adapter.Disposable
 

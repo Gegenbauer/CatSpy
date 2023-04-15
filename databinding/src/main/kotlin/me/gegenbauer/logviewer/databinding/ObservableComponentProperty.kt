@@ -4,9 +4,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.gegenbauer.logviewer.concurrency.AppScope
 import me.gegenbauer.logviewer.concurrency.UI
-import me.gegenbauer.logviewer.databinding.adapter.ComponentAdapter
-import me.gegenbauer.logviewer.databinding.adapter.ComponentAdapterFactory
-import me.gegenbauer.logviewer.databinding.adapter.component.DisposableAdapter
+import me.gegenbauer.logviewer.databinding.adapter.property.DisposableAdapter
+import me.gegenbauer.logviewer.databinding.adapter.property.PropertyAdapter
 import me.gegenbauer.logviewer.log.GLog
 import java.awt.event.HierarchyEvent
 import javax.swing.JComponent
@@ -15,7 +14,9 @@ abstract class ObservableComponentProperty<T>(
     val component: JComponent,
 ) : ObservableProperty<T>() {
     private var propertyChangeObserver: ((T?) -> Unit)? = null
-    protected var componentAdapter: ComponentAdapter? = ComponentAdapterFactory.getComponentAdapter(component)
+    private val propertyAdapter: PropertyAdapter<T, *> = getPropertyAdapterImpl().apply {
+        observeValueChange(this@ObservableComponentProperty::updateValue)
+    }
 
     init {
         component.addHierarchyListener { e ->
@@ -23,20 +24,18 @@ abstract class ObservableComponentProperty<T>(
                 GLog.d(TAG, "[HierarchyListener] component " + "${component.javaClass.simpleName}_${component.hashCode()} isDisplayable = false")
                 // component is not displayable, cancel all coroutines
                 Bindings.unBind(this)
-                (componentAdapter as? DisposableAdapter)?.dispose()
+                (propertyAdapter as? DisposableAdapter)?.dispose()
             }
         }
     }
+
+    abstract fun getPropertyAdapterImpl(): PropertyAdapter<T, *>
 
     override fun getDisplayName(): String {
         return "${component.javaClass.simpleName}_${component.hashCode()}_${getValueType()}"
     }
 
     final override fun updateValue(newValue: T?) {
-        if (!component.isBindingEnabled) {
-            GLog.d(TAG, "[updateValue] component ${component.javaClass.simpleName}_${component.hashCode()} isBindingEnabled = false")
-            return
-        }
         if (value != newValue && newValue != null) {
             AppScope.launch(Dispatchers.UI) {
                 setProperty(newValue)
@@ -49,7 +48,7 @@ abstract class ObservableComponentProperty<T>(
      * update property of component when value changed
      */
     protected open fun setProperty(newValue: T?) {
-        // do nothing
+        propertyAdapter.updateValue(newValue)
     }
 
     companion object {
