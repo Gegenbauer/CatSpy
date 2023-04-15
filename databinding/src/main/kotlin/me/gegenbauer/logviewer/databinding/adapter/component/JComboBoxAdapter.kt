@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.concurrency.ViewModelScope
 import me.gegenbauer.logviewer.databinding.adapter.property.*
+import me.gegenbauer.logviewer.databinding.withAllListenerDisabled
 import java.awt.event.ItemListener
 import java.beans.PropertyChangeListener
 import javax.swing.JComboBox
@@ -87,12 +88,11 @@ class JComboBoxAdapter<T>(component: JComponent) : EditableAdapter, ListAdapter<
 
     override fun updateList(value: List<T>?) {
         value ?: return
-        comboBox.model.removeListDataListener(listChangeListener)
-        comboBox.removeItemListener(selectedIndexChangeListener)
-        comboBox.removeAllItems()
-        value.forEach(comboBox::addItem)
-        comboBox.addItemListener(selectedIndexChangeListener)
-        comboBox.model.addListDataListener(listChangeListener)
+        comboBox.withAllListenerDisabled {
+            removeAllItems()
+            value.forEach(comboBox::addItem)
+        }
+        comboBox.editor.item = value.firstOrNull()
         listChangeObserver?.invoke(value)
     }
 

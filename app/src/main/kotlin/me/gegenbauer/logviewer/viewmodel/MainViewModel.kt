@@ -4,6 +4,9 @@ import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.databinding.ObservableViewModelProperty
 import me.gegenbauer.logviewer.databinding.adapter.*
 import me.gegenbauer.logviewer.databinding.adapter.property.updateListByLRU
+import me.gegenbauer.logviewer.databinding.bindDual
+import me.gegenbauer.logviewer.databinding.bindLeft
+import me.gegenbauer.logviewer.databinding.bindRight
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.ButtonDisplayMode
 import javax.swing.JComponent

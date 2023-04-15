@@ -7,15 +7,12 @@ import me.gegenbauer.logviewer.ui.combobox.FilterComboBox.Companion.isHighlight
 import me.gegenbauer.logviewer.ui.combobox.highlight.Highlightable
 import me.gegenbauer.logviewer.ui.combobox.highlight.HighlighterMultiLineEditor
 import me.gegenbauer.logviewer.ui.combobox.highlight.HighlighterSingleLineEditor
-import java.awt.Component
 import java.awt.event.MouseEvent
 import javax.swing.JComboBox
-import javax.swing.JList
 import javax.swing.ToolTipManager
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.plaf.ComboBoxUI
-import javax.swing.plaf.basic.BasicComboBoxRenderer
 import javax.swing.text.JTextComponent
 
 class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboBox<String>() {
@@ -45,10 +42,6 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
             field = value
             updateTooltip(value.isNotEmpty())
         }
-
-    init {
-        renderer = FilterComboBoxRenderer()
-    }
 
     override fun setUI(ui: ComboBoxUI?) {
         super.setUI(CustomEditorDarkComboBoxUI())
@@ -115,7 +108,7 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
 
     fun updateHighlight(mode: Mode = this.mode) {
         val editorComponent = editorComponent as Highlightable<*>
-        editorComponent.setUpdateHighlighter(mode.isHighlight())
+        editorComponent.setEnableHighlighter(mode.isHighlight())
     }
 
     fun setHighlightEnabled(enabled: Boolean) {
@@ -271,28 +264,6 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         items.forEach { addItem(it) }
     }
 
-    private class FilterComboBoxRenderer : BasicComboBoxRenderer() {
-        override fun getListCellRendererComponent(
-            list: JList<*>?, value: Any?,
-            index: Int, isSelected: Boolean, cellHasFocus: Boolean
-        ): Component {
-            list ?: return this
-            if (isSelected) {
-                background = list.selectionBackground
-                foreground = list.selectionForeground
-                if (-1 < index) {
-                    list.toolTipText = list.selectedValue.toString()
-                }
-            } else {
-                background = list.background
-                foreground = list.foreground
-            }
-            font = list.font
-            text = value.toString()
-            return this
-        }
-    }
-
     companion object {
         fun Mode.isMultiLine(): Boolean {
             return this == Mode.MULTI_LINE || this == Mode.MULTI_LINE_HIGHLIGHT
@@ -317,6 +288,7 @@ fun getFilterComboBox(mode: FilterComboBox.Mode = FilterComboBox.Mode.MULTI_LINE
     val comboBox = FilterComboBox(mode, useColorTag)
     comboBox.isEditable = true
     comboBox.editor = (if (multiline) HighlighterMultiLineEditor(comboBox) else HighlighterSingleLineEditor(comboBox))
+        .apply { this.useColorTag = useColorTag }
     comboBox.setHighlightEnabled(mode.isHighlight())
     comboBox.addTooltipUpdateListener()
     return comboBox

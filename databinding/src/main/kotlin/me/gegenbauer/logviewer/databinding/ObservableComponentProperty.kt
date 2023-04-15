@@ -33,6 +33,10 @@ abstract class ObservableComponentProperty<T>(
     }
 
     final override fun updateValue(newValue: T?) {
+        if (!component.isBindingEnabled) {
+            GLog.d(TAG, "[updateValue] component ${component.javaClass.simpleName}_${component.hashCode()} isBindingEnabled = false")
+            return
+        }
         if (value != newValue && newValue != null) {
             AppScope.launch(Dispatchers.UI) {
                 setProperty(newValue)
