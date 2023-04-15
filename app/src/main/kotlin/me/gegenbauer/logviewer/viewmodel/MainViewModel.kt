@@ -1,12 +1,8 @@
 package me.gegenbauer.logviewer.viewmodel
 
 import me.gegenbauer.logviewer.configuration.UIConfManager
-import me.gegenbauer.logviewer.databinding.ObservableViewModelProperty
+import me.gegenbauer.logviewer.databinding.*
 import me.gegenbauer.logviewer.databinding.adapter.*
-import me.gegenbauer.logviewer.databinding.adapter.property.updateListByLRU
-import me.gegenbauer.logviewer.databinding.bindDual
-import me.gegenbauer.logviewer.databinding.bindLeft
-import me.gegenbauer.logviewer.databinding.bindRight
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.ButtonDisplayMode
 import javax.swing.JComponent
@@ -60,41 +56,41 @@ object MainViewModel {
     fun bind(mainUI: MainUI) {
         mainUI.apply {
             selectedProperty(showLogToggle) bindDual logFilterEnabled
-            enableProperty(showLogCombo) bindDual logFilterEnabled
+            enabledProperty(showLogCombo) bindDual logFilterEnabled
             visibilityProperty(showLogCombo) bindDual logFilterEnabled
-            listProperty<String>(showLogCombo) bindDual logFilterHistory
+            listProperty(showLogCombo) bindDual logFilterHistory
             selectedIndexProperty(showLogCombo) bindLeft logFilterSelectedIndex
             textProperty(showLogCombo.editor.editorComponent as JTextComponent) bindDual logFilterCurrentContent
 
             selectedProperty(showTagToggle) bindDual tagFilterEnabled
-            enableProperty(showTagCombo) bindDual tagFilterEnabled
+            enabledProperty(showTagCombo) bindDual tagFilterEnabled
             visibilityProperty(showTagCombo) bindDual tagFilterEnabled
-            listProperty<String>(showTagCombo) bindDual tagFilterHistory
+            listProperty(showTagCombo) bindDual tagFilterHistory
             selectedIndexProperty(showTagCombo) bindDual tagFilterSelectedIndex
             textProperty(showTagCombo.editor.editorComponent as JTextComponent) bindDual tagFilterCurrentContent
 
             selectedProperty(showPidToggle) bindDual pidFilterEnabled
-            enableProperty(showPidCombo) bindDual pidFilterEnabled
+            enabledProperty(showPidCombo) bindDual pidFilterEnabled
             visibilityProperty(showPidCombo) bindDual pidFilterEnabled
-            listProperty<String>(showPidCombo) bindDual pidFilterHistory
+            listProperty(showPidCombo) bindDual pidFilterHistory
             selectedIndexProperty(showPidCombo) bindLeft pidFilterSelectedIndex
             textProperty(showPidCombo.editor.editorComponent as JTextComponent) bindDual pidFilterCurrentContent
 
             selectedProperty(showTidToggle) bindDual tidFilterEnabled
-            enableProperty(showTidCombo) bindDual tidFilterEnabled
+            enabledProperty(showTidCombo) bindDual tidFilterEnabled
             visibilityProperty(showTidCombo) bindDual tidFilterEnabled
-            listProperty<String>(showTidCombo) bindDual tidFilterHistory
+            listProperty(showTidCombo) bindDual tidFilterHistory
             selectedIndexProperty(showTidCombo) bindLeft tidFilterSelectedIndex
             textProperty(showTidCombo.editor.editorComponent as JTextComponent) bindDual tidFilterCurrentContent
 
             selectedProperty(boldLogToggle) bindDual highlightEnabled
-            enableProperty(highlightLogCombo) bindDual highlightEnabled
+            enabledProperty(highlightLogCombo) bindDual highlightEnabled
             visibilityProperty(highlightLogCombo) bindDual highlightEnabled
-            listProperty<String>(highlightLogCombo) bindDual highlightHistory
+            listProperty(highlightLogCombo) bindDual highlightHistory
             selectedIndexProperty(highlightLogCombo) bindLeft highlightSelectedIndex
             textProperty(highlightLogCombo.editor.editorComponent as JTextComponent) bindDual highlightCurrentContent
 
-            listProperty<String>(searchPanel.searchCombo) bindDual searchHistory
+            listProperty(searchPanel.searchCombo) bindDual searchHistory
             selectedIndexProperty(searchPanel.searchCombo) bindLeft searchSelectedIndex
             textProperty(searchPanel.searchCombo.editor.editorComponent as JTextComponent) bindDual searchCurrentContent
 
@@ -110,6 +106,7 @@ object MainViewModel {
 
             filteredTableModel.filterLog
 
+            // 更改为按下 Enter 进行搜索后，将该项提至最前
             logFilterSelectedIndex.addObserver {selectedIndex ->
                 selectedIndex ?: return@addObserver
                 if (selectedIndex < 0) {

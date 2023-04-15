@@ -1,156 +1,80 @@
 package me.gegenbauer.logviewer.databinding.adapter
 
-import me.gegenbauer.logviewer.databinding.*
-import me.gegenbauer.logviewer.databinding.adapter.component.CustomComponentAdapter
+import me.gegenbauer.logviewer.databinding.ObservableComponentProperty
 import me.gegenbauer.logviewer.databinding.adapter.property.*
-import me.gegenbauer.logviewer.log.GLog
+import java.awt.event.HierarchyListener
+import java.awt.event.ItemListener
+import java.beans.PropertyChangeListener
+import javax.swing.AbstractButton
+import javax.swing.JComboBox
 import javax.swing.JComponent
+import javax.swing.event.DocumentListener
+import javax.swing.event.ListDataListener
+import javax.swing.text.JTextComponent
 
-fun enableProperty(component: JComponent) = object : ObservableComponentProperty<Boolean>(component) {
-    private val adapter = componentAdapter as? EnabledAdapter
+fun enabledProperty(component: JComponent) = object : ObservableComponentProperty<Boolean>(component) {
+    override fun getPropertyAdapterImpl(): PropertyAdapter<Boolean, PropertyChangeListener> = JComponentEnabledProperty(component)
 
-    init {
-        adapter ?: kotlin.run { GLog.e(TAG, "[initAdapter] component adapter does not container enabled property") }
-        adapter?.observeEnabledStatusChange { newValue ->
-            updateValue(newValue)
-        }
-    }
 
     override fun getDisplayName(): String {
         return "${component.javaClass.simpleName}_${component.hashCode()}_Enabled}"
     }
-
-    override fun setProperty(newValue: Boolean?) {
-        super.setProperty(newValue)
-        adapter?.updateEnabledStatus(newValue)
-    }
-}
-
-fun selectedProperty(component: JComponent) = object : ObservableComponentProperty<Boolean>(component) {
-    private val adapter = componentAdapter as? SelectedAdapter
-
-    init {
-        adapter ?: kotlin.run { GLog.e(TAG, "[initAdapter] component adapter does not container selected property") }
-        adapter?.observeSelectedStatusChange { newValue ->
-            updateValue(newValue)
-        }
-    }
-
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_Selected}"
-    }
-
-    override fun setProperty(newValue: Boolean?) {
-        super.setProperty(newValue)
-        adapter?.updateSelectedStatus(newValue)
-    }
-}
-
-fun textProperty(component: JComponent) = object : ObservableComponentProperty<String>(component) {
-    private val adapter = componentAdapter as? TextAdapter
-
-    init {
-        adapter ?: kotlin.run { GLog.e(TAG, "[initAdapter] component adapter does not container text property") }
-        adapter?.observeTextChange { newValue ->
-            updateValue(newValue)
-        }
-    }
-
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_Text}"
-    }
-
-    override fun setProperty(newValue: String?) {
-        super.setProperty(newValue)
-        adapter?.updateText(newValue)
-    }
-}
-
-fun <T> listProperty(component: JComponent) = object : ObservableComponentProperty<List<T>>(component) {
-    private val adapter = componentAdapter as? ListAdapter<T>
-
-    init {
-        adapter ?: kotlin.run { GLog.e(TAG, "[initAdapter] component adapter does not container list property") }
-        adapter?.observeListChange { newValue ->
-            updateValue(newValue)
-        }
-    }
-
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_List}"
-    }
-
-    override fun setProperty(newValue: List<T>?) {
-        super.setProperty(newValue)
-        adapter?.updateList(newValue)
-    }
-}
-
-fun selectedIndexProperty(component: JComponent) = object : ObservableComponentProperty<Int>(component) {
-    private val adapter = componentAdapter as? SelectedIndexAdapter
-
-    init {
-        adapter ?: kotlin.run { GLog.e(TAG, "[initAdapter] component adapter does not container selected index property") }
-        adapter?.observeSelectedIndexChange { newValue ->
-            updateValue(newValue)
-        }
-    }
-
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_SelectedIndex}"
-    }
-
-    override fun setProperty(newValue: Int?) {
-        super.setProperty(newValue)
-        adapter?.updateSelectedIndex(newValue)
-    }
-
-    override fun filterStrategy(newValue: Int?): Boolean {
-        return (newValue ?: -1) >= 0
-    }
 }
 
 fun visibilityProperty(component: JComponent) = object : ObservableComponentProperty<Boolean>(component) {
-    private val adapter = componentAdapter as? VisibilityAdapter
+    override fun getPropertyAdapterImpl(): PropertyAdapter<Boolean, HierarchyListener> = JComponentVisibilityProperty(component)
 
-    init {
-        adapter ?: kotlin.run { GLog.e(TAG, "[initAdapter] component adapter does not container visibility property") }
-        adapter?.observeVisibilityChange { newValue ->
-            updateValue(newValue)
-        }
-    }
 
     override fun getDisplayName(): String {
         return "${component.javaClass.simpleName}_${component.hashCode()}_Visibility}"
     }
+}
 
-    override fun setProperty(newValue: Boolean?) {
-        super.setProperty(newValue)
-        newValue ?: return
-        adapter?.updateVisibility(newValue)
-    }
+fun selectedProperty(component: AbstractButton) = object : ObservableComponentProperty<Boolean>(component) {
+    override fun getPropertyAdapterImpl(): PropertyAdapter<Boolean, ItemListener> = AbstractButtonSelectedProperty(component)
 
-    override fun filterStrategy(newValue: Boolean?): Boolean {
-        return newValue != null
+
+    override fun getDisplayName(): String {
+        return "${component.javaClass.simpleName}_${component.hashCode()}_Selected}"
     }
 }
 
-fun <T> customProperty(component: JComponent, propertyName: String, initValue: T) = object : ObservableComponentProperty<T>(component) {
-    private val adapter: CustomComponentAdapter<T>
+
+fun textProperty(component: JTextComponent) = object : ObservableComponentProperty<String>(component) {
+    override fun getPropertyAdapterImpl(): PropertyAdapter<String, DocumentListener> = JTextComponentTextProperty(component)
+
+
+    override fun getDisplayName(): String {
+        return "${component.javaClass.simpleName}_${component.hashCode()}_Text}"
+    }
+}
+
+fun <T> listProperty(component: JComboBox<T>) = object : ObservableComponentProperty<List<T>>(component) {
+    override fun getPropertyAdapterImpl(): PropertyAdapter<List<T>, ListDataListener> = JComboBoxListProperty(component)
+
+    override fun getDisplayName(): String {
+        return "${component.javaClass.simpleName}_${component.hashCode()}_List}"
+    }
+}
+
+fun <T> selectedIndexProperty(component: JComboBox<T>) = object : ObservableComponentProperty<Int>(component) {
+    override fun getPropertyAdapterImpl(): PropertyAdapter<Int, ItemListener> = JComboBoxSelectedIndexProperty(component)
+
+    override fun getDisplayName(): String {
+        return "${component.javaClass.simpleName}_${component.hashCode()}_SelectedIndex}"
+    }
+}
+
+fun <T> customProperty(component: JComponent, propertyName: String, initValue: T? = null) = object : ObservableComponentProperty<T>(component) {
+    override fun getPropertyAdapterImpl(): PropertyAdapter<T, *> = JComponentCustomProperty(component, propertyName)
 
     init {
-        val componentAdapter = CustomComponentAdapter<T>(component, propertyName)
-        adapter = componentAdapter
-        this.componentAdapter = componentAdapter
-        adapter.updateValue(initValue)
+        setProperty(initValue)
     }
 
     override fun getDisplayName(): String {
         return "${component.javaClass.simpleName}_${component.hashCode()}_Custom_$propertyName}"
     }
-
-    override fun setProperty(newValue: T?) {
-        super.setProperty(newValue)
-        adapter.updateValue(newValue)
-    }
 }
+
+
