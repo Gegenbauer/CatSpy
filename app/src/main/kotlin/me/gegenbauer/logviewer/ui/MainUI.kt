@@ -12,6 +12,7 @@ import me.gegenbauer.logviewer.command.LogCmdManager
 import me.gegenbauer.logviewer.concurrency.AppScope
 import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.configuration.UIConfManager
+import me.gegenbauer.logviewer.databinding.Bindings
 import me.gegenbauer.logviewer.databinding.ObservableViewModelProperty
 import me.gegenbauer.logviewer.databinding.withName
 import me.gegenbauer.logviewer.file.Log
@@ -222,7 +223,6 @@ class MainUI(title: String) : JFrame() {
     private val actionHandler = ActionHandler()
     private val popupMenuHandler = PopupMenuHandler()
     private val mouseHandler = MouseHandler()
-    private val componentHandler = ComponentHandler()
     private val statusChangeListener = StatusChangeListener()
 
     val filtersManager = FiltersManager(this, splitLogPane.filteredLogPanel)
@@ -322,20 +322,11 @@ class MainUI(title: String) : JFrame() {
     }
 
     private fun createUI() {
-        addComponentListener(componentHandler)
-
         menuBar.add(fileMenu)
         menuBar.add(viewMenu)
         menuBar.add(settingsMenu)
         menuBar.add(helpMenu)
         jMenuBar = menuBar
-
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            UIManager.put("ScrollBar.thumb", ColorUIResource(Color(0xE0, 0xE0, 0xE0)))
-            UIManager.put("ScrollBar.thumbHighlight", ColorUIResource(Color(0xE5, 0xE5, 0xE5)))
-            UIManager.put("ScrollBar.thumbShadow", ColorUIResource(Color(0xE5, 0xE5, 0xE5)))
-            UIManager.put("ComboBox.buttonDarkShadow", ColorUIResource(Color.black))
-        }
 
         logToolBar.addMouseListener(frameMouseListener)
 
@@ -402,7 +393,6 @@ class MainUI(title: String) : JFrame() {
 
         showLogCombo.toolTipText = STRINGS.toolTip.logCombo
         showLogCombo.editor.editorComponent.addKeyListener(keyHandler)
-        showLogCombo.addItemListener(itemHandler)
         showLogCombo.addPopupMenuListener(popupMenuHandler)
         showLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
         showLogToggle.toolTipText = STRINGS.toolTip.logToggle
@@ -413,7 +403,6 @@ class MainUI(title: String) : JFrame() {
         highlightLogCombo.toolTipText = STRINGS.toolTip.boldCombo
         highlightLogCombo.enabledTfTooltip = false
         highlightLogCombo.editor.editorComponent.addKeyListener(keyHandler)
-        highlightLogCombo.addItemListener(itemHandler)
         highlightLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
         boldLogToggle.toolTipText = STRINGS.toolTip.boldToggle
         boldLogTogglePanel.add(boldLogToggle)
@@ -422,7 +411,6 @@ class MainUI(title: String) : JFrame() {
 
         showTagCombo.toolTipText = STRINGS.toolTip.tagCombo
         showTagCombo.editor.editorComponent.addKeyListener(keyHandler)
-        showTagCombo.addItemListener(itemHandler)
         showTagCombo.editor.editorComponent.addMouseListener(mouseHandler)
         showTagToggle.toolTipText = STRINGS.toolTip.tagToggle
         showTagTogglePanel.add(showTagToggle)
@@ -431,7 +419,6 @@ class MainUI(title: String) : JFrame() {
 
         showPidCombo.toolTipText = STRINGS.toolTip.pidCombo
         showPidCombo.editor.editorComponent.addKeyListener(keyHandler)
-        showPidCombo.addItemListener(itemHandler)
         showPidCombo.editor.editorComponent.addMouseListener(mouseHandler)
         showPidToggle.toolTipText = STRINGS.toolTip.pidToggle
         showPidTogglePanel.add(showPidToggle)
@@ -440,7 +427,6 @@ class MainUI(title: String) : JFrame() {
 
         showTidCombo.toolTipText = STRINGS.toolTip.tidCombo
         showTidCombo.editor.editorComponent.addKeyListener(keyHandler)
-        showTidCombo.addItemListener(itemHandler)
         showTidCombo.editor.editorComponent.addMouseListener(mouseHandler)
         showTidToggle.toolTipText = STRINGS.toolTip.tidToggle
         showTidTogglePanel.add(showTidToggle)
@@ -449,7 +435,6 @@ class MainUI(title: String) : JFrame() {
 
         logCmdCombo.toolTipText = STRINGS.toolTip.logCmdCombo
         logCmdCombo.editor.editorComponent.addKeyListener(keyHandler)
-        logCmdCombo.addItemListener(itemHandler)
         logCmdCombo.editor.editorComponent.addMouseListener(mouseHandler)
         logCmdCombo.addPopupMenuListener(popupMenuHandler)
 
@@ -457,7 +442,6 @@ class MainUI(title: String) : JFrame() {
         val deviceComboPanel = JPanel(BorderLayout())
         deviceCombo.toolTipText = STRINGS.toolTip.devicesCombo
         deviceCombo.editor.editorComponent.addKeyListener(keyHandler)
-        deviceCombo.addItemListener(itemHandler)
         deviceCombo.editor.editorComponent.addMouseListener(mouseHandler)
         deviceComboPanel.add(deviceCombo, BorderLayout.CENTER)
         adbConnectBtn.margin = btnMargin
@@ -1679,7 +1663,7 @@ class MainUI(title: String) : JFrame() {
                     if (combo.editor.item.toString() != item) {
                         return
                     }
-                    resetComboItem(MainViewModel.logFilterHistory, MainViewModel.logFilterCurrentContent.value ?: "")
+                    //resetComboItem(MainViewModel.logFilterHistory, MainViewModel.logFilterCurrentContent.value ?: "")
                     filteredTableModel.filterLog = MainViewModel.logFilterCurrentContent.value ?: ""
                     combo.updateTooltip()
                 }
@@ -1747,13 +1731,6 @@ class MainUI(title: String) : JFrame() {
             scrollPane.verticalScrollBar?.setUI(BasicScrollBarUI())
             scrollPane.horizontalScrollBar?.setUI(BasicScrollBarUI())
             isCanceled = false
-        }
-    }
-
-    internal inner class ComponentHandler : ComponentAdapter() {
-        override fun componentResized(event: ComponentEvent) {
-            revalidate()
-            super.componentResized(event)
         }
     }
 

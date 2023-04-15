@@ -10,9 +10,9 @@ import me.gegenbauer.logviewer.databinding.adapter.listProperty
 import me.gegenbauer.logviewer.databinding.adapter.property.updateListByLRU
 import me.gegenbauer.logviewer.databinding.adapter.selectedIndexProperty
 import me.gegenbauer.logviewer.log.GLog
-import me.gegenbauer.logviewer.ui.combobox.getFilterComboBox
 import java.awt.Dimension
 import javax.swing.JButton
+import javax.swing.JComboBox
 import javax.swing.JFrame
 import javax.swing.JPanel
 
@@ -24,7 +24,7 @@ fun main() {
         val panel = JPanel()
         val bt = JButton("C")
         panel.add(bt)
-        val cb = getFilterComboBox()
+        val cb = JComboBox<String>()
         cb.preferredSize = Dimension(200, 30)
         panel.add(cb)
         cb.isEditable = true

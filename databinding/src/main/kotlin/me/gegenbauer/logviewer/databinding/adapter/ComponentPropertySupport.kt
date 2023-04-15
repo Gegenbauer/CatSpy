@@ -154,15 +154,3 @@ fun <T> customProperty(component: JComponent, propertyName: String, initValue: T
         adapter.updateValue(newValue)
     }
 }
-
-infix fun <T> ObservableComponentProperty<T>.bindDual(viewModelProperty: ObservableViewModelProperty<T>) {
-    Bindings.bind(this, viewModelProperty)
-}
-
-infix fun <T> ObservableComponentProperty<T>.bindRight(viewModelProperty: ObservableViewModelProperty<T>) {
-    Bindings.bind(this, viewModelProperty, BindType.ONE_WAY_TO_TARGET)
-}
-
-infix fun <T> ObservableComponentProperty<T>.bindLeft(viewModelProperty: ObservableViewModelProperty<T>) {
-    Bindings.bind(this, viewModelProperty, BindType.ONE_WAY_TO_SOURCE)
-}

@@ -21,3 +21,23 @@ inline infix fun <reified T: JComponent> T.withName(name: String): T {
     componentName = name
     return this
 }
+
+infix fun <T> ObservableComponentProperty<T>.bindDual(viewModelProperty: ObservableViewModelProperty<T>) {
+    Bindings.bind(this, viewModelProperty)
+}
+
+infix fun <T> ObservableComponentProperty<T>.bindRight(viewModelProperty: ObservableViewModelProperty<T>) {
+    Bindings.bind(this, viewModelProperty, BindType.ONE_WAY_TO_TARGET)
+}
+
+infix fun <T> ObservableComponentProperty<T>.bindLeft(viewModelProperty: ObservableViewModelProperty<T>) {
+    Bindings.bind(this, viewModelProperty, BindType.ONE_WAY_TO_SOURCE)
+}
+
+private const val PROPERTY_KEY_BINDING_ENABLED = "binding_enabled"
+
+var JComponent.isBindingEnabled: Boolean
+    get() = getClientProperty(PROPERTY_KEY_BINDING_ENABLED) as? Boolean ?: true
+    set(value) {
+        putClientProperty(PROPERTY_KEY_BINDING_ENABLED, value)
+    }

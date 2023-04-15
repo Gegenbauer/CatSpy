@@ -1,8 +1,7 @@
 package me.gegenbauer.logviewer.ui.button
 
 import me.gegenbauer.logviewer.databinding.componentName
-import me.gegenbauer.logviewer.ui.defaultToggleIconSelected
-import me.gegenbauer.logviewer.ui.defaultToggleIconUnselected
+import me.gegenbauer.logviewer.ui.ToggleButton
 import javax.swing.Icon
 import javax.swing.JToggleButton
 
@@ -21,8 +20,8 @@ class StatefulToggleButton(
             when (value) {
                 ButtonDisplayMode.TEXT -> {
                     text = originalText
-                    icon = overrideDefaultToggleIcon ?: defaultToggleIconUnselected
-                    selectedIcon = overrideDefaultToggleSelectedIcon ?: defaultToggleIconSelected
+                    icon = overrideDefaultToggleIcon ?: ToggleButton.defaultIconUnselected
+                    selectedIcon = overrideDefaultToggleSelectedIcon ?: ToggleButton.defaultIconSelected
                 }
 
                 ButtonDisplayMode.ICON -> {
