@@ -1,6 +1,6 @@
 package me.gegenbauer.logviewer.ui.button
 
-import me.gegenbauer.logviewer.databinding.componentName
+import me.gegenbauer.logviewer.databinding.bind.componentName
 import javax.swing.Icon
 import javax.swing.JButton
 

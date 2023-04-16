@@ -1,6 +1,6 @@
 package me.gegenbauer.logviewer.ui.combobox
 
-import me.gegenbauer.logviewer.databinding.componentName
+import me.gegenbauer.logviewer.databinding.bind.componentName
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox.Companion.isHighlight

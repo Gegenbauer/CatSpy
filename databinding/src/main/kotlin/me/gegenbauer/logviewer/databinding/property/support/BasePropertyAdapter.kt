@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer.databinding.adapter.property
+package me.gegenbauer.logviewer.databinding.property.support
 
 abstract class BasePropertyAdapter<COMPONENT, VALUE, LISTENER>(protected val component: COMPONENT) : PropertyAdapter<VALUE, LISTENER> {
 

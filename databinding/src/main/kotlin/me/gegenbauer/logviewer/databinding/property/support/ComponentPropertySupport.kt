@@ -1,7 +1,7 @@
-package me.gegenbauer.logviewer.databinding.adapter
+package me.gegenbauer.logviewer.databinding.property.support
 
-import me.gegenbauer.logviewer.databinding.ObservableComponentProperty
-import me.gegenbauer.logviewer.databinding.adapter.property.*
+import me.gegenbauer.logviewer.databinding.bind.ObservableComponentProperty
+import me.gegenbauer.logviewer.databinding.property.adapter.*
 import java.awt.event.HierarchyListener
 import java.awt.event.ItemListener
 import java.beans.PropertyChangeListener
@@ -66,7 +66,7 @@ fun <T> selectedIndexProperty(component: JComboBox<T>) = object : ObservableComp
 }
 
 fun <T> customProperty(component: JComponent, propertyName: String, initValue: T? = null) = object : ObservableComponentProperty<T>(component) {
-    override fun getPropertyAdapterImpl(): PropertyAdapter<T, *> = JComponentCustomProperty(component, propertyName)
+    override fun getPropertyAdapterImpl(): PropertyAdapter<T, *> = JComponentCustomControllerProperty(component, propertyName)
 
     init {
         setProperty(initValue)

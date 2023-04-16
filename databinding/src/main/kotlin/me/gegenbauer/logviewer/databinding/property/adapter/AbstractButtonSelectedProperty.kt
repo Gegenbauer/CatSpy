@@ -1,6 +1,6 @@
-package me.gegenbauer.logviewer.databinding.adapter.property
+package me.gegenbauer.logviewer.databinding.property.adapter
 
-import me.gegenbauer.logviewer.databinding.adapter.property.BasePropertyAdapter
+import me.gegenbauer.logviewer.databinding.property.support.BasePropertyAdapter
 import java.awt.event.ItemEvent
 import java.awt.event.ItemListener
 import javax.swing.AbstractButton

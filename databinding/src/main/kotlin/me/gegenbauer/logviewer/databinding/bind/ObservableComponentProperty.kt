@@ -1,11 +1,11 @@
-package me.gegenbauer.logviewer.databinding
+package me.gegenbauer.logviewer.databinding.bind
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.gegenbauer.logviewer.concurrency.AppScope
 import me.gegenbauer.logviewer.concurrency.UI
-import me.gegenbauer.logviewer.databinding.adapter.property.DisposableAdapter
-import me.gegenbauer.logviewer.databinding.adapter.property.PropertyAdapter
+import me.gegenbauer.logviewer.databinding.property.support.DisposableAdapter
+import me.gegenbauer.logviewer.databinding.property.support.PropertyAdapter
 import me.gegenbauer.logviewer.log.GLog
 import java.awt.event.HierarchyEvent
 import javax.swing.JComponent

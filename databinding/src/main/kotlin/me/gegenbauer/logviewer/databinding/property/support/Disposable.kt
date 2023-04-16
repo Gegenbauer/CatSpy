@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer.databinding.adapter
+package me.gegenbauer.logviewer.databinding.property.support
 
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)

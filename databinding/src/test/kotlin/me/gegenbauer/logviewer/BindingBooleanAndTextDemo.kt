@@ -4,12 +4,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.gegenbauer.logviewer.concurrency.AppScope
 import me.gegenbauer.logviewer.concurrency.UI
-import me.gegenbauer.logviewer.databinding.BindType
-import me.gegenbauer.logviewer.databinding.Bindings
-import me.gegenbauer.logviewer.databinding.ObservableViewModelProperty
-import me.gegenbauer.logviewer.databinding.adapter.enableProperty
-import me.gegenbauer.logviewer.databinding.adapter.selectedProperty
-import me.gegenbauer.logviewer.databinding.adapter.textProperty
+import me.gegenbauer.logviewer.databinding.bind.Bindings
+import me.gegenbauer.logviewer.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.logviewer.databinding.property.support.enabledProperty
+import me.gegenbauer.logviewer.databinding.property.support.selectedProperty
+import me.gegenbauer.logviewer.databinding.property.support.textProperty
 import me.gegenbauer.logviewer.log.GLog
 import java.awt.Dimension
 import javax.swing.*
@@ -52,10 +51,10 @@ fun main() {
 
         Bindings.bind(selectedProperty(cb1), vm.checked)
         Bindings.bind(selectedProperty(cb2), vm.checked)
-        Bindings.bind(enableProperty(textField1), vm.checked)
-        Bindings.bind(enableProperty(textField1), vm.checked)
-        Bindings.bind(textProperty(textField1), vm.text, BindType.ONE_WAY_TO_SOURCE)
-        Bindings.bind(textProperty(textField2), vm.text, BindType.ONE_WAY_TO_TARGET)
+        Bindings.bind(enabledProperty(textField1), vm.checked)
+        Bindings.bind(enabledProperty(textField1), vm.checked)
+        Bindings.bind(textProperty(textField1), vm.text)
+        Bindings.bind(textProperty(textField2), vm.text)
         frame.isVisible = true
         frame.addWindowListener(object : java.awt.event.WindowAdapter() {
             override fun windowClosing(e: java.awt.event.WindowEvent?) {

@@ -1,8 +1,12 @@
 package me.gegenbauer.logviewer.viewmodel
 
 import me.gegenbauer.logviewer.configuration.UIConfManager
-import me.gegenbauer.logviewer.databinding.*
-import me.gegenbauer.logviewer.databinding.adapter.*
+import me.gegenbauer.logviewer.databinding.bind.*
+import me.gegenbauer.logviewer.databinding.bind.bindDual
+import me.gegenbauer.logviewer.databinding.bind.bindLeft
+import me.gegenbauer.logviewer.databinding.bind.bindRight
+import me.gegenbauer.logviewer.databinding.bind.updateListByLRU
+import me.gegenbauer.logviewer.databinding.property.support.*
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.ButtonDisplayMode
 import javax.swing.JComponent

@@ -1,4 +1,4 @@
-package me.gegenbauer.logviewer.databinding
+package me.gegenbauer.logviewer.databinding.bind
 
 import javax.swing.JComponent
 

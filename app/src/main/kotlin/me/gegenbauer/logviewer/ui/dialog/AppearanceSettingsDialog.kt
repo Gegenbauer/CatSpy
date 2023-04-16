@@ -1,7 +1,7 @@
 package me.gegenbauer.logviewer.ui.dialog
 
 import me.gegenbauer.logviewer.configuration.UIConfManager
-import me.gegenbauer.logviewer.databinding.withName
+import me.gegenbauer.logviewer.databinding.bind.withName
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager

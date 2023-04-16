@@ -1,7 +1,7 @@
 package me.gegenbauer.logviewer.viewmodel
 
 import me.gegenbauer.logviewer.configuration.UIConfManager
-import me.gegenbauer.logviewer.databinding.ObservableProperty
+import me.gegenbauer.logviewer.databinding.bind.ObservableProperty
 
 object GlobalPropertySynchronizer {
     val debug = ObservableProperty(UIConfManager.uiConf.debug)

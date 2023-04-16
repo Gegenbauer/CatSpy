@@ -12,9 +12,8 @@ import me.gegenbauer.logviewer.command.LogCmdManager
 import me.gegenbauer.logviewer.concurrency.AppScope
 import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.configuration.UIConfManager
-import me.gegenbauer.logviewer.databinding.Bindings
-import me.gegenbauer.logviewer.databinding.ObservableViewModelProperty
-import me.gegenbauer.logviewer.databinding.withName
+import me.gegenbauer.logviewer.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.logviewer.databinding.bind.withName
 import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
@@ -58,7 +57,6 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
-import javax.swing.plaf.ColorUIResource
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.text.JTextComponent
 import kotlin.system.exitProcess

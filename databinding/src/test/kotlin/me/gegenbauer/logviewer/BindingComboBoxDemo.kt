@@ -4,17 +4,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.gegenbauer.logviewer.concurrency.AppScope
 import me.gegenbauer.logviewer.concurrency.UI
-import me.gegenbauer.logviewer.databinding.Bindings
-import me.gegenbauer.logviewer.databinding.ObservableViewModelProperty
-import me.gegenbauer.logviewer.databinding.adapter.listProperty
-import me.gegenbauer.logviewer.databinding.adapter.property.updateListByLRU
-import me.gegenbauer.logviewer.databinding.adapter.selectedIndexProperty
+import me.gegenbauer.logviewer.databinding.bind.Bindings
+import me.gegenbauer.logviewer.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.logviewer.databinding.bind.updateListByLRU
+import me.gegenbauer.logviewer.databinding.property.support.listProperty
+import me.gegenbauer.logviewer.databinding.property.support.selectedIndexProperty
+import me.gegenbauer.logviewer.databinding.property.support.textProperty
 import me.gegenbauer.logviewer.log.GLog
 import java.awt.Dimension
 import javax.swing.JButton
 import javax.swing.JComboBox
 import javax.swing.JFrame
 import javax.swing.JPanel
+import javax.swing.text.JTextComponent
 
 fun main() {
     AppScope.launch(Dispatchers.UI) {
@@ -34,6 +36,7 @@ fun main() {
         }
         Bindings.bind(listProperty(cb), vm.items)
         Bindings.bind(selectedIndexProperty(cb), vm.selectedIndex)
+        Bindings.bind(textProperty(cb.editor.editorComponent as JTextComponent), vm.currentContent)
         vm.selectedIndex.addObserver {
             it ?: return@addObserver
             val currentItems = vm.items.value
@@ -48,4 +51,5 @@ fun main() {
 class ComboBoxViewModel {
     val items = ObservableViewModelProperty<List<String>>()
     val selectedIndex = ObservableViewModelProperty<Int>()
+    val currentContent = ObservableViewModelProperty<String>()
 }
