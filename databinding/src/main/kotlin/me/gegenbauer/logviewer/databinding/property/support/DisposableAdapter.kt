@@ -1,6 +1,4 @@
-package me.gegenbauer.logviewer.databinding.adapter.property
-
-import me.gegenbauer.logviewer.databinding.adapter.Disposable
+package me.gegenbauer.logviewer.databinding.property.support
 
 interface DisposableAdapter {
     fun dispose() {

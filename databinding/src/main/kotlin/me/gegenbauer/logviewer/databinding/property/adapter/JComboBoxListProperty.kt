@@ -1,19 +1,15 @@
-package me.gegenbauer.logviewer.databinding.adapter.property
+package me.gegenbauer.logviewer.databinding.property.adapter
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.concurrency.ViewModelScope
-import me.gegenbauer.logviewer.databinding.withAllListenerDisabled
+import me.gegenbauer.logviewer.databinding.property.support.BasePropertyAdapter
+import me.gegenbauer.logviewer.databinding.property.support.withAllListenerDisabled
 import javax.swing.JComboBox
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
 class JComboBoxListProperty<ITEM>(component: JComboBox<ITEM>) :
     BasePropertyAdapter<JComboBox<ITEM>, List<ITEM>, ListDataListener>(component) {
-    private val scope = ViewModelScope()
 
     init {
         component.model.addListDataListener(propertyChangeListener)
@@ -32,11 +28,10 @@ class JComboBoxListProperty<ITEM>(component: JComboBox<ITEM>) :
             }
 
             override fun contentsChanged(e: ListDataEvent) {
-                contentChangeJob?.cancel()
-                contentChangeJob = scope.launch(Dispatchers.UI) {
-                    delay(10)
-                    component.getAllItems().let { propertyChangeObserver?.invoke(it) }
+                if (e.index0 < 0 && e.index1 < 0) { // selected item change
+                    return
                 }
+                component.getAllItems().let { propertyChangeObserver?.invoke(it) }
             }
         }
 

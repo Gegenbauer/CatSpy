@@ -1,7 +1,7 @@
-package me.gegenbauer.logviewer.databinding.adapter.property
+package me.gegenbauer.logviewer.databinding.property.adapter
 
-import me.gegenbauer.logviewer.databinding.adapter.PROPERTY_ENABLED
-import me.gegenbauer.logviewer.databinding.adapter.property.BasePropertyAdapter
+import me.gegenbauer.logviewer.databinding.property.support.BasePropertyAdapter
+import me.gegenbauer.logviewer.databinding.property.support.PROPERTY_ENABLED
 import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 
