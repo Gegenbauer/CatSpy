@@ -8,6 +8,7 @@ import java.beans.PropertyChangeListener
 import javax.swing.AbstractButton
 import javax.swing.JComboBox
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.event.DocumentListener
 import javax.swing.event.ListDataListener
 import javax.swing.text.JTextComponent
@@ -49,6 +50,15 @@ fun textProperty(component: JTextComponent) = object : ObservableComponentProper
     }
 }
 
+fun textProperty(component: JLabel) = object : ObservableComponentProperty<String>(component) {
+    override fun getPropertyAdapterImpl(): PropertyAdapter<String, PropertyChangeListener> = JLabelTextProperty(component)
+
+
+    override fun getDisplayName(): String {
+        return "${component.javaClass.simpleName}_${component.hashCode()}_Text}"
+    }
+}
+
 fun <T> listProperty(component: JComboBox<T>) = object : ObservableComponentProperty<List<T>>(component) {
     override fun getPropertyAdapterImpl(): PropertyAdapter<List<T>, ListDataListener> = JComboBoxListProperty(component)
 
@@ -76,5 +86,4 @@ fun <T> customProperty(component: JComponent, propertyName: String, initValue: T
         return "${component.javaClass.simpleName}_${component.hashCode()}_Custom_$propertyName}"
     }
 }
-
 
