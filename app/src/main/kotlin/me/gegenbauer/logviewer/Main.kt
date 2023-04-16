@@ -1,5 +1,7 @@
 package me.gegenbauer.logviewer
 
+import com.github.weisj.darklaf.LafManager
+import com.github.weisj.darklaf.theme.Theme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -15,6 +17,8 @@ import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.viewmodel.GlobalPropertySynchronizer
+import java.util.Properties
+import javax.swing.UIDefaults
 
 class Main {
     companion object {
@@ -28,6 +32,8 @@ class Main {
                     GlobalPropertySynchronizer.init()
                 }
                 ThemeManager.installTheme()
+                LafManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
+                LafManager.registerInitTask(::adjustBeforeThemeLoaded)
                 val mainUI = MainUI(STRINGS.ui.app)
                 mainUI.updateUIAfterVisible(args)
                 ThemeManager.applyTempTheme()
@@ -43,6 +49,14 @@ class Main {
             ColorManager.filterTableColor.applyColor()
             ColorManager.getConfigFilterStyle()
             ConfigManager.saveConfig()
+        }
+
+        private fun adjustBeforeThemeLoaded(theme: Theme, defaults: UIDefaults) {
+            defaults["JButton.contentAreaFilled"] = true
+        }
+
+        private fun adjustAfterThemeLoaded(theme: Theme, properties: Properties) {
+            properties["JButton.contentAreaFilled"] = true
         }
     }
 }

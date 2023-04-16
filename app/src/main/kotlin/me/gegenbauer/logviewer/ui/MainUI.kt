@@ -187,8 +187,8 @@ class MainUI(title: String) : JFrame() {
     val showTidToggle = ColorToggleButton(STRINGS.ui.tid)
     private val showTidTogglePanel = JPanel(GridLayout(1, 1))
     private val logCmdCombo = JComboBox<String>().apply { isEditable = true }
-    private val deviceCombo = JComboBox<String>().apply { isEditable = true }
-    private val deviceStatus = JLabel("None", JLabel.LEFT)
+    val deviceCombo = JComboBox<String>().apply { isEditable = true }
+    private val deviceStatus = JLabel("None", JLabel.LEFT) // TODO 整理设备连接状态相关的代码
     val adbConnectBtn = StatefulButton(getImageIcon("connect.png"), STRINGS.ui.connect)
     val adbRefreshBtn = StatefulButton(getImageIcon("refresh.png"), STRINGS.ui.refresh)
     val adbDisconnectBtn = StatefulButton(getImageIcon("disconnect.png"), STRINGS.ui.disconnect)
@@ -362,29 +362,24 @@ class MainUI(title: String) : JFrame() {
         logToolBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         logToolBar.addMouseListener(mouseHandler)
 
-        val btnMargin = Insets(2, 5, 2, 5)
-        startBtn.margin = btnMargin
         startBtn.toolTipText = STRINGS.toolTip.startBtn
         startBtn.addActionListener(actionHandler)
         startBtn.addMouseListener(mouseHandler)
         retryAdbToggle.toolTipText = STRINGS.toolTip.retryAdbToggle
-        retryAdbToggle.margin = btnMargin
         retryAdbToggle.addItemListener(itemHandler)
 
         pauseToggle.toolTipText = STRINGS.toolTip.pauseBtn
-        pauseToggle.margin = btnMargin
+        //pauseToggle.margin = btnMargin
         pauseToggle.addItemListener(itemHandler)
 
-        stopBtn.margin = btnMargin
         stopBtn.toolTipText = STRINGS.toolTip.stopBtn
         stopBtn.addActionListener(actionHandler)
         stopBtn.addMouseListener(mouseHandler)
-        clearViewsBtn.margin = btnMargin
+
         clearViewsBtn.toolTipText = STRINGS.toolTip.clearBtn
 
         clearViewsBtn.addActionListener(actionHandler)
         clearViewsBtn.addMouseListener(mouseHandler)
-        saveBtn.margin = btnMargin
         saveBtn.toolTipText = STRINGS.toolTip.saveBtn
         saveBtn.addActionListener(actionHandler)
         saveBtn.addMouseListener(mouseHandler)
@@ -442,13 +437,11 @@ class MainUI(title: String) : JFrame() {
         deviceCombo.editor.editorComponent.addKeyListener(keyHandler)
         deviceCombo.editor.editorComponent.addMouseListener(mouseHandler)
         deviceComboPanel.add(deviceCombo, BorderLayout.CENTER)
-        adbConnectBtn.margin = btnMargin
+        deviceComboPanel.add(deviceStatus, BorderLayout.LINE_END)
         adbConnectBtn.toolTipText = STRINGS.toolTip.connectBtn
         adbConnectBtn.addActionListener(actionHandler)
-        adbRefreshBtn.margin = btnMargin
         adbRefreshBtn.addActionListener(actionHandler)
         adbRefreshBtn.toolTipText = STRINGS.toolTip.refreshBtn
-        adbDisconnectBtn.margin = btnMargin
         adbDisconnectBtn.addActionListener(actionHandler)
         adbDisconnectBtn.toolTipText = STRINGS.toolTip.disconnectBtn
 
@@ -483,19 +476,16 @@ class MainUI(title: String) : JFrame() {
         deviceStatus.border = BorderFactory.createEmptyBorder(3, 0, 3, 0)
         deviceStatus.horizontalAlignment = JLabel.CENTER
 
-        scrollBackApplyBtn.margin = btnMargin
         scrollBackApplyBtn.toolTipText = STRINGS.toolTip.scrollBackApplyBtn
         scrollBackApplyBtn.addActionListener(actionHandler)
         scrollBackKeepToggle.toolTipText = STRINGS.toolTip.scrollBackKeepToggle
 
-        scrollBackKeepToggle.margin = btnMargin
         scrollBackKeepToggle.addItemListener(itemHandler)
 
         scrollBackTF.toolTipText = STRINGS.toolTip.scrollBackTf
         scrollBackTF.preferredSize = Dimension(80, scrollBackTF.preferredSize.height)
         scrollBackTF.addKeyListener(keyHandler)
         scrollBackSplitFileToggle.toolTipText = STRINGS.toolTip.scrollBackSplitChk
-        scrollBackSplitFileToggle.margin = btnMargin
         scrollBackSplitFileToggle.addItemListener(itemHandler)
 
         val itefilterPanel = JPanel(FlowLayout(FlowLayout.LEADING, 0, 0))
@@ -580,7 +570,6 @@ class MainUI(title: String) : JFrame() {
         statusTF.isEditable = false
         statusTF.border = BorderFactory.createEmptyBorder()
 
-        startFollowBtn.margin = btnMargin
         startFollowBtn.toolTipText = STRINGS.toolTip.startFollowBtn
         startFollowBtn.addActionListener(actionHandler)
         startFollowBtn.addMouseListener(mouseHandler)
@@ -588,7 +577,6 @@ class MainUI(title: String) : JFrame() {
         pauseFollowToggle.margin = Insets(pauseFollowToggle.margin.top, 0, pauseFollowToggle.margin.bottom, 0)
         pauseFollowToggle.addItemListener(itemHandler)
 
-        stopFollowBtn.margin = btnMargin
         stopFollowBtn.toolTipText = STRINGS.toolTip.stopFollowBtn
         stopFollowBtn.addActionListener(actionHandler)
         stopFollowBtn.addMouseListener(mouseHandler)
@@ -779,40 +767,17 @@ class MainUI(title: String) : JFrame() {
     private fun addVSeparator(panel: JPanel) {
         val separator1 = JSeparator(SwingConstants.VERTICAL)
         separator1.preferredSize = Dimension(separator1.preferredSize.width, 20)
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
-            separator1.foreground = Color.GRAY
-            separator1.background = Color.GRAY
-        } else {
-            separator1.foreground = Color.DARK_GRAY
-            separator1.background = Color.DARK_GRAY
-        }
         val separator2 = JSeparator(SwingConstants.VERTICAL)
         separator2.preferredSize = Dimension(separator2.preferredSize.width, 20)
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
-            separator2.foreground = Color.GRAY
-            separator2.background = Color.GRAY
-        } else {
-            separator2.background = Color.DARK_GRAY
-            separator2.foreground = Color.DARK_GRAY
-        }
         panel.add(Box.createHorizontalStrut(5))
         panel.add(separator1)
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            panel.add(separator2)
-        }
+        panel.add(separator2)
         panel.add(Box.createHorizontalStrut(5))
     }
 
     private fun addVSeparator2(panel: JPanel) {
         val separator1 = JSeparator(SwingConstants.VERTICAL)
         separator1.preferredSize = Dimension(separator1.preferredSize.width / 2, 20)
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
-            separator1.foreground = Color.GRAY
-            separator1.background = Color.GRAY
-        } else {
-            separator1.foreground = Color.DARK_GRAY
-            separator1.background = Color.DARK_GRAY
-        }
         panel.add(Box.createHorizontalStrut(2))
         panel.add(separator1)
         panel.add(Box.createHorizontalStrut(2))
@@ -1605,10 +1570,7 @@ class MainUI(title: String) : JFrame() {
                         return
                     }
                     var selectedItem = deviceCombo.selectedItem
-                    deviceCombo.removeAllItems()
-                    for (item in LogCmdManager.devices) {
-                        deviceCombo.addItem(item)
-                    }
+                    MainViewModel.connectedDevices.updateValue(LogCmdManager.devices)
                     if (selectedItem == null) {
                         selectedItem = ""
                     }
@@ -1622,7 +1584,6 @@ class MainUI(title: String) : JFrame() {
                         for (device in LogCmdManager.devices) {
                             if (device.contains(deviceChk)) {
                                 isExist = true
-                                selectedItem = device
                                 break
                             }
                         }
@@ -1634,7 +1595,6 @@ class MainUI(title: String) : JFrame() {
                             setDeviceComboColor(false)
                         }
                     }
-                    deviceCombo.selectedItem = selectedItem
                 }
 
                 LogCmdManager.CMD_DISCONNECT -> {

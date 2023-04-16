@@ -42,6 +42,10 @@ object MainViewModel {
     val searchSelectedIndex = ObservableViewModelProperty<Int>()
     val searchCurrentContent = ObservableViewModelProperty<String>()
 
+    val connectedDevices = ObservableViewModelProperty(arrayListOf<String>().toList())
+    val deviceSelectedIndex = ObservableViewModelProperty<Int>()
+    val currentDevice = ObservableViewModelProperty<String>()
+
     val filterMatchCaseEnabled = ObservableViewModelProperty(UIConfManager.uiConf.filterMatchCaseEnabled)
 
     val searchPanelVisible = ObservableViewModelProperty(false)
@@ -97,6 +101,10 @@ object MainViewModel {
             listProperty(searchPanel.searchCombo) bindDual searchHistory
             selectedIndexProperty(searchPanel.searchCombo) bindLeft searchSelectedIndex
             textProperty(searchPanel.searchCombo.editor.editorComponent as JTextComponent) bindDual searchCurrentContent
+
+            listProperty(deviceCombo) bindDual connectedDevices
+            selectedIndexProperty(deviceCombo) bindLeft deviceSelectedIndex
+            textProperty(deviceCombo.editor.editorComponent as JTextComponent) bindDual currentDevice
 
             selectedProperty(matchCaseToggle) bindDual filterMatchCaseEnabled
 
