@@ -23,7 +23,7 @@ object ThemeManager {
     private const val DEFAULT_THEME_FILENAME = "default.json"
     private const val THEME_FILENAME = "global.json"
     private val themeFile = File(userDir, THEME_FILENAME)
-    private val settingsConfiguration: SettingsConfiguration by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { loadThemeSettings() }
+    private val settingsConfiguration: SettingsConfiguration = loadThemeSettings()
     private val scope = ModelScope()
 
     fun init() {
@@ -35,6 +35,9 @@ object ThemeManager {
                 createThemeFile()
             }
         }
+    }
+
+    fun registerThemeUpdateListener() {
         LafManager.registerDefaultsAdjustmentTask { t: Theme, _: Properties ->
             updateTheme(t)
             scope.launch {
