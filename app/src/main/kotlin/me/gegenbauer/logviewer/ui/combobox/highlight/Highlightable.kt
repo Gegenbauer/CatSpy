@@ -1,9 +1,7 @@
 package me.gegenbauer.logviewer.ui.combobox.highlight
 
-import javax.swing.text.JTextComponent
-
-interface Highlightable<T: JTextComponent> {
-    fun setTextComponentWrapper(textComponentWrapper: BaseHighlighterEditor<T>.HighlightTextComponentWrapper)
-
+interface Highlightable {
     fun setEnableHighlighter(enable: Boolean)
+
+    fun updateHighlighter()
 }

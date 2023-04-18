@@ -23,7 +23,6 @@ import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
 import me.gegenbauer.logviewer.ui.button.*
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
-import me.gegenbauer.logviewer.ui.combobox.FilterComboBox.Companion.isMultiLine
 import me.gegenbauer.logviewer.ui.combobox.getFilterComboBox
 import me.gegenbauer.logviewer.ui.container.WrapablePanel
 import me.gegenbauer.logviewer.ui.dialog.GoToDialog
@@ -144,6 +143,14 @@ class MainUI(title: String) : JFrame() {
     private val filterPanel = JPanel()
     private val filterLeftPanel = JPanel()
 
+    private val frameMouseListener = FrameMouseListener(this)
+    private val keyHandler = KeyHandler()
+    private val itemHandler = ItemHandler()
+    private val actionHandler = ActionHandler()
+    private val popupMenuHandler = PopupMenuHandler()
+    private val mouseHandler = MouseHandler()
+    private val statusChangeListener = StatusChangeListener()
+
     private val logToolBar = WrapablePanel()
     val startBtn = StatefulButton(getImageIcon("start.png"), STRINGS.ui.start)
     val stopBtn = StatefulButton(getImageIcon("stop.png"), STRINGS.ui.stop)
@@ -164,17 +171,17 @@ class MainUI(title: String) : JFrame() {
     private val showLogPanel = JPanel()
     val matchCaseToggle = ColorToggleButton("Aa")
     private val matchCaseTogglePanel = JPanel(GridLayout(1, 1))
-    val showLogCombo = getFilterComboBox(UIConfManager.uiConf.logFilterComboStyle, true) withName STRINGS.ui.log
+    val showLogCombo = getFilterComboBox(tooltip = STRINGS.toolTip.logCombo) withName STRINGS.ui.log
     val showLogToggle = ColorToggleButton(STRINGS.ui.log)
     private val showLogTogglePanel = JPanel(GridLayout(1, 1))
 
-    val showPidCombo = getFilterComboBox(UIConfManager.uiConf.pidFilterComboStyle, false) withName STRINGS.ui.pid
-    val showTagCombo = getFilterComboBox(UIConfManager.uiConf.tagFilterComboStyle, false) withName STRINGS.ui.tag
-    val showTidCombo = getFilterComboBox(UIConfManager.uiConf.tidFilterComboStyle, false) withName STRINGS.ui.tid
+    val showPidCombo = getFilterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.pidCombo) withName STRINGS.ui.pid
+    val showTagCombo = getFilterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.tagCombo) withName STRINGS.ui.tag
+    val showTidCombo = getFilterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.tidCombo) withName STRINGS.ui.tid
     private var selectedLine = 0
 
     private val boldLogPanel = JPanel()
-    val highlightLogCombo = getFilterComboBox(UIConfManager.uiConf.highlightComboStyle, false)
+    val highlightLogCombo = getFilterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.boldCombo)
     val boldLogToggle = ColorToggleButton(STRINGS.ui.bold)
     private val boldLogTogglePanel = JPanel(GridLayout(1, 1))
     private val showTagPanel = JPanel()
@@ -215,14 +222,6 @@ class MainUI(title: String) : JFrame() {
     private val stopFollowBtn = JButton(STRINGS.ui.stop)
     private val pauseFollowToggle = ColorToggleButton(STRINGS.ui.pause)
 
-    private val frameMouseListener = FrameMouseListener(this)
-    private val keyHandler = KeyHandler()
-    private val itemHandler = ItemHandler()
-    private val actionHandler = ActionHandler()
-    private val popupMenuHandler = PopupMenuHandler()
-    private val mouseHandler = MouseHandler()
-    private val statusChangeListener = StatusChangeListener()
-
     val filtersManager = FiltersManager(this, splitLogPane.filteredLogPanel)
     val cmdManager = CmdManager(this, splitLogPane.fullLogPanel)
 
@@ -252,8 +251,6 @@ class MainUI(title: String) : JFrame() {
         } else {
             ConfigManager.LaF = laf
         }
-
-        setLaF(ConfigManager.LaF)
 
         LogCmdManager.addEventListener(AdbHandler())
 
@@ -384,16 +381,14 @@ class MainUI(title: String) : JFrame() {
         saveBtn.addActionListener(actionHandler)
         saveBtn.addMouseListener(mouseHandler)
 
-        showLogCombo.toolTipText = STRINGS.toolTip.logCombo
-        showLogCombo.editor.editorComponent.addKeyListener(keyHandler)
         showLogCombo.addPopupMenuListener(popupMenuHandler)
+        showLogCombo.editor.editorComponent.addKeyListener(keyHandler)
         showLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
         showLogToggle.toolTipText = STRINGS.toolTip.logToggle
         showLogTogglePanel.add(showLogToggle)
         showLogTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         showLogToggle.addItemListener(itemHandler)
 
-        highlightLogCombo.toolTipText = STRINGS.toolTip.boldCombo
         highlightLogCombo.enabledTfTooltip = false
         highlightLogCombo.editor.editorComponent.addKeyListener(keyHandler)
         highlightLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
@@ -402,7 +397,6 @@ class MainUI(title: String) : JFrame() {
         boldLogTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         boldLogToggle.addItemListener(itemHandler)
 
-        showTagCombo.toolTipText = STRINGS.toolTip.tagCombo
         showTagCombo.editor.editorComponent.addKeyListener(keyHandler)
         showTagCombo.editor.editorComponent.addMouseListener(mouseHandler)
         showTagToggle.toolTipText = STRINGS.toolTip.tagToggle
@@ -410,7 +404,6 @@ class MainUI(title: String) : JFrame() {
         showTagTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         showTagToggle.addItemListener(itemHandler)
 
-        showPidCombo.toolTipText = STRINGS.toolTip.pidCombo
         showPidCombo.editor.editorComponent.addKeyListener(keyHandler)
         showPidCombo.editor.editorComponent.addMouseListener(mouseHandler)
         showPidToggle.toolTipText = STRINGS.toolTip.pidToggle
@@ -418,7 +411,6 @@ class MainUI(title: String) : JFrame() {
         showPidTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         showPidToggle.addItemListener(itemHandler)
 
-        showTidCombo.toolTipText = STRINGS.toolTip.tidCombo
         showTidCombo.editor.editorComponent.addKeyListener(keyHandler)
         showTidCombo.editor.editorComponent.addMouseListener(mouseHandler)
         showTidToggle.toolTipText = STRINGS.toolTip.tidToggle
@@ -601,7 +593,6 @@ class MainUI(title: String) : JFrame() {
 
         highlightLogCombo.updateTooltip()
 
-        searchPanel.searchCombo.addAllItems(UIConfManager.uiConf.searchHistory)
         if (searchPanel.searchCombo.itemCount > 0) {
             searchPanel.searchCombo.selectedIndex = 0
         }
@@ -724,44 +715,6 @@ class MainUI(title: String) : JFrame() {
                 STRINGS.ui.app
             }
         }
-    }
-
-    private fun setLaF(laf: String) {
-        ConfigManager.LaF = laf
-        when (laf) {
-            CROSS_PLATFORM_LAF -> {
-                try {
-                    UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName())
-                } catch (ex: Exception) {
-                    GLog.d(TAG, "Failed to initialize CrossPlatformLaf")
-                }
-            }
-
-            SYSTEM_LAF -> {
-                try {
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
-                } catch (ex: Exception) {
-                    GLog.d(TAG, "Failed to initialize SystemLaf")
-                }
-            }
-
-            FLAT_DARK_LAF -> {
-                try {
-                    UIManager.setLookAndFeel(FlatDarkLaf())
-                } catch (ex: Exception) {
-                    GLog.d(TAG, "Failed to initialize FlatDarkLaf")
-                }
-            }
-
-            else -> {
-                try {
-                    UIManager.setLookAndFeel(FlatLightLaf())
-                } catch (ex: Exception) {
-                    GLog.d(TAG, "Failed to initialize FlatLightLaf")
-                }
-            }
-        }
-        SwingUtilities.updateComponentTreeUI(this)
     }
 
     private fun addVSeparator(panel: JPanel) {
@@ -1740,49 +1693,6 @@ class MainUI(title: String) : JFrame() {
         return selectedLine
     }
 
-    fun updateUIAfterVisible(args: Array<String>) {
-        if (showLogCombo.selectedIndex >= 0 && UIConfManager.uiConf.logFilterComboStyle.isMultiLine()) {
-            val selectedItem = showLogCombo.selectedItem
-            showLogCombo.selectedItem = ""
-            showLogCombo.selectedItem = selectedItem
-            showLogCombo.parent.revalidate()
-            showLogCombo.parent.repaint()
-        }
-        if (showTagCombo.selectedIndex >= 0 && UIConfManager.uiConf.tagFilterComboStyle.isMultiLine()) {
-            val selectedItem = showTagCombo.selectedItem
-            showTagCombo.selectedItem = ""
-            showTagCombo.selectedItem = selectedItem
-            showTagCombo.parent.revalidate()
-            showTagCombo.parent.repaint()
-        }
-        if (highlightLogCombo.selectedIndex >= 0 && UIConfManager.uiConf.highlightComboStyle.isMultiLine()) {
-            val selectedItem = highlightLogCombo.selectedItem
-            highlightLogCombo.selectedItem = ""
-            highlightLogCombo.selectedItem = selectedItem
-            highlightLogCombo.parent.revalidate()
-            highlightLogCombo.parent.repaint()
-        }
-        ColorManager.applyFilterStyle()
-
-        showLogCombo.enabledTfTooltip = true
-        showTagCombo.enabledTfTooltip = true
-        showPidCombo.enabledTfTooltip = true
-        showTidCombo.enabledTfTooltip = true
-
-        var isFirst = true
-        for (fileName in args) {
-            val file = File(fileName)
-            if (file.isFile) {
-                if (isFirst) {
-                    openFile(file.absolutePath, false)
-                    isFirst = false
-                } else {
-                    openFile(file.absolutePath, true)
-                }
-            }
-        }
-    }
-
     internal inner class StatusTextField(text: String?) : JTextField(text) {
         private var prevText = ""
         override fun getToolTipText(event: MouseEvent): String? {
@@ -1807,7 +1717,7 @@ class MainUI(title: String) : JFrame() {
 
     inner class SearchPanel : JPanel() {
         val closeBtn: JButton = JButton("X")
-        val searchCombo: FilterComboBox = getFilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, false)
+        val searchCombo: FilterComboBox = getFilterComboBox(useColorTag = false)
         val searchMatchCaseToggle: ColorToggleButton = ColorToggleButton("Aa")
         private var targetLabel: JLabel
         private var upBtn: JButton

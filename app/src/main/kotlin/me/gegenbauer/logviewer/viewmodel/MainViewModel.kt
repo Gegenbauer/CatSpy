@@ -7,12 +7,15 @@ import me.gegenbauer.logviewer.databinding.bind.bindLeft
 import me.gegenbauer.logviewer.databinding.bind.bindRight
 import me.gegenbauer.logviewer.databinding.bind.updateListByLRU
 import me.gegenbauer.logviewer.databinding.property.support.*
+import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.ButtonDisplayMode
 import javax.swing.JComponent
 import javax.swing.text.JTextComponent
 
 object MainViewModel {
+    private const val TAG = "MainViewModel"
+
     val logFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.logFilterEnabled)
     val logFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.logFilterHistory.toList())
     val logFilterSelectedIndex = ObservableViewModelProperty<Int>()

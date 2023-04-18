@@ -35,7 +35,6 @@ class Main {
                 LafManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
                 LafManager.registerInitTask(::adjustBeforeThemeLoaded)
                 val mainUI = MainUI(STRINGS.ui.app)
-                mainUI.updateUIAfterVisible(args)
                 ThemeManager.applyTempTheme()
                 mainUI.isVisible = true
             }

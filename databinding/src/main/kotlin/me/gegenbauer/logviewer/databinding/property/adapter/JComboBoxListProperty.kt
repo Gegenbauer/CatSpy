@@ -1,7 +1,6 @@
 package me.gegenbauer.logviewer.databinding.property.adapter
 
 import kotlinx.coroutines.Job
-import me.gegenbauer.logviewer.concurrency.ViewModelScope
 import me.gegenbauer.logviewer.databinding.property.support.BasePropertyAdapter
 import me.gegenbauer.logviewer.databinding.property.support.withAllListenerDisabled
 import javax.swing.JComboBox

@@ -3,19 +3,59 @@ package me.gegenbauer.logviewer.ui.combobox.highlight
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.ui.FilterComboBox.fontBackgroundInclude
 import java.awt.Color
+import javax.swing.event.DocumentEvent
+import javax.swing.event.DocumentListener
+import javax.swing.plaf.UIResource
 import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter
 import javax.swing.text.Highlighter
 import javax.swing.text.JTextComponent
 
-abstract class HighlighterEditor : BasicComboBoxEditor() {
+class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
 
     var useColorTag: Boolean = true
-    var errorMsg: String = ""
-    var isHighlightEnabled = true
+    private var isHighlightEnabled = true
 
-    protected fun updateHighlighter() {
+    override fun setItem(item: Any?) {
+        if (item is String) {
+            if (item != editor.text) {
+                editor.text = item
+                updateHighlighter()
+            }
+        } else {
+            editor.text = ""
+        }
+    }
+
+    override fun getItem(): Any {
+        return editor.text
+    }
+
+    init {
+        editor.addCaretListener {
+            if (it.dot == it.mark) {
+                updateHighlighter()
+            } else {
+                removeHighlighter()
+            }
+        }
+        editor.document.addDocumentListener(object : DocumentListener {
+            override fun insertUpdate(e: DocumentEvent?) {
+                updateHighlighter()
+            }
+
+            override fun removeUpdate(e: DocumentEvent?) {
+                updateHighlighter()
+            }
+
+            override fun changedUpdate(e: DocumentEvent?) {
+                updateHighlighter()
+            }
+        })
+    }
+
+    override fun updateHighlighter() {
         val textComponent = editorComponent as JTextComponent
         val painterInclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(fontBackgroundInclude)
         val painterExclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorManager.filterStyleExclude)
@@ -56,8 +96,18 @@ abstract class HighlighterEditor : BasicComboBoxEditor() {
         }
     }
 
+    override fun setEnableHighlighter(enable: Boolean) {
+        isHighlightEnabled = enable
+        if (enable) {
+            updateHighlighter()
+        } else {
+            removeHighlighter()
+        }
+    }
+
     protected fun removeHighlighter() {
         val textComponent = editorComponent as JTextComponent
         textComponent.highlighter.removeAllHighlights()
     }
+
 }

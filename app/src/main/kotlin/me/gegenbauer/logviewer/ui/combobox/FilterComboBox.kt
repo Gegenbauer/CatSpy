@@ -3,11 +3,11 @@ package me.gegenbauer.logviewer.ui.combobox
 import me.gegenbauer.logviewer.databinding.bind.componentName
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.ui.combobox.FilterComboBox.Companion.isHighlight
+import me.gegenbauer.logviewer.ui.combobox.highlight.CustomEditorDarkComboBoxUI
 import me.gegenbauer.logviewer.ui.combobox.highlight.Highlightable
-import me.gegenbauer.logviewer.ui.combobox.highlight.HighlighterMultiLineEditor
-import me.gegenbauer.logviewer.ui.combobox.highlight.HighlighterSingleLineEditor
+import me.gegenbauer.logviewer.ui.combobox.highlight.HighlighterEditor
 import java.awt.event.MouseEvent
+import javax.swing.ComboBoxEditor
 import javax.swing.JComboBox
 import javax.swing.ToolTipManager
 import javax.swing.event.DocumentEvent
@@ -15,20 +15,11 @@ import javax.swing.event.DocumentListener
 import javax.swing.plaf.ComboBoxUI
 import javax.swing.text.JTextComponent
 
-class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboBox<String>() {
+class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTag: Boolean = true, tooltip: String? = null) : JComboBox<String>() {
 
-    enum class Mode {
-        SINGLE_LINE_HIGHLIGHT,
-        MULTI_LINE_HIGHLIGHT,
-        SINGLE_LINE,
-        MULTI_LINE,
-    }
-
-    val editorComponent: JTextComponent
-        get() = (getEditor().editorComponent as JTextComponent).apply {
-            toolTipText = this@FilterComboBox.toolTipText
-            componentName = this@FilterComboBox.componentName
-        }
+    private val editorComponent: JTextComponent = getEditor().editorComponent as JTextComponent
+    private var customUI: CustomEditorDarkComboBoxUI? = null
+    private lateinit var customEditor: HighlighterEditor
 
     var enabledTfTooltip = false
         set(value) {
@@ -43,8 +34,27 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
             updateTooltip(value.isNotEmpty())
         }
 
+    init {
+        toolTipText = tooltip
+        editorComponent.apply {
+            toolTipText = this@FilterComboBox.toolTipText
+            componentName = this@FilterComboBox.componentName
+        }
+        customEditor.useColorTag = useColorTag
+    }
+
     override fun setUI(ui: ComboBoxUI?) {
-        super.setUI(CustomEditorDarkComboBoxUI())
+        if (customUI != null) {
+            super.setUI(customUI)
+        } else {
+            super.setUI(CustomEditorDarkComboBoxUI(HighlighterEditor().apply {
+                customEditor = this
+            }))
+        }
+    }
+
+    override fun getEditor(): ComboBoxEditor {
+        return customEditor
     }
 
     fun addTooltipUpdateListener() {
@@ -106,14 +116,9 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         return
     }
 
-    fun updateHighlight(mode: Mode = this.mode) {
-        val editorComponent = editorComponent as Highlightable<*>
-        editorComponent.setEnableHighlighter(mode.isHighlight())
-    }
-
-    fun setHighlightEnabled(enabled: Boolean) {
-        val editorComponent = editorComponent as Highlightable<*>
-        editorComponent.setEnableHighlighter(enabled)
+    fun updateHighlight() {
+        val editorComponent = editor as Highlightable
+        editorComponent.setEnableHighlighter(enableHighlight)
     }
 
     fun removeColorTag() {
@@ -260,18 +265,12 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
         }
     }
 
-    fun addAllItems(items: List<String>) {
-        items.forEach { addItem(it) }
+    override fun addItem(item: String?) {
+        if (item.isNullOrEmpty()) return
+        super.addItem(item)
     }
 
     companion object {
-        fun Mode.isMultiLine(): Boolean {
-            return this == Mode.MULTI_LINE || this == Mode.MULTI_LINE_HIGHLIGHT
-        }
-
-        fun Mode.isHighlight(): Boolean {
-            return this == Mode.SINGLE_LINE_HIGHLIGHT || this == Mode.MULTI_LINE_HIGHLIGHT
-        }
 
         private fun updateToolTipStrToHtml(toolTipStr: String): String {
             if (toolTipStr.isEmpty()) return toolTipStr
@@ -284,12 +283,9 @@ class FilterComboBox(private val mode: Mode, val useColorTag: Boolean) : JComboB
     }
 }
 
-fun getFilterComboBox(mode: FilterComboBox.Mode = FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT, useColorTag: Boolean = true, multiline: Boolean = false): FilterComboBox {
-    val comboBox = FilterComboBox(mode, useColorTag)
+fun getFilterComboBox(enableHighlight: Boolean = true, useColorTag: Boolean = true, tooltip: String? = null): FilterComboBox {
+    val comboBox = FilterComboBox(enableHighlight, useColorTag, tooltip)
     comboBox.isEditable = true
-    comboBox.editor = (if (multiline) HighlighterMultiLineEditor(comboBox) else HighlighterSingleLineEditor(comboBox))
-        .apply { this.useColorTag = useColorTag }
-    comboBox.setHighlightEnabled(mode.isHighlight())
     comboBox.addTooltipUpdateListener()
     return comboBox
 }
