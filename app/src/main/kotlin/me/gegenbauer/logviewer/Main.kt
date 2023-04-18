@@ -37,6 +37,7 @@ class Main {
                 val mainUI = MainUI(STRINGS.ui.app)
                 ThemeManager.applyTempTheme()
                 mainUI.isVisible = true
+                ThemeManager.registerThemeUpdateListener()
             }
         }
 
