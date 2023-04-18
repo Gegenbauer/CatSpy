@@ -22,6 +22,7 @@ dependencies {
     implementation(projects.databinding)
     implementation(FormDev.flatLaf.group, FormDev.flatLaf.artifact, FormDev.flatLaf.version)
     implementation(Weisj.darklafCore.group, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
+    implementation(Weisj.darklafVisualPadding.group, Weisj.darklafVisualPadding.artifact, Weisj.darklafVisualPadding.version)
     implementation(Gson.gson.group, Gson.gson.artifact, Gson.gson.version)
 }
 

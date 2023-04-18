@@ -243,7 +243,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             confirmLabel = JLabel("To apply \"Style\" need to restart")
 
             exampleLabel = JLabel("Ex : ")
-            exampleCombo = getFilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, true) withName "exampleCombo"
+            exampleCombo = getFilterComboBox(useColorTag = true) withName "exampleCombo"
             exampleCombo.isEditable = true
             exampleCombo.preferredSize = Dimension(250, 30)
             exampleCombo.addItem("ABC|DEF|-GHI|JKL")
@@ -280,15 +280,10 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             }
 
             comboLabelArray[ComboIdx.LOG.value]!!.text = "Combo Style : Log"
-            styleComboArray[ComboIdx.LOG.value]!!.selectedIndex = UIConfManager.uiConf.logFilterComboStyle.ordinal
             comboLabelArray[ComboIdx.TAG.value]!!.text = "Combo Style : Tag"
-            styleComboArray[ComboIdx.TAG.value]!!.selectedIndex = UIConfManager.uiConf.tagFilterComboStyle.ordinal
             comboLabelArray[ComboIdx.PID.value]!!.text = "Combo Style : PID"
-            styleComboArray[ComboIdx.PID.value]!!.selectedIndex = UIConfManager.uiConf.pidFilterComboStyle.ordinal
             comboLabelArray[ComboIdx.TID.value]!!.text = "Combo Style : TID"
-            styleComboArray[ComboIdx.TID.value]!!.selectedIndex = UIConfManager.uiConf.tidFilterComboStyle.ordinal
             comboLabelArray[ComboIdx.BOLD.value]!!.text = "Combo Style : BOLD"
-            styleComboArray[ComboIdx.BOLD.value]!!.selectedIndex = UIConfManager.uiConf.highlightComboStyle.ordinal
 
             for (idx in comboLabelArray.indices) {
                 styleLabelPanel.add(comboLabelArray[idx])
@@ -405,13 +400,6 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
                     ColorManager.filterStyle[idx].strColor = prevColorArray[idx]!!
                 }
                 ColorManager.applyFilterStyle()
-            } else {
-                UIConfManager.uiConf.logFilterComboStyle = getEnum(styleComboArray[ComboIdx.LOG.value]!!.selectedIndex)
-                UIConfManager.uiConf.tagFilterComboStyle = getEnum(styleComboArray[ComboIdx.TAG.value]!!.selectedIndex)
-                UIConfManager.uiConf.pidFilterComboStyle = getEnum(styleComboArray[ComboIdx.PID.value]!!.selectedIndex)
-                UIConfManager.uiConf.tidFilterComboStyle = getEnum(styleComboArray[ComboIdx.TID.value]!!.selectedIndex)
-                UIConfManager.uiConf.highlightComboStyle = getEnum(styleComboArray[ComboIdx.BOLD.value]!!.selectedIndex)
-                UIConfManager.saveUI()
             }
         }
 

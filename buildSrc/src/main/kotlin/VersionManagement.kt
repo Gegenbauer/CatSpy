@@ -16,8 +16,8 @@ object Weisj {
     val groupName = "com.github.weisj"
 
     val darklafCore = Dependency(groupName, "darklaf-core", "3.0.2")
-    val darklafExtensitionKotlin = Dependency(groupName, "darklaf-core", "")
-
+    val darklafVisualPadding = Dependency(groupName, "swing-extensions-visual-padding", "0.1.3")
+    val darklafExtensitionKotlin = Dependency(groupName, "darklaf-extension-kotlin", "0.3.4")
 }
 
 object Gson {
