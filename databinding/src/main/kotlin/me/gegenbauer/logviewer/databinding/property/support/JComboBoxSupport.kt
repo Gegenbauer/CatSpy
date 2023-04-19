@@ -2,6 +2,8 @@ package me.gegenbauer.logviewer.databinding.property.support
 
 import javax.swing.JComboBox
 import javax.swing.event.EventListenerList
+import javax.swing.event.ListDataEvent
+import javax.swing.event.ListDataListener
 
 var JComboBox<*>.propertyChangeListenerList: Map<String, *>?
     get() {
@@ -67,4 +69,19 @@ fun <T> List<T>.contentEquals(target: List<T>): Boolean {
         }
     }
     return true
+}
+
+open class DefaultListDataListener: ListDataListener {
+    override fun intervalAdded(e: ListDataEvent) {
+        // do nothing
+    }
+
+    override fun intervalRemoved(e: ListDataEvent) {
+        // do nothing
+    }
+
+    override fun contentsChanged(e: ListDataEvent) {
+        // do nothing
+    }
+
 }

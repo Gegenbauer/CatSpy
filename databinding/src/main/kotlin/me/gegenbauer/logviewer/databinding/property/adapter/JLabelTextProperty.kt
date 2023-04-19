@@ -7,14 +7,13 @@ import javax.swing.JLabel
 
 class JLabelTextProperty(component: JLabel): BasePropertyAdapter<JLabel, String, PropertyChangeListener>(component) {
 
+    override val propertyChangeListener: PropertyChangeListener = PropertyChangeListener {
+        propertyChangeObserver?.invoke(it.newValue as? String)
+    }
+
     init {
         component.addPropertyChangeListener(PROPERTY_TEXT, propertyChangeListener)
     }
-
-    override val propertyChangeListener: PropertyChangeListener
-        get() = PropertyChangeListener {
-            propertyChangeObserver?.invoke(it.newValue as? String)
-        }
 
     override fun removePropertyChangeListener() {
         component.removePropertyChangeListener(propertyChangeListener)

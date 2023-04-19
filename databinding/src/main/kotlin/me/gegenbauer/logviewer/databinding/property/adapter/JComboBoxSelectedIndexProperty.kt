@@ -7,14 +7,13 @@ import javax.swing.JComboBox
 class JComboBoxSelectedIndexProperty<ITEM>(component: JComboBox<ITEM>) :
     BasePropertyAdapter<JComboBox<ITEM>, Int, ItemListener>(component) {
 
+    override val propertyChangeListener: ItemListener = ItemListener {
+        propertyChangeObserver?.invoke(component.selectedIndex)
+    }
+
     init {
         component.addItemListener(propertyChangeListener)
     }
-
-    override val propertyChangeListener: ItemListener
-        get() = ItemListener {
-            propertyChangeObserver?.invoke(component.selectedIndex)
-        }
 
     override fun removePropertyChangeListener() {
         component.removeItemListener(propertyChangeListener)

@@ -7,16 +7,15 @@ import javax.swing.JComponent
 
 class JComponentVisibilityProperty(component: JComponent): BasePropertyAdapter<JComponent, Boolean, HierarchyListener>(component) {
 
+    override val propertyChangeListener: HierarchyListener = HierarchyListener {
+        if (it.changeFlags and HierarchyEvent.SHOWING_CHANGED.toLong() != 0L) {
+            propertyChangeObserver?.invoke(component.isShowing)
+        }
+    }
+
     init {
         component.addHierarchyListener(propertyChangeListener)
     }
-
-    override val propertyChangeListener: HierarchyListener
-        get() = HierarchyListener {
-            if (it.changeFlags and HierarchyEvent.SHOWING_CHANGED.toLong() != 0L) {
-                propertyChangeObserver?.invoke(component.isShowing)
-            }
-        }
 
     override fun removePropertyChangeListener() {
         component.removeHierarchyListener(propertyChangeListener)

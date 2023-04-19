@@ -6,6 +6,8 @@ import javax.swing.event.EventListenerList
 import javax.swing.text.JTextComponent
 import javax.swing.text.PlainDocument
 
+private const val TAG = "JTextComponentSupport"
+
 var JTextComponent.documentListeners: EventListenerList?
     get() {
         val listenerListField = document.getFieldDeeply("listenerList")
@@ -21,6 +23,12 @@ fun JTextComponent.withDocumentListenerDisabled(action: JTextComponent.() -> Uni
     documentListeners = EventListenerList()
     action.invoke(this)
     documentListeners = documentListenersCopy
+}
+
+fun JTextComponent.withDocumentListenerDisabled(listener: DocumentListener, action: JTextComponent.() -> Unit) {
+    document.removeDocumentListener(listener)
+    action.invoke(this)
+    document.addDocumentListener(listener)
 }
 
 fun JTextComponent.reportTextChange() {
