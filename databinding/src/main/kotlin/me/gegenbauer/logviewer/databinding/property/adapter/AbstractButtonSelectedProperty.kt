@@ -8,14 +8,13 @@ import javax.swing.AbstractButton
 class AbstractButtonSelectedProperty(component: AbstractButton) :
     BasePropertyAdapter<AbstractButton, Boolean, ItemListener>(component) {
 
+    override val propertyChangeListener: ItemListener = ItemListener { e: ItemEvent ->
+        propertyChangeObserver?.invoke(e.stateChange == ItemEvent.SELECTED)
+    }
+
     init {
         component.addItemListener(propertyChangeListener)
     }
-
-    override val propertyChangeListener: ItemListener
-        get() = ItemListener { e: ItemEvent ->
-            propertyChangeObserver?.invoke(e.stateChange == ItemEvent.SELECTED)
-        }
 
     override fun updateValue(value: Boolean?) {
         value ?: return

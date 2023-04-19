@@ -14,6 +14,7 @@ object ToggleButton {
 }
 
 object FilterComboBox {
-    val fontBackgroundInclude = properties.getColor("ComboBox.editBackground") ?: Color(255, 255, 255, 255)
+    val fontBackgroundInclude: Color
+        get() = properties.getColor("ComboBox.editBackground") ?: Color(255, 255, 255, 255)
     val fontBackgroundExclude = properties.getColor("ComboBox.selectionBackground") ?: Color(38F, 117F, 191F)
 }

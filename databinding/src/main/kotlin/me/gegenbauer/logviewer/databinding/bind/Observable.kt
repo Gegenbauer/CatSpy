@@ -60,7 +60,7 @@ open class ObservableProperty<T>(var value: T? = null) : Observable<T> {
     }
 
     open fun getDisplayName(): String {
-        return getValueType()
+        return "${hashCode()}_${getValueType()}"
     }
 
     override fun addObserver(observer: Observer<T>) {

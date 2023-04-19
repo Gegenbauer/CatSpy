@@ -6,8 +6,7 @@ import javax.swing.JComponent
 
 class JComponentCustomControllerProperty<VALUE>(component: JComponent, private val propertyName: String): BasePropertyAdapter<JComponent, VALUE, Any>(component) {
 
-    override val propertyChangeListener: Any
-        get() = Any()
+    override val propertyChangeListener: Any = Any()
 
     override fun removePropertyChangeListener() {
         // do nothing
