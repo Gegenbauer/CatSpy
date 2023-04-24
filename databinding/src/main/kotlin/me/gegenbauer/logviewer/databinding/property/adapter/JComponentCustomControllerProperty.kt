@@ -4,7 +4,7 @@ import me.gegenbauer.logviewer.databinding.property.support.BasePropertyAdapter
 import me.gegenbauer.logviewer.databinding.property.support.setField
 import javax.swing.JComponent
 
-class JComponentCustomControllerProperty<VALUE>(component: JComponent, private val propertyName: String): BasePropertyAdapter<JComponent, VALUE, Any>(component) {
+class JComponentCustomControllerProperty<VALUE>(component: JComponent, val propertyName: String): BasePropertyAdapter<JComponent, VALUE, Any>(component) {
 
     override val propertyChangeListener: Any = Any()
 

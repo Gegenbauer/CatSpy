@@ -1,6 +1,5 @@
 package me.gegenbauer.logviewer.ui.dialog
 
-import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.databinding.bind.withName
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
@@ -11,11 +10,9 @@ import me.gegenbauer.logviewer.ui.addHSeparator
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
 import me.gegenbauer.logviewer.ui.combobox.getFilterComboBox
 import me.gegenbauer.logviewer.utils.Utils
-import me.gegenbauer.logviewer.utils.getEnum
-import me.gegenbauer.logviewer.utils.getImageFile
+import me.gegenbauer.logviewer.utils.loadIcon
 import java.awt.*
 import java.awt.event.*
-import java.net.URL
 import javax.swing.*
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
@@ -115,12 +112,12 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             lafItem = JRadioButton(MainUI.FLAT_LIGHT_LAF)
             laFGroup.add(lafItem)
             lafPanel.add(lafItem)
-            lafPanel.add(ImagePanel(getImageFile("appearance_flat_light.png")))
+            lafPanel.add(ImagePanel(loadIcon("appearance_flat_light.png")))
 
             lafItem = JRadioButton(MainUI.FLAT_DARK_LAF)
             laFGroup.add(lafItem)
             lafPanel.add(lafItem)
-            lafPanel.add(ImagePanel(getImageFile("appearance_flat_dark.png")))
+            lafPanel.add(ImagePanel(loadIcon("appearance_flat_dark.png")))
 
             lafPanel.add(JLabel("   (Restart)"))
 
@@ -191,8 +188,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             add(panel)
         }
 
-        inner class ImagePanel(url: URL) : JPanel() {
-            private val imgIcon = ImageIcon(url)
+        inner class ImagePanel(private val icon: ImageIcon) : JPanel() {
             init {
                 preferredSize = Dimension(150, 106)
                 background = Color.RED
@@ -200,7 +196,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
 
             override fun paint(g: Graphics) {
                 super.paint(g)
-                g.drawImage(imgIcon.image, 0, 0, imgIcon.iconWidth, imgIcon.iconHeight, null)
+                g.drawImage(icon.image, 0, 0, icon.iconWidth, icon.iconHeight, null)
             }
         }
 

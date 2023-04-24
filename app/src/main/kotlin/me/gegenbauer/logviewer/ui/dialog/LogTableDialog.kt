@@ -1,10 +1,10 @@
 package me.gegenbauer.logviewer.ui.dialog
 
-import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.utils.Utils
 import me.gegenbauer.logviewer.log.GLog
+import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.log.LogPanel
-import me.gegenbauer.logviewer.utils.getImageFile
+import me.gegenbauer.logviewer.utils.Utils
+import me.gegenbauer.logviewer.utils.loadIcon
 import java.awt.BorderLayout
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -20,7 +20,7 @@ class LogTableDialog (private val parent: MainUI, private val logPanel: LogPanel
     private var frameExtendedState = java.awt.Frame.MAXIMIZED_BOTH
 
     init {
-        val img = ImageIcon(getImageFile("logo.png"))
+        val img = loadIcon<ImageIcon>("icon-linux.png")
         iconImage = img.image
 
         defaultCloseOperation = DISPOSE_ON_CLOSE

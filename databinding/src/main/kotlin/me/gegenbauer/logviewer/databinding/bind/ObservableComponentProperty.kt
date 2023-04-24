@@ -31,6 +31,8 @@ abstract class ObservableComponentProperty<T>(
 
     abstract fun getPropertyAdapterImpl(): PropertyAdapter<T, *>
 
+    abstract fun createProperty(component: JComponent): ObservableComponentProperty<T>
+
     override fun getDisplayName(): String {
         return "${component.javaClass.simpleName}_${component.hashCode()}_${getValueType()}"
     }

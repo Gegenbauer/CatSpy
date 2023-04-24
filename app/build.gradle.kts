@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation(files("libs/flatlaf-2.1.jar"))
+    implementation(files("../libs/flatlaf-2.1.jar"))
     implementation(kotlin("reflect"))
     implementation(compose.desktop.currentOs)
     implementation(projects.log)
@@ -44,12 +44,19 @@ val appName = "LogViewer"
 compose.desktop {
     application {
         mainClass = "me.gegenbauer.logviewer.Main"
+
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             modules += "jdk.unsupported"
             packageName = appName
             packageVersion = version
             group = "me.gegenbauer"
+
+            val iconsRoot = project.file("src/main/resources/appicon/")
+
+            linux {
+                iconFile.set(iconsRoot.resolve("icon-linux.png"))
+            }
         }
     }
 }

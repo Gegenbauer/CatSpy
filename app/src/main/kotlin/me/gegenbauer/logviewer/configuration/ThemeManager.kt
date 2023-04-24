@@ -4,6 +4,8 @@ import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.settings.SettingsConfiguration
 import com.github.weisj.darklaf.settings.ThemeSettings
 import com.github.weisj.darklaf.theme.Theme
+import com.github.weisj.darklaf.theme.event.ThemeChangeEvent
+import com.github.weisj.darklaf.theme.event.ThemeChangeListener
 import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
 import kotlinx.coroutines.Dispatchers
@@ -12,11 +14,12 @@ import kotlinx.coroutines.withContext
 import me.gegenbauer.logviewer.concurrency.ModelScope
 import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.utils.appendPath
-import me.gegenbauer.logviewer.utils.loadResource
+import me.gegenbauer.logviewer.utils.loadResourceAsStream
 import me.gegenbauer.logviewer.utils.toArgb
 import me.gegenbauer.logviewer.utils.userDir
 import java.io.File
 import java.util.*
+import javax.swing.UIDefaults
 
 object ThemeManager {
     private const val DEFAULT_THEME_DIR = "themes"
@@ -31,18 +34,46 @@ object ThemeManager {
         System.setProperty("awt.useSystemAAFontSettings", "on")
         System.setProperty("swing.aatext", "true")
         scope.launch {
-            if (!themeFile.exists()) {
-                createThemeFile()
-            }
+            ensureThemeFile()
         }
     }
 
-    fun registerThemeUpdateListener() {
+    private fun ensureThemeFile() {
+        if (!themeFile.exists()) {
+            createThemeFile()
+        }
+    }
+
+    fun registerDefaultThemeUpdateListener() {
         LafManager.registerDefaultsAdjustmentTask { t: Theme, _: Properties ->
             updateTheme(t)
             scope.launch {
                 saveThemeSettings()
             }
+        }
+    }
+
+    fun registerThemeUpdateListener(listener: (ThemeChangeEvent) -> Unit) {
+        LafManager.addThemeChangeListener(object : ThemeChangeListener {
+            override fun themeChanged(e: ThemeChangeEvent) {
+                listener.invoke(e)
+            }
+
+            override fun themeInstalled(e: ThemeChangeEvent) {
+                listener.invoke(e)
+            }
+        })
+    }
+
+    fun registerDefaultsAdjustmentTask(listener: (Theme, Properties) -> Unit) {
+        LafManager.registerDefaultsAdjustmentTask { t, u ->
+            listener(t, u)
+        }
+    }
+
+    fun registerInitTask(listener: (Theme, UIDefaults) -> Unit) {
+        LafManager.registerInitTask { t, u ->
+            listener(t, u)
         }
     }
 
@@ -54,7 +85,7 @@ object ThemeManager {
 
     private fun createThemeFile() {
         themeFile.createNewFile()
-        val defaultThemeJson = loadResource(DEFAULT_THEME_DIR.appendPath(DEFAULT_THEME_FILENAME))
+        val defaultThemeJson = loadResourceAsStream(DEFAULT_THEME_DIR.appendPath(DEFAULT_THEME_FILENAME))
             .bufferedReader()
             .use { it.readText() }
         themeFile.writeText(defaultThemeJson)
@@ -68,6 +99,7 @@ object ThemeManager {
     }
 
     private fun loadTheme(): GTheme {
+        ensureThemeFile()
         JsonReader(themeFile.reader()).use {
             return Gson().fromJson(it, GTheme::class.java)
         }
