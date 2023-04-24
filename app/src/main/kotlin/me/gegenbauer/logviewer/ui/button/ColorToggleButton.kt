@@ -1,17 +1,20 @@
 package me.gegenbauer.logviewer.ui.button
 
 import me.gegenbauer.logviewer.databinding.bind.componentName
-import me.gegenbauer.logviewer.utils.getImageFile
+import me.gegenbauer.logviewer.utils.loadIcon
 import java.awt.Insets
-import javax.swing.ImageIcon
 import javax.swing.JToggleButton
 
 
-class ColorToggleButton(title: String) : JToggleButton(title) {
+class ColorToggleButton(
+    title: String,
+    tooltip: String? = null
+) : JToggleButton(title) {
     init {
-        icon = ImageIcon(getImageFile("toggle_off.png"))
-        selectedIcon = ImageIcon(getImageFile("toggle_on.png"))
+        icon = loadIcon("toggle_off.png")
+        selectedIcon = loadIcon("toggle_on.png")
         margin = Insets(0, 0, 0, 0)
         componentName = title
+        toolTipText = tooltip
     }
 }

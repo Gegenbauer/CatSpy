@@ -139,15 +139,22 @@ object Bindings {
         }
     }
 
-    /**
-     * componentPropertyDelegate 持有 Component 的引用
-     *
-     * 所以在不需要绑定时，需要手动解绑，可以通过 [ComponentPropertyDelegateCache]
-     * 获取到 componentPropertyDelegate，并移除对 Component 的引用
-     */
     fun unBind(componentProperty: ObservableComponentProperty<*>) {
         scope.launch(Dispatchers.UI) {
             unBindInternal(componentProperty)
+        }
+    }
+
+    fun rebind(source: JComponent, target: JComponent) {
+        scope.launch(Dispatchers.UI) {
+            val bindingCache = source.getOrCreateBindingCache()
+            bindingCache.forEach { (componentProperty, bindingItem) ->
+                unBindInternal(componentProperty)
+                bind(
+                    (componentProperty as ObservableComponentProperty<Any>).createProperty(target),
+                    bindingItem.viewModelProperty as ObservableViewModelProperty<Any>, bindingItem.bindType
+                )
+            }
         }
     }
 
@@ -164,5 +171,6 @@ object Bindings {
             .removeObserver(bindingItem.viewModelPropertyChangeListener as? ViewModelPropertyObserver<Any>)
         (bindingItem.componentProperty as ObservableComponentProperty<Any>)
             .removeObserver(bindingItem.componentPropertyChangeListener as? ComponentPropertyObserver<Any>)
+        bindingCache.remove(componentProperty)
     }
 }

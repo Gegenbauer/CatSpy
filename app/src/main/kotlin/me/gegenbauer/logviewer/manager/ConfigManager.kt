@@ -2,6 +2,7 @@ package me.gegenbauer.logviewer.manager
 
 import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
+import me.gegenbauer.logviewer.ui.MainUI
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -19,7 +20,7 @@ object ConfigManager {
 
     const val ITEM_RETRY_ADB = "RETRY_ADB"
 
-    var LaF = ""
+    var LaF = MainUI.FLAT_LIGHT_LAF
     private val properties = Properties()
     private var configPath = CONFIG_FILE
 

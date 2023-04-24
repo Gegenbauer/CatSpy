@@ -1,6 +1,5 @@
 package me.gegenbauer.logviewer
 
-import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.theme.Theme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,7 +16,7 @@ import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.viewmodel.GlobalPropertySynchronizer
-import java.util.Properties
+import java.util.*
 import javax.swing.UIDefaults
 
 class Main {
@@ -32,12 +31,15 @@ class Main {
                     GlobalPropertySynchronizer.init()
                 }
                 ThemeManager.installTheme()
-                LafManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
-                LafManager.registerInitTask(::adjustBeforeThemeLoaded)
+                ThemeManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
+                ThemeManager.registerInitTask(::adjustBeforeThemeLoaded)
                 val mainUI = MainUI(STRINGS.ui.app)
+                ThemeManager.registerThemeUpdateListener { _->
+                    mainUI.registerComboBoxEditorEvent()
+                }
                 ThemeManager.applyTempTheme()
                 mainUI.isVisible = true
-                ThemeManager.registerThemeUpdateListener()
+                ThemeManager.registerDefaultThemeUpdateListener()
             }
         }
 

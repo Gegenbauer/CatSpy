@@ -11,6 +11,7 @@ class StatefulToggleButton(
     private val originalText: String? = null,
     private val overrideDefaultToggleSelectedIcon: Icon? = null,
     private val overrideDefaultToggleIcon: Icon? = null,
+    tooltip: String? = null
 ) : JToggleButton(originalText, originalIcon) {
 
     // TODO observe night mode change
@@ -40,5 +41,6 @@ class StatefulToggleButton(
 
     init {
         componentName = originalText ?: ""
+        toolTipText = tooltip
     }
 }

@@ -6,7 +6,8 @@ import javax.swing.JButton
 
 class StatefulButton(
     private val originalIcon: Icon? = null,
-    private val originalText: String? = null
+    private val originalText: String? = null,
+    tooltip: String? = null
 ) : JButton(originalText, originalIcon) {
     var buttonDisplayMode = ButtonDisplayMode.ALL
         set(value) {
@@ -31,5 +32,6 @@ class StatefulButton(
 
     init {
         componentName = originalText ?: ""
+        toolTipText = tooltip
     }
 }

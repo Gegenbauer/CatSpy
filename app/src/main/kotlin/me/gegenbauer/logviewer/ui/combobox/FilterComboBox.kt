@@ -1,5 +1,6 @@
 package me.gegenbauer.logviewer.ui.combobox
 
+import me.gegenbauer.logviewer.databinding.bind.Bindings
 import me.gegenbauer.logviewer.databinding.bind.componentName
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.ui.MainUI
@@ -9,6 +10,7 @@ import me.gegenbauer.logviewer.ui.combobox.highlight.HighlighterEditor
 import java.awt.event.MouseEvent
 import javax.swing.ComboBoxEditor
 import javax.swing.JComboBox
+import javax.swing.JComponent
 import javax.swing.ToolTipManager
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
@@ -17,7 +19,8 @@ import javax.swing.text.JTextComponent
 
 class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTag: Boolean = true, tooltip: String? = null) : JComboBox<String>() {
 
-    private val editorComponent: JTextComponent = getEditor().editorComponent as JTextComponent
+    private val editorComponent: JTextComponent // create new instance when theme changed(setUI invoked)
+        get() = getEditor().editorComponent as JTextComponent
     private var customUI: CustomEditorDarkComboBoxUI? = null
     private lateinit var customEditor: HighlighterEditor
 
@@ -48,6 +51,9 @@ class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTa
             super.setUI(customUI)
         } else {
             super.setUI(CustomEditorDarkComboBoxUI(HighlighterEditor().apply {
+                if (::customEditor.isInitialized) {
+                    Bindings.rebind(customEditor.editorComponent as JComponent, this.editorComponent as JComponent)
+                }
                 customEditor = this
             }))
         }

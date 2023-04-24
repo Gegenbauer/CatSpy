@@ -1,9 +1,8 @@
 package me.gegenbauer.logviewer.ui
 
-import com.formdev.flatlaf.FlatDarkLaf
-import com.formdev.flatlaf.FlatLightLaf
 import com.github.weisj.darklaf.components.OverlayScrollPane
 import com.github.weisj.darklaf.iconset.AllIcons
+import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -14,6 +13,7 @@ import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.logviewer.databinding.bind.withName
+import me.gegenbauer.logviewer.databinding.property.support.DefaultDocumentListener
 import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
@@ -36,9 +36,10 @@ import me.gegenbauer.logviewer.ui.menu.HelpMenu
 import me.gegenbauer.logviewer.ui.menu.SettingsMenu
 import me.gegenbauer.logviewer.ui.menu.ViewMenu
 import me.gegenbauer.logviewer.ui.panel.SplitLogPane
+import me.gegenbauer.logviewer.utils.applyTooltip
 import me.gegenbauer.logviewer.utils.getEnum
-import me.gegenbauer.logviewer.utils.getImageFile
-import me.gegenbauer.logviewer.utils.getImageIcon
+import me.gegenbauer.logviewer.utils.loadIcon
+import me.gegenbauer.logviewer.utils.loadIconWithRealSize
 import me.gegenbauer.logviewer.viewmodel.MainViewModel
 import java.awt.*
 import java.awt.datatransfer.Clipboard
@@ -53,14 +54,13 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.swing.*
 import javax.swing.event.DocumentEvent
-import javax.swing.event.DocumentListener
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.text.JTextComponent
 import kotlin.system.exitProcess
 
-class MainUI(title: String) : JFrame() {
+class MainUI(title: String) : JFrame(title) {
     companion object {
         private const val TAG = "MainUI"
 
@@ -101,9 +101,7 @@ class MainUI(title: String) : JFrame() {
                 openFile(file.absolutePath, true)
             }
         }
-        onExit = {
-            exit()
-        }
+        onExit = ::exit
     }
 
     val splitLogPane = SplitLogPane(this, fullTableModel, filteredTableModel).apply {
@@ -139,7 +137,13 @@ class MainUI(title: String) : JFrame() {
     }
 
     private val helpMenu = HelpMenu()
-    private val menuBar = JMenuBar()
+
+    private val menuBar = JMenuBar().apply {
+        add(fileMenu)
+        add(viewMenu)
+        add(settingsMenu)
+        add(this@MainUI.helpMenu)
+    }
     private val filterPanel = JPanel()
     private val filterLeftPanel = JPanel()
 
@@ -152,27 +156,29 @@ class MainUI(title: String) : JFrame() {
     private val statusChangeListener = StatusChangeListener()
 
     private val logToolBar = WrapablePanel()
-    val startBtn = StatefulButton(getImageIcon("start.png"), STRINGS.ui.start)
-    val stopBtn = StatefulButton(getImageIcon("stop.png"), STRINGS.ui.stop)
-    val saveBtn = StatefulButton(getImageIcon("save.png"), STRINGS.ui.save)
-    val clearViewsBtn = StatefulButton(getImageIcon("clear.png"), STRINGS.ui.clearViews)
+    val startBtn = StatefulButton(loadIcon("start.svg", true), STRINGS.ui.start, STRINGS.toolTip.startBtn)
+    val stopBtn = StatefulButton(loadIcon("stop.png"), STRINGS.ui.stop, STRINGS.toolTip.stopBtn)
+    val saveBtn = StatefulButton(loadIcon("save.svg"), STRINGS.ui.save, STRINGS.toolTip.saveBtn)
+    val clearViewsBtn = StatefulButton(loadIcon("clear.png"), STRINGS.ui.clearViews, STRINGS.toolTip.clearBtn)
     val retryAdbToggle = StatefulToggleButton(
-        getImageIcon("retry_off.png"),
-        DayNightIcon(getImageFile("retry_on.png"), getImageFile("retry_on_dark.png")),
-        STRINGS.ui.retryAdb
+        loadIcon("retry_off.png"),
+        DayNightIcon(loadIcon("retry_on.png"), loadIcon("retry_on_dark.png")),
+        STRINGS.ui.retryAdb,
+        tooltip = STRINGS.toolTip.retryAdbToggle
     )
     val pauseToggle = StatefulToggleButton(
-        getImageIcon("pause_off.png"),
-        DayNightIcon(getImageFile("pause_on.png"), getImageFile("pause_on_dark.png")),
-        STRINGS.ui.pause
+        loadIcon("pause_off.png"),
+        DayNightIcon(loadIcon("pause_on.png"), loadIcon("pause_on_dark.png")),
+        STRINGS.ui.pause,
+        tooltip = STRINGS.toolTip.pauseBtn
     )
 
     private val logPanel = JPanel()
     private val showLogPanel = JPanel()
-    val matchCaseToggle = ColorToggleButton("Aa")
+    val matchCaseToggle = ColorToggleButton("Aa", STRINGS.toolTip.caseToggle)
     private val matchCaseTogglePanel = JPanel(GridLayout(1, 1))
     val showLogCombo = getFilterComboBox(tooltip = STRINGS.toolTip.logCombo) withName STRINGS.ui.log
-    val showLogToggle = ColorToggleButton(STRINGS.ui.log)
+    val showLogToggle = ColorToggleButton(STRINGS.ui.log, STRINGS.toolTip.logToggle)
     private val showLogTogglePanel = JPanel(GridLayout(1, 1))
 
     val showPidCombo = getFilterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.pidCombo) withName STRINGS.ui.pid
@@ -182,45 +188,48 @@ class MainUI(title: String) : JFrame() {
 
     private val boldLogPanel = JPanel()
     val highlightLogCombo = getFilterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.boldCombo)
-    val boldLogToggle = ColorToggleButton(STRINGS.ui.bold)
+    val boldLogToggle = ColorToggleButton(STRINGS.ui.bold, STRINGS.toolTip.boldToggle)
     private val boldLogTogglePanel = JPanel(GridLayout(1, 1))
     private val showTagPanel = JPanel()
-    val showTagToggle = ColorToggleButton(STRINGS.ui.tag)
+    val showTagToggle = ColorToggleButton(STRINGS.ui.tag, STRINGS.toolTip.tagToggle)
     private val showTagTogglePanel = JPanel(GridLayout(1, 1))
     private val showPidPanel = JPanel()
-    val showPidToggle = ColorToggleButton(STRINGS.ui.pid)
+    val showPidToggle = ColorToggleButton(STRINGS.ui.pid, STRINGS.toolTip.pidToggle)
     private val showPidTogglePanel = JPanel(GridLayout(1, 1))
     private val showTidPanel = JPanel()
-    val showTidToggle = ColorToggleButton(STRINGS.ui.tid)
+    val showTidToggle = ColorToggleButton(STRINGS.ui.tid, STRINGS.toolTip.tidToggle)
     private val showTidTogglePanel = JPanel(GridLayout(1, 1))
-    private val logCmdCombo = JComboBox<String>().apply { isEditable = true }
-    val deviceCombo = JComboBox<String>().apply { isEditable = true }
+    private val logCmdCombo = JComboBox<String>().apply { isEditable = true } applyTooltip STRINGS.toolTip.logCmdCombo
+    val deviceCombo = JComboBox<String>().apply { isEditable = true } applyTooltip STRINGS.toolTip.devicesCombo
     private val deviceStatus = JLabel("None", JLabel.LEFT) // TODO 整理设备连接状态相关的代码
-    val adbConnectBtn = StatefulButton(getImageIcon("connect.png"), STRINGS.ui.connect)
-    val adbRefreshBtn = StatefulButton(getImageIcon("refresh.png"), STRINGS.ui.refresh)
-    val adbDisconnectBtn = StatefulButton(getImageIcon("disconnect.png"), STRINGS.ui.disconnect)
-    val scrollBackLabel = StatefulLabel(getImageIcon("scrollback.png"), STRINGS.ui.scrollBackLines)
-    val scrollBackTF = JTextField()
+    val adbConnectBtn = StatefulButton(loadIcon("connect.png"), STRINGS.ui.connect, STRINGS.toolTip.connectBtn)
+    val adbRefreshBtn = StatefulButton(loadIcon("refresh.png"), STRINGS.ui.refresh, STRINGS.toolTip.refreshBtn)
+    val adbDisconnectBtn = StatefulButton(loadIcon("disconnect.png"), STRINGS.ui.disconnect, STRINGS.toolTip.disconnectBtn)
+    val scrollBackLabel = StatefulLabel(loadIcon("scrollback.png"), STRINGS.ui.scrollBackLines)
+    val scrollBackTF = JTextField(UIConfManager.uiConf.logScrollBackCount.toString()) applyTooltip STRINGS.toolTip.scrollBackTf
     val scrollBackSplitFileToggle = StatefulToggleButton(
-        getImageIcon("splitfile_off.png"),
-        DayNightIcon(getImageFile("splitfile_on.png"), getImageFile("splitfile_on_dark.png")),
+        loadIcon("splitfile_off.png"),
+        DayNightIcon(loadIcon("splitfile_on.png"), loadIcon("splitfile_on_dark.png")),
         STRINGS.ui.splitFile,
-        getImageIcon("toggle_on_warn.png")
+        loadIcon("toggle_on_warn.png"),
+        tooltip = STRINGS.toolTip.scrollBackSplitChk
     )
-    val scrollBackApplyBtn = StatefulButton(getImageIcon("apply.png"), STRINGS.ui.apply)
+    val scrollBackApplyBtn = StatefulButton(loadIcon("apply.png"), STRINGS.ui.apply, STRINGS.toolTip.scrollBackApplyBtn)
     val scrollBackKeepToggle = StatefulToggleButton(
-        getImageIcon("keeplog_off.png"),
-        DayNightIcon(getImageFile("keeplog_on.png"), getImageFile("keeplog_on_dark.png")),
+        loadIcon("keeplog_off.png"),
+        DayNightIcon(loadIcon("keeplog_on.png"), loadIcon("keeplog_on_dark.png")),
         STRINGS.ui.keep,
-        getImageIcon("toggle_on_warn.png")
+        loadIcon("toggle_on_warn.png"),
+        tooltip = STRINGS.toolTip.scrollBackKeepToggle
     )
     private val statusBar = JPanel(BorderLayout())
     private val statusMethod = JLabel("")
-    private val statusTF = StatusTextField(STRINGS.ui.none)
+    private val statusTF = StatusTextField(STRINGS.ui.none) applyTooltip STRINGS.toolTip.savedFileTf
     private val followLabel = JLabel(" ${STRINGS.ui.follow} ")
-    private val startFollowBtn = JButton(STRINGS.ui.start)
-    private val stopFollowBtn = JButton(STRINGS.ui.stop)
+    private val startFollowBtn = JButton(STRINGS.ui.start) applyTooltip STRINGS.toolTip.startFollowBtn
+    private val stopFollowBtn = JButton(STRINGS.ui.stop) applyTooltip STRINGS.toolTip.stopFollowBtn
     private val pauseFollowToggle = ColorToggleButton(STRINGS.ui.pause)
+    private val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
 
     val filtersManager = FiltersManager(this, splitLogPane.filteredLogPanel)
     val cmdManager = CmdManager(this, splitLogPane.fullLogPanel)
@@ -240,21 +249,15 @@ class MainUI(title: String) : JFrame() {
     init {
         LogCmdManager.setMainUI(this)
 
-        configureWindow(title)
+        configureWindow()
 
         if (UIConfManager.uiConf.rotation != 0) splitLogPane.rotate(getEnum(UIConfManager.uiConf.rotation))
-
-        val laf = UIConfManager.uiConf.laf
-
-        if (laf.isEmpty()) {
-            ConfigManager.LaF = FLAT_LIGHT_LAF
-        } else {
-            ConfigManager.LaF = laf
-        }
 
         LogCmdManager.addEventListener(AdbHandler())
 
         createUI()
+
+        registerEvent()
 
         MainViewModel.bind(this)
 
@@ -263,9 +266,8 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    private fun configureWindow(title: String) {
-        setTitle(title)
-        iconImage = ImageIcon(getImageFile("logo.png")).image
+    private fun configureWindow() {
+        iconImage = loadIconWithRealSize<DerivableImageIcon>("logo.png").image
         defaultCloseOperation = EXIT_ON_CLOSE
 
         UIConfManager.uiConf.run {
@@ -317,128 +319,32 @@ class MainUI(title: String) : JFrame() {
     }
 
     private fun createUI() {
-        menuBar.add(fileMenu)
-        menuBar.add(viewMenu)
-        menuBar.add(settingsMenu)
-        menuBar.add(helpMenu)
         jMenuBar = menuBar
 
-        logToolBar.addMouseListener(frameMouseListener)
-
-        addWindowListener(object : WindowAdapter() {
-            override fun windowClosing(e: WindowEvent) {
-                exit()
-            }
-        })
-
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher { event ->
-            if (event.keyCode == KeyEvent.VK_PAGE_DOWN && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
-                splitLogPane.filteredLogPanel.goToLast()
-                splitLogPane.fullLogPanel.goToLast()
-            } else if (event.keyCode == KeyEvent.VK_PAGE_UP && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
-                splitLogPane.filteredLogPanel.goToFirst()
-                splitLogPane.fullLogPanel.goToFirst()
-            } else if (event.keyCode == KeyEvent.VK_L && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
-                deviceCombo.requestFocus()
-            } else if (event.keyCode == KeyEvent.VK_R && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
-                reconnectAdb()
-            } else if (event.keyCode == KeyEvent.VK_G && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
-                val goToDialog = GoToDialog(this@MainUI)
-                goToDialog.setLocationRelativeTo(this@MainUI)
-                goToDialog.isVisible = true
-                if (goToDialog.line != -1) {
-                    goToLine(goToDialog.line)
-                } else {
-                    GLog.d(TAG, "Cancel Goto Line")
-                }
-            }
-
-            false
-        }
-
         logToolBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-        logToolBar.addMouseListener(mouseHandler)
 
-        startBtn.toolTipText = STRINGS.toolTip.startBtn
-        startBtn.addActionListener(actionHandler)
-        startBtn.addMouseListener(mouseHandler)
-        retryAdbToggle.toolTipText = STRINGS.toolTip.retryAdbToggle
-        retryAdbToggle.addItemListener(itemHandler)
-
-        pauseToggle.toolTipText = STRINGS.toolTip.pauseBtn
-        //pauseToggle.margin = btnMargin
-        pauseToggle.addItemListener(itemHandler)
-
-        stopBtn.toolTipText = STRINGS.toolTip.stopBtn
-        stopBtn.addActionListener(actionHandler)
-        stopBtn.addMouseListener(mouseHandler)
-
-        clearViewsBtn.toolTipText = STRINGS.toolTip.clearBtn
-
-        clearViewsBtn.addActionListener(actionHandler)
-        clearViewsBtn.addMouseListener(mouseHandler)
-        saveBtn.toolTipText = STRINGS.toolTip.saveBtn
-        saveBtn.addActionListener(actionHandler)
-        saveBtn.addMouseListener(mouseHandler)
-
-        showLogCombo.addPopupMenuListener(popupMenuHandler)
-        showLogCombo.editor.editorComponent.addKeyListener(keyHandler)
-        showLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        showLogToggle.toolTipText = STRINGS.toolTip.logToggle
         showLogTogglePanel.add(showLogToggle)
         showLogTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-        showLogToggle.addItemListener(itemHandler)
 
         highlightLogCombo.enabledTfTooltip = false
-        highlightLogCombo.editor.editorComponent.addKeyListener(keyHandler)
-        highlightLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        boldLogToggle.toolTipText = STRINGS.toolTip.boldToggle
         boldLogTogglePanel.add(boldLogToggle)
         boldLogTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-        boldLogToggle.addItemListener(itemHandler)
 
-        showTagCombo.editor.editorComponent.addKeyListener(keyHandler)
-        showTagCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        showTagToggle.toolTipText = STRINGS.toolTip.tagToggle
         showTagTogglePanel.add(showTagToggle)
         showTagTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-        showTagToggle.addItemListener(itemHandler)
 
-        showPidCombo.editor.editorComponent.addKeyListener(keyHandler)
-        showPidCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        showPidToggle.toolTipText = STRINGS.toolTip.pidToggle
         showPidTogglePanel.add(showPidToggle)
         showPidTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-        showPidToggle.addItemListener(itemHandler)
 
-        showTidCombo.editor.editorComponent.addKeyListener(keyHandler)
-        showTidCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        showTidToggle.toolTipText = STRINGS.toolTip.tidToggle
         showTidTogglePanel.add(showTidToggle)
         showTidTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-        showTidToggle.addItemListener(itemHandler)
 
-        logCmdCombo.toolTipText = STRINGS.toolTip.logCmdCombo
-        logCmdCombo.editor.editorComponent.addKeyListener(keyHandler)
-        logCmdCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        logCmdCombo.addPopupMenuListener(popupMenuHandler)
 
         deviceStatus.isEnabled = false
         val deviceComboPanel = JPanel(BorderLayout())
-        deviceCombo.toolTipText = STRINGS.toolTip.devicesCombo
-        deviceCombo.editor.editorComponent.addKeyListener(keyHandler)
-        deviceCombo.editor.editorComponent.addMouseListener(mouseHandler)
         deviceComboPanel.add(deviceCombo, BorderLayout.CENTER)
         deviceComboPanel.add(deviceStatus, BorderLayout.LINE_END)
-        adbConnectBtn.toolTipText = STRINGS.toolTip.connectBtn
-        adbConnectBtn.addActionListener(actionHandler)
-        adbRefreshBtn.addActionListener(actionHandler)
-        adbRefreshBtn.toolTipText = STRINGS.toolTip.refreshBtn
-        adbDisconnectBtn.addActionListener(actionHandler)
-        adbDisconnectBtn.toolTipText = STRINGS.toolTip.disconnectBtn
 
-        matchCaseToggle.toolTipText = STRINGS.toolTip.caseToggle
-        matchCaseToggle.addItemListener(itemHandler)
         matchCaseTogglePanel.add(matchCaseToggle)
         matchCaseTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
 
@@ -468,17 +374,7 @@ class MainUI(title: String) : JFrame() {
         deviceStatus.border = BorderFactory.createEmptyBorder(3, 0, 3, 0)
         deviceStatus.horizontalAlignment = JLabel.CENTER
 
-        scrollBackApplyBtn.toolTipText = STRINGS.toolTip.scrollBackApplyBtn
-        scrollBackApplyBtn.addActionListener(actionHandler)
-        scrollBackKeepToggle.toolTipText = STRINGS.toolTip.scrollBackKeepToggle
-
-        scrollBackKeepToggle.addItemListener(itemHandler)
-
-        scrollBackTF.toolTipText = STRINGS.toolTip.scrollBackTf
         scrollBackTF.preferredSize = Dimension(80, scrollBackTF.preferredSize.height)
-        scrollBackTF.addKeyListener(keyHandler)
-        scrollBackSplitFileToggle.toolTipText = STRINGS.toolTip.scrollBackSplitChk
-        scrollBackSplitFileToggle.addItemListener(itemHandler)
 
         val itefilterPanel = JPanel(FlowLayout(FlowLayout.LEADING, 0, 0))
         itefilterPanel.border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
@@ -498,7 +394,6 @@ class MainUI(title: String) : JFrame() {
 
         filterPanel.layout = BorderLayout()
         filterPanel.add(filterLeftPanel, BorderLayout.CENTER)
-        filterPanel.addMouseListener(mouseHandler)
 
         logToolBar.add(startBtn)
         logToolBar.add(retryAdbToggle)
@@ -522,7 +417,6 @@ class MainUI(title: String) : JFrame() {
 
         logToolBar.add(clearViewsBtn)
 
-
         val scrollbackPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
         scrollbackPanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         addVSeparator(scrollbackPanel)
@@ -532,9 +426,7 @@ class MainUI(title: String) : JFrame() {
         scrollbackPanel.add(scrollBackApplyBtn)
         scrollbackPanel.add(scrollBackKeepToggle)
 
-        val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
         toolBarPanel.layout = BorderLayout()
-        toolBarPanel.addMouseListener(mouseHandler)
         toolBarPanel.add(logToolBar, BorderLayout.CENTER)
         toolBarPanel.add(scrollbackPanel, BorderLayout.EAST)
 
@@ -556,22 +448,10 @@ class MainUI(title: String) : JFrame() {
         statusBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         statusMethod.isOpaque = true
         statusMethod.background = Color.DARK_GRAY
-        statusMethod.addPropertyChangeListener(statusChangeListener)
-        statusTF.document.addDocumentListener(statusChangeListener)
-        statusTF.toolTipText = STRINGS.toolTip.savedFileTf
         statusTF.isEditable = false
         statusTF.border = BorderFactory.createEmptyBorder()
 
-        startFollowBtn.toolTipText = STRINGS.toolTip.startFollowBtn
-        startFollowBtn.addActionListener(actionHandler)
-        startFollowBtn.addMouseListener(mouseHandler)
-
         pauseFollowToggle.margin = Insets(pauseFollowToggle.margin.top, 0, pauseFollowToggle.margin.bottom, 0)
-        pauseFollowToggle.addItemListener(itemHandler)
-
-        stopFollowBtn.toolTipText = STRINGS.toolTip.stopFollowBtn
-        stopFollowBtn.addActionListener(actionHandler)
-        stopFollowBtn.addMouseListener(mouseHandler)
 
         val followPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
         followPanel.border = BorderFactory.createEmptyBorder(0, 3, 0, 3)
@@ -593,9 +473,6 @@ class MainUI(title: String) : JFrame() {
 
         highlightLogCombo.updateTooltip()
 
-        if (searchPanel.searchCombo.itemCount > 0) {
-            searchPanel.searchCombo.selectedIndex = 0
-        }
         searchPanel.searchCombo.updateTooltip()
 
         updateLogCmdCombo(true)
@@ -663,7 +540,6 @@ class MainUI(title: String) : JFrame() {
             windowedModeLogPanel(splitLogPane.fullLogPanel)
         }
 
-        scrollBackTF.text = UIConfManager.uiConf.logScrollBackCount.toString()
         filteredTableModel.scrollback = UIConfManager.uiConf.logScrollBackCount
         scrollBackSplitFileToggle.isSelected = UIConfManager.uiConf.logScrollBackSplitFileEnabled
         filteredTableModel.scrollBackSplitFile = UIConfManager.uiConf.logScrollBackSplitFileEnabled
@@ -681,7 +557,98 @@ class MainUI(title: String) : JFrame() {
         IsCreatingUI = false
     }
 
-    inner class StatusChangeListener : PropertyChangeListener, DocumentListener {
+    private fun registerEvent() {
+        addWindowListener(object : WindowAdapter() {
+            override fun windowClosing(e: WindowEvent) {
+                exit()
+            }
+        })
+
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher { event ->
+            if (event.keyCode == KeyEvent.VK_PAGE_DOWN && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
+                splitLogPane.filteredLogPanel.goToLast()
+                splitLogPane.fullLogPanel.goToLast()
+            } else if (event.keyCode == KeyEvent.VK_PAGE_UP && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
+                splitLogPane.filteredLogPanel.goToFirst()
+                splitLogPane.fullLogPanel.goToFirst()
+            } else if (event.keyCode == KeyEvent.VK_L && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
+                deviceCombo.requestFocus()
+            } else if (event.keyCode == KeyEvent.VK_R && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
+                reconnectAdb()
+            } else if (event.keyCode == KeyEvent.VK_G && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0) {
+                val goToDialog = GoToDialog(this@MainUI)
+                goToDialog.setLocationRelativeTo(this@MainUI)
+                goToDialog.isVisible = true
+                if (goToDialog.line != -1) {
+                    goToLine(goToDialog.line)
+                } else {
+                    GLog.d(TAG, "Cancel Goto Line")
+                }
+            }
+
+            false
+        }
+
+        // fix bug: event registered for editor in ComboBox will be removed when ComboBoxUI changed
+        registerComboBoxEditorEvent()
+
+        logToolBar.addMouseListener(frameMouseListener)
+        logToolBar.addMouseListener(mouseHandler)
+        startBtn.addActionListener(actionHandler)
+        startBtn.addMouseListener(mouseHandler)
+        retryAdbToggle.addItemListener(itemHandler)
+        pauseToggle.addItemListener(itemHandler)
+        stopBtn.addActionListener(actionHandler)
+        stopBtn.addMouseListener(mouseHandler)
+        clearViewsBtn.addActionListener(actionHandler)
+        clearViewsBtn.addMouseListener(mouseHandler)
+        saveBtn.addActionListener(actionHandler)
+        saveBtn.addMouseListener(mouseHandler)
+        showLogCombo.addPopupMenuListener(popupMenuHandler)
+        showLogToggle.addItemListener(itemHandler)
+        boldLogToggle.addItemListener(itemHandler)
+        showTagToggle.addItemListener(itemHandler)
+        showPidToggle.addItemListener(itemHandler)
+        showTidToggle.addItemListener(itemHandler)
+        logCmdCombo.addPopupMenuListener(popupMenuHandler)
+        adbConnectBtn.addActionListener(actionHandler)
+        adbRefreshBtn.addActionListener(actionHandler)
+        adbDisconnectBtn.addActionListener(actionHandler)
+        matchCaseToggle.addItemListener(itemHandler)
+        scrollBackApplyBtn.addActionListener(actionHandler)
+        scrollBackKeepToggle.addItemListener(itemHandler)
+        scrollBackTF.addKeyListener(keyHandler)
+        scrollBackSplitFileToggle.addItemListener(itemHandler)
+        filterPanel.addMouseListener(mouseHandler)
+        toolBarPanel.addMouseListener(mouseHandler)
+        statusMethod.addPropertyChangeListener(statusChangeListener)
+        statusTF.document.addDocumentListener(statusChangeListener)
+        startFollowBtn.addActionListener(actionHandler)
+        startFollowBtn.addMouseListener(mouseHandler)
+        pauseFollowToggle.addItemListener(itemHandler)
+        stopFollowBtn.addActionListener(actionHandler)
+        stopFollowBtn.addMouseListener(mouseHandler)
+    }
+
+    fun registerComboBoxEditorEvent() {
+        showLogCombo.editor.editorComponent.addKeyListener(keyHandler)
+        showLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
+        highlightLogCombo.editor.editorComponent.addKeyListener(keyHandler)
+        highlightLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
+        showTagCombo.editor.editorComponent.addKeyListener(keyHandler)
+        showTagCombo.editor.editorComponent.addMouseListener(mouseHandler)
+        showPidCombo.editor.editorComponent.addKeyListener(keyHandler)
+        showPidCombo.editor.editorComponent.addMouseListener(mouseHandler)
+        showTidCombo.editor.editorComponent.addKeyListener(keyHandler)
+        showTidCombo.editor.editorComponent.addMouseListener(mouseHandler)
+        logCmdCombo.editor.editorComponent.addKeyListener(keyHandler)
+        logCmdCombo.editor.editorComponent.addMouseListener(mouseHandler)
+        deviceCombo.editor.editorComponent.addKeyListener(keyHandler)
+        deviceCombo.editor.editorComponent.addMouseListener(mouseHandler)
+        searchPanel.registerComboBoxEditorEvent()
+    }
+
+    inner class StatusChangeListener : PropertyChangeListener, DefaultDocumentListener() {
         private var method = ""
         override fun propertyChange(evt: PropertyChangeEvent) {
             if (evt.source == statusMethod && evt.propertyName == "text") {
@@ -689,14 +656,8 @@ class MainUI(title: String) : JFrame() {
             }
         }
 
-        override fun insertUpdate(evt: DocumentEvent) {
+        override fun insertUpdate(e: DocumentEvent) {
             updateTitleBar(method)
-        }
-
-        override fun removeUpdate(e: DocumentEvent) {
-        }
-
-        override fun changedUpdate(evt: DocumentEvent) {
         }
     }
 
@@ -783,7 +744,7 @@ class MainUI(title: String) : JFrame() {
 
     fun setSaveLogFile() {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH.mm.ss")
-        var device = deviceCombo.selectedItem!!.toString()
+        var device = deviceCombo.selectedItem?.toString() ?: ""
         device = device.substringBefore(":")
         if (LogCmdManager.prefix.isEmpty()) {
             LogCmdManager.prefix = STRINGS.ui.app
@@ -1128,18 +1089,18 @@ class MainUI(title: String) : JFrame() {
             override fun actionPerformed(event: ActionEvent) {
                 when (event.source) {
                     selectAllItem -> {
-                        combo.editor?.selectAll()
+                        combo.editor.selectAll()
                     }
 
                     copyItem -> {
-                        val editorCom = combo.editor?.editorComponent as JTextComponent
+                        val editorCom = combo.editor.editorComponent as JTextComponent
                         val stringSelection = StringSelection(editorCom.selectedText)
                         val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
                         clipboard.setContents(stringSelection, null)
                     }
 
                     pasteItem -> {
-                        val editorCom = combo.editor?.editorComponent as JTextComponent
+                        val editorCom = combo.editor.editorComponent as JTextComponent
                         editorCom.paste()
                     }
 
@@ -1195,7 +1156,7 @@ class MainUI(title: String) : JFrame() {
 
                     else -> {
                         val compo = event.source as JComponent
-                        val event = MouseEvent(
+                        val transformedEvent = MouseEvent(
                             compo.parent,
                             event.id,
                             event.`when`,
@@ -1206,7 +1167,7 @@ class MainUI(title: String) : JFrame() {
                             event.isPopupTrigger
                         )
 
-                        compo.parent.dispatchEvent(event)
+                        compo.parent.dispatchEvent(transformedEvent)
                     }
                 }
             } else {
@@ -1289,7 +1250,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun applyShowLogComboEditor() {
-        val editorCom = showLogCombo.editor?.editorComponent as JTextComponent
+        val editorCom = showLogCombo.editor.editorComponent as JTextComponent
         val text = editorCom.text
         setTextShowLogCombo(text)
         applyShowLogCombo()
@@ -1574,7 +1535,7 @@ class MainUI(title: String) : JFrame() {
                     if (combo.editor.item.toString() != item) {
                         return
                     }
-                    //resetComboItem(MainViewModel.logFilterHistory, MainViewModel.logFilterCurrentContent.value ?: "")
+                    resetComboItem(MainViewModel.logFilterHistory, MainViewModel.logFilterCurrentContent.value ?: "")
                     filteredTableModel.filterLog = MainViewModel.logFilterCurrentContent.value ?: ""
                     combo.updateTooltip()
                 }
@@ -1716,77 +1677,74 @@ class MainUI(title: String) : JFrame() {
     }
 
     inner class SearchPanel : JPanel() {
-        val closeBtn: JButton = JButton("X")
-        val searchCombo: FilterComboBox = getFilterComboBox(useColorTag = false)
-        val searchMatchCaseToggle: ColorToggleButton = ColorToggleButton("Aa")
-        private var targetLabel: JLabel
-        private var upBtn: JButton
-        private var downBtn: JButton
-
+        val closeBtn: JButton = JButton("X") applyTooltip STRINGS.toolTip.searchCloseBtn
+        val searchCombo: FilterComboBox = getFilterComboBox(useColorTag = false) applyTooltip STRINGS.toolTip.searchCombo
+        val searchMatchCaseToggle: ColorToggleButton = ColorToggleButton("Aa") applyTooltip STRINGS.toolTip.searchCaseToggle
         var isInternalTargetView = true  // true : filter view, false : full view
+
+        private var targetLabel: JLabel = if (isInternalTargetView) {
+            JLabel("${STRINGS.ui.filter} ${STRINGS.ui.log}")
+        } else {
+            JLabel("${STRINGS.ui.full} ${STRINGS.ui.log}")
+        } applyTooltip STRINGS.toolTip.searchTargetLabel
+        private val upBtn: JButton = JButton(AllIcons.Arrow.Thick.Up.get()) applyTooltip STRINGS.toolTip.searchPrevBtn //△ ▲ ▽ ▼
+        private val downBtn: JButton = JButton(AllIcons.Arrow.Thick.Down.get()) applyTooltip STRINGS.toolTip.searchNextBtn
+        private val contentPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
+        private val statusPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 5, 2))
 
         private val searchActionHandler = SearchActionHandler()
         private val searchKeyHandler = SearchKeyHandler()
         private val searchPopupMenuHandler = SearchPopupMenuHandler()
 
         init {
-            if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-                searchCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
-            }
+            configureUI()
+            registerEvent()
+        }
 
-            searchCombo.toolTipText = STRINGS.toolTip.searchCombo
+        private fun configureUI() {
             searchCombo.enabledTfTooltip = false
             searchCombo.isEditable = true
-            searchCombo.editor.editorComponent.addKeyListener(searchKeyHandler)
-            searchCombo.addPopupMenuListener(searchPopupMenuHandler)
 
-            searchMatchCaseToggle.toolTipText = STRINGS.toolTip.searchCaseToggle
             searchMatchCaseToggle.margin = Insets(0, 0, 0, 0)
-            searchMatchCaseToggle.addItemListener(SearchItemHandler())
             searchMatchCaseToggle.background = background
             searchMatchCaseToggle.border = BorderFactory.createEmptyBorder()
 
-            upBtn = JButton(AllIcons.Arrow.Thick.Up.get()) //△ ▲ ▽ ▼
-            upBtn.toolTipText = STRINGS.toolTip.searchPrevBtn
             upBtn.margin = Insets(0, 7, 0, 7)
-            upBtn.addActionListener(searchActionHandler)
             upBtn.background = background
             upBtn.border = BorderFactory.createEmptyBorder()
 
-            downBtn = JButton(AllIcons.Arrow.Thick.Down.get()) //△ ▲ ▽ ▼
-            downBtn.toolTipText = STRINGS.toolTip.searchNextBtn
             downBtn.margin = Insets(0, 7, 0, 7)
-            downBtn.addActionListener(searchActionHandler)
             downBtn.background = background
             downBtn.border = BorderFactory.createEmptyBorder()
 
-            targetLabel = if (isInternalTargetView) {
-                JLabel("${STRINGS.ui.filter} ${STRINGS.ui.log}")
-            } else {
-                JLabel("${STRINGS.ui.full} ${STRINGS.ui.log}")
-            }
-            targetLabel.toolTipText = STRINGS.toolTip.searchTargetLabel
-
-            closeBtn.toolTipText = STRINGS.toolTip.searchCloseBtn
             closeBtn.margin = Insets(0, 0, 0, 0)
-            closeBtn.addActionListener(searchActionHandler)
             closeBtn.background = background
             closeBtn.border = BorderFactory.createEmptyBorder()
 
+            contentPanel.add(searchCombo)
+            contentPanel.add(searchMatchCaseToggle)
+            contentPanel.add(upBtn)
+            contentPanel.add(downBtn)
 
-            val searchPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
-            searchPanel.add(searchCombo)
-            searchPanel.add(searchMatchCaseToggle)
-            searchPanel.add(upBtn)
-            searchPanel.add(downBtn)
-
-            val statusPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 5, 2))
             statusPanel.add(targetLabel)
             statusPanel.add(closeBtn)
 
             layout = BorderLayout()
-            add(searchPanel, BorderLayout.WEST)
+            add(contentPanel, BorderLayout.WEST)
             add(statusPanel, BorderLayout.EAST)
+        }
+
+        private fun registerEvent() {
+            registerComboBoxEditorEvent()
+            searchCombo.addPopupMenuListener(searchPopupMenuHandler)
+            searchMatchCaseToggle.addItemListener(SearchItemHandler())
+            upBtn.addActionListener(searchActionHandler)
+            downBtn.addActionListener(searchActionHandler)
+            closeBtn.addActionListener(searchActionHandler)
+        }
+
+        fun registerComboBoxEditorEvent() {
+            searchCombo.editor.editorComponent.addKeyListener(searchKeyHandler)
         }
 
         override fun setVisible(aFlag: Boolean) {
@@ -1841,8 +1799,8 @@ class MainUI(title: String) : JFrame() {
                     }
 
                     closeBtn -> {
-                        searchPanel.isVisible = false
-                        viewMenu.itemSearch.state = searchPanel.isVisible
+                        contentPanel.isVisible = false
+                        viewMenu.itemSearch.state = contentPanel.isVisible
                     }
                 }
             }
@@ -1855,7 +1813,7 @@ class MainUI(title: String) : JFrame() {
                         searchCombo.editor.editorComponent -> {
                             resetComboItem(MainViewModel.searchHistory, MainViewModel.searchCurrentContent.value ?: "")
                             filteredTableModel.filterSearchLog = MainViewModel.searchCurrentContent.value ?: ""
-                            if (KeyEvent.SHIFT_MASK == event.modifiersEx) {
+                            if (KeyEvent.SHIFT_DOWN_MASK == event.modifiersEx) {
                                 moveToPrev()
                             } else {
                                 moveToNext()
@@ -1968,9 +1926,8 @@ class MainUI(title: String) : JFrame() {
             splitLogPane.filteredLogPanel
         } else {
             splitLogPane.fullLogPanel
-        }
+        } applyTooltip result
 
-        targetPanel.toolTipText = result
         if (isNext) {
             ToolTipManager.sharedInstance()
                 .mouseMoved(MouseEvent(targetPanel, 0, 0, 0, targetPanel.width / 3, targetPanel.height - 50, 0, false))
