@@ -2,11 +2,13 @@ package me.gegenbauer.logviewer.ui.combobox
 
 import me.gegenbauer.logviewer.databinding.bind.Bindings
 import me.gegenbauer.logviewer.databinding.bind.componentName
+import me.gegenbauer.logviewer.databinding.bind.withName
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.combobox.highlight.CustomEditorDarkComboBoxUI
 import me.gegenbauer.logviewer.ui.combobox.highlight.Highlightable
 import me.gegenbauer.logviewer.ui.combobox.highlight.HighlighterEditor
+import me.gegenbauer.logviewer.utils.applyTooltip
 import java.awt.event.MouseEvent
 import javax.swing.ComboBoxEditor
 import javax.swing.JComboBox
@@ -17,11 +19,10 @@ import javax.swing.event.DocumentListener
 import javax.swing.plaf.ComboBoxUI
 import javax.swing.text.JTextComponent
 
-class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTag: Boolean = true, tooltip: String? = null) : JComboBox<String>() {
+class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTag: Boolean = true, private val tooltip: String? = null) : JComboBox<String>() {
 
     private val editorComponent: JTextComponent // create new instance when theme changed(setUI invoked)
         get() = getEditor().editorComponent as JTextComponent
-    private var customUI: CustomEditorDarkComboBoxUI? = null
     private lateinit var customEditor: HighlighterEditor
 
     var enabledTfTooltip = false
@@ -39,24 +40,22 @@ class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTa
 
     init {
         toolTipText = tooltip
-        editorComponent.apply {
-            toolTipText = this@FilterComboBox.toolTipText
-            componentName = this@FilterComboBox.componentName
-        }
+        editorComponent applyTooltip toolTipText
+        editorComponent withName componentName
         customEditor.useColorTag = useColorTag
     }
 
     override fun setUI(ui: ComboBoxUI?) {
-        if (customUI != null) {
-            super.setUI(customUI)
-        } else {
-            super.setUI(CustomEditorDarkComboBoxUI(HighlighterEditor().apply {
-                if (::customEditor.isInitialized) {
-                    Bindings.rebind(customEditor.editorComponent as JComponent, this.editorComponent as JComponent)
-                }
-                customEditor = this
-            }))
-        }
+        super.setUI(CustomEditorDarkComboBoxUI(HighlighterEditor().apply {
+            if (::customEditor.isInitialized) {
+                Bindings.rebind(customEditor.editorComponent as JComponent, this.editorComponent as JComponent)
+                this.useColorTag = this@FilterComboBox.useColorTag
+                this.editorComponent as JTextComponent applyTooltip tooltip
+                this.editorComponent as JTextComponent withName this@FilterComboBox.componentName
+            }
+            customEditor = this
+        }))
+        toolTipText = tooltip
     }
 
     override fun getEditor(): ComboBoxEditor {
@@ -122,9 +121,9 @@ class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTa
         return
     }
 
-    fun updateHighlight() {
-        val editorComponent = editor as Highlightable
-        editorComponent.setEnableHighlighter(enableHighlight)
+    private fun updateHighlight() {
+        val highlightableEditor = editor as Highlightable
+        highlightableEditor.setEnableHighlighter(enableHighlight)
     }
 
     fun removeColorTag() {
@@ -289,9 +288,13 @@ class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTa
     }
 }
 
-fun getFilterComboBox(enableHighlight: Boolean = true, useColorTag: Boolean = true, tooltip: String? = null): FilterComboBox {
+fun filterComboBox(enableHighlight: Boolean = true, useColorTag: Boolean = true, tooltip: String? = null): FilterComboBox {
     val comboBox = FilterComboBox(enableHighlight, useColorTag, tooltip)
     comboBox.isEditable = true
     comboBox.addTooltipUpdateListener()
     return comboBox
+}
+
+fun darkComboBox(tooltip: String? = null): FilterComboBox {
+    return filterComboBox(enableHighlight = false, useColorTag = false, tooltip)
 }

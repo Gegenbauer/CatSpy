@@ -1,7 +1,7 @@
 package me.gegenbauer.logviewer.ui.combobox.highlight
 
 import com.github.weisj.darklaf.ui.combobox.DarkComboBoxUI
-import java.awt.event.FocusAdapter
+import me.gegenbauer.logviewer.databinding.property.support.DefaultFocusListener
 import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
@@ -28,13 +28,8 @@ class CustomEditorDarkComboBoxUI(private val customEditor: ComboBoxEditor): Dark
                 process(e)
             }
         })
-        comp.addFocusListener(object : FocusAdapter() {
-            override fun focusGained(e: FocusEvent) {
-                comboBox.revalidate()
-                comboBox.repaint()
-            }
-
-            override fun focusLost(e: FocusEvent) {
+        comp.addFocusListener(object : DefaultFocusListener() {
+            override fun focusChanged(e: FocusEvent) {
                 comboBox.revalidate()
                 comboBox.repaint()
             }

@@ -28,6 +28,12 @@ internal fun JComponent.getOrCreateBindingCache(): MutableMap<ObservableComponen
     return bindingCache
 }
 
+var JComponent.bindingCache: MutableMap<ObservableComponentProperty<*>, BindingItem>?
+    get() = getClientProperty(KEY_BINDING_CACHE) as? MutableMap<ObservableComponentProperty<*>, BindingItem>
+    set(value) {
+        putClientProperty(KEY_BINDING_CACHE, value)
+    }
+
 /**
  * 一个 Component 的一个属性与一个 ViewModel 的一个属性构建一种类型的绑定关系
  * Source means ComponentProperty, target means ViewModelProperty

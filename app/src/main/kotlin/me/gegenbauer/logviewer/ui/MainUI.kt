@@ -23,7 +23,8 @@ import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
 import me.gegenbauer.logviewer.ui.button.*
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
-import me.gegenbauer.logviewer.ui.combobox.getFilterComboBox
+import me.gegenbauer.logviewer.ui.combobox.darkComboBox
+import me.gegenbauer.logviewer.ui.combobox.filterComboBox
 import me.gegenbauer.logviewer.ui.container.WrapablePanel
 import me.gegenbauer.logviewer.ui.dialog.GoToDialog
 import me.gegenbauer.logviewer.ui.dialog.LogTableDialog
@@ -36,10 +37,7 @@ import me.gegenbauer.logviewer.ui.menu.HelpMenu
 import me.gegenbauer.logviewer.ui.menu.SettingsMenu
 import me.gegenbauer.logviewer.ui.menu.ViewMenu
 import me.gegenbauer.logviewer.ui.panel.SplitLogPane
-import me.gegenbauer.logviewer.utils.applyTooltip
-import me.gegenbauer.logviewer.utils.getEnum
-import me.gegenbauer.logviewer.utils.loadIcon
-import me.gegenbauer.logviewer.utils.loadIconWithRealSize
+import me.gegenbauer.logviewer.utils.*
 import me.gegenbauer.logviewer.viewmodel.MainViewModel
 import java.awt.*
 import java.awt.datatransfer.Clipboard
@@ -177,17 +175,17 @@ class MainUI(title: String) : JFrame(title) {
     private val showLogPanel = JPanel()
     val matchCaseToggle = ColorToggleButton("Aa", STRINGS.toolTip.caseToggle)
     private val matchCaseTogglePanel = JPanel(GridLayout(1, 1))
-    val showLogCombo = getFilterComboBox(tooltip = STRINGS.toolTip.logCombo) withName STRINGS.ui.log
+    val showLogCombo = filterComboBox(tooltip = STRINGS.toolTip.logCombo) withName STRINGS.ui.log
     val showLogToggle = ColorToggleButton(STRINGS.ui.log, STRINGS.toolTip.logToggle)
     private val showLogTogglePanel = JPanel(GridLayout(1, 1))
 
-    val showPidCombo = getFilterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.pidCombo) withName STRINGS.ui.pid
-    val showTagCombo = getFilterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.tagCombo) withName STRINGS.ui.tag
-    val showTidCombo = getFilterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.tidCombo) withName STRINGS.ui.tid
+    val showPidCombo = filterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.pidCombo) withName STRINGS.ui.pid
+    val showTagCombo = filterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.tagCombo) withName STRINGS.ui.tag
+    val showTidCombo = filterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.tidCombo) withName STRINGS.ui.tid
     private var selectedLine = 0
 
     private val boldLogPanel = JPanel()
-    val highlightLogCombo = getFilterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.boldCombo)
+    val highlightLogCombo = filterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.boldCombo)
     val boldLogToggle = ColorToggleButton(STRINGS.ui.bold, STRINGS.toolTip.boldToggle)
     private val boldLogTogglePanel = JPanel(GridLayout(1, 1))
     private val showTagPanel = JPanel()
@@ -199,8 +197,8 @@ class MainUI(title: String) : JFrame(title) {
     private val showTidPanel = JPanel()
     val showTidToggle = ColorToggleButton(STRINGS.ui.tid, STRINGS.toolTip.tidToggle)
     private val showTidTogglePanel = JPanel(GridLayout(1, 1))
-    private val logCmdCombo = JComboBox<String>().apply { isEditable = true } applyTooltip STRINGS.toolTip.logCmdCombo
-    val deviceCombo = JComboBox<String>().apply { isEditable = true } applyTooltip STRINGS.toolTip.devicesCombo
+    val logCmdCombo = darkComboBox(STRINGS.toolTip.logCmdCombo)
+    val deviceCombo = darkComboBox(STRINGS.toolTip.devicesCombo)
     private val deviceStatus = JLabel("None", JLabel.LEFT) // TODO 整理设备连接状态相关的代码
     val adbConnectBtn = StatefulButton(loadIcon("connect.png"), STRINGS.ui.connect, STRINGS.toolTip.connectBtn)
     val adbRefreshBtn = StatefulButton(loadIcon("refresh.png"), STRINGS.ui.refresh, STRINGS.toolTip.refreshBtn)
@@ -1093,14 +1091,14 @@ class MainUI(title: String) : JFrame(title) {
                     }
 
                     copyItem -> {
-                        val editorCom = combo.editor.editorComponent as JTextComponent
+                        val editorCom = combo.editorComponent
                         val stringSelection = StringSelection(editorCom.selectedText)
                         val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
                         clipboard.setContents(stringSelection, null)
                     }
 
                     pasteItem -> {
-                        val editorCom = combo.editor.editorComponent as JTextComponent
+                        val editorCom = combo.editorComponent
                         editorCom.paste()
                     }
 
@@ -1250,7 +1248,7 @@ class MainUI(title: String) : JFrame(title) {
     }
 
     fun applyShowLogComboEditor() {
-        val editorCom = showLogCombo.editor.editorComponent as JTextComponent
+        val editorCom = showLogCombo.editorComponent
         val text = editorCom.text
         setTextShowLogCombo(text)
         applyShowLogCombo()
@@ -1678,7 +1676,7 @@ class MainUI(title: String) : JFrame(title) {
 
     inner class SearchPanel : JPanel() {
         val closeBtn: JButton = JButton("X") applyTooltip STRINGS.toolTip.searchCloseBtn
-        val searchCombo: FilterComboBox = getFilterComboBox(useColorTag = false) applyTooltip STRINGS.toolTip.searchCombo
+        val searchCombo: FilterComboBox = filterComboBox(useColorTag = false) applyTooltip STRINGS.toolTip.searchCombo
         val searchMatchCaseToggle: ColorToggleButton = ColorToggleButton("Aa") applyTooltip STRINGS.toolTip.searchCaseToggle
         var isInternalTargetView = true  // true : filter view, false : full view
 

@@ -8,7 +8,7 @@ import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
-import me.gegenbauer.logviewer.ui.combobox.getFilterComboBox
+import me.gegenbauer.logviewer.ui.combobox.filterComboBox
 import me.gegenbauer.logviewer.utils.Utils
 import me.gegenbauer.logviewer.utils.loadIcon
 import java.awt.*
@@ -239,7 +239,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             confirmLabel = JLabel("To apply \"Style\" need to restart")
 
             exampleLabel = JLabel("Ex : ")
-            exampleCombo = getFilterComboBox(useColorTag = true) withName "exampleCombo"
+            exampleCombo = filterComboBox(useColorTag = true) withName "exampleCombo"
             exampleCombo.isEditable = true
             exampleCombo.preferredSize = Dimension(250, 30)
             exampleCombo.addItem("ABC|DEF|-GHI|JKL")
