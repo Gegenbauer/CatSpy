@@ -81,6 +81,9 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
     }
 
     override fun updateHighlighter() {
+        if (!isHighlightEnabled) {
+            return
+        }
         val painterInclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(fontBackgroundInclude)
         val painterExclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorManager.filterStyleExclude)
         val painterSeparator: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorManager.filterStyleSeparator)

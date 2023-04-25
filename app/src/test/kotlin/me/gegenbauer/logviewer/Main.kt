@@ -13,7 +13,7 @@ import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.configuration.ThemeManager
 import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
-import me.gegenbauer.logviewer.ui.combobox.getFilterComboBox
+import me.gegenbauer.logviewer.ui.combobox.filterComboBox
 import me.gegenbauer.logviewer.viewmodel.GlobalPropertySynchronizer
 import java.awt.Dimension
 import java.awt.Graphics
@@ -42,7 +42,7 @@ fun main() {
         val button2 = CustomButton("Button2")
         button1.isContentAreaFilled = true
         button1.isRolloverEnabled = true
-        val comboBox = getFilterComboBox()
+        val comboBox = filterComboBox()
         comboBox.addItem("1")
         val comboBox2 = JComboBox(arrayOf("1", "2", "3"))
         comboBox2.isEditable = true

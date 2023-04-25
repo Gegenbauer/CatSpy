@@ -11,12 +11,12 @@ import me.gegenbauer.logviewer.databinding.property.support.listProperty
 import me.gegenbauer.logviewer.databinding.property.support.selectedIndexProperty
 import me.gegenbauer.logviewer.databinding.property.support.textProperty
 import me.gegenbauer.logviewer.log.GLog
+import me.gegenbauer.logviewer.ui.combobox.darkComboBox
+import me.gegenbauer.logviewer.utils.editorComponent
 import java.awt.Dimension
 import javax.swing.JButton
-import javax.swing.JComboBox
 import javax.swing.JFrame
 import javax.swing.JPanel
-import javax.swing.text.JTextComponent
 
 fun main() {
     AppScope.launch(Dispatchers.UI) {
@@ -26,7 +26,7 @@ fun main() {
         val panel = JPanel()
         val bt = JButton("C")
         panel.add(bt)
-        val cb = JComboBox<String>()
+        val cb = darkComboBox()
         cb.preferredSize = Dimension(200, 30)
         panel.add(cb)
         cb.isEditable = true
@@ -36,7 +36,7 @@ fun main() {
         }
         Bindings.bind(listProperty(cb), vm.items)
         Bindings.bind(selectedIndexProperty(cb), vm.selectedIndex)
-        Bindings.bind(textProperty(cb.editor.editorComponent as JTextComponent), vm.currentContent)
+        Bindings.bind(textProperty(cb.editorComponent), vm.currentContent)
         vm.selectedIndex.addObserver {
             it ?: return@addObserver
             val currentItems = vm.items.value

@@ -2,16 +2,11 @@ package me.gegenbauer.logviewer.viewmodel
 
 import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.databinding.bind.*
-import me.gegenbauer.logviewer.databinding.bind.bindDual
-import me.gegenbauer.logviewer.databinding.bind.bindLeft
-import me.gegenbauer.logviewer.databinding.bind.bindRight
-import me.gegenbauer.logviewer.databinding.bind.updateListByLRU
 import me.gegenbauer.logviewer.databinding.property.support.*
-import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.ButtonDisplayMode
+import me.gegenbauer.logviewer.utils.editorComponent
 import javax.swing.JComponent
-import javax.swing.text.JTextComponent
 
 object MainViewModel {
     private const val TAG = "MainViewModel"
@@ -71,43 +66,43 @@ object MainViewModel {
             visibilityProperty(showLogCombo) bindDual logFilterEnabled
             listProperty(showLogCombo) bindDual logFilterHistory
             selectedIndexProperty(showLogCombo) bindLeft logFilterSelectedIndex
-            textProperty(showLogCombo.editor.editorComponent as JTextComponent) bindDual logFilterCurrentContent
+            textProperty(showLogCombo.editorComponent) bindDual logFilterCurrentContent
 
             selectedProperty(showTagToggle) bindDual tagFilterEnabled
             enabledProperty(showTagCombo) bindDual tagFilterEnabled
             visibilityProperty(showTagCombo) bindDual tagFilterEnabled
             listProperty(showTagCombo) bindDual tagFilterHistory
             selectedIndexProperty(showTagCombo) bindDual tagFilterSelectedIndex
-            textProperty(showTagCombo.editor.editorComponent as JTextComponent) bindDual tagFilterCurrentContent
+            textProperty(showTagCombo.editorComponent) bindDual tagFilterCurrentContent
 
             selectedProperty(showPidToggle) bindDual pidFilterEnabled
             enabledProperty(showPidCombo) bindDual pidFilterEnabled
             visibilityProperty(showPidCombo) bindDual pidFilterEnabled
             listProperty(showPidCombo) bindDual pidFilterHistory
             selectedIndexProperty(showPidCombo) bindLeft pidFilterSelectedIndex
-            textProperty(showPidCombo.editor.editorComponent as JTextComponent) bindDual pidFilterCurrentContent
+            textProperty(showPidCombo.editorComponent) bindDual pidFilterCurrentContent
 
             selectedProperty(showTidToggle) bindDual tidFilterEnabled
             enabledProperty(showTidCombo) bindDual tidFilterEnabled
             visibilityProperty(showTidCombo) bindDual tidFilterEnabled
             listProperty(showTidCombo) bindDual tidFilterHistory
             selectedIndexProperty(showTidCombo) bindLeft tidFilterSelectedIndex
-            textProperty(showTidCombo.editor.editorComponent as JTextComponent) bindDual tidFilterCurrentContent
+            textProperty(showTidCombo.editorComponent) bindDual tidFilterCurrentContent
 
             selectedProperty(boldLogToggle) bindDual highlightEnabled
             enabledProperty(highlightLogCombo) bindDual highlightEnabled
             visibilityProperty(highlightLogCombo) bindDual highlightEnabled
             listProperty(highlightLogCombo) bindDual highlightHistory
             selectedIndexProperty(highlightLogCombo) bindLeft highlightSelectedIndex
-            textProperty(highlightLogCombo.editor.editorComponent as JTextComponent) bindDual highlightCurrentContent
+            textProperty(highlightLogCombo.editorComponent) bindDual highlightCurrentContent
 
             listProperty(searchPanel.searchCombo) bindDual searchHistory
             selectedIndexProperty(searchPanel.searchCombo) bindLeft searchSelectedIndex
-            textProperty(searchPanel.searchCombo.editor.editorComponent as JTextComponent) bindDual searchCurrentContent
+            textProperty(searchPanel.searchCombo.editorComponent) bindDual searchCurrentContent
 
             listProperty(deviceCombo) bindDual connectedDevices
             selectedIndexProperty(deviceCombo) bindLeft deviceSelectedIndex
-            textProperty(deviceCombo.editor.editorComponent as JTextComponent) bindDual currentDevice
+            textProperty(deviceCombo.editorComponent) bindDual currentDevice
 
             selectedProperty(matchCaseToggle) bindDual filterMatchCaseEnabled
 

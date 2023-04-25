@@ -16,11 +16,14 @@ import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.viewmodel.GlobalPropertySynchronizer
+import java.awt.Container
 import java.util.*
 import javax.swing.UIDefaults
 
 class Main {
     companion object {
+        private const val TAG = "Main"
+
         @JvmStatic
         fun main(args: Array<String>) {
             AppScope.launch(Dispatchers.UI) {
@@ -40,6 +43,8 @@ class Main {
                 ThemeManager.applyTempTheme()
                 mainUI.isVisible = true
                 ThemeManager.registerDefaultThemeUpdateListener()
+
+                addClickListenerForAllComponents(mainUI.components)
             }
         }
 
@@ -59,6 +64,19 @@ class Main {
 
         private fun adjustAfterThemeLoaded(theme: Theme, properties: Properties) {
             properties["JButton.contentAreaFilled"] = true
+        }
+
+        private fun addClickListenerForAllComponents(components: Array<java.awt.Component>) {
+            components.forEach { component ->
+                component.addMouseListener(object : java.awt.event.MouseAdapter() {
+                    override fun mouseClicked(e: java.awt.event.MouseEvent?) {
+                        GLog.d(TAG, component.javaClass.name)
+                    }
+                })
+                if (component is Container) {
+                    addClickListenerForAllComponents(component.components)
+                }
+            }
         }
     }
 }
