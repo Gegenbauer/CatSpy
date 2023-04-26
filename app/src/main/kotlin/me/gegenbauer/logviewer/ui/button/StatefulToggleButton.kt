@@ -42,5 +42,6 @@ class StatefulToggleButton(
     init {
         componentName = originalText ?: ""
         toolTipText = tooltip
+        isRolloverEnabled = true
     }
 }

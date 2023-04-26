@@ -36,7 +36,7 @@ data class LogTableModelEvent(val source: LogTableModel, val dataChange: Int, va
     }
 }
 
-interface LogTableModelListener {
+fun interface LogTableModelListener {
     fun tableChanged(event: LogTableModelEvent)
 }
 
@@ -453,7 +453,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
     fun clearItems() {
         GLog.d(TAG, "isEventDispatchThread = ${SwingUtilities.isEventDispatchThread()}")
-
+        fireLogTableDataChanged(LogTableModelEvent(this, LogTableModelEvent.EVENT_CLEARED, 0))
         if (baseModel != null) {
             baseModel!!.goToLast = true
             goToLast = true

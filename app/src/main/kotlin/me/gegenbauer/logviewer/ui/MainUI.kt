@@ -31,12 +31,14 @@ import me.gegenbauer.logviewer.ui.dialog.LogTableDialog
 import me.gegenbauer.logviewer.ui.icon.DayNightIcon
 import me.gegenbauer.logviewer.ui.log.LogPanel
 import me.gegenbauer.logviewer.ui.log.LogTableModel
+import me.gegenbauer.logviewer.ui.log.LogTableModelEvent
 import me.gegenbauer.logviewer.ui.log.getLevelFromName
 import me.gegenbauer.logviewer.ui.menu.FileMenu
 import me.gegenbauer.logviewer.ui.menu.HelpMenu
 import me.gegenbauer.logviewer.ui.menu.SettingsMenu
 import me.gegenbauer.logviewer.ui.menu.ViewMenu
 import me.gegenbauer.logviewer.ui.panel.SplitLogPane
+import me.gegenbauer.logviewer.ui.state.EmptyStatePanel
 import me.gegenbauer.logviewer.utils.*
 import me.gegenbauer.logviewer.viewmodel.MainViewModel
 import java.awt.*
@@ -107,6 +109,8 @@ class MainUI(title: String) : JFrame(title) {
             searchPanel.setTargetView(it)
         }
     }
+
+    private val splitLogWithEmptyStatePane = EmptyStatePanel(splitLogPane)
 
     private val viewMenu = ViewMenu().apply {
         onItemFullClicked = {
@@ -547,7 +551,7 @@ class MainUI(title: String) : JFrame(title) {
         filteredTableModel.searchMatchCase = UIConfManager.uiConf.searchMatchCaseEnabled
 
         add(filterPanel, BorderLayout.NORTH)
-        add(splitLogPane, BorderLayout.CENTER)
+        add(splitLogWithEmptyStatePane, BorderLayout.CENTER)
         add(statusBar, BorderLayout.SOUTH)
 
         registerSearchStroke()
@@ -626,6 +630,21 @@ class MainUI(title: String) : JFrame(title) {
         pauseFollowToggle.addItemListener(itemHandler)
         stopFollowBtn.addActionListener(actionHandler)
         stopFollowBtn.addMouseListener(mouseHandler)
+
+        fullTableModel.addLogTableModelListener { event ->
+            if (event.dataChange == LogTableModelEvent.EVENT_CHANGED) {
+                splitLogWithEmptyStatePane.contentVisible = true
+            } else if (event.dataChange == LogTableModelEvent.EVENT_CLEARED) {
+                splitLogWithEmptyStatePane.contentVisible = false
+            }
+        }
+        filteredTableModel.addLogTableModelListener { event ->
+            if (event.dataChange == LogTableModelEvent.EVENT_CHANGED) {
+                splitLogWithEmptyStatePane.contentVisible = true
+            } else if (event.dataChange == LogTableModelEvent.EVENT_CLEARED) {
+                splitLogWithEmptyStatePane.contentVisible = false
+            }
+        }
     }
 
     fun registerComboBoxEditorEvent() {

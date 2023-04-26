@@ -10,11 +10,13 @@ class ColorToggleButton(
     title: String,
     tooltip: String? = null
 ) : JToggleButton(title) {
+
     init {
         icon = loadIcon("toggle_off.png")
         selectedIcon = loadIcon("toggle_on.png")
         margin = Insets(0, 0, 0, 0)
         componentName = title
         toolTipText = tooltip
+        isRolloverEnabled = true
     }
 }
