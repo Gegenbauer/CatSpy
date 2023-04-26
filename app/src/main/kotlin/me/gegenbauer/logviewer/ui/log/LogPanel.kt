@@ -15,13 +15,10 @@ import me.gegenbauer.logviewer.ui.button.TableBarButton
 import me.gegenbauer.logviewer.ui.container.WrapablePanel
 import me.gegenbauer.logviewer.ui.panel.VStatusPanel
 import me.gegenbauer.logviewer.ui.popup.PopUpLogPanel
-import me.gegenbauer.logviewer.utils.currentPlatform
+import me.gegenbauer.logviewer.utils.applyTooltip
 import me.gegenbauer.logviewer.utils.loadIcon
 import java.awt.*
-import java.awt.datatransfer.DataFlavor
 import java.awt.event.*
-import java.io.File
-import java.net.URI
 import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
@@ -34,19 +31,19 @@ class LogPanel constructor(
     var basePanel: LogPanel?,
     val focusHandler: FocusListener
 ) : JPanel() {
-    private val ctrlMainPanel: WrapablePanel
-    private var firstBtn: JButton
-    private var lastBtn: JButton
-    private var tagBtn: ColorToggleButton
-    private var pidBtn: ColorToggleButton
-    private var tidBtn: ColorToggleButton
-    private var windowedModeBtn: JButton
-    private var bookmarksBtn: ColorToggleButton
-    private var fullBtn: ColorToggleButton
+    private val ctrlMainPanel: WrapablePanel = WrapablePanel()
+    private val firstBtn = JButton(loadIcon<DerivableImageIcon>("top.png")) applyTooltip STRINGS.toolTip.viewFirstBtn
+    private val lastBtn = JButton(loadIcon<DerivableImageIcon>("bottom.png")) applyTooltip STRINGS.toolTip.viewLastBtn
+    private val tagBtn = ColorToggleButton(STRINGS.ui.tag) applyTooltip STRINGS.toolTip.viewTagToggle
+    private val pidBtn = ColorToggleButton(STRINGS.ui.pid) applyTooltip STRINGS.toolTip.viewPidToggle
+    private val tidBtn = ColorToggleButton(STRINGS.ui.tid) applyTooltip STRINGS.toolTip.viewTidToggle
+    private val windowedModeBtn = JButton(STRINGS.ui.windowedMode) applyTooltip STRINGS.toolTip.viewWindowedModeBtn
+    private val bookmarksBtn = ColorToggleButton(STRINGS.ui.bookmarks) applyTooltip STRINGS.toolTip.viewBookmarksToggle
+    private val fullBtn = ColorToggleButton(STRINGS.ui.full) applyTooltip STRINGS.toolTip.viewFullToggle
 
-    private val scrollPane: JScrollPane
-    private val vStatusPanel: VStatusPanel
-    private val table: LogTable
+    private val table = LogTable(tableModel)
+    private val scrollPane = JScrollPane(table)
+    private val vStatusPanel = VStatusPanel(table)
     private var selectedRow = -1
     private val adjustmentHandler = AdjustmentHandler()
     private val listSelectionHandler = ListSelectionHandler()
@@ -67,57 +64,28 @@ class LogPanel constructor(
 
     init {
         layout = BorderLayout()
-        ctrlMainPanel = WrapablePanel()
-        firstBtn = JButton("")
-        firstBtn.icon = loadIcon("top.png")
-        firstBtn.toolTipText = STRINGS.toolTip.viewFirstBtn
         firstBtn.margin = Insets(2, 3, 1, 3)
-
         firstBtn.addActionListener(actionHandler)
-        lastBtn = JButton("")
-        lastBtn.icon = loadIcon("bottom.png")
-        lastBtn.toolTipText = STRINGS.toolTip.viewLastBtn
         lastBtn.margin = Insets(2, 3, 1, 3)
         lastBtn.addActionListener(actionHandler)
-        tagBtn = ColorToggleButton(STRINGS.ui.tag)
-        tagBtn.toolTipText = STRINGS.toolTip.viewTagToggle
         tagBtn.margin = Insets(0, 3, 0, 3)
         tagBtn.addActionListener(actionHandler)
-        pidBtn = ColorToggleButton(STRINGS.ui.pid)
-        pidBtn.toolTipText = STRINGS.toolTip.viewPidToggle
         pidBtn.margin = Insets(0, 3, 0, 3)
         pidBtn.addActionListener(actionHandler)
-        tidBtn = ColorToggleButton(STRINGS.ui.tid)
-        tidBtn.toolTipText = STRINGS.toolTip.viewTidToggle
         tidBtn.margin = Insets(0, 3, 0, 3)
         tidBtn.addActionListener(actionHandler)
-        windowedModeBtn = JButton(STRINGS.ui.windowedMode)
-        windowedModeBtn.toolTipText = STRINGS.toolTip.viewWindowedModeBtn
         windowedModeBtn.margin = Insets(0, 3, 0, 3)
         windowedModeBtn.addActionListener(actionHandler)
-        bookmarksBtn = ColorToggleButton(STRINGS.ui.bookmarks)
-        bookmarksBtn.toolTipText = STRINGS.toolTip.viewBookmarksToggle
         bookmarksBtn.margin = Insets(0, 3, 0, 3)
         bookmarksBtn.addActionListener(actionHandler)
-        fullBtn = ColorToggleButton(STRINGS.ui.full)
-        fullBtn.toolTipText = STRINGS.toolTip.viewFullToggle
         fullBtn.margin = Insets(0, 3, 0, 3)
         fullBtn.addActionListener(actionHandler)
-
         updateTableBar(null)
-
         tableModel.addLogTableModelListener(tableModelHandler)
-        table = LogTable(tableModel)
         table.addFocusListener(this.focusHandler)
-
         table.columnSelectionAllowed = true
         table.selectionModel.addListSelectionListener(listSelectionHandler)
-        scrollPane = JScrollPane(table)
-
-        vStatusPanel = VStatusPanel(table)
-
         BookmarkManager.addBookmarkEventListener(bookmarkHandler)
-
         scrollPane.verticalScrollBar.setUI(BasicScrollBarUI())
         scrollPane.horizontalScrollBar.setUI(BasicScrollBarUI())
         scrollPane.verticalScrollBar.unitIncrement = 20
@@ -140,7 +108,6 @@ class LogPanel constructor(
         add(vStatusPanel, BorderLayout.WEST)
         add(scrollPane, BorderLayout.CENTER)
 
-        transferHandler = TableTransferHandler()
         addComponentListener(componentHandler)
 
         isCreatingUI = false
@@ -528,112 +495,6 @@ class LogPanel constructor(
                 table.tableModel.bookmarkMode = true
             }
             table.repaint()
-        }
-    }
-
-    internal inner class TableTransferHandler : TransferHandler() {
-        override fun canImport(info: TransferSupport): Boolean {
-            if (info.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                return true
-            }
-
-            if (info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                return true
-            }
-
-            return false
-        }
-
-        override fun importData(info: TransferSupport): Boolean {
-            GLog.d(TAG, "importData")
-            if (!info.isDrop) {
-                return false
-            }
-
-            val fileList: MutableList<File> = mutableListOf()
-
-            if (info.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                val data: String
-                try {
-                    data = info.transferable.getTransferData(DataFlavor.stringFlavor) as String
-                    val splitData = data.split("\n")
-
-                    for (item in splitData) {
-                        if (item.isNotEmpty()) {
-                            GLog.d(TAG, "importData item = $item")
-                            fileList.add(File(URI(item.trim())))
-                        }
-                    }
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                    return false
-                }
-            }
-
-            if (fileList.size == 0 && info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                val listFile: Any
-                try {
-                    listFile = info.transferable.getTransferData(DataFlavor.javaFileListFlavor)
-                    if (listFile is List<*>) {
-                        val iterator = listFile.iterator()
-                        while (iterator.hasNext()) {
-                            fileList.add(iterator.next() as File)
-                        }
-                    }
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                    return false
-                }
-            }
-
-            if (fileList.size > 0) {
-                val os = currentPlatform
-                GLog.d(TAG, "os = $os, drop = ${info.dropAction}, source drop = ${info.sourceDropActions}, user drop = ${info.userDropAction}")
-                val action = os.getFileDropAction(info)
-
-                var value = 1
-                if (action == COPY) {
-                    val options = arrayOf<Any>(
-                        STRINGS.ui.append,
-                        STRINGS.ui.open,
-                        STRINGS.ui.cancel
-                    )
-                    value = JOptionPane.showOptionDialog(
-                        mainUI, STRINGS.ui.msgSelectOpenMode,
-                        "",
-                        JOptionPane.YES_NO_CANCEL_OPTION,
-                        JOptionPane.PLAIN_MESSAGE,
-                        null,
-                        options,
-                        options[0]
-                    )
-                }
-
-                when (value) {
-                    0 -> {
-                        for (file in fileList) {
-                            mainUI.openFile(file.absolutePath, true)
-                        }
-                    }
-
-                    1 -> {
-                        var isFirst = true
-                        for (file in fileList) {
-                            if (isFirst) {
-                                mainUI.openFile(file.absolutePath, false)
-                                isFirst = false
-                            } else {
-                                mainUI.openFile(file.absolutePath, true)
-                            }
-                        }
-                    }
-
-                    else -> {
-                        GLog.d(TAG, "select cancel")
-                    }
-                }
-            }
-            return true
         }
     }
 
