@@ -1,10 +1,11 @@
 package me.gegenbauer.logviewer.manager
 
-import me.gegenbauer.logviewer.utils.Utils
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.MainUI.Companion.FLAT_DARK_LAF
+import me.gegenbauer.logviewer.ui.button.GButton
 import me.gegenbauer.logviewer.ui.log.LogPanel
+import me.gegenbauer.logviewer.utils.Utils
 import java.awt.*
 import java.awt.event.*
 import javax.swing.*
@@ -83,26 +84,26 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             scrollPane = JScrollPane(jList)
             scrollPane.preferredSize = Dimension(800, 500)
 
-            firstBtn = JButton("↑")
+            firstBtn = GButton("↑")
             firstBtn.addActionListener(this)
-            prevBtn = JButton("∧")
+            prevBtn = GButton("∧")
             prevBtn.addActionListener(this)
-            nextBtn = JButton("∨")
+            nextBtn = GButton("∨")
             nextBtn.addActionListener(this)
-            lastBtn = JButton("↓")
+            lastBtn = GButton("↓")
             lastBtn.addActionListener(this)
 
-            newBtn = JButton(STRINGS.ui.new)
+            newBtn = GButton(STRINGS.ui.new)
             newBtn.addActionListener(this)
-            copyBtn = JButton(STRINGS.ui.copy)
+            copyBtn = GButton(STRINGS.ui.copy)
             copyBtn.addActionListener(this)
-            editBtn = JButton(STRINGS.ui.edit)
+            editBtn = GButton(STRINGS.ui.edit)
             editBtn.addActionListener(this)
-            deleteBtn = JButton(STRINGS.ui.delete)
+            deleteBtn = GButton(STRINGS.ui.delete)
             deleteBtn.addActionListener(this)
-            saveBtn = JButton(STRINGS.ui.save)
+            saveBtn = GButton(STRINGS.ui.save)
             saveBtn.addActionListener(this)
-            closeBtn = JButton(STRINGS.ui.close)
+            closeBtn = GButton(STRINGS.ui.close)
             closeBtn.addActionListener(this)
             val bottomPanel = JPanel()
             bottomPanel.add(firstBtn)
@@ -350,7 +351,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             value: String,
             tableBar: Boolean
         ) : JDialog(parent, "Edit", true), ActionListener {
-            private var okBtn: JButton = JButton(STRINGS.ui.ok)
+            private var okBtn: JButton = GButton(STRINGS.ui.ok)
             private var cancelBtn: JButton
 
             private var titleLabel: JLabel
@@ -368,7 +369,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
 
             init {
                 okBtn.addActionListener(this)
-                cancelBtn = JButton(STRINGS.ui.cancel)
+                cancelBtn = GButton(STRINGS.ui.cancel)
                 cancelBtn.addActionListener(this)
 
                 titleLabel = JLabel("Title")

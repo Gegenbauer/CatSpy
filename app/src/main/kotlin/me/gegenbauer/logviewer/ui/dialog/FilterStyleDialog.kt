@@ -1,13 +1,12 @@
 package me.gegenbauer.logviewer.ui.dialog
 
-import me.gegenbauer.logviewer.utils.Utils
-import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
+import me.gegenbauer.logviewer.ui.button.GButton
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
-import me.gegenbauer.logviewer.utils.getEnum
+import me.gegenbauer.logviewer.utils.Utils
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
@@ -33,8 +32,8 @@ class FilterStyleDialog(private var parent: MainUI) : JDialog(parent, "${STRINGS
     private val styleComboArray = arrayOfNulls<JComboBox<String>>(ComboIdx.SIZE.value)
 
     private val confirmLabel: JLabel = JLabel("To apply \"Style\" need to restart")
-    private val okBtn: JButton = JButton(STRINGS.ui.ok)
-    private val cancelBtn: JButton = JButton(STRINGS.ui.cancel)
+    private val okBtn: JButton = GButton(STRINGS.ui.ok)
+    private val cancelBtn: JButton = GButton(STRINGS.ui.cancel)
 
     private val titleLabelArray = arrayOfNulls<ColorLabel>(ColorManager.filterStyle.size)
     private val colorLabelArray = arrayOfNulls<ColorLabel>(ColorManager.filterStyle.size)

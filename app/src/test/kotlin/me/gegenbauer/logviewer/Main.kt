@@ -64,7 +64,7 @@ fun main() {
     }
 }
 
-class CustomButton(text: String): JButton(text) {
+class CustomButton(text: String): GButton(text) {
 
 
     override fun setUI(ui: ButtonUI?) {

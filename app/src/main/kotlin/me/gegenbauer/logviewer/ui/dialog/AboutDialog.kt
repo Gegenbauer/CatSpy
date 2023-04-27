@@ -1,9 +1,10 @@
 package me.gegenbauer.logviewer.ui.dialog
 
-import me.gegenbauer.logviewer.utils.Utils
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.version
 import me.gegenbauer.logviewer.ui.MainUI
+import me.gegenbauer.logviewer.ui.button.GButton
+import me.gegenbauer.logviewer.utils.Utils
 import java.awt.BorderLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
@@ -11,7 +12,7 @@ import javax.swing.*
 
 class AboutDialog(parent: JFrame) :JDialog(parent, STRINGS.ui.about, true), ActionListener {
     private var aboutLabel: JLabel
-    private var closeBtn : JButton = JButton(STRINGS.ui.close)
+    private var closeBtn : JButton = GButton(STRINGS.ui.close)
     private var mainUI: MainUI
 
     init {

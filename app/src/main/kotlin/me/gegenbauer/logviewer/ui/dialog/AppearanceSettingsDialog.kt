@@ -7,6 +7,7 @@ import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
+import me.gegenbauer.logviewer.ui.button.GButton
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
 import me.gegenbauer.logviewer.ui.combobox.filterComboBox
 import me.gegenbauer.logviewer.utils.Utils
@@ -27,8 +28,8 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
     private val filterComboPanel = FilterComboPanel()
     private val fontColorPanel = FontColorPanel()
 
-    private val okBtn = JButton(STRINGS.ui.ok)
-    private val cancelBtn = JButton(STRINGS.ui.cancel)
+    private val okBtn = GButton(STRINGS.ui.ok)
+    private val cancelBtn = GButton(STRINGS.ui.cancel)
 
     init {
         addWindowListener(filterComboPanel)
@@ -358,7 +359,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             val radioLight = JRadioButton(STRINGS.ui.light)
             val radioDark = JRadioButton(STRINGS.ui.dark)
             val buttonGroup = ButtonGroup()
-            val schemeBtn = JButton(STRINGS.ui.apply)
+            val schemeBtn = GButton(STRINGS.ui.apply)
 
             schemeBtn.addActionListener {
                 if (radioLight.isSelected) {
@@ -661,7 +662,7 @@ class AppearanceSettingsDialog (private var mainUI: MainUI) : JDialog(mainUI, ST
             val radioLight = JRadioButton(STRINGS.ui.light)
             val radioDark = JRadioButton(STRINGS.ui.dark)
             val buttonGroup = ButtonGroup()
-            val schemeBtn = JButton(STRINGS.ui.apply)
+            val schemeBtn = GButton(STRINGS.ui.apply)
 
             schemeBtn.addActionListener(ActionListener {
                 val scheme: Array<String> = if (radioLight.isSelected) {

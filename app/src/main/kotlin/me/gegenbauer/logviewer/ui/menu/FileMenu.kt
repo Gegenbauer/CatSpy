@@ -75,7 +75,7 @@ class FileMenu : JMenu() {
         add(itemFileExit)
     }
 
-    private fun onClickFileOpen() {
+    fun onClickFileOpen() {
         val frame = findFrameFromParent(this)
         val fileDialog = FileDialog(frame, STRINGS.ui.file + " " + STRINGS.ui.open, FileDialog.LOAD)
         fileDialog.isMultipleMode = false
