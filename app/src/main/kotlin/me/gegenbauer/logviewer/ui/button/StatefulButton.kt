@@ -8,7 +8,7 @@ class StatefulButton(
     private val originalIcon: Icon? = null,
     private val originalText: String? = null,
     tooltip: String? = null
-) : JButton(originalText, originalIcon) {
+) : GButton(originalText, originalIcon) {
     var buttonDisplayMode = ButtonDisplayMode.ALL
         set(value) {
             field = value

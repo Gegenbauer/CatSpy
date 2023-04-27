@@ -11,6 +11,7 @@ import me.gegenbauer.logviewer.databinding.property.support.listProperty
 import me.gegenbauer.logviewer.databinding.property.support.selectedIndexProperty
 import me.gegenbauer.logviewer.databinding.property.support.textProperty
 import me.gegenbauer.logviewer.log.GLog
+import me.gegenbauer.logviewer.ui.button.GButton
 import me.gegenbauer.logviewer.ui.combobox.darkComboBox
 import me.gegenbauer.logviewer.utils.editorComponent
 import java.awt.Dimension
@@ -24,7 +25,7 @@ fun main() {
         GLog.DEBUG = true
         frame.size = Dimension(500, 500)
         val panel = JPanel()
-        val bt = JButton("C")
+        val bt = GButton("C")
         panel.add(bt)
         val cb = darkComboBox()
         cb.preferredSize = Dimension(200, 30)

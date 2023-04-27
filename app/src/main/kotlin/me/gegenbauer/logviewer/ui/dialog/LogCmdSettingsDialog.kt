@@ -1,14 +1,15 @@
 package me.gegenbauer.logviewer.ui.dialog
 
-import me.gegenbauer.logviewer.utils.Utils
+import me.gegenbauer.logviewer.command.LogCmdManager
 import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ConfigManager
-import me.gegenbauer.logviewer.command.LogCmdManager
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.addHSeparator
+import me.gegenbauer.logviewer.ui.button.GButton
+import me.gegenbauer.logviewer.utils.Utils
 import java.awt.*
 import java.awt.event.*
 import java.io.File
@@ -62,14 +63,14 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
 
     init {
         val rowHeight = 30
-        adbCmdBtn = JButton(STRINGS.ui.select)
+        adbCmdBtn = GButton(STRINGS.ui.select)
         adbCmdBtn.addActionListener(this)
         adbCmdBtn.preferredSize = Dimension(adbCmdBtn.preferredSize.width, rowHeight)
-        adbSaveBtn = JButton(STRINGS.ui.select)
+        adbSaveBtn = GButton(STRINGS.ui.select)
         adbSaveBtn.addActionListener(this)
-        okBtn = JButton(STRINGS.ui.ok)
+        okBtn = GButton(STRINGS.ui.ok)
         okBtn.addActionListener(this)
-        cancelBtn = JButton(STRINGS.ui.cancel)
+        cancelBtn = GButton(STRINGS.ui.cancel)
         cancelBtn.addActionListener(this)
 
         adbCmdLabel = JLabel(STRINGS.ui.adbPath)
@@ -293,13 +294,13 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
                 adbRadio.isSelected = true
             }
 
-            cmdBtn = JButton(STRINGS.ui.select)
+            cmdBtn = GButton(STRINGS.ui.select)
             cmdBtn.addActionListener(this)
             cmdBtn.preferredSize = Dimension(cmdBtn.preferredSize.width, rowHeight)
 
-            okBtn = JButton(STRINGS.ui.ok)
+            okBtn = GButton(STRINGS.ui.ok)
             okBtn.addActionListener(this)
-            cancelBtn = JButton(STRINGS.ui.cancel)
+            cancelBtn = GButton(STRINGS.ui.cancel)
             cancelBtn.addActionListener(this)
 
             val panel1 = JPanel(GridLayout(2, 1, 0, 2))

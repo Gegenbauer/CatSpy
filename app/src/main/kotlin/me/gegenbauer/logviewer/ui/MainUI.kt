@@ -110,7 +110,9 @@ class MainUI(title: String) : JFrame(title) {
         }
     }
 
-    private val splitLogWithEmptyStatePane = EmptyStatePanel(splitLogPane)
+    private val splitLogWithEmptyStatePane = EmptyStatePanel(splitLogPane) {
+        fileMenu.onClickFileOpen()
+    }
 
     private val viewMenu = ViewMenu().apply {
         onItemFullClicked = {
@@ -228,8 +230,8 @@ class MainUI(title: String) : JFrame(title) {
     private val statusMethod = JLabel("")
     private val statusTF = StatusTextField(STRINGS.ui.none) applyTooltip STRINGS.toolTip.savedFileTf
     private val followLabel = JLabel(" ${STRINGS.ui.follow} ")
-    private val startFollowBtn = JButton(STRINGS.ui.start) applyTooltip STRINGS.toolTip.startFollowBtn
-    private val stopFollowBtn = JButton(STRINGS.ui.stop) applyTooltip STRINGS.toolTip.stopFollowBtn
+    private val startFollowBtn = GButton(STRINGS.ui.start) applyTooltip STRINGS.toolTip.startFollowBtn
+    private val stopFollowBtn = GButton(STRINGS.ui.stop) applyTooltip STRINGS.toolTip.stopFollowBtn
     private val pauseFollowToggle = ColorToggleButton(STRINGS.ui.pause)
     private val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
 
@@ -1694,7 +1696,7 @@ class MainUI(title: String) : JFrame(title) {
     }
 
     inner class SearchPanel : JPanel() {
-        val closeBtn: JButton = JButton("X") applyTooltip STRINGS.toolTip.searchCloseBtn
+        val closeBtn: JButton = GButton("X") applyTooltip STRINGS.toolTip.searchCloseBtn
         val searchCombo: FilterComboBox = filterComboBox(useColorTag = false) applyTooltip STRINGS.toolTip.searchCombo
         val searchMatchCaseToggle: ColorToggleButton = ColorToggleButton("Aa") applyTooltip STRINGS.toolTip.searchCaseToggle
         var isInternalTargetView = true  // true : filter view, false : full view
@@ -1704,8 +1706,8 @@ class MainUI(title: String) : JFrame(title) {
         } else {
             JLabel("${STRINGS.ui.full} ${STRINGS.ui.log}")
         } applyTooltip STRINGS.toolTip.searchTargetLabel
-        private val upBtn: JButton = JButton(AllIcons.Arrow.Thick.Up.get()) applyTooltip STRINGS.toolTip.searchPrevBtn //△ ▲ ▽ ▼
-        private val downBtn: JButton = JButton(AllIcons.Arrow.Thick.Down.get()) applyTooltip STRINGS.toolTip.searchNextBtn
+        private val upBtn: JButton = GButton(AllIcons.Arrow.Thick.Up.get()) applyTooltip STRINGS.toolTip.searchPrevBtn //△ ▲ ▽ ▼
+        private val downBtn: JButton = GButton(AllIcons.Arrow.Thick.Down.get()) applyTooltip STRINGS.toolTip.searchNextBtn
         private val contentPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
         private val statusPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 5, 2))
 

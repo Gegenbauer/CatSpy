@@ -1,11 +1,12 @@
 package me.gegenbauer.logviewer.ui.dialog
 
-import me.gegenbauer.logviewer.utils.Utils
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
+import me.gegenbauer.logviewer.ui.button.GButton
+import me.gegenbauer.logviewer.utils.Utils
 import java.awt.*
 import java.awt.event.*
 import javax.swing.*
@@ -49,9 +50,9 @@ class FontDialog(parent: MainUI) : JDialog(parent, STRINGS.ui.font + " & " + STR
         nameScrollPane.verticalScrollBar.setUI(BasicScrollBarUI())
         nameScrollPane.horizontalScrollBar.setUI(BasicScrollBarUI())
         nameList.addListSelectionListener(ListSelectionHandler())
-        okBtn = JButton(STRINGS.ui.ok)
+        okBtn = GButton(STRINGS.ui.ok)
         okBtn.addActionListener(this)
-        cancelBtn = JButton(STRINGS.ui.cancel)
+        cancelBtn = GButton(STRINGS.ui.cancel)
         cancelBtn.addActionListener(this)
 
         sizeLabel = JLabel(STRINGS.ui.size)
@@ -188,7 +189,7 @@ class FontDialog(parent: MainUI) : JDialog(parent, STRINGS.ui.font + " & " + STR
         val radioLight = JRadioButton(STRINGS.ui.light)
         val radioDark = JRadioButton(STRINGS.ui.dark)
         val buttonGroup = ButtonGroup()
-        val schemeBtn = JButton(STRINGS.ui.apply)
+        val schemeBtn = GButton(STRINGS.ui.apply)
 
         schemeBtn.addActionListener {
             if (radioLight.isSelected) {

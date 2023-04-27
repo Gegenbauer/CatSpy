@@ -1,10 +1,11 @@
 package me.gegenbauer.logviewer.ui.dialog
 
-import me.gegenbauer.logviewer.utils.Utils
 import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
+import me.gegenbauer.logviewer.ui.button.GButton
+import me.gegenbauer.logviewer.utils.Utils
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -22,13 +23,13 @@ class AppearanceDialog(private val parent: MainUI) : JDialog(parent, STRINGS.ui.
     private var exampleLabel: JLabel
     private var baseFontSize = 0
 
-    private var okBtn: JButton = JButton(STRINGS.ui.ok)
+    private var okBtn: JButton = GButton(STRINGS.ui.ok)
     private var cancelBtn: JButton
     private val freDividerSize = parent.splitLogPane.dividerSize
 
     init {
         okBtn.addActionListener(this)
-        cancelBtn = JButton(STRINGS.ui.cancel)
+        cancelBtn = GButton(STRINGS.ui.cancel)
         cancelBtn.addActionListener(this)
 
         val lafPanel = JPanel()
