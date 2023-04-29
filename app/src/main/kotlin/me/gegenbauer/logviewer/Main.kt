@@ -15,6 +15,7 @@ import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
 import me.gegenbauer.logviewer.ui.MainUI
+import me.gegenbauer.logviewer.ui.VStatusPanel
 import me.gegenbauer.logviewer.viewmodel.GlobalPropertySynchronizer
 import java.awt.Container
 import java.util.*
@@ -33,9 +34,9 @@ class Main {
                     loadConfig()
                     GlobalPropertySynchronizer.init()
                 }
-                ThemeManager.installTheme()
                 ThemeManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
                 ThemeManager.registerInitTask(::adjustBeforeThemeLoaded)
+                ThemeManager.installTheme()
                 val mainUI = MainUI(STRINGS.ui.app)
                 ThemeManager.registerThemeUpdateListener { _->
                     mainUI.registerComboBoxEditorEvent()
@@ -58,12 +59,16 @@ class Main {
             ConfigManager.saveConfig()
         }
 
+        private val themeAwareControllers = listOf(
+            VStatusPanel,
+        )
+
         private fun adjustBeforeThemeLoaded(theme: Theme, defaults: UIDefaults) {
-            defaults["JButton.contentAreaFilled"] = true
+            themeAwareControllers.forEach { it.onThemeChanged(theme, defaults) }
         }
 
         private fun adjustAfterThemeLoaded(theme: Theme, properties: Properties) {
-            properties["JButton.contentAreaFilled"] = true
+            themeAwareControllers.forEach { it.onThemeChanged(theme, properties) }
         }
 
         private fun addClickListenerForAllComponents(components: Array<java.awt.Component>) {

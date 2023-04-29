@@ -1,7 +1,5 @@
 package me.gegenbauer.logviewer.ui.button
 
-import javax.swing.JButton
-
 class TableBarButton(title:String) : GButton(title){
     var value = ""
 

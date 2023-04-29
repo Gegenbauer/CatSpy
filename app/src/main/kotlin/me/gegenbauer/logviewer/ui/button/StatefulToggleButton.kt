@@ -4,6 +4,7 @@ import me.gegenbauer.logviewer.databinding.bind.componentName
 import me.gegenbauer.logviewer.ui.ToggleButton
 import javax.swing.Icon
 import javax.swing.JToggleButton
+import javax.swing.plaf.ButtonUI
 
 class StatefulToggleButton(
     private val originalIcon: Icon? = null,
@@ -12,36 +13,45 @@ class StatefulToggleButton(
     private val overrideDefaultToggleSelectedIcon: Icon? = null,
     private val overrideDefaultToggleIcon: Icon? = null,
     tooltip: String? = null
-) : JToggleButton(originalText, originalIcon) {
+) : JToggleButton(originalText, originalIcon), StatefulActionComponent {
 
     // TODO observe night mode change
-    var buttonDisplayMode = ButtonDisplayMode.ALL
+    override var buttonDisplayMode: ButtonDisplayMode? = ButtonDisplayMode.ALL
         set(value) {
             field = value
-            when (value) {
-                ButtonDisplayMode.TEXT -> {
-                    text = originalText
-                    icon = overrideDefaultToggleIcon ?: ToggleButton.defaultIconUnselected
-                    selectedIcon = overrideDefaultToggleSelectedIcon ?: ToggleButton.defaultIconSelected
-                }
-
-                ButtonDisplayMode.ICON -> {
-                    text = null
-                    icon = originalIcon
-                    selectedIcon = originalSelectedIcon
-                }
-
-                ButtonDisplayMode.ALL -> {
-                    text = originalText
-                    icon = originalIcon
-                    selectedIcon = originalSelectedIcon
-                }
-            }
+            setDisplayMode(value)
         }
 
     init {
         componentName = originalText ?: ""
         toolTipText = tooltip
         isRolloverEnabled = true
+    }
+
+    override fun setDisplayMode(mode: ButtonDisplayMode?) {
+        when (mode) {
+            ButtonDisplayMode.TEXT -> {
+                text = originalText
+                icon = overrideDefaultToggleIcon ?: ToggleButton.defaultIconUnselected
+                selectedIcon = overrideDefaultToggleSelectedIcon ?: ToggleButton.defaultIconSelected
+            }
+
+            ButtonDisplayMode.ICON -> {
+                text = null
+                icon = originalIcon
+                selectedIcon = originalSelectedIcon
+            }
+
+            else -> {
+                text = originalText
+                icon = originalIcon
+                selectedIcon = originalSelectedIcon
+            }
+        }
+    }
+
+    override fun setUI(ui: ButtonUI?) {
+        super.setUI(ui)
+        setDisplayMode(buttonDisplayMode)
     }
 }

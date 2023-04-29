@@ -1,6 +1,7 @@
 package me.gegenbauer.logviewer.ui.state
 
 import me.gegenbauer.logviewer.log.GLog
+import me.gegenbauer.logviewer.ui.EmptyStatePanel
 import me.gegenbauer.logviewer.ui.button.GButton
 import me.gegenbauer.logviewer.utils.loadIcon
 import java.awt.BorderLayout
@@ -12,6 +13,7 @@ import javax.swing.*
 class EmptyStatePanel(private val content: JComponent, private val action: () -> Unit = {}) : JPanel() {
     private val emptyImage = GButton(loadIcon("empty_state.svg", w = 60, h = 60)).apply {
         preferredSize = Dimension(120, 120)
+        background = EmptyStatePanel.iconBackground
     }
     private val emptyContainer = JPanel().apply {
         layout = GridBagLayout()
@@ -30,17 +32,14 @@ class EmptyStatePanel(private val content: JComponent, private val action: () ->
                 remove(content)
                 add(emptyContainer, BorderLayout.CENTER)
             }
-            revalidate()
-            repaint()
+            SwingUtilities.updateComponentTreeUI(this)
         }
 
     init {
         layout = BorderLayout()
 
         emptyImage.isBorderPainted = false
-        emptyImage.addActionListener {
-            action()
-        }
+        emptyImage.addActionListener { action() }
 
         add(emptyContainer, BorderLayout.CENTER)
 
