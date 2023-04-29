@@ -749,11 +749,6 @@ class MainUI(title: String) : JFrame(title) {
         fullTableModel.loadItems(isAppend)
         filteredTableModel.loadItems(isAppend)
 
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
-            statusMethod.background = Color(0x50, 0x50, 0x00)
-        } else {
-            statusMethod.background = Color(0xF0, 0xF0, 0x30)
-        }
         enabledFollowBtn(true)
 
         repaint()
@@ -800,11 +795,6 @@ class MainUI(title: String) : JFrame(title) {
             LogCmdManager.startLogcat()
         }
         filteredTableModel.startScan()
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
-            statusMethod.background = Color(0x00, 0x50, 0x00)
-        } else {
-            statusMethod.background = Color(0x90, 0xE0, 0x90)
-        }
 
         enabledFollowBtn(false)
     }
@@ -821,11 +811,6 @@ class MainUI(title: String) : JFrame(title) {
             return
         }
         filteredTableModel.stopScan()
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
-            statusMethod.background = Color(0x50, 0x50, 0x50)
-        } else {
-            statusMethod.background = Color.LIGHT_GRAY
-        }
 
         enabledFollowBtn(true)
     }
@@ -861,12 +846,6 @@ class MainUI(title: String) : JFrame(title) {
         pauseFollowToggle.isSelected = false
         filteredTableModel.startFollow()
 
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
-            statusMethod.background = Color(0x00, 0x00, 0x50)
-        } else {
-            statusMethod.background = Color(0xA0, 0xA0, 0xF0)
-        }
-
         enabledFollowBtn(true)
     }
 
@@ -877,11 +856,6 @@ class MainUI(title: String) : JFrame(title) {
         }
         statusMethod.text = " ${STRINGS.ui.follow} ${STRINGS.ui.stop} "
         filteredTableModel.stopFollow()
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
-            statusMethod.background = Color(0x50, 0x50, 0x50)
-        } else {
-            statusMethod.background = Color.LIGHT_GRAY
-        }
         enabledFollowBtn(true)
     }
 
@@ -904,9 +878,7 @@ class MainUI(title: String) : JFrame(title) {
         override fun actionPerformed(event: ActionEvent) {
             when (event.source) {
                 adbConnectBtn -> {
-                    stopAdbScan()
-                    LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
-                    LogCmdManager.connect()
+                    connect()
                 }
 
                 adbRefreshBtn -> {
@@ -919,15 +891,7 @@ class MainUI(title: String) : JFrame(title) {
                 }
 
                 scrollBackApplyBtn -> {
-                    try {
-                        filteredTableModel.scrollback = scrollBackTF.text.toString().trim().toInt()
-                    } catch (e: java.lang.NumberFormatException) {
-                        filteredTableModel.scrollback = 0
-                        scrollBackTF.text = "0"
-                    }
-                    filteredTableModel.scrollBackSplitFile = scrollBackSplitFileToggle.isSelected
-                    UIConfManager.uiConf.logScrollBackCount = scrollBackTF.text.toInt()
-                    UIConfManager.uiConf.logScrollBackSplitFileEnabled = scrollBackSplitFileToggle.isSelected
+                    applyScrollBack()
                 }
 
                 startBtn -> {
@@ -935,13 +899,11 @@ class MainUI(title: String) : JFrame(title) {
                 }
 
                 stopBtn -> {
-                    stopAdbScan()
-                    LogCmdManager.stop()
+                    stopScan()
                 }
 
                 clearViewsBtn -> {
-                    filteredTableModel.clearItems()
-                    repaint()
+                    clearViews()
                 }
 
                 saveBtn -> {
@@ -961,6 +923,34 @@ class MainUI(title: String) : JFrame(title) {
                 }
             }
         }
+    }
+
+    private fun applyScrollBack() {
+        try {
+            filteredTableModel.scrollback = scrollBackTF.text.toString().trim().toInt()
+        } catch (e: java.lang.NumberFormatException) {
+            filteredTableModel.scrollback = 0
+            scrollBackTF.text = "0"
+        }
+        filteredTableModel.scrollBackSplitFile = scrollBackSplitFileToggle.isSelected
+        UIConfManager.uiConf.logScrollBackCount = scrollBackTF.text.toInt()
+        UIConfManager.uiConf.logScrollBackSplitFileEnabled = scrollBackSplitFileToggle.isSelected
+    }
+
+    private fun connect() {
+        stopAdbScan()
+        LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
+        LogCmdManager.connect()
+    }
+
+    private fun stopScan() {
+        stopAdbScan()
+        LogCmdManager.stop()
+    }
+
+    private fun clearViews() {
+        filteredTableModel.clearItems()
+        repaint()
     }
 
     internal inner class FramePopUp : JPopupMenu() {
@@ -1199,20 +1189,20 @@ class MainUI(title: String) : JFrame(title) {
 
     fun reconnectAdb() {
         GLog.d(TAG, "Reconnect ADB")
-        stopBtn.doClick()
+        stopScan()
         Thread.sleep(200)
 
         if (deviceCombo.selectedItem!!.toString().isNotBlank()) {
-            adbConnectBtn.doClick()
+            connect()
             Thread.sleep(200)
         }
 
         Thread {
             run {
                 Thread.sleep(200)
-                clearViewsBtn.doClick()
+                clearViews()
                 Thread.sleep(200)
-                startBtn.doClick()
+                startAdbScan(true)
             }
         }.start()
     }
@@ -1220,19 +1210,19 @@ class MainUI(title: String) : JFrame(title) {
     fun startAdbLog() {
         Thread {
             run {
-                startBtn.doClick()
+                startAdbScan(true)
             }
         }.start()
     }
 
     fun stopAdbLog() {
-        stopBtn.doClick()
+        stopScan()
     }
 
     fun clearAdbLog() {
         Thread {
             run {
-                clearViewsBtn.doClick()
+                clearViews()
             }
         }.start()
     }
@@ -1381,7 +1371,7 @@ class MainUI(title: String) : JFrame(title) {
                     }
 
                     event.source == scrollBackTF -> {
-                        scrollBackApplyBtn.doClick()
+                        applyScrollBack()
                     }
                 }
             } else if (settingsMenu.filterIncremental) {
