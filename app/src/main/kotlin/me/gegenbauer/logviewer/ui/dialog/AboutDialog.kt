@@ -1,6 +1,7 @@
 package me.gegenbauer.logviewer.ui.dialog
 
 import me.gegenbauer.logviewer.resource.strings.STRINGS
+import me.gegenbauer.logviewer.resource.strings.app
 import me.gegenbauer.logviewer.resource.strings.version
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.GButton
@@ -19,7 +20,7 @@ class AboutDialog(parent: JFrame) :JDialog(parent, STRINGS.ui.about, true), Acti
         closeBtn.addActionListener(this)
         mainUI = parent as MainUI
 
-        aboutLabel = JLabel("<html><center><h1>LogViewer ${STRINGS.ui.version}</h1><br>865815634@qq.com</center></html>")
+        aboutLabel = JLabel("<html><center><h1>${STRINGS.ui.app} ${STRINGS.ui.version}</h1><br>865815634@qq.com</center></html>")
 
         val aboutPanel = JPanel()
         aboutPanel.add(aboutLabel)

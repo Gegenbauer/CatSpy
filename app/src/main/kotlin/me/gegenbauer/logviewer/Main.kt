@@ -10,10 +10,9 @@ import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.configuration.ThemeManager
 import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
-import me.gegenbauer.logviewer.manager.ColorManager
-import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
+import me.gegenbauer.logviewer.ui.ColorScheme
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.VStatusPanel
 import me.gegenbauer.logviewer.viewmodel.GlobalPropertySynchronizer
@@ -31,7 +30,6 @@ class Main {
                 withContext(Dispatchers.APP_LAUNCH) {
                     GLog.DEBUG = UIConfManager.uiConf.debug
                     ThemeManager.init()
-                    loadConfig()
                     GlobalPropertySynchronizer.init()
                 }
                 ThemeManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
@@ -49,18 +47,9 @@ class Main {
             }
         }
 
-        private fun loadConfig() {
-            ConfigManager.loadConfig()
-            ColorManager.fullTableColor.getConfig()
-            ColorManager.fullTableColor.applyColor()
-            ColorManager.filterTableColor.getConfig()
-            ColorManager.filterTableColor.applyColor()
-            ColorManager.getConfigFilterStyle()
-            ConfigManager.saveConfig()
-        }
-
         private val themeAwareControllers = listOf(
             VStatusPanel,
+            ColorScheme
         )
 
         private fun adjustBeforeThemeLoaded(theme: Theme, defaults: UIDefaults) {

@@ -13,6 +13,7 @@ import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.configuration.ThemeManager
 import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
+import me.gegenbauer.logviewer.ui.button.GButton
 import me.gegenbauer.logviewer.ui.combobox.filterComboBox
 import me.gegenbauer.logviewer.viewmodel.GlobalPropertySynchronizer
 import java.awt.Dimension
@@ -64,13 +65,7 @@ fun main() {
     }
 }
 
-class CustomButton(text: String): GButton(text) {
-
-
-    override fun setUI(ui: ButtonUI?) {
-        super.setUI(CustomUI())
-    }
-}
+class CustomButton(text: String): GButton(text)
 
 class CustomUI: DarkButtonUI() {
     override fun paintButtonBackground(g: Graphics?, c: JComponent) {

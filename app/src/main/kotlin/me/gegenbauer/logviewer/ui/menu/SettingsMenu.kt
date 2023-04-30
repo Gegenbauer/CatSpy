@@ -5,7 +5,6 @@ import me.gegenbauer.logviewer.configuration.UIConfManager
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.ui.MainUI
-import me.gegenbauer.logviewer.ui.dialog.AppearanceSettingsDialog
 import me.gegenbauer.logviewer.ui.dialog.LogCmdSettingsDialog
 import me.gegenbauer.logviewer.ui.log.LogLevel
 import me.gegenbauer.logviewer.ui.log.getLevelFromName
@@ -24,7 +23,6 @@ class SettingsMenu : JMenu() {
     private val menuLogLevel = JMenu(STRINGS.ui.logLevel)
     private val logLevelGroup = ButtonGroup()
 
-    private val itemAppearance = JMenuItem(STRINGS.ui.appearance)
     private val levelItemHandler = ItemListener {
         when (it.source) {
             is JRadioButtonMenuItem -> {
@@ -51,7 +49,6 @@ class SettingsMenu : JMenu() {
                 UIConfManager.uiConf.debug = itemDebug.state
                 GLog.DEBUG = itemDebug.state
             }
-            itemAppearance -> openAppearanceConfigurationDialog()
         }
     }
     var onLogLevelChangedListener: (LogLevel) -> Unit = {}
@@ -104,7 +101,6 @@ class SettingsMenu : JMenu() {
         itemLogCommand.addActionListener(itemClickListener)
         itemFilterIncremental.addActionListener(itemClickListener)
         itemDebug.addActionListener(itemClickListener)
-        itemAppearance.addActionListener(itemClickListener)
 
         add(itemLogCommand)
         add(itemLogFile)
@@ -113,7 +109,6 @@ class SettingsMenu : JMenu() {
         addSeparator()
         add(itemFilterIncremental)
         addSeparator()
-        add(itemAppearance)
         add(itemThemeSettings)
         addSeparator()
         add(itemDebug)
@@ -124,12 +119,5 @@ class SettingsMenu : JMenu() {
         val settingsDialog = LogCmdSettingsDialog(frame as MainUI)
         settingsDialog.setLocationRelativeTo(frame)
         settingsDialog.isVisible = true
-    }
-
-    private fun openAppearanceConfigurationDialog() {
-        val frame = findFrameFromParent(this)
-        val appearanceSettingsDialog = AppearanceSettingsDialog(frame as MainUI)
-        appearanceSettingsDialog.setLocationRelativeTo(frame)
-        appearanceSettingsDialog.isVisible = true
     }
 }

@@ -55,7 +55,6 @@ class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTa
             }
             customEditor = this
         }))
-        toolTipText = tooltip
     }
 
     override fun getEditor(): ComboBoxEditor {

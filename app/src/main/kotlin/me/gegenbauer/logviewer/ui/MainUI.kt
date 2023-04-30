@@ -16,7 +16,6 @@ import me.gegenbauer.logviewer.databinding.bind.withName
 import me.gegenbauer.logviewer.databinding.property.support.DefaultDocumentListener
 import me.gegenbauer.logviewer.file.Log
 import me.gegenbauer.logviewer.log.GLog
-import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.manager.ConfigManager
 import me.gegenbauer.logviewer.manager.FiltersManager
 import me.gegenbauer.logviewer.resource.strings.STRINGS
@@ -29,10 +28,7 @@ import me.gegenbauer.logviewer.ui.container.WrapablePanel
 import me.gegenbauer.logviewer.ui.dialog.GoToDialog
 import me.gegenbauer.logviewer.ui.dialog.LogTableDialog
 import me.gegenbauer.logviewer.ui.icon.DayNightIcon
-import me.gegenbauer.logviewer.ui.log.LogPanel
-import me.gegenbauer.logviewer.ui.log.LogTableModel
-import me.gegenbauer.logviewer.ui.log.LogTableModelEvent
-import me.gegenbauer.logviewer.ui.log.getLevelFromName
+import me.gegenbauer.logviewer.ui.log.*
 import me.gegenbauer.logviewer.ui.menu.FileMenu
 import me.gegenbauer.logviewer.ui.menu.HelpMenu
 import me.gegenbauer.logviewer.ui.menu.SettingsMenu
@@ -56,7 +52,6 @@ import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
-import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.text.JTextComponent
 import kotlin.system.exitProcess
 
@@ -66,12 +61,8 @@ class MainUI(title: String) : JFrame(title) {
 
         const val DEFAULT_FONT_NAME = "DialogInput"
 
-        const val CROSS_PLATFORM_LAF = "Cross Platform"
-        const val SYSTEM_LAF = "System"
         const val FLAT_LIGHT_LAF = "Flat Light"
         const val FLAT_DARK_LAF = "Flat Dark"
-
-        var IsCreatingUI = true
     }
 
     private val fullTableModel = LogTableModel(this, null)
@@ -241,13 +232,10 @@ class MainUI(title: String) : JFrame(title) {
     var customFont: Font = Font(DEFAULT_FONT_NAME, Font.PLAIN, 12)
         set(value) {
             field = value
-            if (!IsCreatingUI) {
-                splitLogPane.filteredLogPanel.customFont = value
-                splitLogPane.fullLogPanel.customFont = value
-            }
+            splitLogPane.filteredLogPanel.customFont = value
+            splitLogPane.fullLogPanel.customFont = value
         }
 
-    var uiFontPercent = 100
     internal val searchPanel by lazy { SearchPanel() }
 
     init {
@@ -557,8 +545,6 @@ class MainUI(title: String) : JFrame(title) {
         add(statusBar, BorderLayout.SOUTH)
 
         registerSearchStroke()
-
-        IsCreatingUI = false
     }
 
     private fun registerEvent() {
@@ -1085,8 +1071,8 @@ class MainUI(title: String) : JFrame(title) {
                     val num = idx + 1
                     val item = JMenuItem("Add Color Tag : #$num")
                     item.isOpaque = true
-                    item.foreground = Color.decode(ColorManager.filterTableColor.strFilteredFGs[num])
-                    item.background = Color.decode(ColorManager.filterTableColor.strFilteredBGs[num])
+                    item.foreground = ColorScheme.filteredFGs[num]
+                    item.background = ColorScheme.filteredBGs[num]
                     item.addActionListener(actionHandler)
                     addColorTagItems.add(item)
                     add(item)
@@ -1408,9 +1394,6 @@ class MainUI(title: String) : JFrame(title) {
 
     internal inner class ItemHandler : ItemListener {
         override fun itemStateChanged(event: ItemEvent) {
-            if (IsCreatingUI) {
-                return
-            }
             when (event.source) {
                 showLogToggle -> {
                     if (showLogToggle.isSelected && showLogCombo.selectedItem != null) {
@@ -1489,9 +1472,6 @@ class MainUI(title: String) : JFrame(title) {
                 }
 
                 LogCmdManager.CMD_GET_DEVICES -> {
-                    if (IsCreatingUI) {
-                        return
-                    }
                     var selectedItem = deviceCombo.selectedItem
                     MainViewModel.connectedDevices.updateValue(LogCmdManager.devices)
                     if (selectedItem == null) {
@@ -1609,8 +1589,6 @@ class MainUI(title: String) : JFrame(title) {
             val box = event.source as JComboBox<*>
             val comp = box.ui.getAccessibleChild(box, 0) as? JPopupMenu ?: return
             val scrollPane = comp.getComponent(0) as OverlayScrollPane
-            scrollPane.verticalScrollBar?.setUI(BasicScrollBarUI())
-            scrollPane.horizontalScrollBar?.setUI(BasicScrollBarUI())
             isCanceled = false
         }
     }
@@ -1653,9 +1631,6 @@ class MainUI(title: String) : JFrame(title) {
     }
 
     fun markLine() {
-        if (IsCreatingUI) {
-            return
-        }
         selectedLine = splitLogPane.filteredLogPanel.getSelectedLine()
     }
 
@@ -1759,15 +1734,13 @@ class MainUI(title: String) : JFrame(title) {
         override fun setVisible(aFlag: Boolean) {
             super.setVisible(aFlag)
 
-            if (!IsCreatingUI) {
-                if (aFlag) {
-                    searchCombo.requestFocus()
-                    searchCombo.editor.selectAll()
+            if (aFlag) {
+                searchCombo.requestFocus()
+                searchCombo.editor.selectAll()
 
-                    filteredTableModel.filterSearchLog = searchCombo.selectedItem!!.toString()
-                } else {
-                    filteredTableModel.filterSearchLog = ""
-                }
+                filteredTableModel.filterSearchLog = searchCombo.selectedItem!!.toString()
+            } else {
+                filteredTableModel.filterSearchLog = ""
             }
         }
 
@@ -1861,17 +1834,12 @@ class MainUI(title: String) : JFrame(title) {
                 val box = event.source as JComboBox<*>
                 val comp = box.ui.getAccessibleChild(box, 0) as? JPopupMenu ?: return
                 val scrollPane = comp.getComponent(0) as JScrollPane
-                scrollPane.verticalScrollBar?.setUI(BasicScrollBarUI())
-                scrollPane.horizontalScrollBar?.setUI(BasicScrollBarUI())
                 isCanceled = false
             }
         }
 
         internal inner class SearchItemHandler : ItemListener {
             override fun itemStateChanged(event: ItemEvent) {
-                if (IsCreatingUI) {
-                    return
-                }
                 when (event.source) {
                     searchMatchCaseToggle -> {
                         filteredTableModel.searchMatchCase = searchMatchCaseToggle.isSelected

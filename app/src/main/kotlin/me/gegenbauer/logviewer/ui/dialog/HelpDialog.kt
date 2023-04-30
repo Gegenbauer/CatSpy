@@ -27,8 +27,6 @@ class HelpDialog(parent: JFrame) : JDialog(parent, STRINGS.ui.help, true), Actio
         val scrollPane = JScrollPane(helpTextPane)
         val aboutPanel = JPanel()
         scrollPane.preferredSize = Dimension(850, 800)
-        scrollPane.verticalScrollBar.setUI(BasicScrollBarUI())
-        scrollPane.horizontalScrollBar.setUI(BasicScrollBarUI())
         aboutPanel.add(scrollPane)
 
         val panel = JPanel()

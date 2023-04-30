@@ -77,7 +77,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
         adbCmdLabel.preferredSize = Dimension(adbCmdLabel.preferredSize.width, rowHeight)
         adbSaveLabel = JLabel(STRINGS.ui.logPath)
         prefixLabel = JLabel("Prefix")
-        prefixLabel2 = JLabel("Default : LogViewer, Do not use \\ / : * ? \" < > |")
+        prefixLabel2 = JLabel("Default : ${STRINGS.ui.app}, Do not use \\ / : * ? \" < > |")
 
         adbCmdTF = JTextField(LogCmdManager.adbCmd)
         adbCmdTF.preferredSize = Dimension(488, rowHeight)
@@ -219,7 +219,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
             LogCmdManager.logSavePath = adbSaveTF.text
             val prefix = prefixTF.text.trim()
 
-            prefixLabel2 = JLabel("Default : LogViewer, Do not use \\ / : * ? \" < > |")
+            prefixLabel2 = JLabel("Default : ${STRINGS.ui.app}, Do not use \\ / : * ? \" < > |")
             if (prefix.contains('\\')
                     || prefix.contains('/')
                     || prefix.contains(':')
