@@ -20,6 +20,10 @@ fun Color?.toArgb(): Int {
     return (this.alpha shl 24) or (this.red shl 16) or (this.green shl 8) or this.blue
 }
 
+fun Color.toHtml(): String {
+    return "#%02x%02x%02x".format(red, green, blue)
+}
+
 fun Int.toArgb(): Color {
     val alpha = this shr 24 and 0xFF
     val red = this shr 16 and 0xFF

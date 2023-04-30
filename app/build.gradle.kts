@@ -15,6 +15,7 @@ repositories {
 
 dependencies {
     implementation(files("../libs/flatlaf-2.1.jar"))
+    implementation(files("../libs/swingx-1.6.1.jar"))
     implementation(kotlin("reflect"))
     implementation(compose.desktop.currentOs)
     implementation(projects.log)
