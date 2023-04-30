@@ -37,9 +37,4 @@ class StatefulLabel(
     init {
         componentName = originalText ?: ""
     }
-
-    override fun setUI(ui: LabelUI?) {
-        super.setUI(ui)
-        setDisplayMode(buttonDisplayMode)
-    }
 }

@@ -49,9 +49,4 @@ class StatefulToggleButton(
             }
         }
     }
-
-    override fun setUI(ui: ButtonUI?) {
-        super.setUI(ui)
-        setDisplayMode(buttonDisplayMode)
-    }
 }

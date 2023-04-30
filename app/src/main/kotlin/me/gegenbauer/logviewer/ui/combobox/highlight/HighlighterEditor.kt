@@ -1,8 +1,7 @@
 package me.gegenbauer.logviewer.ui.combobox.highlight
 
-import me.gegenbauer.logviewer.manager.ColorManager
+import me.gegenbauer.logviewer.ui.ColorScheme
 import me.gegenbauer.logviewer.ui.FilterComboBox.fontBackgroundInclude
-import java.awt.Color
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
@@ -85,8 +84,8 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
             return
         }
         val painterInclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(fontBackgroundInclude)
-        val painterExclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorManager.filterStyleExclude)
-        val painterSeparator: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorManager.filterStyleSeparator)
+        val painterExclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleExclude)
+        val painterSeparator: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleSeparator)
         val text = editor.text
         val separator = "|"
         try {
@@ -103,10 +102,8 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
                     if (text[startPos] == '-') {
                         customHighlighters.add(editor.highlighter.addHighlight(startPos, endPos, painterExclude))
                     } else if (useColorTag && text[startPos] == '#' && startPos < (endPos - 1) && text[startPos + 1].isDigit()) {
-                        val color =
-                            Color.decode(ColorManager.filterTableColor.strFilteredBGs[text[startPos + 1].digitToInt()])
-                        val painterColor: Highlighter.HighlightPainter =
-                            DefaultHighlighter.DefaultHighlightPainter(color)
+                        val color = ColorScheme.filteredBGs[text[startPos + 1].digitToInt()]
+                        val painterColor: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(color)
                         customHighlighters.add(editor.highlighter.addHighlight(startPos, startPos + 2, painterColor))
                         customHighlighters.add(editor.highlighter.addHighlight(startPos + 2, endPos, painterInclude))
                     } else {

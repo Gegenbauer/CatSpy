@@ -1,7 +1,7 @@
 package me.gegenbauer.logviewer.ui.log
 
 import me.gegenbauer.logviewer.manager.BookmarkManager
-import me.gegenbauer.logviewer.manager.ColorManager
+import me.gegenbauer.logviewer.ui.ColorScheme
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.panel.VStatusPanel
 import me.gegenbauer.logviewer.ui.dialog.LogViewDialog
@@ -13,8 +13,6 @@ import javax.swing.table.DefaultTableCellRenderer
 
 
 class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
-    private val tableColor: ColorManager.TableColor
-
     companion object {
         const val VIEW_LINE_ONE = 0
         const val VIEW_LINE_WRAP = 1
@@ -42,12 +40,6 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
 
         addMouseListener(MouseHandler())
         addKeyListener(TableKeyHandler())
-
-        tableColor = if (this.tableModel.isFullDataModel()) {
-            ColorManager.fullTableColor
-        } else {
-            ColorManager.filterTableColor
-        }
     }
 
     fun updateColumnWidth(width: Int, scrollVBarWidth: Int) {
@@ -140,9 +132,9 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
 
             val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
 
-            label.border = LineNumBorder(tableColor.numLogSeparatorBG, 1)
+            label.border = LineNumBorder(ColorScheme.numLogSeparatorBG, 1)
 
-            foreground = tableColor.lineNumFG
+            foreground = ColorScheme.lineNumFG
             background = getNewBackground(num, row)
 
             return label
@@ -184,14 +176,14 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
     private fun getNewBackground(num: Int, row: Int): Color {
         return if (BookmarkManager.bookmarks.contains(num)) {
             if (isRowSelected(row)) {
-                tableColor.bookmarkSelectedBG
+                ColorScheme.bookmarkSelectedBG
             } else {
-                tableColor.bookmarkBG
+                ColorScheme.bookmarkBG
             }
         } else if (isRowSelected(row)) {
-            tableColor.selectedBG
+            ColorScheme.selectedBG
         } else {
-            tableColor.logBG
+            ColorScheme.logBG
         }
     }
 

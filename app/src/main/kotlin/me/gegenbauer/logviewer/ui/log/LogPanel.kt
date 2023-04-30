@@ -9,6 +9,7 @@ import me.gegenbauer.logviewer.concurrency.UI
 import me.gegenbauer.logviewer.log.GLog
 import me.gegenbauer.logviewer.manager.*
 import me.gegenbauer.logviewer.resource.strings.STRINGS
+import me.gegenbauer.logviewer.ui.ColorScheme
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.button.ColorToggleButton
 import me.gegenbauer.logviewer.ui.button.GButton
@@ -23,14 +24,13 @@ import java.awt.event.*
 import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
-import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class LogPanel constructor(
+class LogPanel(
     val mainUI: MainUI,
     tableModel: LogTableModel,
     var basePanel: LogPanel?,
-    val focusHandler: FocusListener
+    focusHandler: FocusListener
 ) : JPanel() {
     private val ctrlMainPanel: WrapablePanel = WrapablePanel()
     private val firstBtn = GButton(loadIcon<DerivableImageIcon>("top.png")) applyTooltip STRINGS.toolTip.viewFirstBtn
@@ -55,7 +55,6 @@ class LogPanel constructor(
 
     private var oldLogVPos = -1
     private var oldLogHPos = -1
-    private var isCreatingUI = true
 
     var isWindowedMode = false
         set(value) {
@@ -83,23 +82,15 @@ class LogPanel constructor(
         fullBtn.addActionListener(actionHandler)
         updateTableBar(null)
         tableModel.addLogTableModelListener(tableModelHandler)
-        table.addFocusListener(this.focusHandler)
+        table.addFocusListener(focusHandler)
         table.columnSelectionAllowed = true
         table.selectionModel.addListSelectionListener(listSelectionHandler)
         BookmarkManager.addBookmarkEventListener(bookmarkHandler)
-        scrollPane.verticalScrollBar.setUI(BasicScrollBarUI())
-        scrollPane.horizontalScrollBar.setUI(BasicScrollBarUI())
         scrollPane.verticalScrollBar.unitIncrement = 20
 
         scrollPane.verticalScrollBar.addAdjustmentListener(adjustmentHandler)
         scrollPane.horizontalScrollBar.addAdjustmentListener(adjustmentHandler)
         scrollPane.addMouseListener(MouseHandler())
-
-        scrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-        scrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
-
-        scrollPane.isOpaque = false
-        scrollPane.viewport.isOpaque = false
 
         val ctrlPanel = JPanel()
         ctrlPanel.layout = BoxLayout(ctrlPanel, BoxLayout.Y_AXIS)
@@ -110,8 +101,6 @@ class LogPanel constructor(
         add(scrollPane, BorderLayout.CENTER)
 
         addComponentListener(componentHandler)
-
-        isCreatingUI = false
     }
 
     private fun addVSeparator(panel: JPanel) {
@@ -236,11 +225,7 @@ class LogPanel constructor(
         }
 
     override fun repaint() {
-        val bg = if (basePanel != null) {
-            ColorManager.filterTableColor.logBG
-        } else {
-            ColorManager.fullTableColor.logBG
-        }
+        val bg = ColorScheme.logBG
 
         if (bg != background) {
             background = bg

@@ -22,9 +22,6 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         textArea.isEditable = false
         textArea.caret.isVisible = true
         textArea.lineWrap = true
-        if (ConfigManager.LaF != MainUI.FLAT_DARK_LAF) {
-            textArea.background = Color(0xFF, 0xFA, 0xE3)
-        }
         textArea.font = mainUI.customFont
 
         textArea.addKeyListener(KeyHandler())
@@ -54,9 +51,7 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
     internal inner class KeyHandler: KeyAdapter() {
         private var pressedKeyCode: Int = 0
         override fun keyPressed(event: KeyEvent) {
-            if (event != null) {
-                pressedKeyCode = event.keyCode
-            }
+            pressedKeyCode = event.keyCode
 
             super.keyPressed(event)
         }
@@ -153,10 +148,6 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
     }
 
     internal inner class MouseHandler : MouseAdapter() {
-        override fun mousePressed(event: MouseEvent) {
-            super.mousePressed(event)
-        }
-
         override fun mouseReleased(event: MouseEvent) {
             if (SwingUtilities.isRightMouseButton(event)) {
                 popupMenu.show(event.component, event.x, event.y)

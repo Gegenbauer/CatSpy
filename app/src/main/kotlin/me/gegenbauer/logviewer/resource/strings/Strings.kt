@@ -28,7 +28,7 @@ inline val StringUI.version: String
     get() = "1.0.0"
 
 inline val StringUI.app: String
-    get() = "LogViewer"
+    get() = "CatSpy"
 
 
 data class StringUI(

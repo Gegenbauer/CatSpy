@@ -2,15 +2,15 @@ package me.gegenbauer.logviewer.ui.log
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import me.gegenbauer.logviewer.file.Log
-import me.gegenbauer.logviewer.log.GLog
-import me.gegenbauer.logviewer.manager.BookmarkManager
-import me.gegenbauer.logviewer.manager.ColorManager
 import me.gegenbauer.logviewer.command.LogCmdManager
 import me.gegenbauer.logviewer.concurrency.AppScope
 import me.gegenbauer.logviewer.concurrency.UI
+import me.gegenbauer.logviewer.file.Log
+import me.gegenbauer.logviewer.log.GLog
+import me.gegenbauer.logviewer.manager.BookmarkManager
 import me.gegenbauer.logviewer.resource.strings.STRINGS
 import me.gegenbauer.logviewer.resource.strings.app
+import me.gegenbauer.logviewer.ui.ColorScheme
 import me.gegenbauer.logviewer.ui.MainUI
 import me.gegenbauer.logviewer.ui.combobox.FilterComboBox
 import java.awt.Color
@@ -21,7 +21,6 @@ import java.util.regex.Pattern
 import javax.swing.JOptionPane
 import javax.swing.SwingUtilities
 import javax.swing.table.AbstractTableModel
-import kotlin.collections.ArrayList
 
 
 data class LogTableModelEvent(val source: LogTableModel, val dataChange: Int, val removedCount: Int) {
@@ -44,13 +43,12 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     private var patternSearchLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
     private var matcherSearchLog: Matcher = patternSearchLog.matcher("")
     private var normalSearchLogSplit: List<String>? = null
-    private var tableColor: ColorManager.TableColor
     private val columnNames = arrayOf("line", "log")
     private var logItems: MutableList<LogItem> = mutableListOf()
 
     private val eventListeners = ArrayList<LogTableModelListener>()
-    private val filteredFGMap = mutableMapOf<String, String>()
-    private val filteredBGMap = mutableMapOf<String, String>()
+    private val filteredFGMap = mutableMapOf<String, Color>()
+    private val filteredBGMap = mutableMapOf<String, Color>()
 
     private var isFilterUpdated = true
 
@@ -320,31 +318,11 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     private var patternDebug: Pattern = Pattern.compile("\\bDEBUG\\b", Pattern.CASE_INSENSITIVE)
 
     init {
-        this.baseModel = baseModel
         loadItems(false)
-
-        tableColor = if (isFullDataModel()) {
-            ColorManager.fullTableColor
-        } else {
-            ColorManager.filterTableColor
-        }
-
-        val colorEventListener = object : ColorManager.ColorEventListener {
-            override fun colorChanged(event: ColorManager.ColorEvent) {
-                parsePattern(filterLog, true) // update color
-                isFilterUpdated = true
-            }
-        }
-
-        ColorManager.addColorEventListener(colorEventListener)
     }
 
     fun isFullDataModel(): Boolean {
-        if (baseModel == null) {
-            return true
-        }
-
-        return false
+        return baseModel == null
     }
 
     private fun parsePattern(pattern: String, isUpdateColor: Boolean): Array<String> {
@@ -377,8 +355,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                         val key = item.substring(2)
                         patterns[0] += key
                         if (isUpdateColor) {
-                            filteredFGMap[key.uppercase()] = tableColor.strFilteredFGs[item[1].digitToInt()]
-                            filteredBGMap[key.uppercase()] = tableColor.strFilteredBGs[item[1].digitToInt()]
+                            filteredFGMap[key.uppercase()] = ColorScheme.filteredFGs[item[1].digitToInt()]
+                            filteredBGMap[key.uppercase()] = ColorScheme.filteredBGs[item[1].digitToInt()]
                         }
                     } else {
                         patterns[0] += item
@@ -454,11 +432,11 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     fun clearItems() {
         GLog.d(TAG, "isEventDispatchThread = ${SwingUtilities.isEventDispatchThread()}")
         fireLogTableDataChanged(LogTableModelEvent(this, LogTableModelEvent.EVENT_CLEARED, 0))
-        if (baseModel != null) {
-            baseModel!!.goToLast = true
+        this.baseModel?.let {
+            it.goToLast = true
             goToLast = true
-            baseModel!!.logItems.clear()
-            baseModel!!.logItems = mutableListOf()
+            it.logItems.clear()
+            it.logItems = mutableListOf()
             BookmarkManager.clear()
             logItems.clear()
             logItems = mutableListOf()
@@ -468,10 +446,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     }
 
     private fun loadFile(isAppend: Boolean) {
-        val logFile = Log.file
-        if (logFile == null) {
-            return
-        }
+        val logFile = Log.file ?: return
 
         var num = 0
         if (isAppend) {
@@ -479,7 +454,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 val item = logItems.last()
                 num = item.num.toInt()
                 num++
-                logItems.add(LogItem(num.toString(), "LogViewer - APPEND LOG : $logFile", "", "", "", LogLevel.ERROR))
+                logItems.add(LogItem(num.toString(), "${STRINGS.ui.app} - APPEND LOG : $logFile", "", "", "", LogLevel.ERROR))
                 num++
             }
         } else {
@@ -489,7 +464,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             BookmarkManager.clear()
         }
 
-        val bufferedReader = BufferedReader(FileReader(logFile!!))
+        val bufferedReader = BufferedReader(FileReader(logFile))
         var line: String?
         var level: LogLevel
         var tag: String
@@ -620,62 +595,62 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     fun getFgColor(row: Int): Color {
         return when (checkLevel(logItems[row])) {
             LogLevel.VERBOSE -> {
-                tableColor.logLevelVerbose
+                ColorScheme.logLevelVerbose
             }
 
             LogLevel.DEBUG -> {
-                tableColor.logLevelDebug
+                ColorScheme.logLevelDebug
             }
 
             LogLevel.INFO -> {
-                tableColor.logLevelInfo
+                ColorScheme.logLevelInfo
             }
 
             LogLevel.WARN -> {
-                tableColor.logLevelWarning
+                ColorScheme.logLevelWarning
             }
 
             LogLevel.ERROR -> {
-                tableColor.logLevelError
+                ColorScheme.logLevelError
             }
 
             LogLevel.FATAL -> {
-                tableColor.logLevelFatal
+                ColorScheme.logLevelFatal
             }
 
             else -> {
-                tableColor.logLevelNone
+                ColorScheme.logLevelNone
             }
         }
     }
 
-    private fun getFgStrColor(row: Int): String {
+    private fun getFgStrColor(row: Int): Color {
         return when (checkLevel(logItems[row])) {
             LogLevel.VERBOSE -> {
-                tableColor.strLogLevelVerbose
+                ColorScheme.logLevelVerbose
             }
 
             LogLevel.DEBUG -> {
-                tableColor.strLogLevelDebug
+                ColorScheme.logLevelDebug
             }
 
             LogLevel.INFO -> {
-                tableColor.strLogLevelInfo
+                ColorScheme.logLevelInfo
             }
 
             LogLevel.WARN -> {
-                tableColor.strLogLevelWarning
+                ColorScheme.logLevelWarning
             }
 
             LogLevel.ERROR -> {
-                tableColor.strLogLevelError
+                ColorScheme.logLevelError
             }
 
             LogLevel.FATAL -> {
-                tableColor.strLogLevelFatal
+                ColorScheme.logLevelFatal
             }
 
-            else -> tableColor.strLogLevelNone
+            else -> ColorScheme.logLevelNone
         }
     }
 
@@ -764,8 +739,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
         val starts = Stack<Int>()
         val ends = Stack<Int>()
-        val fgColors = Stack<String>()
-        val bgColors = Stack<String>()
+        val fgColors = Stack<Color>()
+        val bgColors = Stack<Color>()
 
         var searchS = -1
         var searchE = -1
@@ -856,8 +831,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 }
                 starts.push(searchS)
                 ends.push(searchE)
-                fgColors.push(tableColor.strSearchFG)
-                bgColors.push(tableColor.strSearchBG)
+                fgColors.push(ColorScheme.searchFG)
+                bgColors.push(ColorScheme.searchBG)
             }
 
             if (idx in searchS until searchE) {
@@ -883,8 +858,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
                 starts.push(highlightS)
                 ends.push(highlightE)
-                fgColors.push(tableColor.strHighlightFG)
-                bgColors.push(tableColor.strHighlightBG)
+                fgColors.push(ColorScheme.highlightFG)
+                bgColors.push(ColorScheme.highlightBG)
 
                 if (highlightS < highlightSNext) {
                     highlightS = highlightSNext
@@ -946,8 +921,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                     fgColors.push(filteredFGMap[key])
                     bgColors.push(filteredBGMap[key])
                 } else {
-                    fgColors.push(tableColor.strFilteredFGs[0])
-                    bgColors.push(tableColor.strFilteredBGs[0])
+                    fgColors.push(ColorScheme.filteredFGs[0])
+                    bgColors.push(ColorScheme.filteredBGs[0])
                 }
 
                 if (filterS < filterSNext) {
@@ -988,18 +963,18 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
                 when (boldS) {
                     in boldStartTag until boldEndTag -> {
-                        fgColors.push(tableColor.strTagFG)
-                        bgColors.push(tableColor.strLogBG)
+                        fgColors.push(ColorScheme.tagFG)
+                        bgColors.push(ColorScheme.logBG)
                     }
 
                     in boldStartPid until boldEndPid -> {
-                        fgColors.push(tableColor.strPidFG)
-                        bgColors.push(tableColor.strLogBG)
+                        fgColors.push(ColorScheme.pidFG)
+                        bgColors.push(ColorScheme.logBG)
                     }
 
                     in boldStartTid until boldEndTid -> {
-                        fgColors.push(tableColor.strTidFG)
-                        bgColors.push(tableColor.strLogBG)
+                        fgColors.push(ColorScheme.tidFG)
+                        bgColors.push(ColorScheme.logBG)
                     }
                 }
 
@@ -1016,7 +991,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             if (newValue == value) {
                 return ""
             }
-            stringBuilder.replace(0, newValue.length, newValue.replace(" ", "&nbsp;"))
+            stringBuilder.replace(0, newValue.length, newValue.replace(" ", UNBREAKABLE_SPACE))
         } else {
             var beforeStart = 0
             var isFirst = true
@@ -1032,7 +1007,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                         stringBuilder.replace(
                             end,
                             newValue.length,
-                            newValue.substring(end, newValue.length).replace(" ", "&nbsp;")
+                            newValue.substring(end, newValue.length).replace(" ", UNBREAKABLE_SPACE)
                         )
                     }
                     isFirst = false
@@ -1041,24 +1016,22 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                     stringBuilder.replace(
                         end,
                         beforeStart,
-                        newValue.substring(end, beforeStart).replace(" ", "&nbsp;")
+                        newValue.substring(end, beforeStart).replace(" ", UNBREAKABLE_SPACE)
                     )
                 }
                 if (start >= 0 && end >= 0) {
                     if (isSelected) {
-                        val tmpColor = Color.decode(bgColor)
+                        val tmpColor = bgColor
                         Color(
-                            tmpColor.red / 2 + tableColor.selectedBG.red / 2,
-                            tmpColor.green / 2 + tableColor.selectedBG.green / 2,
-                            tmpColor.blue / 2 + tableColor.selectedBG.blue / 2
+                            tmpColor.red / 2 + ColorScheme.selectedBG.red / 2,
+                            tmpColor.green / 2 + ColorScheme.selectedBG.green / 2,
+                            tmpColor.blue / 2 + ColorScheme.selectedBG.blue / 2
                         )
-                        bgColor = "#" + Integer.toHexString(
-                            Color(
-                                tmpColor.red / 2 + tableColor.selectedBG.red / 2,
-                                tmpColor.green / 2 + tableColor.selectedBG.green / 2,
-                                tmpColor.blue / 2 + tableColor.selectedBG.blue / 2
-                            ).rgb
-                        ).substring(2).uppercase()
+                        bgColor = Color(
+                            tmpColor.red / 2 + ColorScheme.selectedBG.red / 2,
+                            tmpColor.green / 2 + ColorScheme.selectedBG.green / 2,
+                            tmpColor.blue / 2 + ColorScheme.selectedBG.blue / 2
+                        )
                     }
 
                     stringBuilder.replace(
@@ -1069,7 +1042,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                     stringBuilder.replace(
                         start,
                         end,
-                        newValue.substring(start, end).replace(" ", "&nbsp;")
+                        newValue.substring(start, end).replace(" ", UNBREAKABLE_SPACE)
                     )
                     stringBuilder.replace(
                         start,
@@ -1083,7 +1056,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 beforeStart = start
             }
             if (beforeStart > 0) {
-                stringBuilder.replace(0, beforeStart, newValue.substring(0, beforeStart).replace(" ", "&nbsp;"))
+                stringBuilder.replace(0, beforeStart, newValue.substring(0, beforeStart).replace(" ", UNBREAKABLE_SPACE))
             }
         }
 
@@ -1352,7 +1325,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 val logFilterItems: MutableList<LogFilterItem> = mutableListOf()
 
                 line = bufferedReader.readLine()
-                while (line != null || (line == null && mainUI.isRestartAdbLogcat())) {
+                while (line != null || (mainUI.isRestartAdbLogcat())) {
                     try {
                         nextUpdateTime = System.currentTimeMillis() + 100
                         logLines.clear()
@@ -1370,7 +1343,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                                     } else {
                                         GLog.d(TAG, "startScan : inputStream is Null")
                                     }
-                                    line = "LogViewer - RESTART LOGCAT"
+                                    line = "${STRINGS.ui.app} - RESTART LOGCAT"
                                 }
                             }
                         }
@@ -1397,7 +1370,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
                                 if (scrollBackSplitFile && scrollback > 0 && saveNum >= scrollback) {
                                     mainUI.setSaveLogFile()
-                                    GLog.d(TAG, "Change save file : ${logFile?.absolutePath}")
+                                    GLog.d(TAG, "Change save file : ${logFile.absolutePath}")
                                 }
 
                                 logLines.add(line)
@@ -1868,7 +1841,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 }
             }
 
-            if (idxFound < 0 && regexSearchLog.isNotEmpty() && matcherSearchLog != null) {
+            if (idxFound < 0 && regexSearchLog.isNotEmpty()) {
                 matcherSearchLog.reset(item.logLine)
                 if (matcherSearchLog.find()) {
                     idxFound = idx
@@ -1901,6 +1874,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         private const val TID_INDEX = 3
         private const val LEVEL_INDEX = 4
         private const val TAG_INDEX = 5
+        private const val UNBREAKABLE_SPACE = "&nbsp;"
 
         var sIsLogcatLog = false
     }

@@ -1,0 +1,1 @@
+const val APP_NAME = "CatSpy"

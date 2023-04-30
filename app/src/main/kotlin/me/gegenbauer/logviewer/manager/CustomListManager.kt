@@ -131,13 +131,6 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
         private fun addVSeparator(panel: JPanel) {
             val separator1 = JSeparator(SwingConstants.VERTICAL)
             separator1.preferredSize = Dimension(separator1.preferredSize.width, 20)
-            if (ConfigManager.LaF == FLAT_DARK_LAF) {
-                separator1.foreground = Color.GRAY
-                separator1.background = Color.GRAY
-            } else {
-                separator1.foreground = Color.DARK_GRAY
-                separator1.background = Color.DARK_GRAY
-            }
             panel.add(separator1)
         }
 

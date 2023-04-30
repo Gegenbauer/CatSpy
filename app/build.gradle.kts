@@ -38,7 +38,7 @@ tasks.withType<KotlinCompile> {
 }
 
 val version = "1.0.0"
-val appName = "LogViewer"
+val appName = APP_NAME
 
 // TODO 更改应用安装后的图标
 compose.desktop {

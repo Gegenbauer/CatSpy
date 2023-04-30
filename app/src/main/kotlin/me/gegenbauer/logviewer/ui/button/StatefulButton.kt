@@ -39,9 +39,4 @@ class StatefulButton(
         toolTipText = tooltip
         isRolloverEnabled = true
     }
-
-    override fun setUI(ui: ButtonUI?) {
-        super.setUI(ui)
-
-    }
 }

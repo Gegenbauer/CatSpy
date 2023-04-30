@@ -1,7 +1,7 @@
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 enableFeaturePreview("VERSION_CATALOGS")
 
-rootProject.name = "LogViewer"
+rootProject.name = "CatSpy"
 include(
     "app",
     "databinding",

@@ -66,50 +66,9 @@ object ConfigManager {
         properties[key] = value
     }
 
-    fun saveFontColors(family: String, size: Int) {
-        loadConfig()
-
-        UIConfManager.uiConf.logFontName = family
-        UIConfManager.uiConf.logFontSize = size
-        ColorManager.fullTableColor.putConfig()
-        ColorManager.filterTableColor.putConfig()
-
-        saveConfig()
-    }
-
     private fun manageVersion() {
         loadConfig()
-        if (UIConfManager.uiConf.versionCode == 0) {
-            updateConfigFromV0ToV1()
-            GLog.d(TAG, "manageVersion : ${UIConfManager.uiConf.versionCode} applied")
-        }
-
         saveConfig()
-    }
-
-    private fun updateConfigFromV0ToV1() {
-        GLog.d(TAG, "updateConfigFromV0ToV1 : change color manager properties ++")
-        for (idx: Int in 0..22) {
-            val item = properties["$ITEM_COLOR_MANAGER$idx"] as String?
-            if (item != null) {
-                when (idx) {
-                    2 -> {
-                        properties["$ITEM_COLOR_MANAGER${ColorManager.TableColorType.FULL_LOG_TABLE}_${ColorManager.TableColorIdx.LOG_BG.value}"] = item
-                    }
-                    3 -> {
-                        properties["$ITEM_COLOR_MANAGER${ColorManager.TableColorType.FILTER_LOG_TABLE}_${ColorManager.TableColorIdx.LOG_BG.value}"] = item
-                    }
-                    else -> {
-                        properties["$ITEM_COLOR_MANAGER${ColorManager.TableColorType.FULL_LOG_TABLE}_$idx"] = item
-                        properties["$ITEM_COLOR_MANAGER${ColorManager.TableColorType.FILTER_LOG_TABLE}_$idx"] = item
-                    }
-                }
-
-                properties.remove("$ITEM_COLOR_MANAGER$idx")
-            }
-        }
-        UIConfManager.uiConf.versionCode = 1
-        GLog.d(TAG, "updateConfigFromV0ToV1 : --")
     }
 }
 
