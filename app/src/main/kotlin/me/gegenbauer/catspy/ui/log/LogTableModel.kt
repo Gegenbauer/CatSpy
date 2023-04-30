@@ -13,6 +13,7 @@ import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.combobox.FilterComboBox
+import me.gegenbauer.catspy.utils.toHtml
 import java.awt.Color
 import java.io.*
 import java.util.*
@@ -316,10 +317,6 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     private var patternWarning: Pattern = Pattern.compile("\\bWARNING\\b", Pattern.CASE_INSENSITIVE)
     private var patternInfo: Pattern = Pattern.compile("\\bINFO\\b", Pattern.CASE_INSENSITIVE)
     private var patternDebug: Pattern = Pattern.compile("\\bDEBUG\\b", Pattern.CASE_INSENSITIVE)
-
-    init {
-        loadItems(false)
-    }
 
     fun isFullDataModel(): Boolean {
         return baseModel == null
@@ -1022,11 +1019,6 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 if (start >= 0 && end >= 0) {
                     if (isSelected) {
                         val tmpColor = bgColor
-                        Color(
-                            tmpColor.red / 2 + ColorScheme.selectedBG.red / 2,
-                            tmpColor.green / 2 + ColorScheme.selectedBG.green / 2,
-                            tmpColor.blue / 2 + ColorScheme.selectedBG.blue / 2
-                        )
                         bgColor = Color(
                             tmpColor.red / 2 + ColorScheme.selectedBG.red / 2,
                             tmpColor.green / 2 + ColorScheme.selectedBG.green / 2,
@@ -1047,7 +1039,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                     stringBuilder.replace(
                         start,
                         start,
-                        "<b><font style=\"color: $fgColor; background-color: $bgColor\">" + newValue.substring(
+                        "<b><font style=\"color: ${fgColor.toHtml()}; background-color: ${bgColor.toHtml()}\">" + newValue.substring(
                             start,
                             start
                         )
@@ -1061,7 +1053,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         }
 
         val color = getFgStrColor(row)
-        stringBuilder.replace(0, 0, "<html><p><nobr><font color=$color>")
+        stringBuilder.replace(0, 0, "<html><p><nobr><font color=${color.toHtml()}>")
         stringBuilder.append("</font></nobr></p></html>")
         return stringBuilder.toString()
     }
