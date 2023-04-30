@@ -43,7 +43,7 @@ val appName = APP_NAME
 // TODO 更改应用安装后的图标
 compose.desktop {
     application {
-        mainClass = "me.gegenbauer.logviewer.Main"
+        mainClass = "me.gegenbauer.catspy.Main"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
