@@ -112,7 +112,7 @@ class SettingsMenu : JMenu() {
     }
 
     private fun openLogCommandConfigurationDialog() {
-        val frame = findFrameFromParent(this)
+        val frame = findFrameFromParent()
         val settingsDialog = LogCmdSettingsDialog(frame as MainUI)
         settingsDialog.setLocationRelativeTo(frame)
         settingsDialog.isVisible = true

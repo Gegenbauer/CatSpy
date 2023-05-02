@@ -555,7 +555,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 val logItem = logItems[rowIndex]
                 if (columnIndex == COLUMN_NUM) {
                     return logItem.num + " "
-                } else if (columnIndex == COLUMN_LOG_LINE) {
+                } else if (columnIndex == COLUMN_LOG) {
                     return logItem.logLine
                 }
             }
@@ -1161,7 +1161,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             val logItems: MutableList<LogItem> = mutableListOf()
             if (bookmarkMode) {
                 for (item in baseModel!!.logItems) {
-                    if (BookmarkManager.bookmarks.contains(item.num.toInt())) {
+                    if (BookmarkManager.isBookmark(item.num.toInt())) {
                         logItems.add(item)
                     }
                 }
@@ -1254,7 +1254,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                         }
                     }
 
-                    if (isShow || BookmarkManager.bookmarks.contains(item.num.toInt())) {
+                    if (isShow || BookmarkManager.isBookmark(item.num.toInt())) {
                         logItems.add(item)
                     }
                 }
@@ -1460,7 +1460,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                                     baseModel!!.logItems.removeAt(0)
                                     baseRemovedCount++
                                 }
-                                if (filterItem.isShow || BookmarkManager.bookmarks.contains(filterItem.item.num.toInt())) {
+                                if (filterItem.isShow || BookmarkManager.isBookmark(filterItem.item.num.toInt())) {
                                     logItems.add(filterItem.item)
                                     while (!scrollBackKeep && scrollback > 0 && logItems.count() > scrollback) {
                                         logItems.removeAt(0)
@@ -1729,7 +1729,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                                     baseModel!!.logItems.removeAt(0)
                                     baseRemovedCount++
                                 }
-                                if (filterItem.isShow || BookmarkManager.bookmarks.contains(filterItem.item.num.toInt())) {
+                                if (filterItem.isShow || BookmarkManager.isBookmark(filterItem.item.num.toInt())) {
                                     logItems.add(filterItem.item)
                                     while (!scrollBackKeep && scrollback > 0 && logItems.count() > scrollback) {
                                         logItems.removeAt(0)
@@ -1859,9 +1859,9 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
     companion object {
 
+        const val COLUMN_NUM = 0
+        const val COLUMN_LOG = 1
         private const val TAG = "LogTableModel"
-        private const val COLUMN_NUM = 0
-        private const val COLUMN_LOG_LINE = 1
 
         private const val PID_INDEX = 2
         private const val TID_INDEX = 3

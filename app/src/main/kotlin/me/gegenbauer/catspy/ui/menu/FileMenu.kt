@@ -1,17 +1,18 @@
 package me.gegenbauer.catspy.ui.menu
 
-import me.gegenbauer.catspy.file.Log
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.Menu
 import me.gegenbauer.catspy.utils.findFrameFromParent
-import me.gegenbauer.catspy.utils.loadIcon
 import me.gegenbauer.catspy.utils.loadThemedIcon
-import java.awt.FileDialog
+import me.gegenbauer.catspy.utils.userDir
+import java.awt.Dimension
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import java.io.File
+import javax.swing.JFileChooser
 import javax.swing.JMenu
 import javax.swing.JMenuItem
+import javax.swing.filechooser.FileNameExtensionFilter
 
 class FileMenu : JMenu() {
     private val itemFileOpen = JMenuItem(STRINGS.ui.open).apply {
@@ -70,7 +71,6 @@ class FileMenu : JMenu() {
         add(itemFileExit)
 
         itemFileOpen.addActionListener(actionHandler)
-        itemFileOpen.addActionListener(actionHandler)
         itemFileFollow.addActionListener(actionHandler)
         itemFileOpenFiles.addActionListener(actionHandler)
         itemFileAppendFiles.addActionListener(actionHandler)
@@ -78,38 +78,26 @@ class FileMenu : JMenu() {
     }
 
     fun onClickFileOpen() {
-        val frame = findFrameFromParent(this)
-        val fileDialog = FileDialog(frame, STRINGS.ui.file + " " + STRINGS.ui.open, FileDialog.LOAD)
-        fileDialog.isMultipleMode = false
-        fileDialog.directory = Log.file?.parent
-        fileDialog.isVisible = true
-        if (fileDialog.file != null) {
-            val file = File(fileDialog.directory + fileDialog.file)
-            onFileSelected(file)
+        chooseSingleFile(STRINGS.ui.open) {
+            it?.let(onFileSelected)
         }
     }
 
     private fun onClickFileFollow() {
-        val frame = findFrameFromParent(this)
-        val fileDialog = FileDialog(frame, STRINGS.ui.file + " " + STRINGS.ui.follow, FileDialog.LOAD)
-        fileDialog.isMultipleMode = false
-        fileDialog.directory = Log.file?.parent
-        fileDialog.isVisible = true
-        if (fileDialog.file != null) {
-            val file = File(fileDialog.directory + fileDialog.file)
-            onFileFollowSelected(file)
+        chooseSingleFile(STRINGS.ui.follow) {
+            it?.let(onFileFollowSelected)
         }
     }
 
     private fun onClickFileAppendFiles() {
-        val frame = findFrameFromParent(this)
-        val fileDialog = FileDialog(frame, STRINGS.ui.file + " " + STRINGS.ui.appendFiles, FileDialog.LOAD)
-        fileDialog.isMultipleMode = true
-        fileDialog.directory = Log.file?.parent
-        fileDialog.isVisible = true
-        val fileList = fileDialog.files
-        if (fileList != null) {
-            onFilesAppendSelected(fileList)
+        chooseMultiFiles(STRINGS.ui.appendFiles, true) {
+            onFilesAppendSelected(it)
+        }
+    }
+
+    private fun onClickFileOpenFiles() {
+        chooseMultiFiles(STRINGS.ui.openFiles, false) {
+            onFileListSelected(it)
         }
     }
 
@@ -117,15 +105,35 @@ class FileMenu : JMenu() {
         onExit()
     }
 
-    private fun onClickFileOpenFiles() {
-        val frame = findFrameFromParent(this)
-        val fileDialog = FileDialog(frame, STRINGS.ui.file + " " + STRINGS.ui.openFiles, FileDialog.LOAD)
-        fileDialog.isMultipleMode = true
-        fileDialog.directory = Log.file?.parent
-        fileDialog.isVisible = true
-        val fileList = fileDialog.files
-        if (fileList != null) {
-            onFileListSelected(fileList)
+    private fun chooseSingleFile(title: String, onFileSelected: (File?) -> Unit) {
+        chooseMultiFiles(title, false) {
+            onFileSelected(it.firstOrNull())
+        }
+    }
+
+    private fun chooseMultiFiles(
+        title: String,
+        multiSelection: Boolean,
+        onFilesSelected: (Array<File>) -> Unit
+    ) {
+        val frame = findFrameFromParent()
+        val chooser = JFileChooser(userDir)
+        chooser.dialogTitle = STRINGS.ui.file + " " + title
+        chooser.preferredSize = Dimension(
+            (frame.size.width / 2).coerceAtLeast(600),
+            (frame.size.height / 2).coerceAtLeast(300)
+        )
+        chooser.addChoosableFileFilter(FileNameExtensionFilter("Log File", "txt"))
+        // TODO support archives
+        chooser.addChoosableFileFilter(FileNameExtensionFilter("Log Archive", "zip", "rar", "gz", "tar"))
+        chooser.isMultiSelectionEnabled = multiSelection
+        chooser.showOpenDialog(frame)
+        val files = chooser.selectedFiles
+        val file = chooser.selectedFile
+        if (!files.isNullOrEmpty()) {
+            onFilesSelected(files)
+        } else if (file != null) {
+            onFilesSelected(arrayOf(file))
         }
     }
 }

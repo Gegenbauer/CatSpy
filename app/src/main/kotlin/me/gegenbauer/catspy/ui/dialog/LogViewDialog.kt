@@ -1,16 +1,16 @@
 package me.gegenbauer.catspy.ui.dialog
 
-import me.gegenbauer.catspy.utils.Utils
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainUI
+import me.gegenbauer.catspy.utils.Utils
 import java.awt.Dimension
 import java.awt.event.*
 import javax.swing.*
 
 
-class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent, "Log", false) {
+class LogViewDialog(parent: JFrame, log: String, caretPos: Int) : JDialog(parent, false) {
 
-    val textArea = JTextArea()
+    private val textArea = JTextArea()
     private val scrollPane = JScrollPane(textArea)
     private val mainUI = parent as MainUI
     private val popupMenu = PopUpLogViewDialog()
@@ -20,6 +20,7 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         textArea.isEditable = false
         textArea.caret.isVisible = true
         textArea.lineWrap = true
+
         textArea.font = mainUI.customFont
 
         textArea.addKeyListener(KeyHandler())
@@ -46,11 +47,10 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         Utils.installKeyStrokeEscClosing(this)
     }
 
-    internal inner class KeyHandler: KeyAdapter() {
+    internal inner class KeyHandler : KeyAdapter() {
         private var pressedKeyCode: Int = 0
         override fun keyPressed(event: KeyEvent) {
             pressedKeyCode = event.keyCode
-
             super.keyPressed(event)
         }
 
@@ -62,7 +62,7 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         }
     }
 
-    internal inner class FocusHandler: FocusAdapter() {
+    internal inner class FocusHandler : FocusAdapter() {
         override fun focusLost(event: FocusEvent) {
             super.focusLost(event)
             if (!popupMenu.isVisible) {
@@ -100,34 +100,36 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
             override fun actionPerformed(event: ActionEvent) {
                 when (event.source) {
                     includeItem -> {
+                        if (textArea.selectedText.isNullOrEmpty()) return
                         var text = mainUI.getTextShowLogCombo()
                         text += "|" + textArea.selectedText
                         mainUI.setTextShowLogCombo(text)
                         mainUI.applyShowLogCombo()
                     }
+
                     excludeItem -> {
-                        if (!textArea.selectedText.isNullOrEmpty()) {
-                            var text = mainUI.getTextShowLogCombo()
-                            text += "|-" + textArea.selectedText
-                            mainUI.setTextShowLogCombo(text)
-                            mainUI.applyShowLogCombo()
-                        }
+                        if (textArea.selectedText.isNullOrEmpty()) return
+                        var text = mainUI.getTextShowLogCombo()
+                        text += "|-" + textArea.selectedText
+                        mainUI.setTextShowLogCombo(text)
+                        mainUI.applyShowLogCombo()
                     }
+
                     searchAddItem -> {
-                        if (!textArea.selectedText.isNullOrEmpty()) {
-                            var text = mainUI.getTextSearchCombo()
-                            text += "|" + textArea.selectedText
-                            mainUI.setTextSearchCombo(text)
-                        }
+                        if (textArea.selectedText.isNullOrEmpty()) return
+                        var text = mainUI.getTextSearchCombo()
+                        text += "|" + textArea.selectedText
+                        mainUI.setTextSearchCombo(text)
                     }
+
                     searchSetItem -> {
-                        if (!textArea.selectedText.isNullOrEmpty()) {
-                            mainUI.setTextSearchCombo(textArea.selectedText)
-                        }
+                        mainUI.setTextSearchCombo(textArea.selectedText)
                     }
+
                     copyItem -> {
                         textArea.copy()
                     }
+
                     closeItem -> {
                         dispose()
                     }
@@ -135,7 +137,7 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
             }
         }
 
-        internal inner class FocusHandler: FocusAdapter() {
+        internal inner class FocusHandler : FocusAdapter() {
             override fun focusLost(event: FocusEvent) {
                 super.focusLost(event)
                 if (!this@LogViewDialog.hasFocus()) {

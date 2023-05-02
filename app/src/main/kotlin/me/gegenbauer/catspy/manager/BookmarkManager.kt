@@ -1,31 +1,22 @@
 package me.gegenbauer.catspy.manager
 
-class BookmarkEvent(change:Int) {
-    val bookmarkChange = change
-    companion object {
-        const val ADDED = 0
-        const val REMOVED = 1
-    }
-}
-
-interface BookmarkEventListener {
-    fun bookmarkChanged(event: BookmarkEvent)
+interface BookmarkChangeListener {
+    fun bookmarkChanged()
 }
 
 object BookmarkManager {
+    private val bookmarks = HashSet<Int>()
+    private val eventListeners = ArrayList<BookmarkChangeListener>()
 
-    val bookmarks = ArrayList<Int>()
-    private val eventListeners = ArrayList<BookmarkEventListener>()
-
-    fun addBookmarkEventListener(listener: BookmarkEventListener) {
+    fun addBookmarkEventListener(listener: BookmarkChangeListener) {
         eventListeners.add(listener)
     }
 
-    fun isBookmark(bookmark:Int): Boolean {
+    fun isBookmark(bookmark: Int): Boolean {
         return bookmarks.contains(bookmark)
     }
 
-    fun updateBookmark(bookmark:Int) {
+    fun updateBookmark(bookmark: Int) {
         if (bookmarks.contains(bookmark)) {
             removeBookmark(bookmark)
         } else {
@@ -33,28 +24,28 @@ object BookmarkManager {
         }
     }
 
-    fun addBookmark(bookmark:Int) {
-        bookmarks.add(bookmark)
-        bookmarks.sort()
-
-        for (listener in eventListeners) {
-            listener.bookmarkChanged(BookmarkEvent(BookmarkEvent.ADDED))
-        }
+    fun checkNewRow(rows: IntArray): Boolean {
+        return rows.any { !bookmarks.contains(it) }
     }
 
-    fun removeBookmark(bookmark:Int) {
-        bookmarks.remove(bookmark)
+    fun addBookmark(bookmark: Int) {
+        bookmarks.add(bookmark)
+        notifyChanged()
+    }
 
-        for (listener in eventListeners) {
-            listener.bookmarkChanged(BookmarkEvent(BookmarkEvent.REMOVED))
-        }
+    fun removeBookmark(bookmark: Int) {
+        bookmarks.remove(bookmark)
+        notifyChanged()
     }
 
     fun clear() {
         bookmarks.clear()
+        notifyChanged()
+    }
 
+    private fun notifyChanged() {
         for (listener in eventListeners) {
-            listener.bookmarkChanged(BookmarkEvent(BookmarkEvent.REMOVED))
+            listener.bookmarkChanged()
         }
     }
 }

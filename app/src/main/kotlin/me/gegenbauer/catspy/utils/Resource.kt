@@ -2,8 +2,7 @@ package me.gegenbauer.catspy.utils
 
 import com.github.weisj.darklaf.iconset.AllIcons
 import com.github.weisj.darklaf.properties.icons.IconLoader
-import me.gegenbauer.catspy.Main
-import me.gegenbauer.catspy.ui.Menu
+import me.gegenbauer.catspy.Application
 import me.gegenbauer.catspy.ui.iconDefaultSize
 import java.io.File
 import java.io.InputStream
@@ -22,7 +21,7 @@ fun loadResourceAsStream(resourcePath: String): InputStream {
 }
 
 fun getResource(relativePath: String): URL {
-    val classLoader = Main::class.java.classLoader
+    val classLoader = Application::class.java.classLoader
     val resource = classLoader.getResource(relativePath)
     return resource ?: throw IllegalArgumentException("Resource not found")
 }

@@ -9,8 +9,7 @@ import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.manager.BookmarkEvent
-import me.gegenbauer.catspy.manager.BookmarkEventListener
+import me.gegenbauer.catspy.manager.BookmarkChangeListener
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.manager.CustomListManager
 import me.gegenbauer.catspy.resource.strings.STRINGS
@@ -22,6 +21,7 @@ import me.gegenbauer.catspy.ui.button.TableBarButton
 import me.gegenbauer.catspy.ui.container.WrapablePanel
 import me.gegenbauer.catspy.ui.panel.VStatusPanel
 import me.gegenbauer.catspy.ui.popup.PopUpLogPanel
+import me.gegenbauer.catspy.utils.addVSeparator1
 import me.gegenbauer.catspy.utils.applyTooltip
 import me.gegenbauer.catspy.utils.loadIcon
 import java.awt.*
@@ -51,7 +51,6 @@ class LogPanel(
     private val table = LogTable(tableModel)
     private val scrollPane = JScrollPane(table)
     private val vStatusPanel = VStatusPanel(table)
-    private var selectedRow = -1
     private val adjustmentHandler = AdjustmentHandler()
     private val listSelectionHandler = ListSelectionHandler()
     private val tableModelHandler = TableModelHandler()
@@ -107,15 +106,6 @@ class LogPanel(
         add(scrollPane, BorderLayout.CENTER)
 
         addComponentListener(componentHandler)
-    }
-
-    private fun addVSeparator(panel: JPanel) {
-        val separator1 = JSeparator(SwingConstants.VERTICAL)
-        separator1.preferredSize = Dimension(separator1.preferredSize.width, 10)
-
-        panel.add(Box.createHorizontalStrut(2))
-        panel.add(separator1)
-        panel.add(Box.createHorizontalStrut(2))
     }
 
     private fun updateTableBarFilters(customArray: ArrayList<CustomListManager.CustomElement>?) {
@@ -212,7 +202,7 @@ class LogPanel(
             ctrlMainPanel.add(windowedModeBtn)
         }
 
-        addVSeparator(ctrlMainPanel)
+        ctrlMainPanel.addVSeparator1(10)
         if (basePanel != null) {
             updateTableBarFilters(customArray)
         } else {
@@ -235,18 +225,13 @@ class LogPanel(
         }
 
     override fun repaint() {
-        val bg = ColorScheme.logBG
-
-        if (bg != background) {
-            background = bg
-        }
-
+        background = ColorScheme.logBG
         super.repaint()
     }
 
     fun goToRow(idx: Int, column: Int) {
         if (idx < 0 || idx >= table.rowCount) {
-            GLog.d(TAG, "goToRow : invalid idx")
+            GLog.d(TAG, "[goToRow] invalid idx")
             return
         }
         table.setRowSelectionInterval(idx, idx)
@@ -291,7 +276,6 @@ class LogPanel(
             setGoToLast(true)
             updateTableUI()
         }
-
         return
     }
 
@@ -483,8 +467,8 @@ class LogPanel(
         }
     }
 
-    internal inner class BookmarkHandler : BookmarkEventListener {
-        override fun bookmarkChanged(event: BookmarkEvent) {
+    internal inner class BookmarkHandler : BookmarkChangeListener {
+        override fun bookmarkChanged() {
             vStatusPanel.repaint()
             if (table.tableModel.bookmarkMode) {
                 table.tableModel.bookmarkMode = true

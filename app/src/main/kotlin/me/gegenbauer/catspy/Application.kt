@@ -8,7 +8,7 @@ import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.ThemeManager
-import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
@@ -18,9 +18,10 @@ import me.gegenbauer.catspy.ui.VStatusPanel
 import me.gegenbauer.catspy.viewmodel.GlobalViewModel
 import java.awt.Container
 import java.util.*
+import javax.swing.JComponent
 import javax.swing.UIDefaults
 
-class Main {
+class Application {
     companion object {
         private const val TAG = "Main"
 
@@ -28,7 +29,6 @@ class Main {
         fun main(args: Array<String>) {
             AppScope.launch(Dispatchers.UI) {
                 withContext(Dispatchers.APP_LAUNCH) {
-                    GLog.DEBUG = UIConfManager.uiConf.debug
                     ThemeManager.init()
                     GlobalViewModel.init()
                 }
@@ -64,7 +64,7 @@ class Main {
             components.forEach { component ->
                 component.addMouseListener(object : java.awt.event.MouseAdapter() {
                     override fun mouseClicked(e: java.awt.event.MouseEvent?) {
-                        GLog.d(TAG, component.javaClass.name)
+                        GLog.d(TAG, "${component.javaClass.name} ${if (component is JComponent) component.componentName else ""} clicked")
                     }
                 })
                 if (component is Container) {

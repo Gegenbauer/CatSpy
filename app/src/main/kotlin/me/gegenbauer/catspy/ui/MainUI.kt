@@ -15,6 +15,7 @@ import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.DefaultDocumentListener
+import me.gegenbauer.catspy.databinding.property.support.PROPERTY_TEXT
 import me.gegenbauer.catspy.file.Log
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.manager.FiltersManager
@@ -65,7 +66,7 @@ class MainUI(title: String) : JFrame(title) {
     private val filterPanel = JPanel()
 
     //region filterLeftPanel
-    private val filterLeftPanel = JPanel()
+    private val filterLeftPanel = JPanel() withName "filterLeftPanel"
 
     //region logPanel
     private val logPanel = JPanel()
@@ -244,7 +245,7 @@ class MainUI(title: String) : JFrame(title) {
     //endregion
 
     //region events
-    private val frameMouseListener = FrameMouseListener(this)
+    private val logPanelMouseListener = LogPanelMouseListener()
     private val keyHandler = KeyHandler()
     private val itemHandler = ItemHandler()
     private val actionHandler = ActionHandler()
@@ -329,24 +330,12 @@ class MainUI(title: String) : JFrame(title) {
     private fun createUI() {
         jMenuBar = menuBar
 
-        logToolBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-
-        showLogTogglePanel.add(showLogToggle)
-        showLogTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-
         boldLogCombo.enabledTfTooltip = false
+        showLogTogglePanel.add(showLogToggle)
         boldLogTogglePanel.add(boldLogToggle)
-        boldLogTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-
         showTagTogglePanel.add(showTagToggle)
-        showTagTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-
         showPidTogglePanel.add(showPidToggle)
-        showPidTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-
         showTidTogglePanel.add(showTidToggle)
-        showTidTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-
 
         deviceStatus.isEnabled = false
         val deviceComboPanel = JPanel(BorderLayout())
@@ -354,7 +343,6 @@ class MainUI(title: String) : JFrame(title) {
         deviceComboPanel.add(deviceStatus, BorderLayout.LINE_END)
 
         matchCaseTogglePanel.add(matchCaseToggle)
-        matchCaseTogglePanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
 
         showLogPanel.layout = BorderLayout()
         showLogPanel.add(showLogTogglePanel, BorderLayout.WEST)
@@ -384,7 +372,6 @@ class MainUI(title: String) : JFrame(title) {
 
         scrollBackTF.preferredSize = Dimension(80, scrollBackTF.preferredSize.height)
 
-        itemFilterPanel.border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
         itemFilterPanel.add(showTagPanel)
         itemFilterPanel.add(showPidPanel)
         itemFilterPanel.add(showTidPanel)
@@ -392,12 +379,12 @@ class MainUI(title: String) : JFrame(title) {
         itemFilterPanel.add(matchCaseTogglePanel)
 
         logPanel.layout = BorderLayout()
+        logPanel.border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
         logPanel.add(showLogPanel, BorderLayout.CENTER)
         logPanel.add(itemFilterPanel, BorderLayout.EAST)
 
         filterLeftPanel.layout = BorderLayout()
         filterLeftPanel.add(logPanel, BorderLayout.NORTH)
-        filterLeftPanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
 
         filterPanel.layout = BorderLayout()
         filterPanel.add(filterLeftPanel, BorderLayout.CENTER)
@@ -418,7 +405,6 @@ class MainUI(title: String) : JFrame(title) {
         logToolBar.addVSeparator2()
         logToolBar.add(clearViewsBtn)
 
-        scrollBackPanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         scrollBackPanel.addVSeparator2()
         scrollBackPanel.add(scrollBackLabel)
         scrollBackPanel.add(scrollBackTF)
@@ -427,6 +413,7 @@ class MainUI(title: String) : JFrame(title) {
         scrollBackPanel.add(scrollBackKeepToggle)
 
         toolBarPanel.layout = BorderLayout()
+        toolBarPanel.border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
         toolBarPanel.add(logToolBar, BorderLayout.CENTER)
         toolBarPanel.add(scrollBackPanel, BorderLayout.EAST)
 
@@ -478,44 +465,30 @@ class MainUI(title: String) : JFrame(title) {
             setDeviceComboColor(false)
         }
 
-        val fontName = UIConfManager.uiConf.logFontName
-        val fontSize = UIConfManager.uiConf.logFontSize
-
-        customFont = Font(fontName, Font.PLAIN, fontSize)
+        customFont = UIConfManager.uiConf.getLogFont()
+        GLog.d(TAG, "[createUI] log font: $customFont")
         splitLogPane.filteredLogPanel.customFont = customFont
         splitLogPane.fullLogPanel.customFont = customFont
 
         filteredTableModel.filterLevel = getLevelFromName(MainViewModel.logLevel.value ?: LogLevel.WARN.logName)
 
-        if (showLogToggle.isSelected && showLogCombo.selectedItem != null) {
-            filteredTableModel.filterLog = showLogCombo.selectedItem!!.toString()
-        } else {
-            filteredTableModel.filterLog = ""
+        if (showLogToggle.isSelected) {
+            filteredTableModel.filterLog = showLogCombo.selectedItem?.toString() ?: ""
         }
-        if (boldLogToggle.isSelected && boldLogCombo.selectedItem != null) {
-            filteredTableModel.filterHighlightLog = boldLogCombo.selectedItem!!.toString()
-        } else {
-            filteredTableModel.filterHighlightLog = ""
+        if (boldLogToggle.isSelected) {
+            filteredTableModel.filterHighlightLog = boldLogCombo.selectedItem?.toString() ?: ""
         }
-        if (searchPanel.isVisible && searchPanel.searchCombo.selectedItem != null) {
-            filteredTableModel.filterSearchLog = searchPanel.searchCombo.selectedItem!!.toString()
-        } else {
-            filteredTableModel.filterSearchLog = ""
+        if (searchPanel.isVisible) {
+            filteredTableModel.filterSearchLog = searchPanel.searchCombo.selectedItem?.toString() ?: ""
         }
-        if (showTagToggle.isSelected && showTagCombo.selectedItem != null) {
-            filteredTableModel.filterTag = showTagCombo.selectedItem!!.toString()
-        } else {
-            filteredTableModel.filterTag = ""
+        if (showTagToggle.isSelected) {
+            filteredTableModel.filterTag = showTagCombo.selectedItem?.toString() ?: ""
         }
-        if (showPidToggle.isSelected && showPidCombo.selectedItem != null) {
-            filteredTableModel.filterPid = showPidCombo.selectedItem!!.toString()
-        } else {
-            filteredTableModel.filterPid = ""
+        if (showPidToggle.isSelected) {
+            filteredTableModel.filterPid = showPidCombo.selectedItem?.toString() ?: ""
         }
-        if (showTidToggle.isSelected && showTidCombo.selectedItem != null) {
-            filteredTableModel.filterTid = showTidCombo.selectedItem!!.toString()
-        } else {
-            filteredTableModel.filterTid = ""
+        if (showTidToggle.isSelected) {
+            filteredTableModel.filterTid = showTidCombo.selectedItem?.toString() ?: ""
         }
 
         viewMenu.itemFull.state = UIConfManager.uiConf.logFullViewEnabled
@@ -564,9 +537,10 @@ class MainUI(title: String) : JFrame(title) {
                 goToDialog.setLocationRelativeTo(this@MainUI)
                 goToDialog.isVisible = true
                 if (goToDialog.line != -1) {
+                    GLog.d(TAG, "[KeyEventDispatcher] Cancel Goto Line ${goToDialog.line}")
                     goToLine(goToDialog.line)
                 } else {
-                    GLog.d(TAG, "Cancel Goto Line")
+                    GLog.d(TAG, "[KeyEventDispatcher] Cancel Goto Line")
                 }
             }
 
@@ -576,7 +550,7 @@ class MainUI(title: String) : JFrame(title) {
         // fix bug: event registered for editor in ComboBox will be removed when ComboBoxUI changed
         registerComboBoxEditorEvent()
 
-        logToolBar.addMouseListener(frameMouseListener)
+        logToolBar.addMouseListener(logPanelMouseListener)
         logToolBar.addMouseListener(mouseHandler)
         startBtn.addActionListener(actionHandler)
         startBtn.addMouseListener(mouseHandler)
@@ -649,7 +623,7 @@ class MainUI(title: String) : JFrame(title) {
     inner class StatusChangeListener : PropertyChangeListener, DefaultDocumentListener() {
         private var method = ""
         override fun propertyChange(evt: PropertyChangeEvent) {
-            if (evt.source == statusMethod && evt.propertyName == "text") {
+            if (evt.source == statusMethod && evt.propertyName == PROPERTY_TEXT) {
                 method = evt.newValue.toString().trim()
             }
         }
@@ -674,25 +648,6 @@ class MainUI(title: String) : JFrame(title) {
                 STRINGS.ui.app
             }
         }
-    }
-
-    private fun JPanel.addVSeparator2() {
-        val separator1 = JSeparator(SwingConstants.VERTICAL)
-        separator1.preferredSize = Dimension(separator1.preferredSize.width, 20)
-        val separator2 = JSeparator(SwingConstants.VERTICAL)
-        separator2.preferredSize = Dimension(separator2.preferredSize.width, 20)
-        add(Box.createHorizontalStrut(5))
-        add(separator1)
-        add(separator2)
-        add(Box.createHorizontalStrut(5))
-    }
-
-    private fun JPanel.addVSeparator1() {
-        val separator1 = JSeparator(SwingConstants.VERTICAL)
-        separator1.preferredSize = Dimension(separator1.preferredSize.width / 2, 20)
-        add(Box.createHorizontalStrut(2))
-        add(separator1)
-        add(Box.createHorizontalStrut(2))
     }
 
     // TODO detach log 逻辑梳理
@@ -720,7 +675,7 @@ class MainUI(title: String) : JFrame(title) {
     }
 
     fun openFile(path: String, isAppend: Boolean) {
-        GLog.d(TAG, "Opening: $path, $isAppend")
+        GLog.d(TAG, "[openFile] Opening: $path, $isAppend")
         statusMethod.text = " ${STRINGS.ui.open} "
         filteredTableModel.stopScan()
         filteredTableModel.stopFollow()
@@ -805,7 +760,7 @@ class MainUI(title: String) : JFrame(title) {
     }
 
     fun restartAdbLogcat() {
-        GLog.d(TAG, "Restart Adb Logcat")
+        GLog.d(TAG, "[restartAdbLogcat]")
         LogCmdManager.stop()
         LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
         LogCmdManager.startLogcat()
@@ -813,7 +768,7 @@ class MainUI(title: String) : JFrame(title) {
 
     fun pauseAdbScan(pause: Boolean) {
         if (!filteredTableModel.isScanning()) {
-            GLog.d(TAG, "pauseAdbScan : not adb scanning mode")
+            GLog.d(TAG, "[pauseAdbScan] not adb scanning mode")
             return
         }
         filteredTableModel.pauseScan(pause)
@@ -836,7 +791,7 @@ class MainUI(title: String) : JFrame(title) {
 
     fun stopFileFollow() {
         if (!filteredTableModel.isFollowing()) {
-            GLog.d(TAG, "stopAdbScan : not file follow mode")
+            GLog.d(TAG, "[stopAdbScan] not file follow mode")
             return
         }
         statusMethod.text = " ${STRINGS.ui.follow} ${STRINGS.ui.stop} "
@@ -846,7 +801,7 @@ class MainUI(title: String) : JFrame(title) {
 
     fun pauseFileFollow(pause: Boolean) {
         if (!filteredTableModel.isFollowing()) {
-            GLog.d(TAG, "pauseFileFollow : not file follow mode")
+            GLog.d(TAG, "[pauseFileFollow] not file follow mode")
             return
         }
         filteredTableModel.pauseFollow(pause)
@@ -938,7 +893,7 @@ class MainUI(title: String) : JFrame(title) {
         repaint()
     }
 
-    internal inner class FramePopUp : JPopupMenu() {
+    internal inner class ButtonDisplayModeSelectMenu : JPopupMenu() {
         var itemIconText: JMenuItem =
             JMenuItem("IconText").apply { putClientProperty("ButtonDisplayMode", ButtonDisplayMode.ALL) }
         var itemIcon: JMenuItem =
@@ -965,28 +920,15 @@ class MainUI(title: String) : JFrame(title) {
         }
     }
 
-    internal inner class FrameMouseListener(private val frame: JFrame) : MouseAdapter() {
-        private var mouseDownCompCoords: Point? = null
-
-        private var popupMenu: JPopupMenu? = null
+    internal inner class LogPanelMouseListener : MouseAdapter() {
+        private var popupMenu: JPopupMenu = ButtonDisplayModeSelectMenu()
         override fun mouseReleased(e: MouseEvent) {
-            mouseDownCompCoords = null
-
             if (SwingUtilities.isRightMouseButton(e)) {
-                popupMenu = FramePopUp()
-                popupMenu?.show(e.component, e.x, e.y)
+                popupMenu = ButtonDisplayModeSelectMenu()
+                popupMenu.show(e.component, e.x, e.y)
             } else {
-                popupMenu?.isVisible = false
+                popupMenu.isVisible = false
             }
-        }
-
-        override fun mousePressed(e: MouseEvent) {
-            mouseDownCompCoords = e.point
-        }
-
-        override fun mouseDragged(e: MouseEvent) {
-            val currCoords = e.locationOnScreen
-            frame.setLocation(currCoords.x - mouseDownCompCoords!!.x, currCoords.y - mouseDownCompCoords!!.y)
         }
     }
 
@@ -1037,6 +979,7 @@ class MainUI(title: String) : JFrame(title) {
         }
     }
 
+    // TODO bug showLogCombo 导致黑边
     internal inner class PopUpFilterCombobox(combo: FilterComboBox) : JPopupMenu() {
         var selectAllItem: JMenuItem
         var copyItem: JMenuItem
@@ -1821,8 +1764,6 @@ class MainUI(title: String) : JFrame(title) {
             }
 
             override fun popupMenuWillBecomeVisible(event: PopupMenuEvent) {
-                val box = event.source as JComboBox<*>
-                val comp = box.ui.getAccessibleChild(box, 0) as? JPopupMenu ?: return
                 isCanceled = false
             }
         }

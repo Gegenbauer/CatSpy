@@ -36,14 +36,14 @@ class HelpMenu : JMenu() {
     }
 
     private fun openHelpDialog() {
-        val frame = findFrameFromParent(this)
+        val frame = findFrameFromParent()
         val helpDialog = HelpDialog(frame)
         helpDialog.setLocationRelativeTo(frame)
         helpDialog.isVisible = true
     }
 
     private fun openAboutDialog() {
-        val frame = findFrameFromParent(this)
+        val frame = findFrameFromParent()
         val aboutDialog = AboutDialog(frame)
         aboutDialog.setLocationRelativeTo(frame)
         aboutDialog.isVisible = true

@@ -4,6 +4,7 @@ import me.gegenbauer.catspy.manager.CustomListManager
 import me.gegenbauer.catspy.ui.log.LogLevel
 import me.gegenbauer.catspy.ui.panel.Rotation
 import me.gegenbauer.catspy.utils.userDir
+import java.awt.Font
 import java.awt.Frame
 
 // TODO 日志过滤器无法添加；
@@ -46,7 +47,7 @@ data class UIConf(
     var uiFontScale: Int = 100,
     var dividerSize: Int = 10,
     var logFontName: String = "DialogInput",
-    var logFontSize: Int = 16,
+    var logFontSize: Int = 14,
     var logFontStyle: Int = 0,
     var logFullViewEnabled: Boolean = true, // TODO 应用启动时，如果 panel 不可见，启动后再可见，样式没有使用 laf
     var filterIncrementalEnabled: Boolean = false,
@@ -76,4 +77,8 @@ data class UIConf(
     /** 命令列表 start **/
     val commands: MutableList<CustomListManager.CustomElement> = mutableListOf(),
     /** 命令列表 end **/
-)
+) {
+    fun getLogFont(): Font {
+        return Font(logFontName, logFontStyle, logFontSize)
+    }
+}

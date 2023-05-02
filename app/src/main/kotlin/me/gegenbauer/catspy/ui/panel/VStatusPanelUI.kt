@@ -42,7 +42,7 @@ open class VStatusPanelUI: DarkPanelUI() {
         g.color = bookmarkColor
         for (row in 0 until logTable.rowCount) {
             val num = logTable.getValueAt(row, 0).toString().trim().toInt()
-            if (BookmarkManager.bookmarks.contains(num)) {
+            if (BookmarkManager.isBookmark(num)) {
                 g.fillRect(0, row * c.height / logTable.rowCount, c.width, 1)
             }
         }

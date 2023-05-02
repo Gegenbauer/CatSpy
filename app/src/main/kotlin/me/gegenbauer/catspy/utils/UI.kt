@@ -2,10 +2,11 @@ package me.gegenbauer.catspy.utils
 
 import java.awt.Color
 import java.awt.Component
-import javax.swing.JFrame
+import java.awt.Dimension
+import javax.swing.*
 
-fun findFrameFromParent(component: Component): JFrame {
-    var current = component.parent
+fun Component.findFrameFromParent(): JFrame {
+    var current = parent
     while (current != null) {
         if (current is JFrame) {
             return current
@@ -30,4 +31,23 @@ fun Int.toArgb(): Color {
     val green = this shr 8 and 0xFF
     val blue = this and 0xFF
     return Color(red, green, blue, alpha)
+}
+
+fun JPanel.addVSeparator2(height: Int = 20) {
+    val separator1 = JSeparator(SwingConstants.VERTICAL)
+    separator1.preferredSize = Dimension(separator1.preferredSize.width, height)
+    val separator2 = JSeparator(SwingConstants.VERTICAL)
+    separator2.preferredSize = Dimension(separator2.preferredSize.width, height)
+    add(Box.createHorizontalStrut(5))
+    add(separator1)
+    add(separator2)
+    add(Box.createHorizontalStrut(5))
+}
+
+fun JPanel.addVSeparator1(height: Int = 20) {
+    val separator1 = JSeparator(SwingConstants.VERTICAL)
+    separator1.preferredSize = Dimension(separator1.preferredSize.width / 2, height)
+    add(Box.createHorizontalStrut(2))
+    add(separator1)
+    add(Box.createHorizontalStrut(2))
 }
