@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.manager
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.log.LogPanel
+import me.gegenbauer.catspy.utils.isDoubleClick
 import java.awt.event.*
 import javax.swing.JList
 import javax.swing.event.ListSelectionEvent
@@ -54,7 +55,7 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mai
     internal inner class MouseHandler: MouseAdapter() {
         override fun mouseClicked(mouseEvent: MouseEvent) {
             super.mouseClicked(mouseEvent)
-            if (mouseEvent.clickCount == 2) {
+            if (mouseEvent.isDoubleClick) {
                 shouMainUIText(mouseEvent)
             }
         }

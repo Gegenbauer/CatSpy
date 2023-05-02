@@ -280,7 +280,10 @@ object ColorScheme: ThemeAware {
             }
         }
     }
+}
 
+object Menu {
+    const val MENU_ITEM_ICON_SIZE = 20
 }
 
 interface ThemeAware {

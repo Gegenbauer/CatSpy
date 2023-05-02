@@ -13,6 +13,7 @@ import java.io.File
 import java.net.URI
 import javax.swing.JOptionPane
 import javax.swing.JSplitPane
+import javax.swing.SwingUtilities
 import javax.swing.TransferHandler
 
 class SplitLogPane(
@@ -25,11 +26,10 @@ class SplitLogPane(
 
     val fullLogPanel = LogPanel(mainUI, fullTableModel, null, this)
     val filteredLogPanel = LogPanel(mainUI, filteredTableModel, fullLogPanel, this)
-    var rotation: Orientation = Orientation.ROTATION_LEFT_RIGHT
+    var rotation: Rotation = Rotation.ROTATION_LEFT_RIGHT
         set(value) {
-            if (field == value) return
             field = value
-            forceRotate(value)
+            changeRotation(value)
         }
 
     init {
@@ -41,38 +41,43 @@ class SplitLogPane(
         transferHandler = TableTransferHandler()
     }
 
-    fun forceRotate(orientation: Orientation = rotation) {
+    private fun changeRotation(rotation: Rotation) {
         remove(filteredLogPanel)
         remove(fullLogPanel)
-        when (orientation) {
-            Orientation.ROTATION_LEFT_RIGHT -> {
+        when (rotation) {
+            Rotation.ROTATION_LEFT_RIGHT -> {
                 setOrientation(HORIZONTAL_SPLIT)
                 add(fullLogPanel, LEFT)
                 add(filteredLogPanel, RIGHT)
                 resizeWeight = SPLIT_WEIGHT
             }
 
-            Orientation.ROTATION_TOP_BOTTOM -> {
+            Rotation.ROTATION_TOP_BOTTOM -> {
                 setOrientation(VERTICAL_SPLIT)
                 add(fullLogPanel, TOP)
                 add(filteredLogPanel, BOTTOM)
                 resizeWeight = SPLIT_WEIGHT
             }
 
-            Orientation.ROTATION_RIGHT_LEFT -> {
+            Rotation.ROTATION_RIGHT_LEFT -> {
                 setOrientation(HORIZONTAL_SPLIT)
                 add(fullLogPanel, RIGHT)
                 add(filteredLogPanel, LEFT)
                 resizeWeight = 1 - SPLIT_WEIGHT
             }
 
-            Orientation.ROTATION_BOTTOM_TOP -> {
+            Rotation.ROTATION_BOTTOM_TOP -> {
                 setOrientation(VERTICAL_SPLIT)
                 add(fullLogPanel, BOTTOM)
                 add(filteredLogPanel, TOP)
                 resizeWeight = 1 - SPLIT_WEIGHT
             }
         }
+        SwingUtilities.updateComponentTreeUI(this)
+    }
+
+    fun resetWithCurrentRotation() {
+        changeRotation(rotation)
     }
 
     internal inner class TableTransferHandler : TransferHandler() {
@@ -81,11 +86,7 @@ class SplitLogPane(
                 return true
             }
 
-            if (info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                return true
-            }
-
-            return false
+            return info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
         }
 
         override fun importData(info: TransferSupport): Boolean {
@@ -133,25 +134,21 @@ class SplitLogPane(
             if (fileList.size > 0) {
                 val os = currentPlatform
                 GLog.d(TAG, "os = $os, drop = ${info.dropAction}, source drop = ${info.sourceDropActions}, user drop = ${info.userDropAction}")
-                val action = os.getFileDropAction(info)
 
-                var value = 1
-                if (action == COPY) {
-                    val options = arrayOf<Any>(
-                        STRINGS.ui.append,
-                        STRINGS.ui.open,
-                        STRINGS.ui.cancel
-                    )
-                    value = JOptionPane.showOptionDialog(
-                        mainUI, STRINGS.ui.msgSelectOpenMode,
-                        "",
-                        JOptionPane.YES_NO_CANCEL_OPTION,
-                        JOptionPane.PLAIN_MESSAGE,
-                        null,
-                        options,
-                        options[0]
-                    )
-                }
+                val options = arrayOf<Any>(
+                    STRINGS.ui.append,
+                    STRINGS.ui.open,
+                    STRINGS.ui.cancel
+                )
+                val value = JOptionPane.showOptionDialog(
+                    mainUI, STRINGS.ui.msgSelectOpenMode,
+                    "",
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    options,
+                    options[0]
+                )
 
                 when (value) {
                     0 -> {
@@ -181,10 +178,6 @@ class SplitLogPane(
         }
     }
 
-    fun rotate(orientation: Orientation = rotation.next()) {
-        rotation = orientation
-    }
-
     override fun focusGained(e: FocusEvent) {
         onFocusGained.invoke(e.source == filteredLogPanel)
     }
@@ -200,29 +193,29 @@ class SplitLogPane(
 
 }
 
-enum class Orientation {
+enum class Rotation {
     ROTATION_LEFT_RIGHT,
     ROTATION_TOP_BOTTOM,
     ROTATION_RIGHT_LEFT,
     ROTATION_BOTTOM_TOP,
 }
 
-fun Orientation.next(): Orientation {
+fun Rotation.next(): Rotation {
     return when (this) {
-        Orientation.ROTATION_LEFT_RIGHT -> {
-            Orientation.ROTATION_TOP_BOTTOM
+        Rotation.ROTATION_LEFT_RIGHT -> {
+            Rotation.ROTATION_TOP_BOTTOM
         }
 
-        Orientation.ROTATION_TOP_BOTTOM -> {
-            Orientation.ROTATION_RIGHT_LEFT
+        Rotation.ROTATION_TOP_BOTTOM -> {
+            Rotation.ROTATION_RIGHT_LEFT
         }
 
-        Orientation.ROTATION_RIGHT_LEFT -> {
-            Orientation.ROTATION_BOTTOM_TOP
+        Rotation.ROTATION_RIGHT_LEFT -> {
+            Rotation.ROTATION_BOTTOM_TOP
         }
 
-        Orientation.ROTATION_BOTTOM_TOP -> {
-            Orientation.ROTATION_LEFT_RIGHT
+        Rotation.ROTATION_BOTTOM_TOP -> {
+            Rotation.ROTATION_LEFT_RIGHT
         }
     }
 }

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg fill="#000000" width="800px" height="800px" viewBox="0 0 24 24" id="file-folder-4" data-name="Flat Color"
+     xmlns="http://www.w3.org/2000/svg" class="icon flat-color">
+
+    <defs id="colors">
+        <linearGradient id="fileIconBackground"
+                        fallback="Label.foreground" opacity="fileIconOpacity"
+                        opacity-fallback="%100">
+            <stop offset="0" stop-color="#9AA7B0" stop-opacity=".8" />
+            <stop offset="1" stop-color="#9AA7B0" stop-opacity=".8" />
+        </linearGradient>
+        <linearGradient id="effectiveAccentColor">
+            <stop offset="0" stop-color="#365880" />
+            <stop offset="1" stop-color="#365880" />
+        </linearGradient>
+    </defs>
+
+    <path id="secondary"
+          d="M4.29,4.29l2-2A1,1,0,0,1,7,2H18a2,2,0,0,1,2,2v7a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V5A1,1,0,0,1,4.29,4.29Z"
+          fill="url(#fileIconBackground)"/>
+    <path id="primary"
+          d="M4.29,4.29l2-2A1,1,0,0,1,7,2V4A1,1,0,0,1,6,5H4A1,1,0,0,1,4.29,4.29ZM2,12v8a2,2,0,0,0,2,2H20a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2H15a1.05,1.05,0,0,0-.71.29L12.6,10H4A2,2,0,0,0,2,12Z"
+          fill="url(#effectiveAccentColor)"/>
+</svg>

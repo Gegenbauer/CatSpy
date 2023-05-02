@@ -5,6 +5,8 @@ import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.panel.VStatusPanel
 import me.gegenbauer.catspy.ui.dialog.LogViewDialog
+import me.gegenbauer.catspy.utils.isDoubleClick
+import me.gegenbauer.catspy.utils.isSingleClick
 import java.awt.*
 import java.awt.event.*
 import javax.swing.*
@@ -12,6 +14,7 @@ import javax.swing.border.AbstractBorder
 import javax.swing.table.DefaultTableCellRenderer
 
 
+// TODO refactor
 class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
     companion object {
         const val VIEW_LINE_ONE = 0
@@ -395,7 +398,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
 
         override fun mouseClicked(event: MouseEvent) {
             if (SwingUtilities.isLeftMouseButton(event)) {
-                if (event.clickCount == 2) {
+                if (event.isDoubleClick) {
                     secondClickRow = selectedRow
                     val targetRow = if (firstClickRow > secondClickRow) {
                         firstClickRow
@@ -408,7 +411,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
                         showSelected(targetRow)
                     }
                 }
-                if (event.clickCount == 1) {
+                if (event.isSingleClick) {
                     firstClickRow = selectedRow
                 }
             }

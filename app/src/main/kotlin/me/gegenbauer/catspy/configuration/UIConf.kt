@@ -2,24 +2,27 @@ package me.gegenbauer.catspy.configuration
 
 import me.gegenbauer.catspy.manager.CustomListManager
 import me.gegenbauer.catspy.ui.log.LogLevel
+import me.gegenbauer.catspy.ui.panel.Rotation
+import me.gegenbauer.catspy.utils.userDir
+import java.awt.Frame
 
 // TODO 日志过滤器无法添加；
 data class UIConf(
     /** 应用配置 start **/
-    var versionCode: Int = 0,
-    var appHome: String = "", // 应用程序主目录, 用于存放配置文件, 以及日志等临时文件
+    var versionCode: Int = 10000,
+    var versionName: String = "1.0.0",
+    var appHome: String = userDir, // 应用程序主目录, 用于存放配置文件, 以及日志等临时文件
     var debug: Boolean = false,
     /** 应用配置 end **/
 
     /** 主窗口配置 start **/
     var frameX: Int = 0,
     var frameY: Int = 0,
-    var frameWidth: Int = 0,
-    var frameHeight: Int = 0,
-    var frameExtendedState: Int = 0,
-    var rotation: Int = 0,
-    var dividerLocation: Int = 0,
-    var lastDividerLocation: Int = 0,
+    var frameWidth: Int = 1000,
+    var frameHeight: Int = 500,
+    var frameExtendedState: Int = Frame.MAXIMIZED_BOTH,
+    var rotation: Int = Rotation.ROTATION_LEFT_RIGHT.ordinal,
+    var dividerLocation: Int = 500,
     /** 主窗口配置 end **/
 
     /** 输入历史 start **/
@@ -27,6 +30,7 @@ data class UIConf(
     val tagFilterHistory: MutableList<String> = mutableListOf(),
     val highlightHistory: MutableList<String> = mutableListOf(),
     val searchHistory: MutableList<String> = mutableListOf(),
+    val logCmdHistory: MutableList<String> = mutableListOf("logcat -v threadtime"),
     /** 输入历史 end **/
 
     /** 日志过滤项启用配置 start **/
@@ -34,16 +38,16 @@ data class UIConf(
     var tagFilterEnabled: Boolean = true,
     var pidFilterEnabled: Boolean = true,
     var tidFilterEnabled: Boolean = true,
-    var highlightEnabled: Boolean = true,
+    var boldEnabled: Boolean = true,
     var filterMatchCaseEnabled: Boolean = false,
     /** 日志过滤项启用配置 end **/
 
     /** 界面主题 start **/
-    var laf: String = "",
-    var uiFontScale: Int = 0,
-    var dividerSize: Int = 0,
-    var logFontName: String = "",
-    var logFontSize: Int = 0,
+    var uiFontScale: Int = 100,
+    var dividerSize: Int = 10,
+    var logFontName: String = "DialogInput",
+    var logFontSize: Int = 16,
+    var logFontStyle: Int = 0,
     var logFullViewEnabled: Boolean = true, // TODO 应用启动时，如果 panel 不可见，启动后再可见，样式没有使用 laf
     var filterIncrementalEnabled: Boolean = false,
     val strColorList: MutableList<String> = mutableListOf(),

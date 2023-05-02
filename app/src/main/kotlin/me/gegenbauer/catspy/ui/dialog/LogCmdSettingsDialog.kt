@@ -3,13 +3,13 @@ package me.gegenbauer.catspy.ui.dialog
 import me.gegenbauer.catspy.command.LogCmdManager
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.manager.ConfigManager
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.addHSeparator
 import me.gegenbauer.catspy.ui.button.GButton
 import me.gegenbauer.catspy.utils.Utils
+import me.gegenbauer.catspy.utils.isDoubleClick
 import java.awt.*
 import java.awt.event.*
 import java.io.File
@@ -18,25 +18,23 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 
 
+// TODO refactor
 class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd} ${STRINGS.ui.setting}", true), ActionListener {
-    private var adbCmdBtn: JButton
-    private var adbSaveBtn: JButton
-    private var okBtn: JButton
-    private var cancelBtn: JButton
-
-    private var adbCmdLabel: JLabel
-    private var adbSaveLabel: JLabel
-    private var prefixLabel: JLabel
-    private var prefixLabel2: JLabel
-
-    private var adbCmdTF: JTextField
-    private var adbSaveTF: JTextField
-    private var prefixTF: JTextField
-
-    private var logCmdTable: JTable
-    private var logCmdTableModel: LogCmdTableModel
-    private var logCmdLabel1: JLabel
-    private var logCmdLabel2: JLabel
+    private val adbCmdBtn: JButton = GButton(STRINGS.ui.select)
+    private val adbSaveBtn: JButton = GButton(STRINGS.ui.select)
+    private val okBtn: JButton = GButton(STRINGS.ui.ok)
+    private val cancelBtn: JButton = GButton(STRINGS.ui.cancel)
+    private val adbCmdLabel: JLabel = JLabel(STRINGS.ui.adbPath)
+    private val adbSaveLabel: JLabel = JLabel(STRINGS.ui.logPath)
+    private val prefixLabel: JLabel = JLabel("Prefix")
+    private val prefixLabel2: JLabel = JLabel("Default : ${STRINGS.ui.app}, Do not use \\ / : * ? \" < > |")
+    private val adbCmdTF: JTextField = JTextField(LogCmdManager.adbCmd)
+    private val adbSaveTF: JTextField = JTextField(LogCmdManager.logSavePath)
+    private val prefixTF: JTextField = JTextField(LogCmdManager.prefix)
+    private val logCmdLabel1: JLabel = JLabel("Double click to edit")
+    private val logCmdLabel2: JLabel = JLabel("Default : ${STRINGS.ui.app} -c")
+    private val logCmdTableModel: LogCmdTableModel
+    private val logCmdTable: JTable
 
     inner class LogCmdTableModel(logCommands: Array<Array<Any>>, columnNames: Array<String>) : DefaultTableModel(logCommands, columnNames) {
         override fun isCellEditable(row: Int, column: Int): Boolean {
@@ -46,13 +44,11 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
 
     inner class LogCmdMouseHandler : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
-            if (e != null) {
-                if (e.clickCount == 2) {
-                    if (logCmdTable.selectedRow > 0) {
-                        val logCmdDialog = LogCmdDialog(this@LogCmdSettingsDialog)
-                        logCmdDialog.setLocationRelativeTo(this@LogCmdSettingsDialog)
-                        logCmdDialog.isVisible = true
-                    }
+            if (e.isDoubleClick) {
+                if (logCmdTable.selectedRow > 0) {
+                    val logCmdDialog = LogCmdDialog(this@LogCmdSettingsDialog)
+                    logCmdDialog.setLocationRelativeTo(this@LogCmdSettingsDialog)
+                    logCmdDialog.isVisible = true
                 }
             }
             super.mouseClicked(e)
@@ -63,27 +59,15 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
 
     init {
         val rowHeight = 30
-        adbCmdBtn = GButton(STRINGS.ui.select)
-        adbCmdBtn.addActionListener(this)
         adbCmdBtn.preferredSize = Dimension(adbCmdBtn.preferredSize.width, rowHeight)
-        adbSaveBtn = GButton(STRINGS.ui.select)
         adbSaveBtn.addActionListener(this)
-        okBtn = GButton(STRINGS.ui.ok)
         okBtn.addActionListener(this)
-        cancelBtn = GButton(STRINGS.ui.cancel)
         cancelBtn.addActionListener(this)
 
-        adbCmdLabel = JLabel(STRINGS.ui.adbPath)
         adbCmdLabel.preferredSize = Dimension(adbCmdLabel.preferredSize.width, rowHeight)
-        adbSaveLabel = JLabel(STRINGS.ui.logPath)
-        prefixLabel = JLabel("Prefix")
-        prefixLabel2 = JLabel("Default : ${STRINGS.ui.app}, Do not use \\ / : * ? \" < > |")
 
-        adbCmdTF = JTextField(LogCmdManager.adbCmd)
         adbCmdTF.preferredSize = Dimension(488, rowHeight)
-        adbSaveTF = JTextField(LogCmdManager.logSavePath)
         adbSaveTF.preferredSize = Dimension(488, rowHeight)
-        prefixTF = JTextField(LogCmdManager.prefix)
         prefixTF.preferredSize = Dimension(300, rowHeight)
 
         val columnNames = arrayOf("Num", "Cmd")
@@ -101,11 +85,8 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
                 arrayOf<Any>("10", ""),
         )
 
-        for (idx in logCommands.indices) {
-            val item = ConfigManager.getItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$idx")
-            if (idx != 0 && item != null) {
-                logCommands[idx][1] = item
-            }
+        UIConfManager.uiConf.logCmdHistory.forEachIndexed { index, cmd ->
+            logCommands[index][1] = cmd
         }
 
         logCmdTableModel = LogCmdTableModel(logCommands, columnNames)
@@ -123,9 +104,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
         logCmdTable.columnModel.getColumn(0).preferredWidth = 70
         logCmdTable.columnModel.getColumn(1).preferredWidth = 330
 
-        logCmdLabel1 = JLabel("<html><b><font color=\"#7070FF\">logcat -v threadtime</font></b> <br>&nbsp;&nbsp;&nbsp;&nbsp => RUN : <b><font color=\"#7070FF\">adb -s DEVICE logcat -v threadtime</font></b></html>")
         logCmdLabel1.preferredSize = Dimension(488, logCmdLabel1.preferredSize.height)
-        logCmdLabel2 = JLabel("<html><b><font color=\"#7070FF\">${LogCmdManager.TYPE_CMD_PREFIX}cmdABC</font></b> <br>&nbsp;&nbsp;&nbsp;&nbsp => RUN : <b><font color=\"#7070FF\">cmdABC DEVICE</font></b></html>")
         logCmdLabel2.preferredSize = Dimension(488, logCmdLabel2.preferredSize.height)
 
         val panel1 = JPanel(GridLayout(4, 1, 0, 2))
@@ -159,18 +138,18 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
         val logCmdTablePanel = JPanel()
         logCmdTablePanel.add(logCmdTable)
 
-        val logCmdLable1Panel = JPanel()
-        logCmdLable1Panel.add(logCmdLabel1)
+        val logCmdLabel1Panel = JPanel()
+        logCmdLabel1Panel.add(logCmdLabel1)
 
-        val logCmdLable2Panel = JPanel()
-        logCmdLable2Panel.add(logCmdLabel2)
+        val logCmdLabel2Panel = JPanel()
+        logCmdLabel2Panel.add(logCmdLabel2)
 
         val logCmdPanel = JPanel()
         logCmdPanel.layout = BoxLayout(logCmdPanel, BoxLayout.Y_AXIS)
         addHSeparator(logCmdPanel, STRINGS.ui.logCmd)
         logCmdPanel.add(logCmdTablePanel)
-        logCmdPanel.add(logCmdLable1Panel)
-        logCmdPanel.add(logCmdLable2Panel)
+        logCmdPanel.add(logCmdLabel1Panel)
+        logCmdPanel.add(logCmdLabel2Panel)
 
         cmdPanel.add(logCmdPanel, BorderLayout.CENTER)
 
@@ -219,7 +198,6 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
             LogCmdManager.logSavePath = adbSaveTF.text
             val prefix = prefixTF.text.trim()
 
-            prefixLabel2 = JLabel("Default : ${STRINGS.ui.app}, Do not use \\ / : * ? \" < > |")
             if (prefix.contains('\\')
                     || prefix.contains('/')
                     || prefix.contains(':')
@@ -239,17 +217,16 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
                 LogCmdManager.prefix = prefix
             }
 
+            UIConfManager.uiConf.logCmdHistory.clear()
             for (idx in 0 until logCmdTable.rowCount) {
-                ConfigManager.setItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$idx", logCmdTableModel.getValueAt(idx, 1).toString())
+                UIConfManager.uiConf.logCmdHistory.add(logCmdTable.getValueAt(idx, 1).toString())
             }
-            ConfigManager.saveConfig()
-
 
             UIConfManager.uiConf.adbLogSavePath = LogCmdManager.logSavePath
             UIConfManager.uiConf.adbLogCommand = LogCmdManager.logCmd
             UIConfManager.uiConf.adbCommand = LogCmdManager.adbCmd
             UIConfManager.uiConf.adbPrefix = LogCmdManager.prefix
-            mainUI.updateLogCmdCombo(true)
+            mainUI.updateLogCmdCombo()
             UIConfManager.saveUI()
             dispose()
         } else if (e.source == cancelBtn) {
@@ -381,7 +358,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
         }
 
         override fun focusLost(e: FocusEvent) {
-
+            // do nothing
         }
     }
 

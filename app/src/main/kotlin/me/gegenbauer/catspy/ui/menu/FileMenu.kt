@@ -1,9 +1,11 @@
 package me.gegenbauer.catspy.ui.menu
 
-import com.github.weisj.darklaf.iconset.AllIcons
 import me.gegenbauer.catspy.file.Log
 import me.gegenbauer.catspy.resource.strings.STRINGS
+import me.gegenbauer.catspy.ui.Menu
 import me.gegenbauer.catspy.utils.findFrameFromParent
+import me.gegenbauer.catspy.utils.loadIcon
+import me.gegenbauer.catspy.utils.loadThemedIcon
 import java.awt.FileDialog
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
@@ -13,13 +15,17 @@ import javax.swing.JMenuItem
 
 class FileMenu : JMenu() {
     private val itemFileOpen = JMenuItem(STRINGS.ui.open).apply {
-        icon = AllIcons.Files.Folder.get(19, 19)
+        icon = loadThemedIcon("file.svg", Menu.MENU_ITEM_ICON_SIZE)
     }
-    private val itemFileFollow = JMenuItem(STRINGS.ui.follow)
+    private val itemFileFollow = JMenuItem(STRINGS.ui.follow).apply {
+        icon = loadThemedIcon("append_file.svg", Menu.MENU_ITEM_ICON_SIZE)
+    }
     private val itemFileOpenFiles = JMenuItem(STRINGS.ui.openFiles).apply {
-        icon = AllIcons.Files.Folder.get(19, 19)
+        icon = loadThemedIcon("files.svg", Menu.MENU_ITEM_ICON_SIZE)
     }
-    private val itemFileAppendFiles = JMenuItem(STRINGS.ui.appendFiles)
+    private val itemFileAppendFiles = JMenuItem(STRINGS.ui.appendFiles).apply {
+        icon = loadThemedIcon("append_files.svg", Menu.MENU_ITEM_ICON_SIZE)
+    }
     private val itemFileExit = JMenuItem(STRINGS.ui.exit)
 
     private val actionHandler = ActionListener {
@@ -56,23 +62,19 @@ class FileMenu : JMenu() {
         text = STRINGS.ui.file
         mnemonic = KeyEvent.VK_F
 
+        add(itemFileOpen)
+        add(itemFileFollow)
+        add(itemFileOpenFiles)
+        add(itemFileAppendFiles)
+        addSeparator()
+        add(itemFileExit)
 
         itemFileOpen.addActionListener(actionHandler)
-        add(itemFileOpen)
-
+        itemFileOpen.addActionListener(actionHandler)
         itemFileFollow.addActionListener(actionHandler)
-        add(itemFileFollow)
-
         itemFileOpenFiles.addActionListener(actionHandler)
-        add(itemFileOpenFiles)
-
         itemFileAppendFiles.addActionListener(actionHandler)
-        add(itemFileAppendFiles)
-
-        addSeparator()
-
         itemFileExit.addActionListener(actionHandler)
-        add(itemFileExit)
     }
 
     fun onClickFileOpen() {

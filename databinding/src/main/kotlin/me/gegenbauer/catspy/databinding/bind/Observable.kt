@@ -34,9 +34,11 @@ class ViewModelPropertyObserver<T>(
 }
 
 
-open class ObservableProperty<T>(var value: T? = null) : Observable<T> {
-    private val lock = ReentrantReadWriteLock()
+open class ObservableProperty<T>(value: T? = null) : Observable<T> {
+    var value: T? = value
+        protected set
 
+    private val lock = ReentrantReadWriteLock()
     private val obs = mutableListOf<Observer<T>>()
 
     open fun updateValue(newValue: T?) {

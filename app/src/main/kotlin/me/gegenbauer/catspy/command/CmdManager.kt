@@ -5,6 +5,7 @@ import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.manager.CustomListManager
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.log.LogPanel
+import me.gegenbauer.catspy.utils.isDoubleClick
 import java.awt.event.*
 import javax.swing.JList
 import javax.swing.JOptionPane
@@ -74,7 +75,7 @@ class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI,
     internal inner class MouseHandler: MouseAdapter() {
         override fun mouseClicked(event: MouseEvent) {
             super.mouseClicked(event)
-            if (event.clickCount == 2) {
+            if (event.isDoubleClick) {
                 val list = event.source as JList<CustomElement>
                 runCmd(list)
             }
