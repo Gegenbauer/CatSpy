@@ -1,10 +1,10 @@
 package me.gegenbauer.catspy.ui.combobox
 
+import com.github.weisj.darklaf.settings.ThemeSettings
+import com.github.weisj.darklaf.theme.Theme
 import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.databinding.bind.withName
-import me.gegenbauer.catspy.manager.ConfigManager
-import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.combobox.highlight.CustomEditorDarkComboBoxUI
 import me.gegenbauer.catspy.ui.combobox.highlight.Highlightable
 import me.gegenbauer.catspy.ui.combobox.highlight.HighlighterEditor
@@ -213,7 +213,7 @@ class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTa
 
         if (errorMsg.isNotEmpty()) {
             var tooltip = "<html><b>"
-            tooltip += if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+            tooltip += if (Theme.isDark(ThemeSettings.getInstance().theme)) {
                 "<font size=5 color=#C07070>$errorMsg</font>"
             } else {
                 "<font size=5 color=#FF0000>$errorMsg</font>"
@@ -226,7 +226,7 @@ class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTa
             val excludeStr = updateToolTipStrToHtml(patterns[1])
 
             var tooltip = "<html><b>$toolTipText</b><br>"
-            if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+            if (Theme.isDark(ThemeSettings.getInstance().theme)) {
                 tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#7070C0>$includeStr</font>\"<br>"
                 tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#C07070>$excludeStr</font>\"<br>"
             } else {

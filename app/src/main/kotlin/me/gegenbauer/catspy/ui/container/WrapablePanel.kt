@@ -1,11 +1,16 @@
 package me.gegenbauer.catspy.ui.container
 
+import me.gegenbauer.catspy.configuration.ThemeManager
 import javax.swing.JPanel
 
 class WrapablePanel : JPanel() {
     init {
         layout = WrapableLayout(HORIZONTAL_GAP, VERTICAL_GAP)
+        ThemeManager.registerThemeUpdateListener { _ ->
+            (layout as WrapableLayout).resizeComponent(this)
+        }
     }
+
 
     companion object {
         private const val HORIZONTAL_GAP = 3

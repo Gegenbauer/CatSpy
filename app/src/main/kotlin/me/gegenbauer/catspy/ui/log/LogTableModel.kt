@@ -24,6 +24,7 @@ import javax.swing.SwingUtilities
 import javax.swing.table.AbstractTableModel
 
 
+// TODO refactor
 data class LogTableModelEvent(val source: LogTableModel, val dataChange: Int, val removedCount: Int) {
     companion object {
         const val EVENT_ADDED = 0
@@ -59,8 +60,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         set(value) {
             if (field != value) {
                 isFilterUpdated = true
+                field = value
             }
-            field = value
         }
 
     var filterLog: String = ""

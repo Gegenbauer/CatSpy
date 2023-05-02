@@ -6,8 +6,13 @@ import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.command.CmdManager
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.manager.*
+import me.gegenbauer.catspy.manager.BookmarkEvent
+import me.gegenbauer.catspy.manager.BookmarkEventListener
+import me.gegenbauer.catspy.manager.BookmarkManager
+import me.gegenbauer.catspy.manager.CustomListManager
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
@@ -26,13 +31,14 @@ import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
 
+// TODO refactor
 class LogPanel(
     val mainUI: MainUI,
     tableModel: LogTableModel,
     var basePanel: LogPanel?,
     focusHandler: FocusListener
 ) : JPanel() {
-    private val ctrlMainPanel: WrapablePanel = WrapablePanel()
+    private val ctrlMainPanel: WrapablePanel = WrapablePanel() withName "ctrlMainPanel"
     private val firstBtn = GButton(loadIcon<DerivableImageIcon>("top.png")) applyTooltip STRINGS.toolTip.viewFirstBtn
     private val lastBtn = GButton(loadIcon<DerivableImageIcon>("bottom.png")) applyTooltip STRINGS.toolTip.viewLastBtn
     private val tagBtn = ColorToggleButton(STRINGS.ui.tag) applyTooltip STRINGS.toolTip.viewTagToggle
@@ -215,7 +221,11 @@ class LogPanel(
         ctrlMainPanel.updateUI()
     }
 
-    var customFont: Font = Font(MainUI.DEFAULT_FONT_NAME, Font.PLAIN, 12)
+    var customFont: Font = Font(
+        UIConfManager.uiConf.logFontName,
+        UIConfManager.uiConf.logFontStyle,
+        UIConfManager.uiConf.logFontSize
+    )
         set(value) {
             field = value
             table.font = value
@@ -368,10 +378,16 @@ class LogPanel(
                         for (idx in 0 until table.rowCount) {
                             num = table.getValueAt(idx, 0).toString().trim().toInt()
                             if (selectedLine <= num) {
-                                GLog.d(TAG, "tableChanged Tid = ${Thread.currentThread().id}, num = $num, selectedLine = $selectedLine")
+                                GLog.d(
+                                    TAG,
+                                    "tableChanged Tid = ${Thread.currentThread().id}, num = $num, selectedLine = $selectedLine"
+                                )
                                 table.setRowSelectionInterval(idx, idx)
                                 val viewRect: Rectangle = table.getCellRect(idx, 0, true)
-                                GLog.d(TAG, "tableChanged Tid = ${Thread.currentThread().id}, viewRect = $viewRect, rowCount = ${table.rowCount}, idx = $idx")
+                                GLog.d(
+                                    TAG,
+                                    "tableChanged Tid = ${Thread.currentThread().id}, viewRect = $viewRect, rowCount = ${table.rowCount}, idx = $idx"
+                                )
                                 table.scrollRectToVisible(viewRect)
                                 table.scrollRectToVisible(viewRect) // sometimes not work
                                 break

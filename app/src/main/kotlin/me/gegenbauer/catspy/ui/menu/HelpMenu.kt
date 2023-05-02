@@ -1,17 +1,20 @@
 package me.gegenbauer.catspy.ui.menu
 
-import com.github.weisj.darklaf.components.help.HelpMenuItem
 import me.gegenbauer.catspy.resource.strings.STRINGS
+import me.gegenbauer.catspy.ui.Menu
 import me.gegenbauer.catspy.ui.dialog.AboutDialog
 import me.gegenbauer.catspy.ui.dialog.HelpDialog
 import me.gegenbauer.catspy.utils.findFrameFromParent
+import me.gegenbauer.catspy.utils.loadThemedIcon
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import javax.swing.JMenu
 import javax.swing.JMenuItem
 
 class HelpMenu : JMenu() {
-    private val itemHelp = HelpMenuItem(STRINGS.ui.help)
+    private val itemHelp = JMenuItem(STRINGS.ui.help).apply {
+        icon = loadThemedIcon("help.svg", Menu.MENU_ITEM_ICON_SIZE)
+    }
     private val itemAbout = JMenuItem(STRINGS.ui.about)
     private val actionHandler = ActionListener {
         when (it.source) {
@@ -24,12 +27,12 @@ class HelpMenu : JMenu() {
         text = STRINGS.ui.help
         mnemonic = KeyEvent.VK_H
 
-        itemHelp.addActionListener(actionHandler)
-        itemAbout.addActionListener(actionHandler)
-
         add(itemHelp)
         addSeparator()
         add(itemAbout)
+
+        itemHelp.addActionListener(actionHandler)
+        itemAbout.addActionListener(actionHandler)
     }
 
     private fun openHelpDialog() {

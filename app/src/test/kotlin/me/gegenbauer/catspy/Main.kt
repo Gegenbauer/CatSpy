@@ -15,14 +15,13 @@ import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.ui.button.GButton
 import me.gegenbauer.catspy.ui.combobox.filterComboBox
-import me.gegenbauer.catspy.viewmodel.GlobalPropertySynchronizer
+import me.gegenbauer.catspy.viewmodel.GlobalViewModel
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.*
-import javax.swing.plaf.ButtonUI
 import javax.swing.plaf.UIResource
 
 fun main() {
@@ -30,7 +29,7 @@ fun main() {
         withContext(Dispatchers.APP_LAUNCH) {
             GLog.DEBUG = UIConfManager.uiConf.debug
             ThemeManager.init()
-            GlobalPropertySynchronizer.init()
+            GlobalViewModel.init()
         }
         ThemeManager.installTheme()
         LafManager.registerInitTask { theme: Theme, defaults: UIDefaults ->
@@ -41,6 +40,8 @@ fun main() {
         val panel = JPanel()
         val button1 = CustomButton("Button1")
         val button2 = CustomButton("Button2")
+        val progressBar = JProgressBar(JProgressBar.HORIZONTAL, 0, 100)
+        progressBar.value = 50
         button1.isContentAreaFilled = true
         button1.isRolloverEnabled = true
         val comboBox = filterComboBox()
@@ -59,6 +60,7 @@ fun main() {
         panel.add(button2)
         panel.add(comboBox)
         panel.add(comboBox2)
+        panel.add(progressBar)
         frame.add(panel)
         //ThemeManager.applyTempTheme()
         frame.isVisible = true

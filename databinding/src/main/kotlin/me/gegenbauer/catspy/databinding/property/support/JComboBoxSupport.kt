@@ -5,22 +5,6 @@ import javax.swing.event.EventListenerList
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
-var JComboBox<*>.propertyChangeListenerList: Map<String, *>?
-    get() {
-        val changeSupportField = getFieldDeeply("changeSupport")
-        val changeListenerMapField = changeSupportField.get(this).getFieldDeeply("map")
-        val changeListenerMap = changeListenerMapField.get(changeSupportField.get(this))
-        val listenerMap = changeListenerMap.getFieldDeeply("map")
-        return listenerMap.get(changeListenerMap) as? Map<String, *>
-    }
-    set(value) {
-        val changeSupportField = getFieldDeeply("changeSupport")
-        val changeListenerMapField = changeSupportField.get(this).getFieldDeeply("map")
-        val changeListenerMap = changeListenerMapField.get(changeSupportField.get(this))
-        val listenerMap = changeListenerMap.getFieldDeeply("map")
-        listenerMap.set(changeListenerMap, value)
-    }
-
 var JComboBox<*>.itemListenerList: EventListenerList?
     get() {
         val listenerListField = getFieldDeeply("listenerList")

@@ -2,13 +2,15 @@ package me.gegenbauer.catspy.ui.menu
 
 import com.github.weisj.darklaf.settings.ThemeSettings
 import me.gegenbauer.catspy.configuration.UIConfManager
-import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainUI
+import me.gegenbauer.catspy.ui.Menu.MENU_ITEM_ICON_SIZE
 import me.gegenbauer.catspy.ui.dialog.LogCmdSettingsDialog
 import me.gegenbauer.catspy.ui.log.LogLevel
 import me.gegenbauer.catspy.ui.log.getLevelFromName
 import me.gegenbauer.catspy.utils.findFrameFromParent
+import me.gegenbauer.catspy.utils.loadDarklafThemedIcon
+import java.awt.Dialog
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.awt.event.ItemListener
@@ -18,8 +20,9 @@ import javax.swing.*
 class SettingsMenu : JMenu() {
     private val itemLogCommand = JMenuItem("${STRINGS.ui.logCmd}(${STRINGS.ui.adb})")
     private val itemLogFile = JMenuItem(STRINGS.ui.logFile)
-    private val itemFilterIncremental = JCheckBoxMenuItem("${STRINGS.ui.filter}-${STRINGS.ui.incremental}")
-    private val itemDebug = JCheckBoxMenuItem(STRINGS.ui.debug)
+    // TODO itemFilterIncremental has no sense
+    val itemFilterIncremental = JCheckBoxMenuItem("${STRINGS.ui.filter}-${STRINGS.ui.incremental}")
+    val itemDebug = JCheckBoxMenuItem(STRINGS.ui.debug)
     private val menuLogLevel = JMenu(STRINGS.ui.logLevel)
     private val logLevelGroup = ButtonGroup()
 
@@ -35,9 +38,9 @@ class SettingsMenu : JMenu() {
         }
     }
     private val itemThemeSettings = JMenuItem(STRINGS.ui.theme).apply {
-        icon = ThemeSettings.getIcon()
+        icon = loadDarklafThemedIcon("menu/themeSettings.svg", MENU_ITEM_ICON_SIZE)
         addActionListener { _: ActionEvent ->
-            ThemeSettings.showSettingsDialog(this)
+            ThemeSettings.showSettingsDialog(this, Dialog.ModalityType.APPLICATION_MODAL)
         }
     }
     private val itemClickListener = ActionListener {
@@ -45,14 +48,10 @@ class SettingsMenu : JMenu() {
             itemLogCommand -> openLogCommandConfigurationDialog()
             itemLogFile -> openLogCommandConfigurationDialog()
             itemFilterIncremental -> UIConfManager.uiConf.filterIncrementalEnabled = itemFilterIncremental.state
-            itemDebug -> {
-                UIConfManager.uiConf.debug = itemDebug.state
-                GLog.DEBUG = itemDebug.state
-            }
         }
     }
     var onLogLevelChangedListener: (LogLevel) -> Unit = {}
-    var logLevel: String = ""
+    private var logLevel: String = ""
     val filterIncremental: Boolean
         get() = itemFilterIncremental.state
 
@@ -95,12 +94,10 @@ class SettingsMenu : JMenu() {
         }
 
         itemFilterIncremental.state = UIConfManager.uiConf.filterIncrementalEnabled
-        itemDebug.state = UIConfManager.uiConf.debug
 
         itemLogFile.addActionListener(itemClickListener)
         itemLogCommand.addActionListener(itemClickListener)
         itemFilterIncremental.addActionListener(itemClickListener)
-        itemDebug.addActionListener(itemClickListener)
 
         add(itemLogCommand)
         add(itemLogFile)

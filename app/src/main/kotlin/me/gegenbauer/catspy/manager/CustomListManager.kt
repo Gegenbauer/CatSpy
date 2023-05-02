@@ -1,8 +1,9 @@
 package me.gegenbauer.catspy.manager
 
+import com.github.weisj.darklaf.settings.ThemeSettings
+import com.github.weisj.darklaf.theme.Theme
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainUI
-import me.gegenbauer.catspy.ui.MainUI.Companion.FLAT_DARK_LAF
 import me.gegenbauer.catspy.ui.button.GButton
 import me.gegenbauer.catspy.ui.log.LogPanel
 import me.gegenbauer.catspy.utils.Utils
@@ -159,20 +160,20 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                 val element = value as CustomElement
                 titleLabel.text = element.title
                 if (firstElement != null && firstElement!!.title == element.title) {
-                    if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                    if (Theme.isDark(ThemeSettings.getInstance().theme)) {
                         titleLabel.foreground = Color(0xC05050)
                     } else {
                         titleLabel.foreground = Color(0x900000)
                     }
                 } else if (element.tableBar) {
                     titleLabel.text += " - TableBar"
-                    if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                    if (Theme.isDark(ThemeSettings.getInstance().theme)) {
                         titleLabel.foreground = Color(0x50C050)
                     } else {
                         titleLabel.foreground = Color(0x009000)
                     }
                 } else {
-                    if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                    if (Theme.isDark(ThemeSettings.getInstance().theme)) {
                         titleLabel.foreground = Color(0x7070E0)
                     } else {
                         titleLabel.foreground = Color(0x000090)
@@ -183,7 +184,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                 valueTA.updateUI()
 
                 if (isSelected) {
-                    if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                    if (Theme.isDark(ThemeSettings.getInstance().theme)) {
                         titlePanel.background = Color(0x56595B)
                         valueTA.background = Color(0x56595B)
                     } else {
@@ -191,7 +192,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                         valueTA.background = Color.LIGHT_GRAY
                     }
                 } else {
-                    if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                    if (Theme.isDark(ThemeSettings.getInstance().theme)) {
                         titlePanel.background = Color(0x46494B)
                         valueTA.background = Color(0x46494B)
                     } else {
@@ -445,7 +446,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                 updateTitleStatusLabelForeground(isValid)
 
                 if (valueTF.text.trim().isEmpty()) {
-                    if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                    if (Theme.isDark(ThemeSettings.getInstance().theme)) {
                         valueStatusLabel.foreground = Color(0xC07070)
                     } else {
                         valueStatusLabel.foreground = Color.RED
@@ -453,7 +454,7 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
                     valueStatusLabel.text = "Empty"
                     isValid = false
                 } else {
-                    if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                    if (Theme.isDark(ThemeSettings.getInstance().theme)) {
                         valueStatusLabel.foreground = Color(0x7070C0)
                     } else {
                         valueStatusLabel.foreground = Color.BLUE
@@ -480,18 +481,18 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
 
             internal inner class TitleDocumentHandler : DocumentListener {
                 override fun insertUpdate(event: DocumentEvent) {
-                    checkText(event)
+                    checkText()
                 }
 
                 override fun removeUpdate(event: DocumentEvent) {
-                    checkText(event)
+                    checkText()
                 }
 
                 override fun changedUpdate(event: DocumentEvent) {
-                    checkText(event)
+                    checkText()
                 }
 
-                private fun checkText(event: DocumentEvent) {
+                private fun checkText() {
                     var isValid = true
                     val title = titleTF.text.trim()
                     if (title.isEmpty()) {
@@ -520,18 +521,18 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
 
             internal inner class ValueDocumentHandler : DocumentListener {
                 override fun insertUpdate(e: DocumentEvent) {
-                    checkText(e)
+                    checkText()
                 }
 
                 override fun removeUpdate(e: DocumentEvent) {
-                    checkText(e)
+                    checkText()
                 }
 
                 override fun changedUpdate(e: DocumentEvent) {
-                    checkText(e)
+                    checkText()
                 }
 
-                private fun checkText(e: DocumentEvent) {
+                private fun checkText() {
                     var isValid = true
 
                     val value = valueTF.text.trim()
@@ -548,13 +549,13 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
 
             fun updateTitleStatusLabelForeground(isValid: Boolean) {
                 if (isValid) {
-                    if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                    if (Theme.isDark(ThemeSettings.getInstance().theme)) {
                         titleStatusLabel.foreground = Color(0x7070C0)
                     } else {
                         titleStatusLabel.foreground = Color.BLUE
                     }
                 } else {
-                    if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                    if (Theme.isDark(ThemeSettings.getInstance().theme)) {
                         titleStatusLabel.foreground = Color(0xC07070)
                     } else {
                         titleStatusLabel.foreground = Color.RED

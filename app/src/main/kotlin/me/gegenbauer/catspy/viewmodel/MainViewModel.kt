@@ -5,12 +5,19 @@ import me.gegenbauer.catspy.databinding.bind.*
 import me.gegenbauer.catspy.databinding.property.support.*
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.button.ButtonDisplayMode
+import me.gegenbauer.catspy.ui.combobox.FilterComboBox
+import me.gegenbauer.catspy.ui.panel.Rotation
 import me.gegenbauer.catspy.utils.editorComponent
+import me.gegenbauer.catspy.utils.getEnum
+import javax.swing.JComboBox
 import javax.swing.JComponent
+import javax.swing.JToggleButton
 
 object MainViewModel {
     private const val TAG = "MainViewModel"
 
+    //region Toolbar
+    //region Filter
     val logFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.logFilterEnabled)
     val logFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.logFilterHistory.toList())
     val logFilterSelectedIndex = ObservableViewModelProperty<Int>()
@@ -31,150 +38,158 @@ object MainViewModel {
     val tidFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val tidFilterCurrentContent = ObservableViewModelProperty<String>()
 
-    val highlightEnabled = ObservableViewModelProperty(UIConfManager.uiConf.highlightEnabled)
-    val highlightHistory = ObservableViewModelProperty(UIConfManager.uiConf.highlightHistory.toList())
-    val highlightSelectedIndex = ObservableViewModelProperty<Int>()
-    val highlightCurrentContent = ObservableViewModelProperty<String>()
+    val boldEnabled = ObservableViewModelProperty(UIConfManager.uiConf.boldEnabled)
+    val boldHistory = ObservableViewModelProperty(UIConfManager.uiConf.highlightHistory.toList())
+    val boldSelectedIndex = ObservableViewModelProperty<Int>()
+    val boldCurrentContent = ObservableViewModelProperty<String>()
 
-    val searchHistory = ObservableViewModelProperty(UIConfManager.uiConf.searchHistory.toList())
-    val searchSelectedIndex = ObservableViewModelProperty<Int>()
-    val searchCurrentContent = ObservableViewModelProperty<String>()
+    val filterMatchCaseEnabled = ObservableViewModelProperty(UIConfManager.uiConf.filterMatchCaseEnabled)
+    //endregion
 
+    //region ADB
     val connectedDevices = ObservableViewModelProperty(arrayListOf<String>().toList())
     val deviceSelectedIndex = ObservableViewModelProperty<Int>()
     val currentDevice = ObservableViewModelProperty<String>()
 
-    val filterMatchCaseEnabled = ObservableViewModelProperty(UIConfManager.uiConf.filterMatchCaseEnabled)
-
-    val searchPanelVisible = ObservableViewModelProperty(false)
-    val fullLog = ObservableViewModelProperty(UIConfManager.uiConf.logFullViewEnabled)
-    val appLogLevel = ObservableViewModelProperty(UIConfManager.uiConf.logLevel)
-    val filterIncremental = ObservableViewModelProperty(UIConfManager.uiConf.filterIncrementalEnabled)
-    val debug = ObservableViewModelProperty(UIConfManager.uiConf.debug)
-
-    val adbProcessStopped = ObservableViewModelProperty(false)
-    val splitFile = ObservableViewModelProperty(UIConfManager.uiConf.logScrollBackSplitFileEnabled)
-    val spiltBatchCount = ObservableViewModelProperty(0)
+    val logCmdHistory = ObservableViewModelProperty(UIConfManager.uiConf.logCmdHistory.toList())
+    val logCmdSelectedIndex = ObservableViewModelProperty<Int>()
+    val logCmdCurrentContent = ObservableViewModelProperty<String>()
 
     val retryAdb = ObservableViewModelProperty(UIConfManager.uiConf.retryAdbEnabled)
+    val adbProcessStopped = ObservableViewModelProperty(false)
+
+    val splitFile = ObservableViewModelProperty(UIConfManager.uiConf.logScrollBackSplitFileEnabled)
+    val spiltBatchCount = ObservableViewModelProperty(0)
+    val searchPanelVisible = ObservableViewModelProperty(false)
+    //endregion
+
+    //region Menu
+    val filterIncremental = ObservableViewModelProperty(UIConfManager.uiConf.filterIncrementalEnabled)
+    val fullLog = ObservableViewModelProperty(UIConfManager.uiConf.logFullViewEnabled)
+    val rotation = ObservableViewModelProperty(getEnum<Rotation>(UIConfManager.uiConf.rotation))
+    val logLevel = ObservableViewModelProperty(UIConfManager.uiConf.logLevel)
+    //endregion
+
+    //endregion
+
+    //region SearchBar
+    val searchHistory = ObservableViewModelProperty(UIConfManager.uiConf.searchHistory.toList())
+    val searchSelectedIndex = ObservableViewModelProperty<Int>()
+    val searchCurrentContent = ObservableViewModelProperty<String>()
+    //endregion
+
+    //region LogPanel
+    val splitPanelDividerLocation = ObservableViewModelProperty(UIConfManager.uiConf.dividerLocation)
+    //endregion
+
+    //region Style
     val buttonDisplayMode = ObservableViewModelProperty(ButtonDisplayMode.ALL) // TODO save configuration of this
+    //endregion
 
     fun bind(mainUI: MainUI) {
         mainUI.apply {
-            selectedProperty(showLogToggle) bindDual logFilterEnabled
-            enabledProperty(showLogCombo) bindDual logFilterEnabled
-            visibilityProperty(showLogCombo) bindDual logFilterEnabled
-            listProperty(showLogCombo) bindDual logFilterHistory
-            selectedIndexProperty(showLogCombo) bindLeft logFilterSelectedIndex
-            textProperty(showLogCombo.editorComponent) bindDual logFilterCurrentContent
+            //region Toolbar
+            //region Filter
+            bindLogFilter(showLogCombo, showLogToggle, logFilterSelectedIndex, logFilterHistory, logFilterEnabled, logFilterCurrentContent)
+            bindLogFilter(showTagCombo, showTagToggle, tagFilterSelectedIndex, tagFilterHistory, tagFilterEnabled, tagFilterCurrentContent)
+            bindLogFilter(showPidCombo, showPidToggle, pidFilterSelectedIndex, pidFilterHistory, pidFilterEnabled, pidFilterCurrentContent)
+            bindLogFilter(showTidCombo, showTidToggle, tidFilterSelectedIndex, tidFilterHistory, tidFilterEnabled, tidFilterCurrentContent)
+            bindLogFilter(boldLogCombo, boldLogToggle, boldSelectedIndex, boldHistory, boldEnabled, boldCurrentContent)
 
-            selectedProperty(showTagToggle) bindDual tagFilterEnabled
-            enabledProperty(showTagCombo) bindDual tagFilterEnabled
-            visibilityProperty(showTagCombo) bindDual tagFilterEnabled
-            listProperty(showTagCombo) bindDual tagFilterHistory
-            selectedIndexProperty(showTagCombo) bindDual tagFilterSelectedIndex
-            textProperty(showTagCombo.editorComponent) bindDual tagFilterCurrentContent
+            selectedProperty(matchCaseToggle) bindDual filterMatchCaseEnabled
+            //endregion
 
-            selectedProperty(showPidToggle) bindDual pidFilterEnabled
-            enabledProperty(showPidCombo) bindDual pidFilterEnabled
-            visibilityProperty(showPidCombo) bindDual pidFilterEnabled
-            listProperty(showPidCombo) bindDual pidFilterHistory
-            selectedIndexProperty(showPidCombo) bindLeft pidFilterSelectedIndex
-            textProperty(showPidCombo.editorComponent) bindDual pidFilterCurrentContent
+            //region ADB
+            bindNormalCombo(deviceCombo, deviceSelectedIndex, connectedDevices, currentDevice)
+            bindNormalCombo(logCmdCombo, logCmdSelectedIndex, logCmdHistory, logCmdCurrentContent)
 
-            selectedProperty(showTidToggle) bindDual tidFilterEnabled
-            enabledProperty(showTidCombo) bindDual tidFilterEnabled
-            visibilityProperty(showTidCombo) bindDual tidFilterEnabled
-            listProperty(showTidCombo) bindDual tidFilterHistory
-            selectedIndexProperty(showTidCombo) bindLeft tidFilterSelectedIndex
-            textProperty(showTidCombo.editorComponent) bindDual tidFilterCurrentContent
+            selectedProperty(retryAdbToggle) bindDual retryAdb
+            //endregion
 
-            selectedProperty(boldLogToggle) bindDual highlightEnabled
-            enabledProperty(highlightLogCombo) bindDual highlightEnabled
-            visibilityProperty(highlightLogCombo) bindDual highlightEnabled
-            listProperty(highlightLogCombo) bindDual highlightHistory
-            selectedIndexProperty(highlightLogCombo) bindLeft highlightSelectedIndex
-            textProperty(highlightLogCombo.editorComponent) bindDual highlightCurrentContent
+            //region Menu
+            selectedProperty(settingsMenu.itemDebug) bindDual GlobalViewModel.debug
+            selectedProperty(settingsMenu.itemFilterIncremental) bindDual filterIncremental
+            selectedProperty(viewMenu.itemFull) bindDual fullLog
+            fullLog.addObserver {
+                if (it != false) {
+                    attachLogPanel(splitLogPane.fullLogPanel)
+                } else {
+                    detachLogPanel(splitLogPane.fullLogPanel)
+                }
+            }
+            customProperty(splitLogPane, "rotation", Rotation.ROTATION_LEFT_RIGHT) bindDual rotation
+            //endregion
 
+            //endregion
+
+            //region SearchBar
             listProperty(searchPanel.searchCombo) bindDual searchHistory
             selectedIndexProperty(searchPanel.searchCombo) bindLeft searchSelectedIndex
             textProperty(searchPanel.searchCombo.editorComponent) bindDual searchCurrentContent
 
-            listProperty(deviceCombo) bindDual connectedDevices
-            selectedIndexProperty(deviceCombo) bindLeft deviceSelectedIndex
-            textProperty(deviceCombo.editorComponent) bindDual currentDevice
+            visibilityProperty(searchPanel) bindDual searchPanelVisible
+            selectedProperty(viewMenu.itemSearch) bindDual searchPanelVisible
 
-            selectedProperty(matchCaseToggle) bindDual filterMatchCaseEnabled
+            reorderAfterByLRU(searchSelectedIndex, searchHistory)
+            //endregion
 
-            selectedProperty(retryAdbToggle) bindDual retryAdb
+            //region LogPanel
+            dividerProperty(splitLogPane) bindDual splitPanelDividerLocation
+            //endregion
 
+            //region Style
             bindWithButtonDisplayMode(
                 startBtn, stopBtn, pauseToggle, saveBtn, clearViewsBtn, adbConnectBtn, adbRefreshBtn, adbDisconnectBtn,
                 scrollBackApplyBtn, retryAdbToggle, retryAdbToggle, scrollBackSplitFileToggle, scrollBackKeepToggle,
                 scrollBackLabel
             )
+            //endregion
+        }
+    }
 
-            filteredTableModel.filterLog
+    private fun bindLogFilter(
+        comboBox: FilterComboBox,
+        toggle: JToggleButton,
+        selectedIndexProperty: ObservableViewModelProperty<Int>,
+        listProperty: ObservableViewModelProperty<List<String>>,
+        enabledProperty: ObservableViewModelProperty<Boolean>,
+        editorContentProperty: ObservableViewModelProperty<String>,
+    ) {
+        selectedProperty(toggle) bindDual enabledProperty
+        enabledProperty(comboBox) bindDual enabledProperty
+        visibilityProperty(comboBox) bindDual enabledProperty
+        listProperty(comboBox) bindDual listProperty
+        selectedIndexProperty(comboBox) bindLeft selectedIndexProperty
+        textProperty(comboBox.editorComponent) bindDual editorContentProperty
+        reorderAfterByLRU(selectedIndexProperty, listProperty)
+    }
 
-            // 更改为按下 Enter 进行搜索后，将该项提至最前
-            logFilterSelectedIndex.addObserver {selectedIndex ->
-                selectedIndex ?: return@addObserver
-                if (selectedIndex < 0) {
-                    return@addObserver
-                }
-                logFilterHistory.value?.let {
-                    logFilterHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
-                }
+    private fun bindNormalCombo(
+        comboBox: JComboBox<String>,
+        selectedIndexProperty: ObservableViewModelProperty<Int>,
+        listProperty: ObservableViewModelProperty<List<String>>,
+        editorContentProperty: ObservableViewModelProperty<String>,
+    ) {
+        listProperty(comboBox) bindDual listProperty
+        selectedIndexProperty(comboBox) bindLeft selectedIndexProperty
+        textProperty(comboBox.editorComponent) bindDual editorContentProperty
+        reorderAfterByLRU(selectedIndexProperty, listProperty)
+    }
+
+    /**
+     * 按下 Enter 进行搜索后，将该项提至最前
+     */
+    private fun reorderAfterByLRU(
+        selectedIndexProperty: ObservableViewModelProperty<Int>,
+        listProperty: ObservableViewModelProperty<List<String>>
+    ) {
+        selectedIndexProperty.addObserver { selectedIndex ->
+            selectedIndex ?: return@addObserver
+            if (selectedIndex < 0) {
+                return@addObserver
             }
-
-            tagFilterSelectedIndex.addObserver {selectedIndex ->
-                selectedIndex ?: return@addObserver
-                if (selectedIndex < 0) {
-                    return@addObserver
-                }
-                tagFilterHistory.value?.let {
-                    tagFilterHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
-                }
-            }
-
-            tidFilterSelectedIndex.addObserver {selectedIndex ->
-                selectedIndex ?: return@addObserver
-                if (selectedIndex < 0) {
-                    return@addObserver
-                }
-                tidFilterHistory.value?.let {
-                    tidFilterHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
-                }
-            }
-
-            pidFilterSelectedIndex.addObserver {selectedIndex ->
-                selectedIndex ?: return@addObserver
-                if (selectedIndex < 0) {
-                    return@addObserver
-                }
-                pidFilterHistory.value?.let {
-                    pidFilterHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
-                }
-            }
-
-            highlightSelectedIndex.addObserver {selectedIndex ->
-                selectedIndex ?: return@addObserver
-                if (selectedIndex < 0) {
-                    return@addObserver
-                }
-                highlightHistory.value?.let {
-                    highlightHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
-                }
-            }
-
-            searchSelectedIndex.addObserver {selectedIndex ->
-                selectedIndex ?: return@addObserver
-                if (selectedIndex < 0) {
-                    return@addObserver
-                }
-                searchHistory.value?.let {
-                    searchHistory.updateValue(it.updateListByLRU(it[selectedIndex]))
-                }
+            listProperty.value?.let {
+                listProperty.updateValue(it.updateListByLRU(it[selectedIndex]))
             }
         }
     }

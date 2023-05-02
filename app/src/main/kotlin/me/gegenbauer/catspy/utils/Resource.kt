@@ -1,7 +1,9 @@
 package me.gegenbauer.catspy.utils
 
+import com.github.weisj.darklaf.iconset.AllIcons
 import com.github.weisj.darklaf.properties.icons.IconLoader
 import me.gegenbauer.catspy.Main
+import me.gegenbauer.catspy.ui.Menu
 import me.gegenbauer.catspy.ui.iconDefaultSize
 import java.io.File
 import java.io.InputStream
@@ -27,8 +29,28 @@ fun getResource(relativePath: String): URL {
 
 private const val IMAGE_RES_DIR = "images"
 
-fun <T : Icon> loadIcon(img: String, themed: Boolean = false, w: Int = iconDefaultSize, h: Int = iconDefaultSize): T {
-    return IconLoader.get().getIcon(IMAGE_RES_DIR.appendPath(img), w, h, themed) as T
+fun <T : Icon> loadThemedIcon(img: String, w: Int = iconDefaultSize, h: Int = iconDefaultSize): T {
+    return IconLoader.get().getIcon(IMAGE_RES_DIR.appendPath(img), w, h, true) as T
+}
+
+fun <T : Icon> loadThemedIcon(img: String, size: Int = iconDefaultSize): T {
+    return IconLoader.get().getIcon(IMAGE_RES_DIR.appendPath(img), size, size, true) as T
+}
+
+fun <T : Icon> loadDarklafThemedIcon(img: String, size: Int = iconDefaultSize): T {
+    return IconLoader.get(AllIcons::class.java).getIcon(
+        img,
+        iconDefaultSize,
+        iconDefaultSize, true
+    ) as T
+}
+
+fun <T : Icon> loadIcon(img: String, w: Int = iconDefaultSize, h: Int = iconDefaultSize): T {
+    return IconLoader.get().getIcon(IMAGE_RES_DIR.appendPath(img), w, h, false) as T
+}
+
+fun <T : Icon> loadIcon(img: String, size: Int = iconDefaultSize): T {
+    return IconLoader.get().getIcon(IMAGE_RES_DIR.appendPath(img), size, size, false) as T
 }
 
 fun <T : Icon> loadIconWithRealSize(img: String, themed: Boolean = false): T {

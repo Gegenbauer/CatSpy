@@ -18,17 +18,6 @@ abstract class ObservableComponentProperty<T>(
         observeValueChange(this@ObservableComponentProperty::updateValue)
     }
 
-    init {
-        component.addHierarchyListener { e ->
-            if (((e.changeFlags and HierarchyEvent.DISPLAYABILITY_CHANGED.toLong()) != 0L) && !component.isDisplayable) {
-                GLog.d(TAG, "[HierarchyListener] component " + "${component.javaClass.simpleName}_${component.hashCode()} isDisplayable = false")
-                // component is not displayable, cancel all coroutines
-                Bindings.unBind(this)
-                (propertyAdapter as? DisposableAdapter)?.dispose()
-            }
-        }
-    }
-
     abstract fun getPropertyAdapterImpl(): PropertyAdapter<T, *>
 
     abstract fun createProperty(component: JComponent): ObservableComponentProperty<T>

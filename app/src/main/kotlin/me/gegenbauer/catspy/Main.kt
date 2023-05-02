@@ -15,7 +15,7 @@ import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.VStatusPanel
-import me.gegenbauer.catspy.viewmodel.GlobalPropertySynchronizer
+import me.gegenbauer.catspy.viewmodel.GlobalViewModel
 import java.awt.Container
 import java.util.*
 import javax.swing.UIDefaults
@@ -30,7 +30,7 @@ class Main {
                 withContext(Dispatchers.APP_LAUNCH) {
                     GLog.DEBUG = UIConfManager.uiConf.debug
                     ThemeManager.init()
-                    GlobalPropertySynchronizer.init()
+                    GlobalViewModel.init()
                 }
                 ThemeManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
                 ThemeManager.registerInitTask(::adjustBeforeThemeLoaded)

@@ -9,6 +9,7 @@ import javax.swing.AbstractButton
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.JSplitPane
 import javax.swing.event.DocumentListener
 import javax.swing.event.ListDataListener
 import javax.swing.text.JTextComponent
@@ -95,6 +96,16 @@ fun <T> customProperty(component: JComponent, propertyName: String, initValue: T
 
     override fun getDisplayName(): String {
         return "${component.javaClass.simpleName}_${component.hashCode()}_Custom_$propertyName}"
+    }
+}
+
+fun dividerProperty(component: JSplitPane): ObservableComponentProperty<Int> = object : ObservableComponentProperty<Int>(component) {
+    override fun getPropertyAdapterImpl(): PropertyAdapter<Int, PropertyChangeListener> = JSplitPaneDividerProperty(component)
+
+    override fun createProperty(component: JComponent) = dividerProperty(component as JSplitPane)
+
+    override fun getDisplayName(): String {
+        return "${component.javaClass.simpleName}_${component.hashCode()}_Divider}"
     }
 }
 
