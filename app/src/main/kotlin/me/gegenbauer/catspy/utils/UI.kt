@@ -5,11 +5,11 @@ import java.awt.Component
 import java.awt.Dimension
 import javax.swing.*
 
-fun Component.findFrameFromParent(): JFrame {
+fun <T: JFrame> Component.findFrameFromParent(): T {
     var current = parent
     while (current != null) {
         if (current is JFrame) {
-            return current
+            return current as T
         }
         current = current.parent
     }

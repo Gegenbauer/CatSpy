@@ -12,14 +12,12 @@ import javax.swing.JOptionPane
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
-class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI, logPanel){
+class CmdManager(mainUI: MainUI, logPanel: LogPanel) : CustomListManager(mainUI, logPanel) {
     private val listSelectionHandler = ListSelectionHandler()
     private val mouseHandler = MouseHandler()
     private val keyHandler = KeyHandler()
 
-    init {
-        dialogTitle = "Cmd Manager"
-    }
+    override val dialogTitle: String = "Cmd Manager"
 
     override fun loadList(): ArrayList<CustomElement> {
         return ArrayList(UIConfManager.uiConf.commands)
@@ -72,7 +70,7 @@ class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI,
     }
 
     @Suppress("UNCHECKED_CAST")
-    internal inner class MouseHandler: MouseAdapter() {
+    internal inner class MouseHandler : MouseAdapter() {
         override fun mouseClicked(event: MouseEvent) {
             super.mouseClicked(event)
             if (event.isDoubleClick) {
@@ -83,7 +81,7 @@ class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI,
     }
 
     @Suppress("UNCHECKED_CAST")
-    internal inner class KeyHandler: KeyAdapter() {
+    internal inner class KeyHandler : KeyAdapter() {
         override fun keyPressed(event: KeyEvent) {
             if (event.keyCode == KeyEvent.VK_ENTER) {
                 val list = event.source as JList<CustomElement>

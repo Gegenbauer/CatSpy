@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.manager
 
 import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.log.LogPanel
 import me.gegenbauer.catspy.utils.isDoubleClick
@@ -14,9 +15,7 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mai
     private val mouseHandler = MouseHandler()
     private val keyHandler = KeyHandler()
 
-    init {
-        dialogTitle = "Filters Manager"
-    }
+    override val dialogTitle: String = "Filters Manager"
 
     override fun loadList(): ArrayList<CustomElement> {
         return ArrayList(UIConfManager.uiConf.filters)
@@ -46,12 +45,10 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mai
 
     internal inner class ListSelectionHandler : ListSelectionListener {
         override fun valueChanged(event: ListSelectionEvent) {
-            if (!event.valueIsAdjusting) {
-            }
+            GLog.d(TAG, "Not implemented")
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     internal inner class MouseHandler: MouseAdapter() {
         override fun mouseClicked(mouseEvent: MouseEvent) {
             super.mouseClicked(mouseEvent)
@@ -83,7 +80,6 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mai
         mainUI.applyShowLogCombo()
     }
 
-    @Suppress("UNCHECKED_CAST")
     internal inner class KeyHandler: KeyAdapter() {
         override fun keyPressed(event: KeyEvent) {
             if (event.keyCode == KeyEvent.VK_ENTER) {
@@ -94,6 +90,7 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mai
 
     companion object {
         const val MAX_FILTERS = 20
+        private const val TAG = "FiltersManager"
         private const val CURRENT_FILTER = "Current"
     }
 }

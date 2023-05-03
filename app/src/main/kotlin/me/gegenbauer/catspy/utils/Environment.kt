@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.utils
 
 import me.gegenbauer.catspy.log.GLog
+import java.lang.management.ManagementFactory
 import javax.swing.TransferHandler.TransferSupport
 
 val userDir: String = System.getProperty("user.dir")
@@ -13,6 +14,16 @@ interface IPlatform {
         return transferSupport.sourceDropActions
     }
 
+}
+
+fun isInDebugMode(): Boolean {
+    val inputArguments = ManagementFactory.getRuntimeMXBean().inputArguments
+    for (arg in inputArguments) {
+        if (arg.contains("-agentlib:jdwp")) {
+            return true
+        }
+    }
+    return false
 }
 
 enum class Platform : IPlatform {

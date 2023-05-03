@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.ui.menu
 
 import me.gegenbauer.catspy.resource.strings.STRINGS
+import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.Menu
 import me.gegenbauer.catspy.utils.findFrameFromParent
 import me.gegenbauer.catspy.utils.loadThemedIcon
@@ -116,7 +117,7 @@ class FileMenu : JMenu() {
         multiSelection: Boolean,
         onFilesSelected: (Array<File>) -> Unit
     ) {
-        val frame = findFrameFromParent()
+        val frame = findFrameFromParent<MainUI>()
         val chooser = JFileChooser(userDir)
         chooser.dialogTitle = STRINGS.ui.file + " " + title
         chooser.preferredSize = Dimension(

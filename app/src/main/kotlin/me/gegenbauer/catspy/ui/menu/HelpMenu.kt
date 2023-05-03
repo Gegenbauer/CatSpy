@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.ui.menu
 
 import me.gegenbauer.catspy.resource.strings.STRINGS
+import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.Menu
 import me.gegenbauer.catspy.ui.dialog.AboutDialog
 import me.gegenbauer.catspy.ui.dialog.HelpDialog
@@ -36,14 +37,14 @@ class HelpMenu : JMenu() {
     }
 
     private fun openHelpDialog() {
-        val frame = findFrameFromParent()
+        val frame = findFrameFromParent<MainUI>()
         val helpDialog = HelpDialog(frame)
         helpDialog.setLocationRelativeTo(frame)
         helpDialog.isVisible = true
     }
 
     private fun openAboutDialog() {
-        val frame = findFrameFromParent()
+        val frame = findFrameFromParent<MainUI>()
         val aboutDialog = AboutDialog(frame)
         aboutDialog.setLocationRelativeTo(frame)
         aboutDialog.isVisible = true

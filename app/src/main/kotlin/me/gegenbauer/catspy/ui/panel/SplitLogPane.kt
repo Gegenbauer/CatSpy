@@ -3,7 +3,8 @@ package me.gegenbauer.catspy.ui.panel
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainUI
-import me.gegenbauer.catspy.ui.log.LogPanel
+import me.gegenbauer.catspy.ui.log.FilteredLogPanel
+import me.gegenbauer.catspy.ui.log.FullLogPanel
 import me.gegenbauer.catspy.ui.log.LogTableModel
 import me.gegenbauer.catspy.utils.currentPlatform
 import java.awt.datatransfer.DataFlavor
@@ -24,8 +25,8 @@ class SplitLogPane(
 
     var onFocusGained: (Boolean) -> Unit = {}
 
-    val fullLogPanel = LogPanel(mainUI, fullTableModel, null, this)
-    val filteredLogPanel = LogPanel(mainUI, filteredTableModel, fullLogPanel, this)
+    val fullLogPanel = FullLogPanel(mainUI, fullTableModel)
+    val filteredLogPanel = FilteredLogPanel(mainUI, filteredTableModel, this, fullLogPanel)
     var rotation: Rotation = Rotation.ROTATION_LEFT_RIGHT
         set(value) {
             field = value

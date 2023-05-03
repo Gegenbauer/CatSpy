@@ -22,9 +22,8 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
         const val CMD_EDIT = 3
     }
 
-    var dialogTitle = "Custom List"
     private var firstElement: CustomElement? = null
-    private var customDialog: CustomDialog? = null
+    private val customDialog = CustomDialog(mainUI)
 
     abstract fun loadList(): ArrayList<CustomElement>
     abstract fun saveList(list: ArrayList<CustomElement>)
@@ -34,44 +33,36 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
     abstract fun getListKeyListener(): KeyListener
 
     fun showDialog() {
-        if (customDialog == null) {
-            customDialog = CustomDialog(mainUI)
-        }
-        customDialog?.initDialog()
-        customDialog?.setLocationRelativeTo(mainUI)
-        customDialog?.isVisible = true
+        customDialog.initDialog()
+        customDialog.setLocationRelativeTo(mainUI)
+        customDialog.isVisible = true
     }
+
+    protected open val dialogTitle: String = "Custom List"
 
     data class CustomElement(val title: String, var value: String, val tableBar: Boolean)
 
     internal inner class CustomDialog(parent: MainUI) : JDialog(parent, dialogTitle, true), ActionListener {
         private var scrollPane: JScrollPane
         var jList = JList<CustomElement>()
-        private var firstBtn: JButton
-        private var prevBtn: JButton
-        private var nextBtn: JButton
-        private var lastBtn: JButton
-        private var newBtn: JButton
-        private var copyBtn: JButton
-        private var editBtn: JButton
-        private var deleteBtn: JButton
-        private var saveBtn: JButton
-        private var closeBtn: JButton
-        private var model = DefaultListModel<CustomElement>()
+        private val firstBtn = GButton("↑")
+        private val prevBtn = GButton("∧")
+        private val nextBtn = GButton("∨")
+        private val lastBtn = GButton("↓")
+        private val newBtn = GButton(STRINGS.ui.new)
+        private val copyBtn = GButton(STRINGS.ui.copy)
+        private val editBtn = GButton(STRINGS.ui.edit)
+        private val deleteBtn = GButton(STRINGS.ui.delete)
+        private val saveBtn = GButton(STRINGS.ui.save)
+        private val closeBtn = GButton(STRINGS.ui.close)
+        private val model = DefaultListModel<CustomElement>()
 
         init {
             jList = JList<CustomElement>()
             jList.model = model
-
-            val selectionListener = getListSelectionListener()
-            jList.addListSelectionListener(selectionListener)
-
-            val mouseListener = getListMouseListener()
-            jList.addMouseListener(mouseListener)
-
-            val keyListener = getListKeyListener()
-            jList.addKeyListener(keyListener)
-
+            jList.addListSelectionListener(getListSelectionListener())
+            jList.addMouseListener(getListMouseListener())
+            jList.addKeyListener(getListKeyListener())
             jList.cellRenderer = CustomCellRenderer()
 
             val componentListener: ComponentListener = object : ComponentAdapter() {
@@ -84,27 +75,16 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             jList.addComponentListener(componentListener)
             scrollPane = JScrollPane(jList)
             scrollPane.preferredSize = Dimension(800, 500)
-
-            firstBtn = GButton("↑")
             firstBtn.addActionListener(this)
-            prevBtn = GButton("∧")
             prevBtn.addActionListener(this)
-            nextBtn = GButton("∨")
             nextBtn.addActionListener(this)
-            lastBtn = GButton("↓")
             lastBtn.addActionListener(this)
 
-            newBtn = GButton(STRINGS.ui.new)
             newBtn.addActionListener(this)
-            copyBtn = GButton(STRINGS.ui.copy)
             copyBtn.addActionListener(this)
-            editBtn = GButton(STRINGS.ui.edit)
             editBtn.addActionListener(this)
-            deleteBtn = GButton(STRINGS.ui.delete)
             deleteBtn.addActionListener(this)
-            saveBtn = GButton(STRINGS.ui.save)
             saveBtn.addActionListener(this)
-            closeBtn = GButton(STRINGS.ui.close)
             closeBtn.addActionListener(this)
             val bottomPanel = JPanel()
             bottomPanel.add(firstBtn)
@@ -141,16 +121,14 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             firstElement = getFirstElement()
             model.addElement(firstElement)
 
-            for (item in customListArray) {
-                model.addElement(item)
-            }
+            customListArray.forEach(model::addElement)
         }
 
         inner class CustomCellRenderer : ListCellRenderer<Any?> {
             private val cellPanel: JPanel = JPanel(BorderLayout())
             private val titlePanel: JPanel = JPanel(BorderLayout())
             private val titleLabel: JLabel = JLabel("")
-            private val valueTA: JTextArea
+            private val valueTA: JTextArea = JTextArea()
 
             override fun getListCellRendererComponent(
                 list: JList<*>?,
@@ -204,13 +182,11 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             }
 
             init {
-
                 titleLabel.foreground = Color(0x000090)
                 titleLabel.font = titleLabel.font.deriveFont(titleLabel.font.style or Font.BOLD)
                 titlePanel.add(titleLabel, BorderLayout.NORTH)
                 cellPanel.add(titlePanel, BorderLayout.NORTH)
 
-                valueTA = JTextArea()
                 valueTA.lineWrap = true
                 valueTA.wrapStyleWord = true
                 cellPanel.add(valueTA, BorderLayout.CENTER)
@@ -346,44 +322,32 @@ abstract class CustomListManager(val mainUI: MainUI, private val logPanel: LogPa
             tableBar: Boolean
         ) : JDialog(parent, "Edit", true), ActionListener {
             private var okBtn: JButton = GButton(STRINGS.ui.ok)
-            private var cancelBtn: JButton
-
-            private var titleLabel: JLabel
-            private var valueLabel: JLabel
-            private var tableBarLabel: JLabel
-
-            private var titleTF: JTextField
-            private var valueTF: JTextField
-            private var tableBarCheck: JCheckBox
-
-            private var titleStatusLabel: JLabel
-            private var valueStatusLabel: JLabel
+            private var cancelBtn: JButton = GButton(STRINGS.ui.cancel)
+            private var titleLabel: JLabel = JLabel("Title")
+            private var valueLabel: JLabel = JLabel("Value")
+            private var tableBarLabel: JLabel = JLabel("Add TableBar")
+            private var titleTF: JTextField = JTextField(title)
+            private var valueTF: JTextField = JTextField(value)
+            private var tableBarCheck: JCheckBox = JCheckBox()
+            private var titleStatusLabel: JLabel = JLabel("Good")
+            private var valueStatusLabel: JLabel = JLabel("Good")
 
             private var prevTitle = title
 
             init {
                 okBtn.addActionListener(this)
-                cancelBtn = GButton(STRINGS.ui.cancel)
                 cancelBtn.addActionListener(this)
 
-                titleLabel = JLabel("Title")
                 titleLabel.preferredSize = Dimension(50, 30)
-                valueLabel = JLabel("Value")
                 valueLabel.preferredSize = Dimension(50, 30)
-                tableBarLabel = JLabel("Add TableBar")
 
-                titleTF = JTextField(title)
                 titleTF.document.addDocumentListener(TitleDocumentHandler())
                 titleTF.preferredSize = Dimension(488, 30)
-                valueTF = JTextField(value)
                 valueTF.document.addDocumentListener(ValueDocumentHandler())
                 valueTF.preferredSize = Dimension(488, 30)
 
-                tableBarCheck = JCheckBox()
                 tableBarCheck.isSelected = tableBar
 
-                titleStatusLabel = JLabel("Good")
-                valueStatusLabel = JLabel("Good")
 
                 val titleStatusPanel = JPanel(FlowLayout(FlowLayout.CENTER))
                 titleStatusPanel.border = BorderFactory.createLineBorder(Color.LIGHT_GRAY)

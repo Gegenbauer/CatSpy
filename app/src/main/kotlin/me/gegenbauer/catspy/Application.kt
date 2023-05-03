@@ -15,6 +15,7 @@ import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.VStatusPanel
+import me.gegenbauer.catspy.utils.isInDebugMode
 import me.gegenbauer.catspy.viewmodel.GlobalViewModel
 import java.awt.Container
 import java.util.*
@@ -24,6 +25,16 @@ import javax.swing.UIDefaults
 class Application {
     companion object {
         private const val TAG = "Main"
+
+        init {
+            if (isInDebugMode()) {
+                // ubuntu 调试会拦截所有事件导致无法操作
+                System.setProperty("Dsun.awt.disablegrab", "true")
+            }
+            // 启用系统抗锯齿，极大提升字体渲染速度
+            System.setProperty("awt.useSystemAAFontSettings", "on")
+            System.setProperty("swing.aatext", "true")
+        }
 
         @JvmStatic
         fun main(args: Array<String>) {

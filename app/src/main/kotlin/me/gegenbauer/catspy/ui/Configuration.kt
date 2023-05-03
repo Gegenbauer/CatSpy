@@ -240,43 +240,43 @@ object ColorScheme: ThemeAware {
     }
 
     private fun updateColorScheme(colorArray: Array<ColorItem>) {
-        filteredFG = colorArray[TableColorIdx.FILTERED_FG.ordinal].color
-        selectedBG = colorArray[TableColorIdx.SELECTED_BG.ordinal].color
-        filteredBG = colorArray[TableColorIdx.FILTERED_BG.ordinal].color
-        logBG = colorArray[TableColorIdx.LOG_BG.ordinal].color
-        lineNumBG = colorArray[TableColorIdx.LINE_NUM_BG.ordinal].color
-        bookmarkBG = colorArray[TableColorIdx.BOOKMARK_BG.ordinal].color
-        logLevelNone = colorArray[TableColorIdx.LOG_LEVEL_NONE.ordinal].color
-        logLevelVerbose = colorArray[TableColorIdx.LOG_LEVEL_VERBOSE.ordinal].color
-        logLevelDebug = colorArray[TableColorIdx.LOG_LEVEL_DEBUG.ordinal].color
-        logLevelInfo = colorArray[TableColorIdx.LOG_LEVEL_INFO.ordinal].color
-        logLevelWarning = colorArray[TableColorIdx.LOG_LEVEL_WARNING.ordinal].color
-        logLevelError = colorArray[TableColorIdx.LOG_LEVEL_ERROR.ordinal].color
-        logLevelFatal = colorArray[TableColorIdx.LOG_LEVEL_FATAL.ordinal].color
-        pidFG = colorArray[TableColorIdx.PID_FG.ordinal].color
-        tidFG = colorArray[TableColorIdx.TID_FG.ordinal].color
-        tagFG = colorArray[TableColorIdx.TAG_FG.ordinal].color
-        highlightFG = colorArray[TableColorIdx.HIGHLIGHT_FG.ordinal].color
-        searchFG = colorArray[TableColorIdx.SEARCH_FG.ordinal].color
-        lineNumFG = colorArray[TableColorIdx.LINE_NUM_FG.ordinal].color
-        numLogSeparatorBG = colorArray[TableColorIdx.NUM_LOG_SEPARATOR_BG.ordinal].color
-        bookmarkSelectedBG = colorArray[TableColorIdx.BOOKMARK_SELECTED_BG.ordinal].color
-        numBookmarkSelectedBG = colorArray[TableColorIdx.NUM_BOOKMARK_SELECTED_BG.ordinal].color
-        numBookmarkBG = colorArray[TableColorIdx.NUM_BOOKMARK_BG.ordinal].color
-        numSelectedBG = colorArray[TableColorIdx.NUM_SELECTED_BG.ordinal].color
-        highlightBG = colorArray[TableColorIdx.HIGHLIGHT_BG.ordinal].color
-        searchBG = colorArray[TableColorIdx.SEARCH_BG.ordinal].color
-        filterStyleInclude = colorArray[TableColorIdx.FILER_COMBO_BOX_INCLUDE_BG.ordinal].color
-        filterStyleExclude = colorArray[TableColorIdx.FILER_COMBO_BOX_EXCLUDE_BG.ordinal].color
-        filterStyleSeparator = colorArray[TableColorIdx.FILER_COMBO_BOX_SEPARATOR_BG.ordinal].color
+        filteredFG = colorArray[TableColorIdx.FILTERED_FG.value].color
+        selectedBG = colorArray[TableColorIdx.SELECTED_BG.value].color
+        filteredBG = colorArray[TableColorIdx.FILTERED_BG.value].color
+        logBG = colorArray[TableColorIdx.LOG_BG.value].color
+        lineNumBG = colorArray[TableColorIdx.LINE_NUM_BG.value].color
+        bookmarkBG = colorArray[TableColorIdx.BOOKMARK_BG.value].color
+        logLevelNone = colorArray[TableColorIdx.LOG_LEVEL_NONE.value].color
+        logLevelVerbose = colorArray[TableColorIdx.LOG_LEVEL_VERBOSE.value].color
+        logLevelDebug = colorArray[TableColorIdx.LOG_LEVEL_DEBUG.value].color
+        logLevelInfo = colorArray[TableColorIdx.LOG_LEVEL_INFO.value].color
+        logLevelWarning = colorArray[TableColorIdx.LOG_LEVEL_WARNING.value].color
+        logLevelError = colorArray[TableColorIdx.LOG_LEVEL_ERROR.value].color
+        logLevelFatal = colorArray[TableColorIdx.LOG_LEVEL_FATAL.value].color
+        pidFG = colorArray[TableColorIdx.PID_FG.value].color
+        tidFG = colorArray[TableColorIdx.TID_FG.value].color
+        tagFG = colorArray[TableColorIdx.TAG_FG.value].color
+        highlightFG = colorArray[TableColorIdx.HIGHLIGHT_FG.value].color
+        searchFG = colorArray[TableColorIdx.SEARCH_FG.value].color
+        lineNumFG = colorArray[TableColorIdx.LINE_NUM_FG.value].color
+        numLogSeparatorBG = colorArray[TableColorIdx.NUM_LOG_SEPARATOR_BG.value].color
+        bookmarkSelectedBG = colorArray[TableColorIdx.BOOKMARK_SELECTED_BG.value].color
+        numBookmarkSelectedBG = colorArray[TableColorIdx.NUM_BOOKMARK_SELECTED_BG.value].color
+        numBookmarkBG = colorArray[TableColorIdx.NUM_BOOKMARK_BG.value].color
+        numSelectedBG = colorArray[TableColorIdx.NUM_SELECTED_BG.value].color
+        highlightBG = colorArray[TableColorIdx.HIGHLIGHT_BG.value].color
+        searchBG = colorArray[TableColorIdx.SEARCH_BG.value].color
+        filterStyleInclude = colorArray[TableColorIdx.FILER_COMBO_BOX_INCLUDE_BG.value].color
+        filterStyleExclude = colorArray[TableColorIdx.FILER_COMBO_BOX_EXCLUDE_BG.value].color
+        filterStyleSeparator = colorArray[TableColorIdx.FILER_COMBO_BOX_SEPARATOR_BG.value].color
 
         for (idx in filteredFGs.indices) {
             if (idx == 0) {
                 filteredFGs[idx] = filteredFG
                 filteredBGs[idx] = filteredBG
             } else {
-                filteredFGs[idx] = colorArrayLight[TableColorIdx.FILTERED_START_FG.ordinal + idx - 1].color
-                filteredBGs[idx] = colorArrayLight[TableColorIdx.FILTERED_START_BG.ordinal + idx - 1].color
+                filteredFGs[idx] = colorArray[TableColorIdx.FILTERED_START_FG.value + idx - 1].color
+                filteredBGs[idx] = colorArray[TableColorIdx.FILTERED_START_BG.value + idx - 1].color
             }
         }
     }

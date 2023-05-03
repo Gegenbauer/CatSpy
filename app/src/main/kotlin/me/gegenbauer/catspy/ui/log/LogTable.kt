@@ -5,6 +5,7 @@ import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.panel.VStatusPanel
 import me.gegenbauer.catspy.ui.dialog.LogViewDialog
+import me.gegenbauer.catspy.ui.log.LogTableModel.Companion.COLUMN_LOG
 import me.gegenbauer.catspy.ui.log.LogTableModel.Companion.COLUMN_NUM
 import me.gegenbauer.catspy.utils.findFrameFromParent
 import me.gegenbauer.catspy.utils.isDoubleClick
@@ -16,19 +17,19 @@ import javax.swing.table.DefaultTableCellRenderer
 
 
 // TODO refactor
-class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
+class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
     init {
         setShowGrid(false)
         tableHeader = null
         autoResizeMode = AUTO_RESIZE_OFF
-        autoscrolls = false
+        autoscrolls = true
         dragEnabled = true
         dropMode = DropMode.INSERT
 
-        val columnNum = columnModel.getColumn(0)
+        val columnNum = columnModel.getColumn(COLUMN_NUM)
         columnNum.cellRenderer = NumCellRenderer()
 
-        val columnLog = columnModel.getColumn(1)
+        val columnLog = columnModel.getColumn(COLUMN_LOG)
         columnLog.cellRenderer = LogCellRenderer()
         intercellSpacing = Dimension(0, 0)
 
@@ -47,14 +48,11 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
         val fontMetrics = getFontMetrics(font)
         val value = this.tableModel.getValueAt(rowCount - 1, 0)
         val column0Width = fontMetrics.stringWidth(value.toString()) + 20
-        var newWidth = width
-        if (width < 1920) {
-            newWidth = 1920
-        }
+        val newWidth = width.coerceAtLeast(1920)
         val preferredLogWidth = newWidth - column0Width - VStatusPanel.VIEW_RECT_WIDTH - scrollVBarWidth - 2
 
-        val columnNum = columnModel.getColumn(0)
-        val columnLog = columnModel.getColumn(1)
+        val columnNum = columnModel.getColumn(COLUMN_NUM)
+        val columnLog = columnModel.getColumn(COLUMN_LOG)
         if (columnNum.preferredWidth != column0Width) {
             columnNum.preferredWidth = column0Width
             columnLog.preferredWidth = preferredLogWidth
@@ -131,6 +129,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
             } else {
                 ""
             }
+            // use html to render the log. Table cell use label.
             val label: JLabel = if (newValue.isEmpty()) {
                 foreground = this@LogTable.tableModel.getFgColor(row)
                 super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
@@ -204,7 +203,7 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
             getRowsContent(((rows[0] - 2).coerceAtLeast(0)..(rows[0] + 3).coerceAtMost(rowCount)).toList())
         }
         val caretPos = getRowsContent(arrayListOf(rows[0])).length
-        val frame = findFrameFromParent()
+        val frame = findFrameFromParent<MainUI>()
         val logViewDialog = LogViewDialog(frame, displayContent.trim(), caretPos)
         logViewDialog.setLocationRelativeTo(frame)
         logViewDialog.isVisible = true
@@ -242,25 +241,27 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
         private val actionHandler = ActionHandler()
 
         init {
-            copyItem.addActionListener(actionHandler)
             add(copyItem)
-            showEntireItem.addActionListener(actionHandler)
             add(showEntireItem)
-            bookmarkItem.addActionListener(actionHandler)
             add(bookmarkItem)
             addSeparator()
-            reconnectItem.addActionListener(actionHandler)
             add(reconnectItem)
-            startItem.addActionListener(actionHandler)
             add(startItem)
-            stopItem.addActionListener(actionHandler)
             add(stopItem)
+            add(clearItem
+            )
+            copyItem.addActionListener(actionHandler)
+            showEntireItem.addActionListener(actionHandler)
+            bookmarkItem.addActionListener(actionHandler)
+            reconnectItem.addActionListener(actionHandler)
+            startItem.addActionListener(actionHandler)
+            stopItem.addActionListener(actionHandler)
             clearItem.addActionListener(actionHandler)
-            add(clearItem)
         }
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
+                val frame = this@LogTable.findFrameFromParent<MainUI>()
                 when (event.source) {
                     copyItem -> {
                         this@LogTable.processKeyEvent(
@@ -284,22 +285,18 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
                     }
 
                     reconnectItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
                         frame.reconnectAdb()
                     }
 
                     startItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
                         frame.startAdbLog()
                     }
 
                     stopItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
                         frame.stopAdbLog()
                     }
 
                     clearItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
                         frame.clearAdbLog()
                     }
                 }
@@ -308,18 +305,13 @@ class LogTable(var tableModel: LogTableModel) : JTable(tableModel) {
     }
 
     internal inner class MouseHandler : MouseAdapter() {
+        private val popupMenu: JPopupMenu = PopUpTable()
 
-        override fun mousePressed(event: MouseEvent) {
-            super.mousePressed(event)
-        }
-
-        private var popupMenu: JPopupMenu? = null
         override fun mouseReleased(event: MouseEvent) {
             if (SwingUtilities.isRightMouseButton(event)) {
-                popupMenu = PopUpTable()
-                popupMenu?.show(event.component, event.x, event.y)
+                popupMenu.show(event.component, event.x, event.y)
             } else {
-                popupMenu?.isVisible = false
+                popupMenu.isVisible = false
             }
 
             super.mouseReleased(event)

@@ -7,10 +7,10 @@ import com.github.weisj.darklaf.theme.Theme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.command.CmdManager
 import me.gegenbauer.catspy.command.LogCmdManager
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
@@ -18,7 +18,6 @@ import me.gegenbauer.catspy.databinding.property.support.DefaultDocumentListener
 import me.gegenbauer.catspy.databinding.property.support.PROPERTY_TEXT
 import me.gegenbauer.catspy.file.Log
 import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.manager.FiltersManager
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.ui.button.*
@@ -252,10 +251,8 @@ class MainUI(title: String) : JFrame(title) {
     private val popupMenuHandler = PopupMenuHandler()
     private val mouseHandler = MouseHandler()
     private val statusChangeListener = StatusChangeListener()
-    //endregion
 
-    val filtersManager = FiltersManager(this, splitLogPane.filteredLogPanel)
-    val cmdManager = CmdManager(this, splitLogPane.fullLogPanel)
+    //endregion
     private var selectedLine = 0
 
     var customFont: Font = Font(
@@ -651,7 +648,7 @@ class MainUI(title: String) : JFrame(title) {
     }
 
     // TODO detach log 逻辑梳理
-    fun detachLogPanel(logPanel: LogPanel) {
+    fun detachLogPanel(logPanel: FullLogPanel) {
         if (logPanel.parent == splitLogPane) {
             logPanel.isWindowedMode = true
             viewMenu.itemRotation.isEnabled = false
@@ -660,7 +657,7 @@ class MainUI(title: String) : JFrame(title) {
         }
     }
 
-    fun windowedModeLogPanel(logPanel: LogPanel) {
+    fun windowedModeLogPanel(logPanel: FullLogPanel) {
         detachLogPanel(logPanel)
         if (viewMenu.itemFull.state) {
             val logTableDialog = LogTableDialog(this@MainUI, logPanel)
@@ -668,7 +665,7 @@ class MainUI(title: String) : JFrame(title) {
         }
     }
 
-    fun attachLogPanel(logPanel: LogPanel) {
+    fun attachLogPanel(logPanel: FullLogPanel) {
         logPanel.isWindowedMode = false
         viewMenu.itemRotation.isEnabled = true
         splitLogPane.resetWithCurrentRotation()
@@ -921,10 +918,10 @@ class MainUI(title: String) : JFrame(title) {
     }
 
     internal inner class LogPanelMouseListener : MouseAdapter() {
-        private var popupMenu: JPopupMenu = ButtonDisplayModeSelectMenu()
+        private val popupMenu: JPopupMenu = ButtonDisplayModeSelectMenu()
+
         override fun mouseReleased(e: MouseEvent) {
             if (SwingUtilities.isRightMouseButton(e)) {
-                popupMenu = ButtonDisplayModeSelectMenu()
                 popupMenu.show(e.component, e.x, e.y)
             } else {
                 popupMenu.isVisible = false
@@ -932,12 +929,11 @@ class MainUI(title: String) : JFrame(title) {
         }
     }
 
-    internal inner class PopUpCombobox(combo: JComboBox<String>?) : JPopupMenu() {
-        val selectAllItem: JMenuItem = JMenuItem("Select All")
-        val copyItem: JMenuItem = JMenuItem("Copy")
-        val pasteItem: JMenuItem = JMenuItem("Paste")
-        val reconnectItem: JMenuItem = JMenuItem("Reconnect " + deviceCombo.selectedItem?.toString())
-        val combo: JComboBox<String>?
+    internal inner class PopUpCombobox(private val combo: JComboBox<String>) : JPopupMenu() {
+        private val selectAllItem: JMenuItem = JMenuItem("Select All")
+        private val copyItem: JMenuItem = JMenuItem("Copy")
+        private val pasteItem: JMenuItem = JMenuItem("Paste")
+        private val reconnectItem: JMenuItem = JMenuItem("Reconnect " + deviceCombo.selectedItem?.toString())
         private val actionHandler = ActionHandler()
 
         init {
@@ -949,25 +945,24 @@ class MainUI(title: String) : JFrame(title) {
             add(pasteItem)
             reconnectItem.addActionListener(actionHandler)
             add(reconnectItem)
-            this.combo = combo
         }
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
                 when (event.source) {
                     selectAllItem -> {
-                        combo?.editor?.selectAll()
+                        combo.editor?.selectAll()
                     }
 
                     copyItem -> {
-                        val editorCom = combo?.editor?.editorComponent as JTextComponent
+                        val editorCom = combo.editor?.editorComponent as JTextComponent
                         val stringSelection = StringSelection(editorCom.selectedText)
                         val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
                         clipboard.setContents(stringSelection, null)
                     }
 
                     pasteItem -> {
-                        val editorCom = combo?.editor?.editorComponent as JTextComponent
+                        val editorCom = combo.editor?.editorComponent as JTextComponent
                         editorCom.paste()
                     }
 
@@ -979,48 +974,46 @@ class MainUI(title: String) : JFrame(title) {
         }
     }
 
-    // TODO bug showLogCombo 导致黑边
-    internal inner class PopUpFilterCombobox(combo: FilterComboBox) : JPopupMenu() {
-        var selectAllItem: JMenuItem
-        var copyItem: JMenuItem
-        var pasteItem: JMenuItem
-        var removeColorTagsItem: JMenuItem
-        lateinit var removeOneColorTagItem: JMenuItem
-        lateinit var addColorTagItems: ArrayList<JMenuItem>
-        var combo: FilterComboBox
+    internal inner class PopUpFilterCombobox(private val combo: FilterComboBox) : JPopupMenu() {
+        private val selectAllItem = JMenuItem("Select All")
+        private val copyItem = JMenuItem("Copy")
+        private val pasteItem = JMenuItem("Paste")
+        private val removeColorTagsItem = JMenuItem("Remove All Color Tags")
+        private val removeOneColorTagItem = JMenuItem("Remove Color Tag")
+        private val addColorTagItems: ArrayList<JMenuItem> = arrayListOf()
         private val actionHandler = ActionHandler()
 
         init {
-            this.combo = combo
-            combo.background = Color.BLACK
-            selectAllItem = JMenuItem("Select All")
             selectAllItem.addActionListener(actionHandler)
-            add(selectAllItem)
-            copyItem = JMenuItem("Copy")
             copyItem.addActionListener(actionHandler)
-            add(copyItem)
-            pasteItem = JMenuItem("Paste")
             pasteItem.addActionListener(actionHandler)
-            add(pasteItem)
-            removeColorTagsItem = JMenuItem("Remove All Color Tags")
             removeColorTagsItem.addActionListener(actionHandler)
+            removeOneColorTagItem.addActionListener(actionHandler)
+
+            updateMenuItems()
+            ThemeManager.registerThemeUpdateListener { updateMenuItems() }
+        }
+
+        private fun updateMenuItems() {
+            removeAll()
+            add(selectAllItem)
+            add(copyItem)
+            add(pasteItem)
             add(removeColorTagsItem)
-
-
             if (this.combo.useColorTag) {
-                removeOneColorTagItem = JMenuItem("Remove Color Tag")
-                removeOneColorTagItem.addActionListener(actionHandler)
                 add(removeOneColorTagItem)
-                addColorTagItems = arrayListOf()
-                for (idx in 0..8) {
-                    val num = idx + 1
-                    val item = JMenuItem("Add Color Tag : #$num")
-                    item.isOpaque = true
-                    item.foreground = ColorScheme.filteredFGs[num]
-                    item.background = ColorScheme.filteredBGs[num]
-                    item.addActionListener(actionHandler)
-                    addColorTagItems.add(item)
-                    add(item)
+                addColorTagItems.clear()
+                val colorTagIndexes = 1..9
+                colorTagIndexes.map {
+                    JMenuItem("Add Color Tag : #$it").apply {
+                        isOpaque = true
+                        foreground = ColorScheme.filteredFGs[it]
+                        background = ColorScheme.filteredBGs[it]
+                        addActionListener(actionHandler)
+                    }
+                }.forEach {
+                    addColorTagItems.add(it)
+                    add(it)
                 }
             }
         }
@@ -1062,11 +1055,9 @@ class MainUI(title: String) : JFrame(title) {
                         val item = event.source as JMenuItem
                         if (addColorTagItems.contains(item)) {
                             val textSplit = item.text.split(":")
-                            if (textSplit.size == 2) {
-                                combo.addColorTag(textSplit[1].trim())
-                                if (combo == showLogCombo) {
-                                    applyShowLogComboEditor()
-                                }
+                            combo.addColorTag(textSplit[1].trim())
+                            if (combo == showLogCombo) {
+                                applyShowLogComboEditor()
                             }
                         }
                     }
@@ -1076,11 +1067,8 @@ class MainUI(title: String) : JFrame(title) {
     }
 
     internal inner class MouseHandler : MouseAdapter() {
-        override fun mouseClicked(event: MouseEvent) {
-            super.mouseClicked(event)
-        }
-
         private var popupMenu: JPopupMenu? = null
+
         override fun mouseReleased(event: MouseEvent) {
             if (SwingUtilities.isRightMouseButton(event)) {
                 when (event.source) {
