@@ -44,11 +44,12 @@ val appName = APP_NAME
 // TODO 更改应用安装后的图标
 compose.desktop {
     application {
-        mainClass = "me.gegenbauer.catspy.Main"
+        mainClass = "me.gegenbauer.catspy.Application"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             modules += "jdk.unsupported"
+            modules += "jdk.management"
             packageName = appName
             packageVersion = version
             group = "me.gegenbauer"
