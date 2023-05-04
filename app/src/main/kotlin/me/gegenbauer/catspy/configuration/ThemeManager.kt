@@ -13,10 +13,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.utils.appendPath
+import me.gegenbauer.catspy.log.appendPath
+import me.gegenbauer.catspy.utils.currentPlatform
 import me.gegenbauer.catspy.utils.loadResourceAsStream
 import me.gegenbauer.catspy.utils.toArgb
-import me.gegenbauer.catspy.utils.userDir
 import java.io.File
 import java.util.*
 import javax.swing.UIDefaults
@@ -25,7 +25,7 @@ object ThemeManager {
     private const val DEFAULT_THEME_DIR = "themes"
     private const val DEFAULT_THEME_FILENAME = "default.json"
     private const val THEME_FILENAME = "global.json"
-    private val themeFile = File(userDir, THEME_FILENAME)
+    private val themeFile = File(currentPlatform.getFilesDir(), THEME_FILENAME)
     private val settingsConfiguration: SettingsConfiguration = loadThemeSettings()
     private val scope = ModelScope()
 

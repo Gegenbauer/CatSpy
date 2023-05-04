@@ -15,14 +15,13 @@ import me.gegenbauer.catspy.ui.button.GButton
 import me.gegenbauer.catspy.ui.combobox.darkComboBox
 import me.gegenbauer.catspy.utils.editorComponent
 import java.awt.Dimension
-import javax.swing.JButton
 import javax.swing.JFrame
 import javax.swing.JPanel
 
 fun main() {
     AppScope.launch(Dispatchers.UI) {
         val frame = JFrame()
-        GLog.DEBUG = true
+        GLog.debug = true
         frame.size = Dimension(500, 500)
         val panel = JPanel()
         val bt = GButton("C")

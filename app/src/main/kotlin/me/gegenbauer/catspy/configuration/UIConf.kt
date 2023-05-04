@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.configuration
 import me.gegenbauer.catspy.manager.CustomListManager
 import me.gegenbauer.catspy.ui.log.LogLevel
 import me.gegenbauer.catspy.ui.panel.Rotation
-import me.gegenbauer.catspy.utils.userDir
+import me.gegenbauer.catspy.utils.filesDir
 import java.awt.Font
 import java.awt.Frame
 
@@ -12,7 +12,7 @@ data class UIConf(
     /** 应用配置 start **/
     var versionCode: Int = 10000,
     var versionName: String = "1.0.0",
-    var appHome: String = userDir, // 应用程序主目录, 用于存放配置文件, 以及日志等临时文件
+    var appHome: String = filesDir, // 应用程序主目录, 用于存放配置文件, 以及日志等临时文件
     var debug: Boolean = false,
     /** 应用配置 end **/
 

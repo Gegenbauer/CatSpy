@@ -1,10 +1,11 @@
 package me.gegenbauer.catspy.utils
 
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.log.appendPath
+import me.gegenbauer.catspy.resource.strings.STRINGS
+import me.gegenbauer.catspy.resource.strings.app
+import java.io.File
 import java.lang.management.ManagementFactory
 import javax.swing.TransferHandler.TransferSupport
-
-val userDir: String = System.getProperty("user.dir")
 
 interface IPlatform {
     val adbCommand: String
@@ -14,6 +15,15 @@ interface IPlatform {
         return transferSupport.sourceDropActions
     }
 
+    fun getFilesDir() = userDir
+
+    fun ensureFilesDirExists() {
+        val filesDir = getFilesDir()
+        val file = File(filesDir)
+        if (!file.exists()) {
+            file.mkdirs()
+        }
+    }
 }
 
 fun isInDebugMode(): Boolean {
@@ -34,12 +44,20 @@ enum class Platform : IPlatform {
         override fun getFileDropAction(transferSupport: TransferSupport): Int {
             return transferSupport.dropAction
         }
+
+        override fun getFilesDir(): String {
+            return userHome.appendPath("AppData").appendPath(STRINGS.ui.app)
+        }
     },
     LINUX {
-        // default implementation
+        override fun getFilesDir(): String {
+            return userHome.appendPath(".config").appendPath(STRINGS.ui.app)
+        }
     },
     MAC {
-        // default implementation
+        override fun getFilesDir(): String {
+            return userHome.appendPath("Library").appendPath("Application Support").appendPath(STRINGS.ui.app)
+        }
     },
     UNKNOWN {
         // default implementation
@@ -48,8 +66,15 @@ enum class Platform : IPlatform {
 
 val currentPlatform: Platform by lazy {
     val platform = _currentPlatform
-    GLog.i(TAG, "[currentPlatform] $platform")
     platform
+}
+
+val userDir: String = System.getProperty("user.dir")
+val userHome: String = System.getProperty("user.home")
+
+val filesDir = run {
+    currentPlatform.ensureFilesDirExists()
+    currentPlatform.getFilesDir()
 }
 
 private inline val _currentPlatform: Platform
@@ -59,5 +84,3 @@ private inline val _currentPlatform: Platform
         "mac" -> Platform.MAC
         else -> Platform.UNKNOWN
     }
-
-private const val TAG = "Environment"

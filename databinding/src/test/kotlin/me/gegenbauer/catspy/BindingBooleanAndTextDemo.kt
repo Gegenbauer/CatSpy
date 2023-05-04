@@ -16,7 +16,7 @@ import javax.swing.*
 fun main() {
     AppScope.launch(Dispatchers.UI) {
         val frame = JFrame()
-        GLog.DEBUG = true
+        GLog.debug = true
         frame.size = Dimension(500, 500)
         val panel = JPanel()
         val cb1 = JCheckBox("1")

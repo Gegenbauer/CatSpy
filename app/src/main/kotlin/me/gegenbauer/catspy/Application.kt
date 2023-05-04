@@ -15,6 +15,8 @@ import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.VStatusPanel
+import me.gegenbauer.catspy.utils.currentPlatform
+import me.gegenbauer.catspy.utils.filesDir
 import me.gegenbauer.catspy.utils.isInDebugMode
 import me.gegenbauer.catspy.viewmodel.GlobalViewModel
 import java.awt.Container
@@ -40,8 +42,11 @@ class Application {
         fun main(args: Array<String>) {
             AppScope.launch(Dispatchers.UI) {
                 withContext(Dispatchers.APP_LAUNCH) {
+                    GLog.init(filesDir, "glog.txt")
                     ThemeManager.init()
                     GlobalViewModel.init()
+
+                    GLog.i(TAG, "[currentPlatform] $currentPlatform")
                 }
                 ThemeManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
                 ThemeManager.registerInitTask(::adjustBeforeThemeLoaded)

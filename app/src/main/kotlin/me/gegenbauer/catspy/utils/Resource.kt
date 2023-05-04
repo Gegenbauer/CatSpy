@@ -3,16 +3,12 @@ package me.gegenbauer.catspy.utils
 import com.github.weisj.darklaf.iconset.AllIcons
 import com.github.weisj.darklaf.properties.icons.IconLoader
 import me.gegenbauer.catspy.Application
+import me.gegenbauer.catspy.log.appendPath
 import me.gegenbauer.catspy.ui.iconDefaultSize
-import java.io.File
 import java.io.InputStream
 import java.net.URL
 import java.util.*
 import javax.swing.Icon
-
-fun String.appendPath(path: String): String {
-    return "$this${File.separator}$path"
-}
 
 fun loadResourceAsStream(resourcePath: String): InputStream {
     val contextClassLoader = Thread.currentThread().contextClassLoader

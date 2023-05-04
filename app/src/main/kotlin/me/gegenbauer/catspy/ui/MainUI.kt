@@ -976,8 +976,12 @@ class MainUI(title: String) : JFrame(title) {
 
     internal inner class PopUpFilterCombobox(private val combo: FilterComboBox) : JPopupMenu() {
         private val selectAllItem = JMenuItem("Select All")
-        private val copyItem = JMenuItem("Copy")
-        private val pasteItem = JMenuItem("Paste")
+        private val copyItem = JMenuItem("Copy").apply {
+            icon = loadDarklafThemedIcon("menu/copy.svg")
+        }
+        private val pasteItem = JMenuItem("Paste").apply {
+            icon = loadDarklafThemedIcon("menu/paste.svg")
+        }
         private val removeColorTagsItem = JMenuItem("Remove All Color Tags")
         private val removeOneColorTagItem = JMenuItem("Remove Color Tag")
         private val addColorTagItems: ArrayList<JMenuItem> = arrayListOf()

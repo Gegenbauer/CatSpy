@@ -7,7 +7,7 @@ private const val TAG = "ThreadChecker"
 
 fun assertInMainThread() {
     if (!isInMainThread()) {
-        if (GLog.DEBUG) {
+        if (GLog.debug) {
             throw AssertionError("This method must be executed on the main thread !!!")
         } else {
             GLog.w(TAG, "This method must be executed on the main thread !!!")

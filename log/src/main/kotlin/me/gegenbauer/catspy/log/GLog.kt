@@ -14,18 +14,23 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Level
 
 object GLog : ILogger {
-    var DEBUG = false
+    var debug = false
         set(value) {
             field = value
-            loggers.forEach { it.value.setLevel(level) }
+            logConfig.setLevel(getLevel(value))
         }
     private val loggers = ConcurrentHashMap<String, GLogger>()
-    private val level: Level
-        get() = if (DEBUG) {
-            Level.ALL
-        } else {
-            Level.INFO
-        }
+    private lateinit var logConfig: LogConfig
+
+    private fun getLevel(debug: Boolean): Level = if (debug) {
+        Level.ALL
+    } else {
+        Level.INFO
+    }
+
+    fun init(path: String, name: String) {
+        logConfig = LogConfig(path, name)
+    }
 
     override fun v(tag: String, msg: String) {
         getLogger(tag).v("", msg)
@@ -57,7 +62,7 @@ object GLog : ILogger {
 
     private fun getLogger(tag: String): GLogger {
         return loggers.getOrPut(tag) {
-            GLogger(level, tag)
+            GLogger(tag).apply { logConfig.configure(this) }
         }
     }
 }

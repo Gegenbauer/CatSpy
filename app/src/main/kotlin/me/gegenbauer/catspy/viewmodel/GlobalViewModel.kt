@@ -20,7 +20,7 @@ object GlobalViewModel {
     init {
         debug.addObserver {
             UIConfManager.uiConf.debug = it ?: false
-            GLog.DEBUG = it ?: false
+            GLog.debug = it ?: false
         }
         versionCode.addObserver { UIConfManager.uiConf.versionCode = it ?: 0 }
         appHome.addObserver { UIConfManager.uiConf.appHome = it ?: "" }

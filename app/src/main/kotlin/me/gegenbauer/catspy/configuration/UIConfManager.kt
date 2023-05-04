@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.configuration
 import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
 import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.utils.userDir
+import me.gegenbauer.catspy.utils.filesDir
 import java.io.File
 
 object UIConfManager {
@@ -11,7 +11,7 @@ object UIConfManager {
     private const val UI_FILENAME = "ui.json"
 
     val uiConf: UIConf by lazy { loadUI() }
-    private val uiFile = File(userDir, UI_FILENAME)
+    private val uiFile = File(filesDir, UI_FILENAME)
 
     init {
         if (!uiFile.exists()) {

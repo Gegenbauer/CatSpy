@@ -1,25 +1,12 @@
 package me.gegenbauer.catspy.log
 
-import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.net.UnknownHostException
 import java.util.logging.*
 
-class GLogger(private val level: Level, tag: String) : ILogger {
-    private val logger = Logger.getLogger(tag).apply {
-        useParentHandlers = true
-        parent = parentLogger
-        level = this@GLogger.level
-        consoleHandler.level = this@GLogger.level
-        fileHandler.level = this@GLogger.level
-    }
-
-    fun setLevel(level: Level) {
-        logger.level = level
-        consoleHandler.level = level
-        fileHandler.level = level
-    }
+class GLogger(tag: String) : ILogger {
+    val logger = Logger.getLogger(tag)
 
     override fun v(tag: String, msg: String) {
         logger.fine(msg)
@@ -70,21 +57,4 @@ class GLogger(private val level: Level, tag: String) : ILogger {
             pw.flush()
             return sw.toString()
         }
-
-    companion object {
-        private const val TAG = "FormalLogger"
-        private val logFilePath = System.getProperty("user.dir") + File.separator + "glog.txt"
-        private val consoleHandler: Handler = ConsoleHandler().apply {
-            formatter = GLogFormatter()
-        }
-        private val fileHandler = FileHandler(logFilePath, 100000, 1, true).apply {
-            formatter = GLogFormatter()
-        }
-
-        private val parentLogger = Logger.getLogger(TAG).apply {
-            useParentHandlers = false
-            addHandler(consoleHandler)
-            addHandler(fileHandler)
-        }
-    }
 }

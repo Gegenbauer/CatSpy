@@ -27,7 +27,7 @@ import javax.swing.plaf.UIResource
 fun main() {
     AppScope.launch(Dispatchers.UI) {
         withContext(Dispatchers.APP_LAUNCH) {
-            GLog.DEBUG = UIConfManager.uiConf.debug
+            GLog.debug = UIConfManager.uiConf.debug
             ThemeManager.init()
             GlobalViewModel.init()
         }
