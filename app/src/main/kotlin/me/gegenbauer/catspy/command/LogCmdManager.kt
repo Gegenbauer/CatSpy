@@ -15,12 +15,12 @@ object LogCmdManager {
     private const val TAG = "LogCmdManager"
 
     const val EVENT_NONE = 0
-    const val EVENT_SUCCESS = 1
-    const val EVENT_FAIL = 2
+    private const val EVENT_SUCCESS = 1
+    private const val EVENT_FAIL = 2
 
     const val CMD_CONNECT = 1
     const val CMD_GET_DEVICES = 2
-    const val CMD_LOGCAT = 3
+    private const val CMD_LOGCAT = 3
     const val CMD_DISCONNECT = 4
 
     const val DEFAULT_LOGCAT = "logcat -v threadtime"
@@ -31,23 +31,14 @@ object LogCmdManager {
     const val TYPE_LOGCAT = 0
     const val TYPE_CMD = 1
 
-    var prefix: String = STRINGS.ui.app
-    var adbCmd = "adb"
-    var logSavePath: String = "."
+    var prefix: String = UIConfManager.uiConf.adbPrefix.ifEmpty { STRINGS.ui.app }
+    var adbCmd = UIConfManager.uiConf.adbCommand.ifEmpty { currentPlatform.adbCommand }
+    var logSavePath: String = UIConfManager.uiConf.adbLogSavePath.ifEmpty { "." }
     var targetDevice: String = ""
-    var logCmd: String = ""
+    var logCmd: String = UIConfManager.uiConf.adbLogCommand.ifEmpty { DEFAULT_LOGCAT }
     var devices = ArrayList<String>()
     private val eventListeners = ArrayList<AdbEventListener>()
     private var mainUI: MainUI? = null
-
-    init {
-        val cmd = UIConfManager.uiConf.adbCommand
-        adbCmd = cmd.ifEmpty { currentPlatform.adbCommand }
-
-        logSavePath = UIConfManager.uiConf.adbLogSavePath.ifEmpty { "." }
-        logCmd = UIConfManager.uiConf.adbLogCommand.ifEmpty { DEFAULT_LOGCAT }
-        prefix = UIConfManager.uiConf.adbPrefix.ifEmpty { STRINGS.ui.app }
-    }
 
     fun setMainUI(mainUI: MainUI) {
         LogCmdManager.mainUI = mainUI
@@ -203,11 +194,7 @@ object LogCmdManager {
                     try {
                         processLogcat = runtime.exec(cmd)
                         val processExitDetector = ProcessExitDetector(processLogcat!!)
-                        processExitDetector.addProcessListener(object : ProcessListener {
-                            override fun processFinished(process: Process?) {
-                                GLog.d(TAG, "The subprocess has finished")
-                            }
-                        })
+                        processExitDetector.addProcessListener { GLog.d(TAG, "The subprocess has finished") }
                         processExitDetector.start()
                     } catch (e: IOException) {
                         GLog.e(TAG, "Failed run $cmd")
@@ -244,7 +231,7 @@ object LogCmdManager {
         return executor
     }
 
-    interface AdbEventListener {
+    fun interface AdbEventListener {
         fun changedStatus(event: AdbEvent)
     }
 
@@ -253,7 +240,7 @@ object LogCmdManager {
         val event = e
     }
 
-    interface ProcessListener : EventListener {
+    fun interface ProcessListener : EventListener {
         fun processFinished(process: Process?)
     }
 

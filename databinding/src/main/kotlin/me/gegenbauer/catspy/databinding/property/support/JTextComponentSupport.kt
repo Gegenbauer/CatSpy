@@ -11,11 +11,11 @@ private const val TAG = "JTextComponentSupport"
 var JTextComponent.documentListeners: EventListenerList?
     get() {
         val listenerListField = document.getFieldDeeply("listenerList")
-        return listenerListField.get(document) as EventListenerList
+        return listenerListField[document] as EventListenerList
     }
     set(value) {
         val listenerListField = document.getFieldDeeply("listenerList")
-        return listenerListField.set(document, value)
+        listenerListField[document] = value
     }
 
 fun JTextComponent.withDocumentListenerDisabled(action: JTextComponent.() -> Unit) {

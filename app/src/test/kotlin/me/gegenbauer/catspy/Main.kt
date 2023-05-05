@@ -15,6 +15,7 @@ import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.ui.button.GButton
 import me.gegenbauer.catspy.ui.combobox.filterComboBox
+import me.gegenbauer.catspy.utils.filesDir
 import me.gegenbauer.catspy.viewmodel.GlobalViewModel
 import java.awt.Dimension
 import java.awt.Graphics
@@ -27,6 +28,7 @@ import javax.swing.plaf.UIResource
 fun main() {
     AppScope.launch(Dispatchers.UI) {
         withContext(Dispatchers.APP_LAUNCH) {
+            GLog.init(filesDir, "glog.txt")
             GLog.debug = UIConfManager.uiConf.debug
             ThemeManager.init()
             GlobalViewModel.init()
