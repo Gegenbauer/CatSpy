@@ -36,7 +36,7 @@ class ServiceScope : CoroutineScope {
 /**
  * Model 层中的作用域，默认使用 [Dispatchers.IO]，生命周期随 Model 存在而存在，每个 Model 都有一个对应的 [ModelScope]
  */
-class ModelScope : CoroutineScope {
+open class ModelScope : CoroutineScope {
     override val coroutineContext: CoroutineContext
         get() = CoroutineName(TAG) + Dispatchers.IO + loggingExceptionHandler + SupervisorJob()
 

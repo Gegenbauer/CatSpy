@@ -45,14 +45,13 @@ class Application {
                     GLog.init(filesDir, "glog.txt")
                     ThemeManager.init()
                     GlobalViewModel.init()
-
                     GLog.i(TAG, "[currentPlatform] $currentPlatform")
                 }
                 ThemeManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
                 ThemeManager.registerInitTask(::adjustBeforeThemeLoaded)
                 ThemeManager.installTheme()
                 val mainUI = MainUI(STRINGS.ui.app)
-                ThemeManager.registerThemeUpdateListener { _->
+                ThemeManager.registerThemeUpdateListener { _ ->
                     mainUI.registerComboBoxEditorEvent()
                 }
                 ThemeManager.applyTempTheme()
@@ -80,7 +79,10 @@ class Application {
             components.forEach { component ->
                 component.addMouseListener(object : java.awt.event.MouseAdapter() {
                     override fun mouseClicked(e: java.awt.event.MouseEvent?) {
-                        GLog.d(TAG, "${component.javaClass.name} ${if (component is JComponent) component.componentName else ""} clicked")
+                        GLog.d(
+                            TAG,
+                            "${component.javaClass.name} ${if (component is JComponent) component.componentName else ""} clicked"
+                        )
                     }
                 })
                 if (component is Container) {

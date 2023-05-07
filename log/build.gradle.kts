@@ -4,13 +4,6 @@ plugins {
     `module-info-compile`
 }
 
-group = "me.gegenbauer.catspy"
-version = "1.0.0"
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     compileOnly(Weisj.darklafCore.group, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
 }

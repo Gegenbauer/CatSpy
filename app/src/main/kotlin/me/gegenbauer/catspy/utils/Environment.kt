@@ -77,6 +77,8 @@ val filesDir = run {
     currentPlatform.getFilesDir()
 }
 
+const val LOG_DIR = "applog"
+
 private inline val _currentPlatform: Platform
     get() = when (System.getProperty("os.name").lowercase()) {
         "windows" -> Platform.WINDOWS
