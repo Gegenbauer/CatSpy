@@ -9,6 +9,7 @@ import me.gegenbauer.catspy.utils.LOG_DIR
 import me.gegenbauer.catspy.utils.filesDir
 import java.io.BufferedOutputStream
 import java.io.File
+import java.lang.StringBuilder
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -26,7 +27,7 @@ class LogcatTask(private val device: String) : CommandTask(arrayOf("adb", "logca
     }
 
     private fun writeToFile(line: String) {
-        tempFileStream.write(line.toByteArray())
+        tempFileStream.write(StringBuilder(line).appendLine().toString().toByteArray())
     }
 
     private fun getTempLogFile(): File {
