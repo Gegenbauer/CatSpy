@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.databinding.property.adapter
 
 import kotlinx.coroutines.Dispatchers
-import me.gegenbauer.catspy.concurrency.RateLimiterCallbackSchedule
+import me.gegenbauer.catspy.concurrency.IgnoreFastCallbackScheduler
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.databinding.property.support.BasePropertyAdapter
 import me.gegenbauer.catspy.databinding.property.support.withPropertyChangeListenerDisabled
@@ -10,9 +10,9 @@ import javax.swing.JSplitPane
 
 class JSplitPaneDividerProperty(component: JSplitPane) :
     BasePropertyAdapter<JSplitPane, Int, PropertyChangeListener>(component) {
-    private val rateLimiterCallbackSchedule = RateLimiterCallbackSchedule(Dispatchers.UI, 100)
+    private val ignoreFastCallbackScheduler = IgnoreFastCallbackScheduler(Dispatchers.UI, 100)
     override val propertyChangeListener: PropertyChangeListener = PropertyChangeListener {
-        rateLimiterCallbackSchedule.schedule {
+        ignoreFastCallbackScheduler.schedule {
             propertyChangeObserver?.invoke(it.newValue as? Int)
         }
     }

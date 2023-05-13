@@ -18,7 +18,7 @@ interface Task {
         GLog.d(name, "[resume]")
     }
 
-    fun stop()
+    fun cancel()
 
     fun addListener(taskListener: TaskListener)
 

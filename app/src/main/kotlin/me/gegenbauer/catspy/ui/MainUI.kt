@@ -728,7 +728,7 @@ class MainUI(title: String) : JFrame(title) {
         pauseToggle.isSelected = false
         setSaveLogFile()
         if (reconnect) {
-            LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
+            LogCmdManager.targetDevice = deviceCombo.selectedItem?.toString() ?: ""
             LogCmdManager.startLogcat()
         }
         filteredTableModel.startScan()
@@ -758,9 +758,7 @@ class MainUI(title: String) : JFrame(title) {
 
     fun restartAdbLogcat() {
         GLog.d(TAG, "[restartAdbLogcat]")
-        LogCmdManager.stop()
         LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
-        LogCmdManager.startLogcat()
     }
 
     fun pauseAdbScan(pause: Boolean) {
@@ -891,11 +889,11 @@ class MainUI(title: String) : JFrame(title) {
     }
 
     internal inner class ButtonDisplayModeSelectMenu : JPopupMenu() {
-        var itemIconText: JMenuItem =
+        private val itemIconText: JMenuItem =
             JMenuItem("IconText").apply { putClientProperty("ButtonDisplayMode", ButtonDisplayMode.ALL) }
-        var itemIcon: JMenuItem =
+        private val itemIcon: JMenuItem =
             JMenuItem("Icon").apply { putClientProperty("ButtonDisplayMode", ButtonDisplayMode.ICON) }
-        var itemText: JMenuItem =
+        private val itemText: JMenuItem =
             JMenuItem("Text").apply { putClientProperty("ButtonDisplayMode", ButtonDisplayMode.TEXT) }
         private val actionHandler = ActionHandler()
 

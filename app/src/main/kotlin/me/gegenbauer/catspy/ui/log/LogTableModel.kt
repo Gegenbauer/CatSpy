@@ -1,39 +1,45 @@
 package me.gegenbauer.catspy.ui.log
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import me.gegenbauer.catspy.file.Log
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.command.LogCmdManager
 import me.gegenbauer.catspy.concurrency.AppScope
+import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
+import me.gegenbauer.catspy.task.LogcatTask
+import me.gegenbauer.catspy.task.Task
+import me.gegenbauer.catspy.task.TaskListener
+import me.gegenbauer.catspy.task.TaskManager
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.combobox.FilterComboBox
+import me.gegenbauer.catspy.ui.log.LogItem.Companion.fgColor
 import me.gegenbauer.catspy.utils.toHtml
 import java.awt.Color
 import java.io.*
 import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import javax.swing.JOptionPane
 import javax.swing.SwingUtilities
 import javax.swing.table.AbstractTableModel
+import kotlin.collections.ArrayList
+import kotlin.concurrent.write
 
 
 // TODO refactor
 data class LogTableModelEvent(val source: LogTableModel, val dataChange: Int, val removedCount: Int) {
     companion object {
-        const val EVENT_ADDED = 0
-        const val EVENT_REMOVED = 1
         const val EVENT_FILTERED = 2
         const val EVENT_CHANGED = 3
         const val EVENT_CLEARED = 4
-
-        const val FLAG_FIRST_REMOVED = 1
     }
 }
 
@@ -41,16 +47,23 @@ fun interface LogTableModelListener {
     fun tableChanged(event: LogTableModelEvent)
 }
 
-class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableModel?) : AbstractTableModel() {
+class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableModel?) : AbstractTableModel(),
+    TaskListener {
     private var patternSearchLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
     private var matcherSearchLog: Matcher = patternSearchLog.matcher("")
     private var normalSearchLogSplit: List<String>? = null
     private val columnNames = arrayOf("line", "log")
-    private var logItems: MutableList<LogItem> = mutableListOf()
+    private val logItems: MutableList<LogItem> = CopyOnWriteArrayList()
+    private var cachedItems = ArrayList<LogFilterItem>()
+    private val logNum = AtomicInteger(0)
 
+    private val scope = ModelScope()
     private val eventListeners = ArrayList<LogTableModelListener>()
     private val filteredFGMap = mutableMapOf<String, Color>()
     private val filteredBGMap = mutableMapOf<String, Color>()
+    private val taskManager = TaskManager()
+    private var logcatTask: LogcatTask? = null
+    private var updateTableUITask: Job? = null
 
     private var isFilterUpdated = true
 
@@ -314,11 +327,6 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     private var patternShowTid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
     private var patternHideTid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
 
-    private var patternError: Pattern = Pattern.compile("\\bERROR\\b", Pattern.CASE_INSENSITIVE)
-    private var patternWarning: Pattern = Pattern.compile("\\bWARNING\\b", Pattern.CASE_INSENSITIVE)
-    private var patternInfo: Pattern = Pattern.compile("\\bINFO\\b", Pattern.CASE_INSENSITIVE)
-    private var patternDebug: Pattern = Pattern.compile("\\bDEBUG\\b", Pattern.CASE_INSENSITIVE)
-
     fun isFullDataModel(): Boolean {
         return baseModel == null
     }
@@ -397,6 +405,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     }
 
     private var filteredItemsThread: Thread? = null
+
     fun loadItems(isAppend: Boolean) {
         if (baseModel == null) {
             AppScope.launch(Dispatchers.UI) {
@@ -434,82 +443,36 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             it.goToLast = true
             goToLast = true
             it.logItems.clear()
-            it.logItems = mutableListOf()
+            it.logNum.set(0)
             BookmarkManager.clear()
             logItems.clear()
-            logItems = mutableListOf()
+            logNum.set(0)
             isFilterUpdated = true
-            System.gc()
+            Runtime.getRuntime().gc()
         }
     }
 
     private fun loadFile(isAppend: Boolean) {
         val logFile = Log.file ?: return
 
-        var num = 0
         if (isAppend) {
             if (logItems.size > 0) {
-                val item = logItems.last()
-                num = item.num.toInt()
-                num++
-                logItems.add(LogItem(num.toString(), "${STRINGS.ui.app} - APPEND LOG : $logFile", "", "", "", LogLevel.ERROR))
-                num++
+                logItems.add(LogItem.from("${STRINGS.ui.app} - APPEND LOG : $logFile", logNum.getAndIncrement()))
             }
         } else {
-            sIsLogcatLog = false
             logItems.clear()
-            logItems = mutableListOf()
+            logNum.set(0)
             BookmarkManager.clear()
         }
 
         val bufferedReader = BufferedReader(FileReader(logFile))
         var line: String?
-        var level: LogLevel
-        var tag: String
-        var pid: String
-        var tid: String
-
-        var logcatLogCount = 0
 
         line = bufferedReader.readLine()
         while (line != null) {
-            val textSplited = line.trim().split(Regex("\\s+"))
-
-            if (textSplited.size > TAG_INDEX) {
-                if (Character.isDigit(textSplited[PID_INDEX][0])) {
-                    level = getLevelFromFlag(textSplited[LEVEL_INDEX])
-                    tag = textSplited[TAG_INDEX]
-                    pid = textSplited[PID_INDEX]
-                    tid = textSplited[TID_INDEX]
-                } else if (Character.isAlphabetic(textSplited[PID_INDEX][0].code)) {
-                    level = getLevelFromFlag(textSplited[PID_INDEX][0].toString())
-                    tag = ""
-                    pid = ""
-                    tid = ""
-                } else {
-                    level = LogLevel.NONE
-                    tag = ""
-                    pid = ""
-                    tid = ""
-                }
-            } else {
-                level = LogLevel.NONE
-                tag = ""
-                pid = ""
-                tid = ""
-            }
-
-            if (level != LogLevel.NONE) {
-                logcatLogCount++
-            }
-
-            logItems.add(LogItem(num.toString(), line, tag, pid, tid, level))
-            num++
+            val item = LogItem.from(line, logNum.getAndIncrement())
+            logItems.add(item)
             line = bufferedReader.readLine()
-        }
-
-        if (logcatLogCount > 10) {
-            sIsLogcatLog = true
         }
 
         fireLogTableDataChanged()
@@ -554,7 +517,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             if (rowIndex >= 0 && logItems.size > rowIndex) {
                 val logItem = logItems[rowIndex]
                 if (columnIndex == COLUMN_NUM) {
-                    return logItem.num + " "
+                    return "${logItem.num} "
                 } else if (columnIndex == COLUMN_LOG) {
                     return logItem.logLine
                 }
@@ -570,91 +533,14 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         return columnNames[column]
     }
 
-    private fun checkLevel(item: LogItem): LogLevel {
-        if (sIsLogcatLog) {
-            return item.level
-        } else {
-            val logLine = item.logLine
-
-            if (patternError.matcher(logLine).find()) {
-                return LogLevel.ERROR
-            } else if (patternWarning.matcher(logLine).find()) {
-                return LogLevel.WARN
-            } else if (patternInfo.matcher(logLine).find()) {
-                return LogLevel.INFO
-            } else if (patternDebug.matcher(logLine).find()) {
-                return LogLevel.DEBUG
-            }
-        }
-
-        return LogLevel.NONE
-    }
-
     fun getFgColor(row: Int): Color {
-        return when (checkLevel(logItems[row])) {
-            LogLevel.VERBOSE -> {
-                ColorScheme.logLevelVerbose
-            }
-
-            LogLevel.DEBUG -> {
-                ColorScheme.logLevelDebug
-            }
-
-            LogLevel.INFO -> {
-                ColorScheme.logLevelInfo
-            }
-
-            LogLevel.WARN -> {
-                ColorScheme.logLevelWarning
-            }
-
-            LogLevel.ERROR -> {
-                ColorScheme.logLevelError
-            }
-
-            LogLevel.FATAL -> {
-                ColorScheme.logLevelFatal
-            }
-
-            else -> {
-                ColorScheme.logLevelNone
-            }
-        }
-    }
-
-    private fun getFgStrColor(row: Int): Color {
-        return when (checkLevel(logItems[row])) {
-            LogLevel.VERBOSE -> {
-                ColorScheme.logLevelVerbose
-            }
-
-            LogLevel.DEBUG -> {
-                ColorScheme.logLevelDebug
-            }
-
-            LogLevel.INFO -> {
-                ColorScheme.logLevelInfo
-            }
-
-            LogLevel.WARN -> {
-                ColorScheme.logLevelWarning
-            }
-
-            LogLevel.ERROR -> {
-                ColorScheme.logLevelError
-            }
-
-            LogLevel.FATAL -> {
-                ColorScheme.logLevelFatal
-            }
-
-            else -> ColorScheme.logLevelNone
-        }
+        return logItems[row].fgColor
     }
 
     private var patternPrintSearch: Pattern? = null
     private var patternPrintHighlight: Pattern? = null
     private var patternPrintFilter: Pattern? = null
+
     fun getPrintValue(value: String, row: Int, isSelected: Boolean): String {
         var newValue = value
         if (newValue.indexOf("<") >= 0) {
@@ -1049,24 +935,19 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 beforeStart = start
             }
             if (beforeStart > 0) {
-                stringBuilder.replace(0, beforeStart, newValue.substring(0, beforeStart).replace(" ", UNBREAKABLE_SPACE))
+                stringBuilder.replace(
+                    0,
+                    beforeStart,
+                    newValue.substring(0, beforeStart).replace(" ", UNBREAKABLE_SPACE)
+                )
             }
         }
 
-        val color = getFgStrColor(row)
+        val color = getFgColor(row)
         stringBuilder.replace(0, 0, "<html><p><nobr><font color=${color.toHtml()}>")
         stringBuilder.append("</font></nobr></p></html>")
         return stringBuilder.toString()
     }
-
-    internal inner class LogItem(
-        val num: String,
-        val logLine: String,
-        val tag: String,
-        val pid: String,
-        val tid: String,
-        val level: LogLevel
-    )
 
     private fun makePattenPrintValue() {
         if (baseModel == null) {
@@ -1156,12 +1037,12 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         }
         AppScope.launch(Dispatchers.UI) {
             logItems.clear()
-            logItems = mutableListOf()
+            logNum.set(0)
 
             val logItems: MutableList<LogItem> = mutableListOf()
             if (bookmarkMode) {
                 for (item in baseModel!!.logItems) {
-                    if (BookmarkManager.isBookmark(item.num.toInt())) {
+                    if (BookmarkManager.isBookmark(item.num)) {
                         logItems.add(item)
                     }
                 }
@@ -1254,13 +1135,14 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                         }
                     }
 
-                    if (isShow || BookmarkManager.isBookmark(item.num.toInt())) {
+                    if (isShow || BookmarkManager.isBookmark(item.num)) {
                         logItems.add(item)
                     }
                 }
             }
 
-            this@LogTableModel.logItems = logItems
+            this@LogTableModel.logItems.clear()
+            this@LogTableModel.logItems.addAll(logItems)
         }
 
         if (!isFilterUpdated && isRedraw) {
@@ -1271,266 +1153,168 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
     internal data class LogFilterItem(val item: LogItem, val isShow: Boolean)
 
-    private var scanThread: Thread? = null
-    private var fileWriter: FileWriter? = null
-    private var isPause = false
-
     fun isScanning(): Boolean {
-        return scanThread != null
+        return logcatTask?.isTaskRunning() ?: false
     }
 
     fun startScan() {
-        sIsLogcatLog = true
-        val logFile = Log.file ?: return
-
-        AppScope.launch(Dispatchers.UI) {
-            scanThread?.interrupt()
-        }
-
         goToLast = true
         baseModel?.goToLast = true
 
-        scanThread = Thread {
-            run {
-                clear()
-                fireLogTableDataChanged()
-                baseModel!!.fireLogTableDataChanged()
-                makePattenPrintValue()
+        clear()
+        fireLogTableDataChanged()
+        baseModel?.fireLogTableDataChanged()
+        makePattenPrintValue()
+        startLogcatTask()
 
-                var currLogFile: File? = logFile
-                var bufferedReader = BufferedReader(InputStreamReader(LogCmdManager.processLogcat!!.inputStream))
-                var line: String?
-                var num = 0
-                var saveNum = 0
-                var level: LogLevel
-                var tag: String
-                var pid: String
-                var tid: String
-
-                var isShow: Boolean
-                var nextUpdateTime: Long = 0
-
-                var removedCount = 0
-                var baseRemovedCount = 0
-
-                var item: LogItem
-                val logLines: MutableList<String> = mutableListOf()
-                val logFilterItems: MutableList<LogFilterItem> = mutableListOf()
-
-                line = bufferedReader.readLine()
-                while (line != null || (mainUI.isRestartAdbLogcat())) {
-                    try {
-                        nextUpdateTime = System.currentTimeMillis() + 100
-                        logLines.clear()
-                        logFilterItems.clear()
-
-                        if (line == null && mainUI.isRestartAdbLogcat()) {
-                            GLog.d(TAG, "line is Null : $line")
-                            if (LogCmdManager.processLogcat == null || !LogCmdManager.processLogcat!!.isAlive) {
-                                if (mainUI.isRestartAdbLogcat()) {
-                                    Thread.sleep(5000)
-                                    mainUI.restartAdbLogcat()
-                                    if (LogCmdManager.processLogcat?.inputStream != null) {
-                                        bufferedReader =
-                                            BufferedReader(InputStreamReader(LogCmdManager.processLogcat?.inputStream!!))
-                                    } else {
-                                        GLog.d(TAG, "startScan : inputStream is Null")
-                                    }
-                                    line = "${STRINGS.ui.app} - RESTART LOGCAT"
-                                }
-                            }
-                        }
-
-                        if (!isPause) {
-                            while (line != null) {
-                                if (currLogFile != logFile) {
-                                    try {
-                                        fileWriter?.flush()
-                                    } catch (e: IOException) {
-                                        e.printStackTrace()
-                                    }
-                                    fileWriter?.close()
-                                    fileWriter = null
-                                    currLogFile = logFile
-                                    saveNum = 0
-                                }
-
-                                if (fileWriter == null) {
-                                    fileWriter = FileWriter(logFile)
-                                }
-                                fileWriter?.write(line + "\n")
-                                saveNum++
-
-                                if (scrollBackSplitFile && scrollback > 0 && saveNum >= scrollback) {
-                                    mainUI.setSaveLogFile()
-                                    GLog.d(TAG, "Change save file : ${logFile.absolutePath}")
-                                }
-
-                                logLines.add(line)
-                                line = bufferedReader.readLine()
-                                if (System.currentTimeMillis() > nextUpdateTime) {
-                                    break
-                                }
-                            }
-                        } else {
-                            Thread.sleep(1000)
-                        }
-
-                        synchronized(this@LogTableModel) {
-                            for (tempLine in logLines) {
-                                val textSplited = tempLine.trim().split(Regex("\\s+"))
-                                if (textSplited.size > TAG_INDEX) {
-                                    level = getLevelFromFlag(textSplited[LEVEL_INDEX])
-                                    tag = textSplited[TAG_INDEX]
-                                    pid = textSplited[PID_INDEX]
-                                    tid = textSplited[TID_INDEX]
-                                } else {
-                                    level = if (tempLine.startsWith(STRINGS.ui.app)) {
-                                        LogLevel.ERROR
-                                    } else {
-                                        LogLevel.VERBOSE
-                                    }
-                                    tag = ""
-                                    pid = ""
-                                    tid = ""
-                                }
-
-                                item = LogItem(num.toString(), tempLine, tag, pid, tid, level)
-
-                                isShow = true
-
-                                if (bookmarkMode) {
-                                    isShow = false
-                                }
-
-                                if (!fullMode) {
-                                    if (isShow && item.level < filterLevel) {
-                                        isShow = false
-                                    }
-                                    if (isShow
-                                        && (filterHideLog.isNotEmpty() && patternHideLog.matcher(item.logLine)
-                                            .find())
-                                        || (filterShowLog.isNotEmpty() && !patternShowLog.matcher(item.logLine)
-                                            .find())
-                                    ) {
-                                        isShow = false
-                                    }
-                                    if (isShow
-                                        && ((filterHideTag.isNotEmpty() && patternHideTag.matcher(item.tag).find())
-                                                || (filterShowTag.isNotEmpty() && !patternShowTag.matcher(item.tag)
-                                            .find()))
-                                    ) {
-                                        isShow = false
-                                    }
-                                    if (isShow
-                                        && ((filterHidePid.isNotEmpty() && patternHidePid.matcher(item.pid).find())
-                                                || (filterShowPid.isNotEmpty() && !patternShowPid.matcher(item.pid)
-                                            .find()))
-                                    ) {
-                                        isShow = false
-                                    }
-                                    if (isShow
-                                        && ((filterHideTid.isNotEmpty() && patternHideTid.matcher(item.tid).find())
-                                                || (filterShowTid.isNotEmpty() && !patternShowTid.matcher(item.tid)
-                                            .find()))
-                                    ) {
-                                        isShow = false
-                                    }
-                                }
-                                logFilterItems.add(LogFilterItem(item, isShow))
-                                num++
-                            }
-                        }
-
-                        AppScope.launch(Dispatchers.UI) {
-                            if (scanThread == null) {
-                                return@launch
-                            }
-
-                            val filterItems = ArrayList(logFilterItems)
-                            for (filterItem in filterItems) {
-                                if (selectionChanged) {
-                                    baseRemovedCount = 0
-                                    removedCount = 0
-                                    selectionChanged = false
-                                }
-
-                                baseModel!!.logItems.add(filterItem.item)
-                                while (!scrollBackKeep && scrollback > 0 && baseModel!!.logItems.count() > scrollback) {
-                                    baseModel!!.logItems.removeAt(0)
-                                    baseRemovedCount++
-                                }
-                                if (filterItem.isShow || BookmarkManager.isBookmark(filterItem.item.num.toInt())) {
-                                    logItems.add(filterItem.item)
-                                    while (!scrollBackKeep && scrollback > 0 && logItems.count() > scrollback) {
-                                        logItems.removeAt(0)
-                                        removedCount++
-                                    }
-                                }
-                            }
-                        }
-                        fireLogTableDataChanged(removedCount)
-                        removedCount = 0
-
-                        baseModel!!.fireLogTableDataChanged(baseRemovedCount)
-                        baseRemovedCount = 0
-                    } catch (e: Exception) {
-                        GLog.d(TAG, "Start scan : ${e.stackTraceToString()}")
-                        if (e !is InterruptedException) {
-                            JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
-                        }
-
-                        try {
-                            fileWriter?.flush()
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                        }
-                        fileWriter?.close()
-                        fileWriter = null
-                        return@run
-                    }
-                }
+        updateTableUITask = scope.launch(Dispatchers.UI) {
+            repeat(Int.MAX_VALUE) {
+                delay(500)
+                updateTableUI()
             }
         }
+    }
 
-        scanThread?.start()
+    private fun startLogcatTask() {
+        val logcatTask = LogcatTask(LogCmdManager.targetDevice)
+        this.logcatTask = logcatTask
+        logcatTask.addListener(this)
+        taskManager.exec(logcatTask)
+    }
 
-        return
+    override fun onFinalResult(task: Task, data: Any) {
+        if (mainUI.isRestartAdbLogcat()) {
+            Thread.sleep(5000)
+            mainUI.restartAdbLogcat()
+            startLogcatTask()
+            logItems.add(LogItem("${STRINGS.ui.app} - RESTART LOGCAT", level = LogLevel.ERROR))
+        }
+    }
+
+    private val updateUILock = ReentrantReadWriteLock()
+
+    override fun onStart(task: Task) {
+        super.onStart(task)
+        count.set(0)
+    }
+
+    private fun updateTableUI() {
+        updateUILock.write {
+            baseModel?.cachedItems?.forEach {
+                baseModel!!.logItems.add(it.item)
+            }
+            if (!scrollBackKeep && scrollback > 0 && baseModel!!.logItems.count() > scrollback) {
+                baseModel!!.logItems.removeIf { it.num in (baseModel!!.logItems.size - scrollback)..baseModel!!.logItems.size }
+            }
+            cachedItems.forEach {
+                if (it.isShow || BookmarkManager.isBookmark(it.item.num)) logItems.add(it.item)
+            }
+            if (!scrollBackKeep && scrollback > 0 && logItems.count() > scrollback) {
+                logItems.removeIf { it.num in (logItems.size - scrollback)..logItems.size }
+            }
+            cachedItems.clear()
+            baseModel!!.cachedItems.clear()
+        }
+        GLog.d(TAG, "[updateTableUITask] items count=${logItems.size}, baseModel=${baseModel!!.logItems.size}")
+        if (logItems.isNotEmpty()) {
+            fireLogTableDataChanged(0)
+        }
+        if (baseModel!!.logItems.isNotEmpty()) {
+            baseModel!!.fireLogTableDataChanged(0)
+        }
+    }
+
+    override fun onStop(task: Task) {
+        super.onStop(task)
+        updateTableUI()
+        GLog.e(TAG, "[onStop] count=${count.get()}")
+    }
+
+    private val count = AtomicInteger(0)
+    private val cachedCount = AtomicInteger(0)
+    override fun onProgress(task: Task, data: Any) {
+        super.onProgress(task, data)
+        count.incrementAndGet()
+        cachedCount.incrementAndGet()
+        val line = data as String
+        var isShow: Boolean
+        val item = LogItem.from(line, logNum.getAndIncrement())
+
+        isShow = true
+
+        if (bookmarkMode) {
+            isShow = false
+        }
+
+        if (!fullMode) {
+            if (isShow && item.level < filterLevel) {
+                isShow = false
+            }
+            if (isShow
+                && (filterHideLog.isNotEmpty() && patternHideLog.matcher(item.logLine)
+                    .find())
+                || (filterShowLog.isNotEmpty() && !patternShowLog.matcher(item.logLine)
+                    .find())
+            ) {
+                isShow = false
+            }
+            if (isShow
+                && ((filterHideTag.isNotEmpty() && patternHideTag.matcher(item.tag).find())
+                        || (filterShowTag.isNotEmpty() && !patternShowTag.matcher(item.tag)
+                    .find()))
+            ) {
+                isShow = false
+            }
+            if (isShow
+                && ((filterHidePid.isNotEmpty() && patternHidePid.matcher(item.pid).find())
+                        || (filterShowPid.isNotEmpty() && !patternShowPid.matcher(item.pid)
+                    .find()))
+            ) {
+                isShow = false
+            }
+            if (isShow
+                && ((filterHideTid.isNotEmpty() && patternHideTid.matcher(item.tid).find())
+                        || (filterShowTid.isNotEmpty() && !patternShowTid.matcher(item.tid)
+                    .find()))
+            ) {
+                isShow = false
+            }
+        }
+        val filterItem = LogFilterItem(item, isShow)
+        if (selectionChanged) {
+            selectionChanged = false
+        }
+
+        updateUILock.write {
+            baseModel?.cachedItems?.add(filterItem)
+            cachedItems.add(filterItem)
+        }
     }
 
     private fun clear() {
-        AppScope.launch(Dispatchers.UI) {
+        scope.launch(Dispatchers.Main.immediate) {
             logItems.clear()
-            logItems = mutableListOf()
-            baseModel!!.logItems.clear()
-            baseModel!!.logItems = mutableListOf()
+            logNum.set(0)
+            baseModel?.logNum?.set(0)
+            baseModel?.logItems?.clear()
             BookmarkManager.clear()
             fireLogTableDataCleared()
-            baseModel!!.fireLogTableDataCleared()
+            baseModel?.fireLogTableDataCleared()
         }
     }
 
     fun stopScan() {
-        AppScope.launch(Dispatchers.UI) {
-            scanThread?.interrupt()
-        }
-        scanThread = null
-        if (fileWriter != null) {
-            try {
-                fileWriter?.flush()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            fileWriter?.close()
-            fileWriter?.close()
-            fileWriter = null
-        }
-        return
+        logcatTask?.cancel()
+        updateTableUITask?.cancel()
     }
 
     fun pauseScan(pause: Boolean) {
-        GLog.d(TAG, "Pause adb scan $pause")
-        isPause = pause
+        GLog.d(TAG, "[pauseScan]")
+        if (pause) {
+            logcatTask?.pause()
+        } else {
+            logcatTask?.resume()
+        }
     }
 
     private var followThread: Thread? = null
@@ -1553,10 +1337,9 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     }
 
     fun startFollow() {
-        sIsLogcatLog = false
         val logFile = Log.file ?: return
 
-        AppScope.launch(Dispatchers.UI) {
+        scope.launch(Dispatchers.UI) {
             followThread?.interrupt()
         }
 
@@ -1575,10 +1358,6 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 val scanner = Scanner(MyFileInputStream(currLogFile))
                 var line: String? = null
                 var num = 0
-                var level: LogLevel
-                var tag: String
-                var pid: String
-                var tid: String
 
                 var isShow: Boolean
                 var nextUpdateTime: Long = 0
@@ -1586,79 +1365,54 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 var removedCount = 0
                 var baseRemovedCount = 0
 
-                var item: LogItem
                 val logLines: MutableList<String> = mutableListOf()
                 val logFilterItems: MutableList<LogFilterItem> = mutableListOf()
-
-                var logcatLogCount = 0
 
                 while (isKeepReading) {
                     try {
                         nextUpdateTime = System.currentTimeMillis() + 100
                         logLines.clear()
                         logFilterItems.clear()
-                        if (!isPause) {
-                            while (isKeepReading) {
-                                line = if (scanner.hasNextLine()) {
-                                    try {
-                                        scanner.nextLine()
-                                    } catch (e: NoSuchElementException) {
-                                        null
-                                    }
-                                } else {
+                        while (isKeepReading) {
+                            line = if (scanner.hasNextLine()) {
+                                try {
+                                    scanner.nextLine()
+                                } catch (e: NoSuchElementException) {
                                     null
                                 }
-                                if (line == null) {
-                                    Thread.sleep(1000)
-                                } else {
-                                    break
-                                }
+                            } else {
+                                null
                             }
+                            if (line == null) {
+                                Thread.sleep(1000)
+                            } else {
+                                break
+                            }
+                        }
 
-                            while (line != null) {
-                                logLines.add(line)
+                        while (line != null) {
+                            logLines.add(line)
 
-                                line = if (scanner.hasNextLine()) {
-                                    try {
-                                        scanner.nextLine()
-                                    } catch (e: NoSuchElementException) {
-                                        null
-                                    }
-                                } else {
+                            line = if (scanner.hasNextLine()) {
+                                try {
+                                    scanner.nextLine()
+                                } catch (e: NoSuchElementException) {
                                     null
                                 }
-                                if (System.currentTimeMillis() > nextUpdateTime) {
-                                    if (line != null) {
-                                        logLines.add(line)
-                                    }
-                                    break
-                                }
+                            } else {
+                                null
                             }
-                        } else {
-                            Thread.sleep(1000)
+                            if (System.currentTimeMillis() > nextUpdateTime) {
+                                if (line != null) {
+                                    logLines.add(line)
+                                }
+                                break
+                            }
                         }
 
                         synchronized(this@LogTableModel) {
                             for (tempLine in logLines) {
-                                val textSplited = tempLine.trim().split(Regex("\\s+"))
-                                if (textSplited.size > TAG_INDEX) {
-                                    level = getLevelFromFlag(textSplited[LEVEL_INDEX])
-                                    tag = textSplited[TAG_INDEX]
-                                    pid = textSplited[PID_INDEX]
-                                    tid = textSplited[TID_INDEX]
-                                } else {
-                                    level = if (tempLine.startsWith(STRINGS.ui.app)) {
-                                        LogLevel.ERROR
-                                    } else {
-                                        LogLevel.VERBOSE
-                                    }
-                                    tag = ""
-                                    pid = ""
-                                    tid = ""
-                                }
-
-                                item = LogItem(num.toString(), tempLine, tag, pid, tid, level)
-
+                                val item = LogItem.from(tempLine, logNum.getAndIncrement())
                                 isShow = true
 
                                 if (bookmarkMode) {
@@ -1716,20 +1470,12 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                                     removedCount = 0
                                     selectionChanged = false
                                 }
-
-                                if (filterItem.item.level != LogLevel.NONE) {
-                                    logcatLogCount++
-                                }
-
-                                if (logcatLogCount > 10) {
-                                    sIsLogcatLog = true
-                                }
                                 baseModel!!.logItems.add(filterItem.item)
                                 while (!scrollBackKeep && scrollback > 0 && baseModel!!.logItems.count() > scrollback) {
                                     baseModel!!.logItems.removeAt(0)
                                     baseRemovedCount++
                                 }
-                                if (filterItem.isShow || BookmarkManager.isBookmark(filterItem.item.num.toInt())) {
+                                if (filterItem.isShow || BookmarkManager.isBookmark(filterItem.item.num)) {
                                     logItems.add(filterItem.item)
                                     while (!scrollBackKeep && scrollback > 0 && logItems.count() > scrollback) {
                                         logItems.removeAt(0)
@@ -1862,13 +1608,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         const val COLUMN_NUM = 0
         const val COLUMN_LOG = 1
         private const val TAG = "LogTableModel"
-
-        private const val PID_INDEX = 2
-        private const val TID_INDEX = 3
-        private const val LEVEL_INDEX = 4
-        private const val TAG_INDEX = 5
         private const val UNBREAKABLE_SPACE = "&nbsp;"
-
-        var sIsLogcatLog = false
     }
+
 }

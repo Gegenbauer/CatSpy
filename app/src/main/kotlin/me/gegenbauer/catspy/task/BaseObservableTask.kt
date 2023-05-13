@@ -1,9 +1,6 @@
 package me.gegenbauer.catspy.task
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.log.GLog
 import kotlin.coroutines.CoroutineContext
@@ -11,7 +8,7 @@ import kotlin.coroutines.CoroutineContext
 abstract class BaseObservableTask : Task {
     override val scope: CoroutineScope = object : ModelScope() {
         override val coroutineContext: CoroutineContext
-            get() = Dispatchers.IO
+            get() = Dispatchers.IO + Job()
     }
 
     private val listeners = mutableSetOf<TaskListener>()
@@ -72,8 +69,9 @@ abstract class BaseObservableTask : Task {
         listeners.forEach { it.onFinalResult(this, data) }
     }
 
-    override fun stop() {
-        GLog.d(name, "[resume]")
+    override fun cancel() {
+        GLog.d(name, "[cancel]")
+        notifyCancel()
         scope.cancel()
     }
 }

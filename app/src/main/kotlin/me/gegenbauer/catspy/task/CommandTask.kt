@@ -28,7 +28,6 @@ abstract class CommandTask(
         execute().collect {
             cancellablePause.addPausePoint()
             onReceiveOutput(it)
-            GLog.d(name, "[start] $it")
         }
         onProcessEnd()
     }
@@ -56,7 +55,7 @@ abstract class CommandTask(
                     val process = builder.start()
                     onProcessStart(this@channelFlow, process)
                 }
-            }.buffer(8 * 1024 * 1024 * 20, BufferOverflow.DROP_OLDEST)
+            }.buffer(8 * 1024 * 1024 * 50, BufferOverflow.DROP_OLDEST)
         }.onFailure {
             GLog.e(name, "[execute]", it)
         }.getOrElse { emptyFlow() }
@@ -71,6 +70,7 @@ abstract class CommandTask(
 
     protected open fun onProcessEnd() {
         GLog.d(name, "[onProcessEnd] $process")
+        notifyStop()
     }
 
     protected open fun onPrepareProcess(processBuilder: ProcessBuilder) {
@@ -79,16 +79,21 @@ abstract class CommandTask(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun ProducerScope<String>.readOutput(process: Process) {
-        val scanner = Scanner(BufferedInputStream(process.inputStream))
-        while (scanner.hasNextLine()) {
-            send(scanner.nextLine())
+        Scanner(BufferedInputStream(process.inputStream)).use {
+            while (it.hasNextLine()) {
+                send(it.nextLine())
+            }
         }
         GLog.d(name, "[readOutput] $process normally exit")
         close()
     }
 
-    override fun stop() {
-        super.stop()
+    fun isTaskRunning(): Boolean {
+        return process?.isAlive == true
+    }
+
+    override fun cancel() {
+        super.cancel()
         GLog.d(name, "[cancel] kill process $process")
         process?.destroyForcibly()
     }

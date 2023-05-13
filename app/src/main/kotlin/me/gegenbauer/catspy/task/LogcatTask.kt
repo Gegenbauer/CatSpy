@@ -1,5 +1,7 @@
 package me.gegenbauer.catspy.task
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.appendPath
 import me.gegenbauer.catspy.log.ensureDir
@@ -12,17 +14,22 @@ import java.io.File
 import java.lang.StringBuilder
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.atomic.AtomicInteger
 
 class LogcatTask(private val device: String) : CommandTask(arrayOf("adb", "logcat")) {
+    // test command
+    // arrayOf("adb", "logcat")
+    // arrayOf("cat", "/home/yingbin/.config/CatSpy/applog/53373619/CatSpy_53373619_20230513_11.39.26.txt")
     override val name: String = "LogcatTask"
 
     // TODO clean empty log file when process exit
     private val tempFile = getTempLogFile()
     private val tempFileStream = BufferedOutputStream(tempFile.outputStream())
+    private val lineCount = AtomicInteger(0)
 
     override suspend fun onReceiveOutput(line: String) {
         super.onReceiveOutput(line)
-        GLog.d(name, "[onReceiveOutput] $line")
+        lineCount.incrementAndGet()
         writeToFile(line)
     }
 
@@ -42,5 +49,11 @@ class LogcatTask(private val device: String) : CommandTask(arrayOf("adb", "logca
                 createNewFile()
             }
         }
+    }
+
+    override fun onProcessEnd() {
+        super.onProcessEnd()
+        GLog.d(name, "[onProcessEnd] total line count = ${lineCount.get()}")
+        tempFileStream.flush()
     }
 }

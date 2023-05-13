@@ -4,10 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.databinding.property.support.DisposableAdapter
 import me.gegenbauer.catspy.databinding.property.support.PropertyAdapter
-import me.gegenbauer.catspy.log.GLog
-import java.awt.event.HierarchyEvent
 import javax.swing.JComponent
 
 abstract class ObservableComponentProperty<T>(

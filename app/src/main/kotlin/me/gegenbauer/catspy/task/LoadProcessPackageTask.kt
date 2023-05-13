@@ -46,10 +46,6 @@ class LoadProcessPackageTask : BaseObservableTask() {
         cancellablePause.resume()
     }
 
-    override fun stop() {
-        scope.cancel()
-    }
-
     companion object {
         private const val KEY_VALUE_SEPARATOR = ","
     }

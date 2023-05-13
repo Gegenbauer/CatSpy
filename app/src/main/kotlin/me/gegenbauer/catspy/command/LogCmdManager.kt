@@ -4,6 +4,7 @@ import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
+import me.gegenbauer.catspy.task.*
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.utils.currentPlatform
 import java.io.IOException
@@ -13,6 +14,7 @@ import javax.swing.JOptionPane
 
 object LogCmdManager {
     private const val TAG = "LogCmdManager"
+    private val taskManager = TaskManager()
 
     const val EVENT_NONE = 0
     private const val EVENT_SUCCESS = 1
@@ -41,7 +43,7 @@ object LogCmdManager {
     private var mainUI: MainUI? = null
 
     fun setMainUI(mainUI: MainUI) {
-        LogCmdManager.mainUI = mainUI
+        this.mainUI = mainUI
     }
 
     fun getDevices() {
@@ -74,12 +76,8 @@ object LogCmdManager {
     }
 
     fun stop() {
-        GLog.d(TAG, "Stop all processes ++")
-        processLogcat?.destroy()
-        processLogcat = null
         currentExecutor?.interrupt()
         currentExecutor = null
-        GLog.d(TAG, "Stop all processes --")
     }
 
     fun addEventListener(eventListener: AdbEventListener) {
@@ -93,7 +91,6 @@ object LogCmdManager {
     }
 
     private var currentExecutor: Thread? = null
-    var processLogcat: Process? = null
     private fun execute(cmd: Runnable?) {
         cmd?.run()
     }
@@ -102,129 +99,72 @@ object LogCmdManager {
         var executor: Runnable? = null
         when (cmdNum) {
             CMD_CONNECT -> executor = Runnable {
-                run {
-                    val cmd = "$adbCmd connect $targetDevice"
-                    val runtime = Runtime.getRuntime()
-                    val scanner = try {
-                        val process = runtime.exec(cmd)
-                        Scanner(process.inputStream)
-                    } catch (e: IOException) {
-                        GLog.w(TAG, "Failed run $cmd")
-                        e.printStackTrace()
-                        JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
-                        val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
-                        sendEvent(adbEvent)
-                        return@run
-                    }
+                val cmd = "$adbCmd connect $targetDevice"
+                val runtime = Runtime.getRuntime()
+                val scanner = try {
+                    val process = runtime.exec(cmd)
+                    Scanner(process.inputStream)
+                } catch (e: IOException) {
+                    GLog.w(TAG, "Failed run $cmd")
+                    e.printStackTrace()
+                    JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
+                    val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
+                    sendEvent(adbEvent)
+                    return@Runnable
+                }
 
-                    var line: String
-                    var isSuccess = false
-                    while (scanner.hasNextLine()) {
-                        line = scanner.nextLine()
-                        if (line.contains("connected to")) {
-                            GLog.i(TAG, "Success connect to $targetDevice")
-                            val adbEvent = AdbEvent(CMD_CONNECT, EVENT_SUCCESS)
-                            sendEvent(adbEvent)
-                            isSuccess = true
-                            break
-                        }
-                    }
-
-                    if (!isSuccess) {
-                        GLog.w(TAG, "Failed connect to $targetDevice")
-                        val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
+                var line: String
+                var isSuccess = false
+                while (scanner.hasNextLine()) {
+                    line = scanner.nextLine()
+                    if (line.contains("connected to")) {
+                        GLog.i(TAG, "Success connect to $targetDevice")
+                        val adbEvent = AdbEvent(CMD_CONNECT, EVENT_SUCCESS)
                         sendEvent(adbEvent)
+                        isSuccess = true
+                        break
                     }
+                }
+
+                if (!isSuccess) {
+                    GLog.w(TAG, "Failed connect to $targetDevice")
+                    val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
+                    sendEvent(adbEvent)
                 }
             }
 
             CMD_GET_DEVICES -> executor = Runnable {
-                run {
-                    devices.clear()
-
-                    val cmd = "$adbCmd devices"
-                    val runtime = Runtime.getRuntime()
-                    val scanner = try {
-                        val process = runtime.exec(cmd)
-                        Scanner(process.inputStream)
-                    } catch (e: IOException) {
-                        GLog.w(TAG, "Failed run $cmd")
-                        e.printStackTrace()
-                        val adbEvent = AdbEvent(CMD_GET_DEVICES, EVENT_FAIL)
+                val getDeviceTask = GetDeviceTask()
+                getDeviceTask.addListener(object : TaskListener {
+                    override fun onFinalResult(task: Task, data: Any) {
+                        devices.clear()
+                        devices.addAll(data as List<String>)
+                        val adbEvent = AdbEvent(CMD_GET_DEVICES, EVENT_SUCCESS)
                         sendEvent(adbEvent)
-                        return@run
                     }
-
-                    var line: String
-                    while (scanner.hasNextLine()) {
-                        line = scanner.nextLine()
-                        if (line.contains("List of devices")) {
-                            continue
-                        }
-                        val textSplit = line.trim().split(Regex("\\s+"))
-                        if (textSplit.size >= 2) {
-                            GLog.d(TAG, "device : ${textSplit[0]}")
-                            devices.add(textSplit[0])
-                        }
-                    }
-                    val adbEvent = AdbEvent(CMD_GET_DEVICES, EVENT_SUCCESS)
-                    sendEvent(adbEvent)
-                }
+                })
+                taskManager.exec(getDeviceTask)
             }
 
             CMD_LOGCAT -> executor = Runnable {
-                run {
-                    processLogcat?.destroy()
-
-                    val cmd = if (targetDevice.isNotBlank()) {
-                        if (getType() == TYPE_CMD) {
-                            "${logCmd.substring(TYPE_CMD_PREFIX_LEN)} $targetDevice"
-                        } else {
-                            "$adbCmd -s $targetDevice $logCmd"
-                        }
-                    } else {
-                        if (getType() == TYPE_CMD) {
-                            logCmd.substring(TYPE_CMD_PREFIX_LEN)
-                        } else {
-                            "$adbCmd $logCmd"
-                        }
-                    }
-                    GLog.d(TAG, "Start : $cmd")
-                    val runtime = Runtime.getRuntime()
-                    try {
-                        processLogcat = runtime.exec(cmd)
-                        val processExitDetector = ProcessExitDetector(processLogcat!!)
-                        processExitDetector.addProcessListener { GLog.d(TAG, "The subprocess has finished") }
-                        processExitDetector.start()
-                    } catch (e: IOException) {
-                        GLog.e(TAG, "Failed run $cmd")
-                        e.printStackTrace()
-                        JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
-                        processLogcat = null
-                        return@run
-                    }
-                    GLog.d(TAG, "End : $cmd")
-                }
             }
 
             CMD_DISCONNECT -> executor = Runnable {
-                run {
-                    val cmd = "$adbCmd disconnect"
-                    val runtime = Runtime.getRuntime()
-                    try {
-                        runtime.exec(cmd)
-                    } catch (e: IOException) {
-                        GLog.d(TAG, "Failed run $cmd")
-                        e.printStackTrace()
-                        JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
-                        val adbEvent = AdbEvent(CMD_DISCONNECT, EVENT_FAIL)
-                        sendEvent(adbEvent)
-                        return@run
-                    }
-
-                    val adbEvent = AdbEvent(CMD_DISCONNECT, EVENT_SUCCESS)
+                val cmd = "$adbCmd disconnect"
+                val runtime = Runtime.getRuntime()
+                try {
+                    runtime.exec(cmd)
+                } catch (e: IOException) {
+                    GLog.d(TAG, "Failed run $cmd")
+                    e.printStackTrace()
+                    JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
+                    val adbEvent = AdbEvent(CMD_DISCONNECT, EVENT_FAIL)
                     sendEvent(adbEvent)
+                    return@Runnable
                 }
+
+                val adbEvent = AdbEvent(CMD_DISCONNECT, EVENT_SUCCESS)
+                sendEvent(adbEvent)
             }
         }
 

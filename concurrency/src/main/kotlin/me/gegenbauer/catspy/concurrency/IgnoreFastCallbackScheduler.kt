@@ -5,19 +5,23 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
-class RateLimiterCallbackSchedule(private val dispatcher: CoroutineContext, private val delay: Long = 10): CallbackSchedule {
+class IgnoreFastCallbackScheduler(private val dispatcher: CoroutineContext, private val delay: Long = 10): CallbackSchedule {
     private val scope = ModelScope()
     private var job: Job? = null
 
-    override fun schedule(callback: () -> Unit) {
+    override fun schedule(callback: Callback) {
         job?.cancel()
         job = scope.launch(dispatcher) {
             delay(delay)
-            callback()
+            callback.invoke()
         }
     }
 }
 
 interface CallbackSchedule {
-    fun schedule(callback: () -> Unit)
+    fun schedule(callback: Callback)
+}
+
+fun interface Callback {
+    fun invoke()
 }

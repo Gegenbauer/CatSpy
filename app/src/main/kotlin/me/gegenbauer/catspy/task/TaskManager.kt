@@ -14,7 +14,7 @@ class TaskManager : TaskListener {
     }
 
     fun cancelAll() {
-        taskList.forEach(Task::stop)
+        taskList.forEach(Task::cancel)
     }
 
     fun addListener(taskListener: TaskListener, taskMatch: (Task) -> Boolean = { _ -> true }) {

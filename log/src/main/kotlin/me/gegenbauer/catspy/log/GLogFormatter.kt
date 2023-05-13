@@ -137,7 +137,7 @@ class GLogFormatter: Formatter() {
         } else if (record.level.intValue() >= Level.WARNING.intValue()) {
             ANSI_YELLOW
         } else {
-            ANSI_BLACK
+            ANSI_BOLD_ON
         }
     }
 

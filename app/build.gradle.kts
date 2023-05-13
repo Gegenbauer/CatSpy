@@ -53,7 +53,7 @@ compose.desktop {
             packageName = appName
             packageVersion = version
             group = "me.gegenbauer"
-            jvmArgs += "-Xmx200m"
+            jvmArgs += "-Xmx300m"
 
             val iconsRoot = project.file("src/main/resources/appicon/")
 
