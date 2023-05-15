@@ -1,7 +1,5 @@
 package me.gegenbauer.catspy.task
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.appendPath
 import me.gegenbauer.catspy.log.ensureDir
@@ -11,7 +9,6 @@ import me.gegenbauer.catspy.utils.LOG_DIR
 import me.gegenbauer.catspy.utils.filesDir
 import java.io.BufferedOutputStream
 import java.io.File
-import java.lang.StringBuilder
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicInteger
@@ -23,7 +20,7 @@ class LogcatTask(private val device: String) : CommandTask(arrayOf("adb", "logca
     override val name: String = "LogcatTask"
 
     // TODO clean empty log file when process exit
-    private val tempFile = getTempLogFile()
+    val tempFile = getTempLogFile()
     private val tempFileStream = BufferedOutputStream(tempFile.outputStream())
     private val lineCount = AtomicInteger(0)
 

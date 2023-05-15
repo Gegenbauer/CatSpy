@@ -5,7 +5,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
-import me.gegenbauer.catspy.concurrency.CancellablePause
 import me.gegenbauer.catspy.log.GLog
 import java.io.BufferedInputStream
 import java.io.File
@@ -16,17 +15,16 @@ abstract class CommandTask(
     protected val commands: Array<String>,
     private val args: Array<String> = arrayOf(),
     private val envVars: Map<String, String> = mapOf()
-) : BaseObservableTask() {
+) : PausableTask() {
     override val name: String = "CommandTask"
 
     protected var process: Process? = null
     protected var workingDirectory: File? = null
-    private val cancellablePause = CancellablePause()
 
     override suspend fun startInCoroutine() {
         super.startInCoroutine()
         execute().collect {
-            cancellablePause.addPausePoint()
+            addPausePoint()
             onReceiveOutput(it)
         }
         onProcessEnd()
@@ -98,13 +96,4 @@ abstract class CommandTask(
         process?.destroyForcibly()
     }
 
-    override fun pause() {
-        super.pause()
-        cancellablePause.pause()
-    }
-
-    override fun resume() {
-        super.resume()
-        cancellablePause.resume()
-    }
 }

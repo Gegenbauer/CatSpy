@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.ui.log
 
+import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
@@ -15,8 +16,6 @@ import javax.swing.*
 import javax.swing.border.AbstractBorder
 import javax.swing.table.DefaultTableCellRenderer
 
-
-// TODO refactor
 class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
     init {
         setShowGrid(false)
@@ -48,7 +47,7 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
         val fontMetrics = getFontMetrics(font)
         val value = this.tableModel.getValueAt(rowCount - 1, 0)
         val column0Width = fontMetrics.stringWidth(value.toString()) + 20
-        val newWidth = width.coerceAtLeast(1920)
+        val newWidth = width.coerceAtLeast(2600)
         val preferredLogWidth = newWidth - column0Width - VStatusPanel.VIEW_RECT_WIDTH - scrollVBarWidth - 2
 
         val columnNum = columnModel.getColumn(COLUMN_NUM)
@@ -86,7 +85,7 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
         }
     }
 
-    internal inner class NumCellRenderer : DefaultTableCellRenderer() {
+    internal class NumCellRenderer : DefaultTableCellRenderer() {
         init {
             horizontalAlignment = JLabel.RIGHT
             verticalAlignment = JLabel.CENTER
@@ -108,13 +107,13 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
             label.border = LineNumBorder(ColorScheme.numLogSeparatorBG, 1)
 
             foreground = ColorScheme.lineNumFG
-            background = getNewBackground(num, row)
+            background = table?.getNewBackground(num, row)
 
             return label
         }
     }
 
-    internal inner class LogCellRenderer : DefaultTableCellRenderer() {
+    internal class LogCellRenderer : DefaultTableCellRenderer() {
         override fun getTableCellRendererComponent(
             table: JTable?,
             value: Any?,
@@ -123,39 +122,27 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
             row: Int,
             col: Int
         ): Component {
+            val logTable = table as? LogTable
+            logTable ?: return this
 
             val newValue: String = if (value != null) {
-                this@LogTable.tableModel.getPrintValue(value.toString(), row, isSelected)
+                logTable.tableModel.getPrintValue(value.toString(), row, isSelected)
             } else {
                 ""
             }
             // use html to render the log. Table cell use label.
             val label: JLabel = if (newValue.isEmpty()) {
-                foreground = this@LogTable.tableModel.getFgColor(row)
+                foreground = logTable.tableModel.getFgColor(row)
                 super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
             } else {
                 super.getTableCellRendererComponent(table, newValue, isSelected, hasFocus, row, col) as JLabel
             }
 
             label.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
-            val numValue = this@LogTable.tableModel.getValueAt(row, 0)
+            val numValue = logTable.tableModel.getValueAt(row, 0)
             val num = numValue.toString().trim().toInt()
-            background = getNewBackground(num, row)
+            background = logTable.getNewBackground(num, row)
             return label
-        }
-    }
-
-    private fun getNewBackground(num: Int, row: Int): Color {
-        return if (BookmarkManager.isBookmark(num)) {
-            if (isRowSelected(row)) {
-                ColorScheme.bookmarkSelectedBG
-            } else {
-                ColorScheme.bookmarkBG
-            }
-        } else if (isRowSelected(row)) {
-            ColorScheme.selectedBG
-        } else {
-            ColorScheme.logBG
         }
     }
 
@@ -248,8 +235,7 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
             add(reconnectItem)
             add(startItem)
             add(stopItem)
-            add(clearItem
-            )
+            add(clearItem)
             copyItem.addActionListener(actionHandler)
             showEntireItem.addActionListener(actionHandler)
             bookmarkItem.addActionListener(actionHandler)
@@ -342,6 +328,23 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
                 event.keyCode == KeyEvent.VK_DELETE -> deleteBookmark(selectedRows)
             }
             super.keyPressed(event)
+        }
+    }
+
+    companion object {
+        private const val TAG = "LogTable"
+        private fun JTable.getNewBackground(num: Int, row: Int): Color {
+            return if (BookmarkManager.isBookmark(num)) {
+                if (isRowSelected(row)) {
+                    ColorScheme.bookmarkSelectedBG
+                } else {
+                    ColorScheme.bookmarkBG
+                }
+            } else if (isRowSelected(row)) {
+                ColorScheme.selectedBG
+            } else {
+                ColorScheme.logBG
+            }
         }
     }
 }

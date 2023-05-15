@@ -1,36 +1,36 @@
 package me.gegenbauer.catspy.ui.log
 
-import kotlinx.coroutines.*
-import me.gegenbauer.catspy.file.Log
-import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.manager.BookmarkManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.command.LogCmdManager
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
-import me.gegenbauer.catspy.task.LogcatTask
-import me.gegenbauer.catspy.task.Task
-import me.gegenbauer.catspy.task.TaskListener
-import me.gegenbauer.catspy.task.TaskManager
+import me.gegenbauer.catspy.task.*
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.combobox.FilterComboBox
 import me.gegenbauer.catspy.ui.log.LogItem.Companion.fgColor
 import me.gegenbauer.catspy.utils.toHtml
 import java.awt.Color
-import java.io.*
+import java.io.BufferedReader
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileReader
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import java.util.regex.PatternSyntaxException
 import javax.swing.JOptionPane
 import javax.swing.SwingUtilities
 import javax.swing.table.AbstractTableModel
-import kotlin.collections.ArrayList
 import kotlin.concurrent.write
 
 
@@ -62,8 +62,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     private val filteredFGMap = mutableMapOf<String, Color>()
     private val filteredBGMap = mutableMapOf<String, Color>()
     private val taskManager = TaskManager()
+    private val updateUITask = PeriodicTask(500, ::updateTableUI)
     private var logcatTask: LogcatTask? = null
-    private var updateTableUITask: Job? = null
 
     private var isFilterUpdated = true
 
@@ -88,9 +88,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             filterShowLog = patterns[0]
             filterHideLog = patterns[1]
 
-            if (baseModel != null) {
-                baseModel!!.filterLog = value
-            }
+            baseModel?.filterLog = value
         }
 
     private var filterShowLog: String = ""
@@ -158,9 +156,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 updateFilterSearchLog(field)
             }
 
-            if (baseModel != null) {
-                baseModel!!.filterSearchLog = value
-            }
+            baseModel?.filterSearchLog = value
         }
 
     var filterTag: String = ""
@@ -279,9 +275,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
                 updateFilterSearchLog(filterSearchLog)
 
-                if (baseModel != null) {
-                    baseModel!!.searchMatchCase = value
-                }
+                baseModel?.searchMatchCase = value
             }
         }
 
@@ -326,10 +320,6 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     private var patternHidePid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
     private var patternShowTid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
     private var patternHideTid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-
-    fun isFullDataModel(): Boolean {
-        return baseModel == null
-    }
 
     private fun parsePattern(pattern: String, isUpdateColor: Boolean): Array<String> {
         val patterns: Array<String> = Array(2) { "" }
@@ -396,7 +386,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         var pattern = prevPattern
         try {
             pattern = Pattern.compile(regex, flags)
-        } catch (ex: java.util.regex.PatternSyntaxException) {
+        } catch (ex: PatternSyntaxException) {
             ex.printStackTrace()
             comboBox?.errorMsg = ex.message.toString()
         }
@@ -406,11 +396,9 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
     private var filteredItemsThread: Thread? = null
 
-    fun loadItems(isAppend: Boolean) {
+    fun loadFromFile(file: File, isAppend: Boolean) {
         if (baseModel == null) {
-            AppScope.launch(Dispatchers.UI) {
-                loadFile(isAppend)
-            }
+            loadFile(file, isAppend)
         } else {
             isFilterUpdated = true
 
@@ -452,12 +440,10 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         }
     }
 
-    private fun loadFile(isAppend: Boolean) {
-        val logFile = Log.file ?: return
-
+    private fun loadFile(file: File, isAppend: Boolean) {
         if (isAppend) {
             if (logItems.size > 0) {
-                logItems.add(LogItem.from("${STRINGS.ui.app} - APPEND LOG : $logFile", logNum.getAndIncrement()))
+                logItems.add(LogItem.from("${STRINGS.ui.app} - APPEND LOG : ${file.absoluteFile}", logNum.getAndIncrement()))
             }
         } else {
             logItems.clear()
@@ -465,7 +451,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             BookmarkManager.clear()
         }
 
-        val bufferedReader = BufferedReader(FileReader(logFile))
+        val bufferedReader = BufferedReader(FileReader(file))
         var line: String?
 
         line = bufferedReader.readLine()
@@ -1167,12 +1153,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         makePattenPrintValue()
         startLogcatTask()
 
-        updateTableUITask = scope.launch(Dispatchers.UI) {
-            repeat(Int.MAX_VALUE) {
-                delay(500)
-                updateTableUI()
-            }
-        }
+        taskManager.exec(updateUITask)
     }
 
     private fun startLogcatTask() {
@@ -1232,11 +1213,16 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
     private val count = AtomicInteger(0)
     private val cachedCount = AtomicInteger(0)
+
     override fun onProgress(task: Task, data: Any) {
         super.onProgress(task, data)
+        val line = data as String
+        processLine(line)
+    }
+
+    private fun processLine(line: String) {
         count.incrementAndGet()
         cachedCount.incrementAndGet()
-        val line = data as String
         var isShow: Boolean
         val item = LogItem.from(line, logNum.getAndIncrement())
 
@@ -1305,15 +1291,17 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
     fun stopScan() {
         logcatTask?.cancel()
-        updateTableUITask?.cancel()
+        updateUITask.pause()
     }
 
     fun pauseScan(pause: Boolean) {
         GLog.d(TAG, "[pauseScan]")
         if (pause) {
             logcatTask?.pause()
+            updateUITask.pause()
         } else {
             logcatTask?.resume()
+            updateUITask.resume()
         }
     }
 
@@ -1336,8 +1324,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         }
     }
 
-    fun startFollow() {
-        val logFile = Log.file ?: return
+    fun startFollow(logFile: File? = logcatTask?.tempFile) {
+        if (logFile == null || logFile.exists().not()) return
 
         scope.launch(Dispatchers.UI) {
             followThread?.interrupt()

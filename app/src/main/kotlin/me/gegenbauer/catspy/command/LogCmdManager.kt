@@ -4,7 +4,6 @@ import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
-import me.gegenbauer.catspy.task.*
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.utils.currentPlatform
 import java.io.IOException
@@ -14,15 +13,11 @@ import javax.swing.JOptionPane
 
 object LogCmdManager {
     private const val TAG = "LogCmdManager"
-    private val taskManager = TaskManager()
 
-    const val EVENT_NONE = 0
     private const val EVENT_SUCCESS = 1
     private const val EVENT_FAIL = 2
 
     const val CMD_CONNECT = 1
-    const val CMD_GET_DEVICES = 2
-    private const val CMD_LOGCAT = 3
     const val CMD_DISCONNECT = 4
 
     const val DEFAULT_LOGCAT = "logcat -v threadtime"
@@ -38,16 +33,11 @@ object LogCmdManager {
     var logSavePath: String = UIConfManager.uiConf.adbLogSavePath.ifEmpty { "." }
     var targetDevice: String = ""
     var logCmd: String = UIConfManager.uiConf.adbLogCommand.ifEmpty { DEFAULT_LOGCAT }
-    var devices = ArrayList<String>()
     private val eventListeners = ArrayList<AdbEventListener>()
     private var mainUI: MainUI? = null
 
     fun setMainUI(mainUI: MainUI) {
         this.mainUI = mainUI
-    }
-
-    fun getDevices() {
-        execute(makeExecutor(CMD_GET_DEVICES))
     }
 
     fun getType(): Int {
@@ -69,10 +59,6 @@ object LogCmdManager {
 
     fun disconnect() {
         execute(makeExecutor(CMD_DISCONNECT))
-    }
-
-    fun startLogcat() {
-        execute(makeExecutor(CMD_LOGCAT))
     }
 
     fun stop() {
@@ -133,22 +119,6 @@ object LogCmdManager {
                 }
             }
 
-            CMD_GET_DEVICES -> executor = Runnable {
-                val getDeviceTask = GetDeviceTask()
-                getDeviceTask.addListener(object : TaskListener {
-                    override fun onFinalResult(task: Task, data: Any) {
-                        devices.clear()
-                        devices.addAll(data as List<String>)
-                        val adbEvent = AdbEvent(CMD_GET_DEVICES, EVENT_SUCCESS)
-                        sendEvent(adbEvent)
-                    }
-                })
-                taskManager.exec(getDeviceTask)
-            }
-
-            CMD_LOGCAT -> executor = Runnable {
-            }
-
             CMD_DISCONNECT -> executor = Runnable {
                 val cmd = "$adbCmd disconnect"
                 val runtime = Runtime.getRuntime()
@@ -178,36 +148,5 @@ object LogCmdManager {
     class AdbEvent(c: Int, e: Int) {
         val cmd = c
         val event = e
-    }
-
-    fun interface ProcessListener : EventListener {
-        fun processFinished(process: Process?)
-    }
-
-    class ProcessExitDetector(process: Process) : Thread() {
-        private var process: Process
-        private val listeners: MutableList<ProcessListener> = ArrayList<ProcessListener>()
-        override fun run() {
-            try {
-                process.waitFor()
-                for (listener in listeners) {
-                    listener.processFinished(process)
-                }
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
-            }
-        }
-
-        fun addProcessListener(listener: ProcessListener) {
-            listeners.add(listener)
-        }
-
-        fun removeProcessListener(listener: ProcessListener) {
-            listeners.remove(listener)
-        }
-
-        init {
-            this.process = process
-        }
     }
 }

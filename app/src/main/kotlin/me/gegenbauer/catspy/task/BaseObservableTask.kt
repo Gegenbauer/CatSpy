@@ -5,10 +5,10 @@ import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.log.GLog
 import kotlin.coroutines.CoroutineContext
 
-abstract class BaseObservableTask : Task {
+abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.IO) : Task {
     override val scope: CoroutineScope = object : ModelScope() {
         override val coroutineContext: CoroutineContext
-            get() = Dispatchers.IO + Job()
+            get() = dispatcher + Job()
     }
 
     private val listeners = mutableSetOf<TaskListener>()

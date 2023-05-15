@@ -19,11 +19,9 @@ class CancellablePause {
         return suspendCancellableCoroutine {
             cancellableContinuation = it
             paused.set(true)
-            GLog.d(TAG, "[pause] start cancellableContinuation=$cancellableContinuation")
             timer = Timer()
             timer?.schedule(object : TimerTask() {
                 override fun run() {
-                    GLog.d(TAG, "[pause] end pause due to timeout")
                     resumeCurrentPausePoint()
                     timer = null
                 }
@@ -51,7 +49,4 @@ class CancellablePause {
         paused.set(false)
     }
 
-    companion object {
-        private const val TAG = "CancellablePause"
-    }
 }

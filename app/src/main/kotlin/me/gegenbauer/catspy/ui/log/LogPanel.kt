@@ -60,15 +60,19 @@ abstract class LogPanel(
 
     init {
         layout = BorderLayout()
-        firstBtn.margin = Insets(2, 3, 1, 3)
+        Insets(2, 3, 1, 3).apply {
+            firstBtn.margin = this
+            lastBtn.margin = this
+        }
+        Insets(0, 3, 0, 3).apply {
+            tagBtn.margin = this
+            pidBtn.margin = this
+            tidBtn.margin = this
+        }
         firstBtn.addActionListener(actionHandler)
-        lastBtn.margin = Insets(2, 3, 1, 3)
         lastBtn.addActionListener(actionHandler)
-        tagBtn.margin = Insets(0, 3, 0, 3)
         tagBtn.addActionListener(actionHandler)
-        pidBtn.margin = Insets(0, 3, 0, 3)
         pidBtn.addActionListener(actionHandler)
-        tidBtn.margin = Insets(0, 3, 0, 3)
         tidBtn.addActionListener(actionHandler)
     }
 
@@ -142,11 +146,7 @@ abstract class LogPanel(
 
     fun goToRowByNum(num: Int, column: Int) {
         val firstNum = table.getValueAt(0, 0).toString().trim().toInt()
-        var idx = num - firstNum
-        if (idx < 0) {
-            idx = 0
-        }
-
+        val idx = (num - firstNum).coerceAtLeast(0)
         goToRow(idx, column)
     }
 

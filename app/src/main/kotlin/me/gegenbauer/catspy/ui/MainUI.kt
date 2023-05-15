@@ -16,10 +16,10 @@ import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.DefaultDocumentListener
 import me.gegenbauer.catspy.databinding.property.support.PROPERTY_TEXT
-import me.gegenbauer.catspy.file.Log
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
+import me.gegenbauer.catspy.task.*
 import me.gegenbauer.catspy.ui.button.*
 import me.gegenbauer.catspy.ui.combobox.FilterComboBox
 import me.gegenbauer.catspy.ui.combobox.darkComboBox
@@ -56,7 +56,7 @@ import javax.swing.event.PopupMenuListener
 import javax.swing.text.JTextComponent
 import kotlin.system.exitProcess
 
-class MainUI(title: String) : JFrame(title) {
+class MainUI(title: String) : JFrame(title), TaskListener {
     companion object {
         private const val TAG = "MainUI"
     }
@@ -201,7 +201,7 @@ class MainUI(title: String) : JFrame(title) {
         }
         onFileFollowSelected = { file ->
             setFollowLogFile(file.absolutePath)
-            startFileFollow()
+            startFileFollow(file.absolutePath)
         }
         onFileListSelected = { files ->
             var isFirst = true
@@ -253,6 +253,9 @@ class MainUI(title: String) : JFrame(title) {
     private val statusChangeListener = StatusChangeListener()
 
     //endregion
+    private val taskManager = TaskManager()
+    private val getDeviceTask = GetDeviceTask()
+    private val getDeviceTaskPeriodicTask = PeriodicTask(1000) { taskManager.exec(getDeviceTask) }
     private var selectedLine = 0
 
     var customFont: Font = Font(
@@ -278,8 +281,14 @@ class MainUI(title: String) : JFrame(title) {
 
         MainViewModel.bind(this)
 
-        if (LogCmdManager.getType() == LogCmdManager.TYPE_LOGCAT) {
-            LogCmdManager.getDevices()
+        taskManager.exec(getDeviceTaskPeriodicTask)
+        getDeviceTask.addListener(this)
+    }
+
+    override fun onFinalResult(task: Task, data: Any) {
+        super.onFinalResult(task, data)
+        if (task is GetDeviceTask) {
+            MainViewModel.connectedDevices.updateValue(data as ArrayList<String>)
         }
     }
 
@@ -307,6 +316,7 @@ class MainUI(title: String) : JFrame(title) {
         filteredTableModel.stopScan()
         fullTableModel.stopScan()
         LogCmdManager.stop()
+        taskManager.cancelAll()
         exitProcess(0)
     }
 
@@ -454,13 +464,8 @@ class MainUI(title: String) : JFrame(title) {
         deviceCombo.insertItemAt(targetDevice, 0)
         deviceCombo.selectedIndex = 0
 
-        if (LogCmdManager.devices.contains(targetDevice)) {
-            deviceStatus.text = STRINGS.ui.connected
-            setDeviceComboColor(true)
-        } else {
-            deviceStatus.text = STRINGS.ui.notConnected
-            setDeviceComboColor(false)
-        }
+        deviceStatus.text = STRINGS.ui.connected
+        setDeviceComboColor(true)
 
         customFont = UIConfManager.uiConf.getLogFont()
         GLog.d(TAG, "[createUI] log font: $customFont")
@@ -682,9 +687,9 @@ class MainUI(title: String) : JFrame(title) {
         } else {
             statusTF.text = path
         }
-        Log.file = File(path)
-        fullTableModel.loadItems(isAppend)
-        filteredTableModel.loadItems(isAppend)
+        val file = File(path)
+        fullTableModel.loadFromFile(file, isAppend)
+        filteredTableModel.loadFromFile(file, isAppend)
 
         enabledFollowBtn(true)
 
@@ -712,7 +717,6 @@ class MainUI(title: String) : JFrame(title) {
             idx++
         }
 
-        Log.file = File(filePathSaved)
         statusTF.text = filePathSaved
     }
 
@@ -729,7 +733,6 @@ class MainUI(title: String) : JFrame(title) {
         setSaveLogFile()
         if (reconnect) {
             LogCmdManager.targetDevice = deviceCombo.selectedItem?.toString() ?: ""
-            LogCmdManager.startLogcat()
         }
         filteredTableModel.startScan()
 
@@ -770,16 +773,15 @@ class MainUI(title: String) : JFrame(title) {
     }
 
     fun setFollowLogFile(filePath: String) {
-        Log.file = File(filePath)
         statusTF.text = filePath
     }
 
-    fun startFileFollow() {
+    fun startFileFollow(filePath: String = "") {
         statusMethod.text = " ${STRINGS.ui.follow} "
         filteredTableModel.stopScan()
         filteredTableModel.stopFollow()
         pauseFollowToggle.isSelected = false
-        filteredTableModel.startFollow()
+        filteredTableModel.startFollow(if (filePath.isEmpty()) null else File(filePath))
 
         enabledFollowBtn(true)
     }
@@ -816,10 +818,6 @@ class MainUI(title: String) : JFrame(title) {
                     connect()
                 }
 
-                adbRefreshBtn -> {
-                    LogCmdManager.getDevices()
-                }
-
                 adbDisconnectBtn -> {
                     stopAdbScan()
                     LogCmdManager.disconnect()
@@ -843,8 +841,9 @@ class MainUI(title: String) : JFrame(title) {
 
                 saveBtn -> {
                     if (filteredTableModel.isScanning()) {
-                        setSaveLogFile()
+                        // TODO Save As
                     } else {
+                        // TODO Disable Save button
                         GLog.d(TAG, "SaveBtn : not adb scanning mode")
                     }
                 }
@@ -1390,40 +1389,11 @@ class MainUI(title: String) : JFrame(title) {
         override fun changedStatus(event: LogCmdManager.AdbEvent) {
             when (event.cmd) {
                 LogCmdManager.CMD_CONNECT -> {
-                    LogCmdManager.getDevices()
-                }
 
-                LogCmdManager.CMD_GET_DEVICES -> {
-                    var selectedItem = deviceCombo.selectedItem
-                    MainViewModel.connectedDevices.updateValue(LogCmdManager.devices)
-                    if (selectedItem == null) {
-                        selectedItem = ""
-                    }
-
-                    if (LogCmdManager.devices.contains(selectedItem.toString())) {
-                        deviceStatus.text = STRINGS.ui.connected
-                        setDeviceComboColor(true)
-                    } else {
-                        var isExist = false
-                        val deviceChk = "$selectedItem:"
-                        for (device in LogCmdManager.devices) {
-                            if (device.contains(deviceChk)) {
-                                isExist = true
-                                break
-                            }
-                        }
-                        if (isExist) {
-                            deviceStatus.text = STRINGS.ui.connected
-                            setDeviceComboColor(true)
-                        } else {
-                            deviceStatus.text = STRINGS.ui.notConnected
-                            setDeviceComboColor(false)
-                        }
-                    }
                 }
 
                 LogCmdManager.CMD_DISCONNECT -> {
-                    LogCmdManager.getDevices()
+
                 }
             }
         }

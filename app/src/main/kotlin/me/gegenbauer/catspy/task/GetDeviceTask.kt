@@ -22,6 +22,7 @@ class GetDeviceTask : CommandTask(arrayOf("adb", "devices")) {
                 }
             }
         }
+        output.clear()
         GLog.d(name, "[onProcessEnd] devices : $devices")
         notifyFinalResult(devices)
     }
