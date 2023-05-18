@@ -14,9 +14,9 @@ import java.util.*
 abstract class CommandTask(
     protected val commands: Array<String>,
     private val args: Array<String> = arrayOf(),
-    private val envVars: Map<String, String> = mapOf()
-) : PausableTask() {
-    override val name: String = "CommandTask"
+    private val envVars: Map<String, String> = mapOf(),
+    name: String = "CommandTask"
+) : PausableTask(name = name) {
 
     protected var process: Process? = null
     protected var workingDirectory: File? = null
@@ -46,24 +46,19 @@ abstract class CommandTask(
                 async {
                     val builder = ProcessBuilder(*commands)
                         .directory(workingDirectory)
-                        .redirectErrorStream(true)
                     builder.command().addAll(args)
                     builder.environment().putAll(envVars)
                     onPrepareProcess(builder)
-                    val process = builder.start()
-                    onProcessStart(this@channelFlow, process)
+                    val process = builder.start().apply { this@CommandTask.process = this }
+                    GLog.d(name, "[onProcessStart] set process $process")
+                    readOutput(process)
+                    readError(process)
                 }
             }.buffer(8 * 1024 * 1024 * 50, BufferOverflow.DROP_OLDEST)
         }.onFailure {
             GLog.e(name, "[execute]", it)
+            notifyError(t = it)
         }.getOrElse { emptyFlow() }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    protected open suspend fun onProcessStart(producerScope: ProducerScope<String>, process: Process) {
-        GLog.d(name, "[onProcessStart] set process $process")
-        this.process = process
-        producerScope.readOutput(process)
     }
 
     protected open fun onProcessEnd() {
@@ -76,14 +71,28 @@ abstract class CommandTask(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private suspend fun ProducerScope<String>.readOutput(process: Process) {
-        Scanner(BufferedInputStream(process.inputStream)).use {
-            while (it.hasNextLine()) {
-                send(it.nextLine())
+    private fun ProducerScope<String>.readOutput(process: Process) {
+        async {
+            Scanner(BufferedInputStream(process.inputStream)).use {
+                while (it.hasNextLine()) {
+                    send(it.nextLine())
+                }
+            }
+            GLog.d(name, "[readOutput] $process normally exit")
+            close()
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun ProducerScope<String>.readError(process: Process) {
+        async {
+            process.errorStream.readAllBytes().toString(Charsets.UTF_8).let {
+                if (it.isNotEmpty()) {
+                    GLog.e(name, "[readError] $process, $it")
+                    notifyError(it)
+                }
             }
         }
-        GLog.d(name, "[readOutput] $process normally exit")
-        close()
     }
 
     fun isTaskRunning(): Boolean {

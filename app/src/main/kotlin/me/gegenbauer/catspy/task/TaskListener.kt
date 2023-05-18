@@ -28,4 +28,8 @@ interface TaskListener {
     fun onFinalResult(task: Task, data: Any) {
         // empty implementation
     }
+
+    fun onError(task: Task, error: String = "", t: Throwable? = null) {
+        // empty implementation
+    }
 }

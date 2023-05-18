@@ -6,6 +6,7 @@ import com.github.weisj.darklaf.ui.button.DarkButtonUI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.gegenbauer.catspy.command.LogCmdManager
 import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
@@ -18,6 +19,7 @@ import me.gegenbauer.catspy.utils.filesDir
 import me.gegenbauer.catspy.viewmodel.GlobalViewModel
 import java.awt.Dimension
 import javax.swing.JFrame
+import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.UIDefaults
 
@@ -49,6 +51,7 @@ fun main() {
         button2.addActionListener {
             logcatTask.resume()
         }
+        JOptionPane.showMessageDialog(frame, "e.message", "Error", JOptionPane.ERROR_MESSAGE)
         frame.isVisible = true
     }
 }

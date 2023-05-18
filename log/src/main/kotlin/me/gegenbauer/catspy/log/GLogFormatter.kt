@@ -11,7 +11,7 @@ import java.util.logging.Level
 import java.util.logging.LogRecord
 
 class GLogFormatter: Formatter() {
-    private val dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+    private val dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM)
         .withLocale(Locale.UK)
         .withZone(ZoneId.systemDefault())
 
@@ -21,6 +21,8 @@ class GLogFormatter: Formatter() {
         val time = calculateDateString(record.millis)
         builder.append("[")
         builder.append(time)
+        builder.append(".")
+        builder.append(record.millis % 1000)
         builder.append("]")
         builder.append(ANSI_YELLOW)
         builder.append(" [")
@@ -30,6 +32,9 @@ class GLogFormatter: Formatter() {
         builder.append(ANSI_BOLD_ON)
         builder.append(" [")
         builder.append(record.loggerName)
+        builder.append("]")
+        builder.append(" [")
+        builder.append(Thread.currentThread().name)
         builder.append("]")
         builder.append(ANSI_BOLD_OFF)
         builder.append(getMessageColor(record))

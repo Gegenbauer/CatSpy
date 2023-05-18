@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.task
 
 class TaskManager : TaskListener {
     private val taskList = mutableListOf<Task>()
+    private var paused = false
 
     override fun onStop(task: Task) {
         taskList.remove(task)
@@ -9,6 +10,7 @@ class TaskManager : TaskListener {
 
     fun exec(task: Task) {
         taskList.add(task)
+        updateTaskPauseState(task, paused)
         task.addListener(this)
         task.start()
     }
@@ -23,5 +25,18 @@ class TaskManager : TaskListener {
 
     fun removeListener(taskListener: TaskListener, taskMatch: (Task) -> Boolean = { _ -> true }) {
         taskList.filter(taskMatch).forEach { it.removeListener(taskListener) }
+    }
+
+    fun updatePauseState(paused: Boolean) {
+        taskList.forEach { updateTaskPauseState(it, paused) }
+        this.paused = paused
+    }
+
+    private fun updateTaskPauseState(task: Task, paused: Boolean) {
+        if (paused) {
+            task.pause()
+        } else {
+            task.resume()
+        }
     }
 }

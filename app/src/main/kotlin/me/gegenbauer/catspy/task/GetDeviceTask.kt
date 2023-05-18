@@ -2,8 +2,7 @@ package me.gegenbauer.catspy.task
 
 import me.gegenbauer.catspy.log.GLog
 
-class GetDeviceTask : CommandTask(arrayOf("adb", "devices")) {
-    override val name: String = "GetDeviceTask"
+class GetDeviceTask : CommandTask(arrayOf("adb", "devices"), name = "GetDeviceTask") {
     private val output = StringBuilder()
 
     override suspend fun onReceiveOutput(line: String) {

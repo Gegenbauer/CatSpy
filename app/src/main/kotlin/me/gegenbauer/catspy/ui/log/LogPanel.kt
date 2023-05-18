@@ -30,6 +30,7 @@ import java.awt.event.*
 import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
+import javax.swing.event.TableModelEvent
 
 
 // TODO refactor
@@ -214,8 +215,8 @@ abstract class LogPanel(
 
     internal inner class TableModelHandler : LogTableModelListener {
         @Synchronized
-        override fun tableChanged(event: LogTableModelEvent) {
-            if (event.dataChange == LogTableModelEvent.EVENT_CLEARED) {
+        override fun tableChanged(event: TableModelEvent) {
+            if ((event.source as LogTableModel).rowCount == 0) {
                 oldLogVPos = -1
             } else {
                 AppScope.launch(Dispatchers.UI) {
@@ -224,42 +225,22 @@ abstract class LogPanel(
             }
         }
 
-        private fun tableChangedInternal(event: LogTableModelEvent) {
+        private fun tableChangedInternal(event: TableModelEvent) {
             updateTableUI()
             table.updateColumnWidth(this@LogPanel.width, scrollPane.verticalScrollBar.width)
-            if (event.dataChange == LogTableModelEvent.EVENT_CHANGED) {
-                onTableContentChanged(event)
-            } else if (event.dataChange == LogTableModelEvent.EVENT_FILTERED) {
-               onTableFilterStateChanged(event)
-            }
+            onTableContentChanged(event)
         }
     }
 
-    protected fun onTableContentChanged(event: LogTableModelEvent) {
+    protected fun onTableContentChanged(event: TableModelEvent) {
         if (getGoToLast() && table.rowCount > 0) {
             val viewRect = table.getCellRect(table.rowCount - 1, 0, true)
             viewRect.x = table.visibleRect.x
             table.scrollRectToVisible(viewRect)
-        } else {
-            if (event.removedCount > 0 && table.selectedRow > 0) {
-                var idx = table.selectedRow - event.removedCount
-                if (idx < 0) {
-                    idx = 0
-                }
-
-                val selectedLine = table.getValueAt(idx, 0).toString().trim().toInt()
-
-                if (selectedLine >= 0) {
-                    table.setRowSelectionInterval(idx, idx)
-                    val viewRect: Rectangle = table.getCellRect(idx, 0, true)
-                    table.scrollRectToVisible(viewRect)
-                    table.scrollRectToVisible(viewRect) // sometimes not work
-                }
-            }
         }
     }
 
-    protected open fun onTableFilterStateChanged(event: LogTableModelEvent) {
+    protected open fun onTableFilterStateChanged(event: TableModelEvent) {
         // Empty implementation
     }
 

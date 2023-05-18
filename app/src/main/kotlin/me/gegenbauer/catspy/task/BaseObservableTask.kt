@@ -5,7 +5,7 @@ import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.log.GLog
 import kotlin.coroutines.CoroutineContext
 
-abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.IO) : Task {
+abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.IO, override val name: String) : Task {
     override val scope: CoroutineScope = object : ModelScope() {
         override val coroutineContext: CoroutineContext
             get() = dispatcher + Job()
@@ -26,6 +26,10 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
     override fun pause() {
         GLog.d(name, "[pause]")
         notifyPause()
+    }
+
+    open fun isPausing(): Boolean {
+        return false
     }
 
     override fun resume() {
@@ -67,6 +71,10 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
 
     protected fun notifyFinalResult(data: Any) {
         listeners.forEach { it.onFinalResult(this, data) }
+    }
+
+    protected fun notifyError(error: String = "", t: Throwable? = null) {
+        listeners.forEach { it.onError(this, error, t) }
     }
 
     override fun cancel() {

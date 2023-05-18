@@ -1,12 +1,13 @@
 package me.gegenbauer.catspy.concurrency
 
 import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import me.gegenbauer.catspy.log.GLog
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
-class CancellablePause {
+class CancellablePause(private val name: String = "") {
     private val enablePause = AtomicBoolean(false)
     private val paused = AtomicBoolean(false)
     private var cancellableContinuation: CancellableContinuation<Unit>? = null
@@ -17,6 +18,7 @@ class CancellablePause {
             return
         }
         return suspendCancellableCoroutine {
+            GLog.d("CancellablePause", "[$name] [pause]")
             cancellableContinuation = it
             paused.set(true)
             timer = Timer()
@@ -35,18 +37,23 @@ class CancellablePause {
     }
 
     fun resume() {
+        enablePause.set(false)
         if (paused.get().not()) {
             return
         }
         resumeCurrentPausePoint()
         timer?.cancel()
-        enablePause.set(false)
+        GLog.d("CancellablePause", "[$name] [resume]")
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun resumeCurrentPausePoint() {
         cancellableContinuation?.resume(Unit, null)
         cancellableContinuation = null
         paused.set(false)
     }
 
+    fun isPausing(): Boolean {
+        return paused.get()
+    }
 }

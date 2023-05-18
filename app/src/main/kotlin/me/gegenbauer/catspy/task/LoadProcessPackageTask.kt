@@ -9,8 +9,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.concurrent.ConcurrentHashMap
 
-class LoadProcessPackageTask : BaseObservableTask() {
-    override val name: String = "LoadProcessPackageTask"
+class LoadProcessPackageTask : BaseObservableTask(name = "LoadProcessPackageTask") {
     private val packageToPidMapper = ConcurrentHashMap<String, String>()
     private val cancellablePause = CancellablePause()
 

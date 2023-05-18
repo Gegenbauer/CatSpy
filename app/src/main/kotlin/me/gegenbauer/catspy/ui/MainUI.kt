@@ -56,6 +56,9 @@ import javax.swing.event.PopupMenuListener
 import javax.swing.text.JTextComponent
 import kotlin.system.exitProcess
 
+/**
+ *  TODO 将底部状态栏抽出，并增加进度条，显示某些任务进度
+ */
 class MainUI(title: String) : JFrame(title), TaskListener {
     companion object {
         private const val TAG = "MainUI"
@@ -186,12 +189,6 @@ class MainUI(title: String) : JFrame(title), TaskListener {
     private val statusMethod = JLabel("")
     private val statusTF = StatusTextField(STRINGS.ui.none) applyTooltip STRINGS.toolTip.savedFileTf
 
-    private val followPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
-
-    private val followLabel = JLabel(" ${STRINGS.ui.follow} ")
-    private val startFollowBtn = GButton(STRINGS.ui.start) applyTooltip STRINGS.toolTip.startFollowBtn
-    private val pauseFollowToggle = ColorToggleButton(STRINGS.ui.pause)
-    private val stopFollowBtn = GButton(STRINGS.ui.stop) applyTooltip STRINGS.toolTip.stopFollowBtn
     //endregion
 
     //region menu
@@ -200,7 +197,6 @@ class MainUI(title: String) : JFrame(title), TaskListener {
             openFile(file.absolutePath, false)
         }
         onFileFollowSelected = { file ->
-            setFollowLogFile(file.absolutePath)
             startFileFollow(file.absolutePath)
         }
         onFileListSelected = { files ->
@@ -254,8 +250,7 @@ class MainUI(title: String) : JFrame(title), TaskListener {
 
     //endregion
     private val taskManager = TaskManager()
-    private val getDeviceTask = GetDeviceTask()
-    private val getDeviceTaskPeriodicTask = PeriodicTask(1000) { taskManager.exec(getDeviceTask) }
+    private val getDeviceTask = GetDeviceTask().apply { addListener(this@MainUI) }
     private var selectedLine = 0
 
     var customFont: Font = Font(
@@ -281,8 +276,11 @@ class MainUI(title: String) : JFrame(title), TaskListener {
 
         MainViewModel.bind(this)
 
-        taskManager.exec(getDeviceTaskPeriodicTask)
-        getDeviceTask.addListener(this)
+        refreshDevices()
+    }
+
+    private fun refreshDevices() {
+        taskManager.exec(getDeviceTask)
     }
 
     override fun onFinalResult(task: Task, data: Any) {
@@ -313,8 +311,8 @@ class MainUI(title: String) : JFrame(title), TaskListener {
 
     private fun exit() {
         saveConfigOnDestroy()
-        filteredTableModel.stopScan()
-        fullTableModel.stopScan()
+        filteredTableModel.stopAll()
+        fullTableModel.stopAll()
         LogCmdManager.stop()
         taskManager.cancelAll()
         exitProcess(0)
@@ -440,18 +438,8 @@ class MainUI(title: String) : JFrame(title), TaskListener {
         statusTF.isEditable = false
         statusTF.border = BorderFactory.createEmptyBorder()
 
-        followPanel.border = BorderFactory.createEmptyBorder(0, 3, 0, 3)
-        followLabel.border = BorderFactory.createDashedBorder(null, 1.0f, 2.0f)
-        followPanel.add(followLabel)
-        followPanel.add(startFollowBtn)
-        followPanel.add(pauseFollowToggle)
-        followPanel.add(stopFollowBtn)
-
-        enabledFollowBtn(false)
-
         statusBar.add(statusMethod, BorderLayout.WEST)
         statusBar.add(statusTF, BorderLayout.CENTER)
-        statusBar.add(followPanel, BorderLayout.EAST)
 
         showLogCombo.updateTooltip()
         showTagCombo.updateTooltip()
@@ -582,25 +570,9 @@ class MainUI(title: String) : JFrame(title), TaskListener {
         toolBarPanel.addMouseListener(mouseHandler)
         statusMethod.addPropertyChangeListener(statusChangeListener)
         statusTF.document.addDocumentListener(statusChangeListener)
-        startFollowBtn.addActionListener(actionHandler)
-        startFollowBtn.addMouseListener(mouseHandler)
-        pauseFollowToggle.addItemListener(itemHandler)
-        stopFollowBtn.addActionListener(actionHandler)
-        stopFollowBtn.addMouseListener(mouseHandler)
 
         fullTableModel.addLogTableModelListener { event ->
-            if (event.dataChange == LogTableModelEvent.EVENT_CHANGED) {
-                splitLogWithEmptyStatePanel.contentVisible = true
-            } else if (event.dataChange == LogTableModelEvent.EVENT_CLEARED) {
-                splitLogWithEmptyStatePanel.contentVisible = false
-            }
-        }
-        filteredTableModel.addLogTableModelListener { event ->
-            if (event.dataChange == LogTableModelEvent.EVENT_CHANGED) {
-                splitLogWithEmptyStatePanel.contentVisible = true
-            } else if (event.dataChange == LogTableModelEvent.EVENT_CLEARED) {
-                splitLogWithEmptyStatePanel.contentVisible = false
-            }
+            splitLogWithEmptyStatePanel.contentVisible = (event.source as LogTableModel).rowCount > 0
         }
     }
 
@@ -679,8 +651,7 @@ class MainUI(title: String) : JFrame(title), TaskListener {
     fun openFile(path: String, isAppend: Boolean) {
         GLog.d(TAG, "[openFile] Opening: $path, $isAppend")
         statusMethod.text = " ${STRINGS.ui.open} "
-        filteredTableModel.stopScan()
-        filteredTableModel.stopFollow()
+        filteredTableModel.stopAll()
 
         if (isAppend) {
             statusTF.text += "| $path"
@@ -690,8 +661,6 @@ class MainUI(title: String) : JFrame(title), TaskListener {
         val file = File(path)
         fullTableModel.loadFromFile(file, isAppend)
         filteredTableModel.loadFromFile(file, isAppend)
-
-        enabledFollowBtn(true)
 
         repaint()
 
@@ -727,19 +696,16 @@ class MainUI(title: String) : JFrame(title), TaskListener {
             statusMethod.text = " ${STRINGS.ui.adb} "
         }
 
-        filteredTableModel.stopScan()
-        filteredTableModel.stopFollow()
+        filteredTableModel.stopAll()
         pauseToggle.isSelected = false
         setSaveLogFile()
         if (reconnect) {
             LogCmdManager.targetDevice = deviceCombo.selectedItem?.toString() ?: ""
         }
         filteredTableModel.startScan()
-
-        enabledFollowBtn(false)
     }
 
-    fun stopAdbScan() {
+    fun stopAll() {
         if (LogCmdManager.getType() == LogCmdManager.TYPE_CMD) {
             statusMethod.text = " ${STRINGS.ui.cmd} ${STRINGS.ui.stop} "
         } else {
@@ -750,9 +716,7 @@ class MainUI(title: String) : JFrame(title), TaskListener {
             GLog.d(TAG, "stopAdbScan : not adb scanning mode")
             return
         }
-        filteredTableModel.stopScan()
-
-        enabledFollowBtn(true)
+        filteredTableModel.stopAll()
     }
 
     fun isRestartAdbLogcat(): Boolean {
@@ -764,51 +728,15 @@ class MainUI(title: String) : JFrame(title), TaskListener {
         LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
     }
 
-    fun pauseAdbScan(pause: Boolean) {
-        if (!filteredTableModel.isScanning()) {
-            GLog.d(TAG, "[pauseAdbScan] not adb scanning mode")
-            return
-        }
-        filteredTableModel.pauseScan(pause)
+    fun pause(pause: Boolean) {
+        filteredTableModel.pause(pause)
     }
 
-    fun setFollowLogFile(filePath: String) {
+    private fun startFileFollow(filePath: String) {
         statusTF.text = filePath
-    }
-
-    fun startFileFollow(filePath: String = "") {
         statusMethod.text = " ${STRINGS.ui.follow} "
-        filteredTableModel.stopScan()
-        filteredTableModel.stopFollow()
-        pauseFollowToggle.isSelected = false
-        filteredTableModel.startFollow(if (filePath.isEmpty()) null else File(filePath))
-
-        enabledFollowBtn(true)
-    }
-
-    fun stopFileFollow() {
-        if (!filteredTableModel.isFollowing()) {
-            GLog.d(TAG, "[stopAdbScan] not file follow mode")
-            return
-        }
-        statusMethod.text = " ${STRINGS.ui.follow} ${STRINGS.ui.stop} "
-        filteredTableModel.stopFollow()
-        enabledFollowBtn(true)
-    }
-
-    fun pauseFileFollow(pause: Boolean) {
-        if (!filteredTableModel.isFollowing()) {
-            GLog.d(TAG, "[pauseFileFollow] not file follow mode")
-            return
-        }
-        filteredTableModel.pauseFollow(pause)
-    }
-
-    private fun enabledFollowBtn(enabled: Boolean) {
-        followLabel.isEnabled = enabled
-        startFollowBtn.isEnabled = enabled
-        pauseFollowToggle.isEnabled = enabled
-        stopFollowBtn.isEnabled = enabled
+        filteredTableModel.stopAll()
+        filteredTableModel.startFollow(File(filePath))
     }
 
     internal inner class ActionHandler : ActionListener {
@@ -819,7 +747,7 @@ class MainUI(title: String) : JFrame(title), TaskListener {
                 }
 
                 adbDisconnectBtn -> {
-                    stopAdbScan()
+                    stopAll()
                     LogCmdManager.disconnect()
                 }
 
@@ -839,6 +767,10 @@ class MainUI(title: String) : JFrame(title), TaskListener {
                     clearViews()
                 }
 
+                adbRefreshBtn -> {
+                    refreshDevices()
+                }
+
                 saveBtn -> {
                     if (filteredTableModel.isScanning()) {
                         // TODO Save As
@@ -846,14 +778,6 @@ class MainUI(title: String) : JFrame(title), TaskListener {
                         // TODO Disable Save button
                         GLog.d(TAG, "SaveBtn : not adb scanning mode")
                     }
-                }
-
-                startFollowBtn -> {
-                    startFileFollow()
-                }
-
-                stopFollowBtn -> {
-                    stopFileFollow()
                 }
             }
         }
@@ -872,13 +796,13 @@ class MainUI(title: String) : JFrame(title), TaskListener {
     }
 
     private fun connect() {
-        stopAdbScan()
+        stopAll()
         LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
         LogCmdManager.connect()
     }
 
     private fun stopScan() {
-        stopAdbScan()
+        stopAll()
         LogCmdManager.stop()
     }
 
@@ -934,14 +858,14 @@ class MainUI(title: String) : JFrame(title), TaskListener {
         private val actionHandler = ActionHandler()
 
         init {
-            selectAllItem.addActionListener(actionHandler)
             add(selectAllItem)
-            copyItem.addActionListener(actionHandler)
             add(copyItem)
-            pasteItem.addActionListener(actionHandler)
             add(pasteItem)
-            reconnectItem.addActionListener(actionHandler)
             add(reconnectItem)
+            selectAllItem.addActionListener(actionHandler)
+            copyItem.addActionListener(actionHandler)
+            pasteItem.addActionListener(actionHandler)
+            reconnectItem.addActionListener(actionHandler)
         }
 
         internal inner class ActionHandler : ActionListener {
@@ -1118,20 +1042,16 @@ class MainUI(title: String) : JFrame(title), TaskListener {
         }
 
         Thread {
-            run {
-                Thread.sleep(200)
-                clearViews()
-                Thread.sleep(200)
-                startAdbScan(true)
-            }
+            Thread.sleep(200)
+            clearViews()
+            Thread.sleep(200)
+            startAdbScan(true)
         }.start()
     }
 
     fun startAdbLog() {
         Thread {
-            run {
-                startAdbScan(true)
-            }
+            startAdbScan(true)
         }.start()
     }
 
@@ -1141,9 +1061,7 @@ class MainUI(title: String) : JFrame(title), TaskListener {
 
     fun clearAdbLog() {
         Thread {
-            run {
-                clearViews()
-            }
+            clearViews()
         }.start()
     }
 
@@ -1375,11 +1293,7 @@ class MainUI(title: String) : JFrame(title), TaskListener {
                 }
 
                 pauseToggle -> {
-                    pauseAdbScan(pauseToggle.isSelected)
-                }
-
-                pauseFollowToggle -> {
-                    pauseFileFollow(pauseFollowToggle.isSelected)
+                    pause(pauseToggle.isSelected)
                 }
             }
         }

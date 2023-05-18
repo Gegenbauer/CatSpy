@@ -16,6 +16,7 @@ import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.awt.event.FocusListener
 import javax.swing.event.ListSelectionEvent
+import javax.swing.event.TableModelEvent
 
 class FilteredLogPanel(
     mainUI: MainUI,
@@ -95,7 +96,7 @@ class FilteredLogPanel(
         return filtersBtn
     }
 
-    override fun onTableFilterStateChanged(event: LogTableModelEvent) {
+    override fun onTableFilterStateChanged(event: TableModelEvent) {
         super.onTableFilterStateChanged(event)
         val selectedLine = mainUI.getMarkLine()
         if (selectedLine >= 0) {

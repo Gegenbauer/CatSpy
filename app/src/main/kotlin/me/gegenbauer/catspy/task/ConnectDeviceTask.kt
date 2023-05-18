@@ -4,8 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ModelScope
 
-class ConnectDeviceTask : BaseObservableTask() {
-    override val name: String = "ConnectDeviceTask"
+class ConnectDeviceTask() : BaseObservableTask(name = "ConnectDeviceTask") {
     override val scope: CoroutineScope = ModelScope()
 
     override fun start() {

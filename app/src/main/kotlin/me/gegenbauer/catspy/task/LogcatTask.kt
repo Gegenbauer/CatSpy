@@ -13,11 +13,10 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicInteger
 
-class LogcatTask(private val device: String) : CommandTask(arrayOf("adb", "logcat")) {
+class LogcatTask(private val device: String) : CommandTask(arrayOf("adb", "logcat"), name = "LogcatTask") {
     // test command
     // arrayOf("adb", "logcat")
     // arrayOf("cat", "/home/yingbin/.config/CatSpy/applog/53373619/CatSpy_53373619_20230513_11.39.26.txt")
-    override val name: String = "LogcatTask"
 
     // TODO clean empty log file when process exit
     val tempFile = getTempLogFile()

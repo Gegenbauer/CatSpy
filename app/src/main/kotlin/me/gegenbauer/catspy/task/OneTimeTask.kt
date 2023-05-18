@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.task
 
-class OneTimeTask<T>: BaseObservableTask() {
-    override val name: String = "OneTimeTask"
+class OneTimeTask<T>: BaseObservableTask(name = "OneTimeTask") {
 
     override suspend fun startInCoroutine() {
         super.startInCoroutine()
