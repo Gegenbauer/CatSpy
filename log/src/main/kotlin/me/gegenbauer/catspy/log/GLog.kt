@@ -20,7 +20,11 @@ object GLog : ILogger {
             logConfig.setLevel(getLevel(value))
         }
     private val loggers = ConcurrentHashMap<String, GLogger>()
-    private lateinit var logConfig: LogConfig
+    private var logConfig: LogConfig = defaultConfig
+
+    init {
+        debug = true
+    }
 
     private fun getLevel(debug: Boolean): Level = if (debug) {
         Level.ALL
@@ -61,8 +65,13 @@ object GLog : ILogger {
     }
 
     private fun getLogger(tag: String): GLogger {
-        return loggers.getOrPut(tag) {
-            GLogger(tag).apply { logConfig.configure(this) }
+        return if (loggers.containsKey(tag)) {
+            loggers[tag]!!
+        } else {
+            GLogger(tag).apply {
+                logConfig.configure(this)
+                loggers[tag] = this
+            }
         }
     }
 }

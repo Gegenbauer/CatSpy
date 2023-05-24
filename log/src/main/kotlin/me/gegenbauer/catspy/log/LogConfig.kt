@@ -6,6 +6,8 @@ import java.util.logging.Handler
 import java.util.logging.Level
 import java.util.logging.Logger
 
+internal val defaultConfig = LogConfig(System.getProperty("user.dir"), "catspy.log")
+
 internal class LogConfig(logPath: String, logName: String) {
     private val logFilePath = logPath.appendPath(logName)
     private val consoleHandler: Handler = ConsoleHandler().apply {
@@ -28,8 +30,17 @@ internal class LogConfig(logPath: String, logName: String) {
     }
 
     fun configure(gLogger: GLogger) {
-        gLogger.logger.useParentHandlers = true
+        gLogger.logger.useParentHandlers = false
         gLogger.logger.parent = parentLogger
+        gLogger.logger.addHandlerIfNotPresent(fileHandler)
+        gLogger.logger.addHandlerIfNotPresent(consoleHandler)
+    }
+
+    private fun Logger.addHandlerIfNotPresent(handler: Handler) {
+        if (handlers.contains(handler)) {
+            return
+        }
+        addHandler(handler)
     }
 
     companion object {

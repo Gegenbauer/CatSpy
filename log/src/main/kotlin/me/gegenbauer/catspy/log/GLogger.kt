@@ -6,7 +6,7 @@ import java.net.UnknownHostException
 import java.util.logging.*
 
 class GLogger(tag: String) : ILogger {
-    val logger = Logger.getLogger(tag)
+    val logger: Logger = Logger.getLogger(tag)
 
     override fun v(tag: String, msg: String) {
         logger.fine(msg)
