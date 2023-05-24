@@ -1,8 +1,11 @@
 package me.gegenbauer.catspy
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.AppScope
+import me.gegenbauer.catspy.concurrency.CPU
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
@@ -61,6 +64,12 @@ fun main() {
                 // TODO 实现绑定接触，并检测是否成功解除
             }
         })
+        repeat(100) {
+            withContext(Dispatchers.CPU) {
+                delay(2)
+                vm.text.updateValue(System.currentTimeMillis().toString())
+            }
+        }
     }
 }
 

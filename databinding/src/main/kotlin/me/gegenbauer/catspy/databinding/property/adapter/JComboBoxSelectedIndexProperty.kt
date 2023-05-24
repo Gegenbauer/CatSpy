@@ -8,7 +8,7 @@ class JComboBoxSelectedIndexProperty<ITEM>(component: JComboBox<ITEM>) :
     BasePropertyAdapter<JComboBox<ITEM>, Int, ItemListener>(component) {
 
     override val propertyChangeListener: ItemListener = ItemListener {
-        propertyChangeObserver?.invoke(component.selectedIndex)
+        notifyValueChange(component.selectedIndex)
     }
 
     init {

@@ -15,7 +15,7 @@ class JComboBoxListProperty<ITEM>(component: JComboBox<ITEM>) :
             if (e.index0 < 0 && e.index1 < 0) { // selected item change
                 return
             }
-            component.getAllItems().let { propertyChangeObserver?.invoke(it) }
+            notifyValueChange(component.getAllItems())
         }
     }
 
@@ -37,12 +37,10 @@ class JComboBoxListProperty<ITEM>(component: JComboBox<ITEM>) :
 
     override fun updateValue(value: List<ITEM>?) {
         value ?: return
-        component.withAllListenerDisabled {
-            removeAllItems()
-            value.forEach(component::addItem)
-        }
+        component.removeAllItems()
+        value.forEach(component::addItem)
         component.editor.item = value.firstOrNull()
-        propertyChangeObserver?.invoke(value)
+        propertyChangeObserver?.updateValue(value)
     }
 
 }

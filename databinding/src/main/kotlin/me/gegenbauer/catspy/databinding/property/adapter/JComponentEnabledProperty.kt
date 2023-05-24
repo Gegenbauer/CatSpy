@@ -8,7 +8,7 @@ import javax.swing.JComponent
 class JComponentEnabledProperty(component: JComponent) : BasePropertyAdapter<JComponent, Boolean, PropertyChangeListener>(component) {
 
     override val propertyChangeListener: PropertyChangeListener = PropertyChangeListener { evt ->
-        propertyChangeObserver?.invoke(evt.newValue as Boolean)
+        notifyValueChange(evt.newValue as? Boolean)
     }
 
     init {

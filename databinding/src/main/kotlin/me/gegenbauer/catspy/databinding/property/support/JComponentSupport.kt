@@ -1,12 +1,9 @@
 package me.gegenbauer.catspy.databinding.property.support
 
-import kotlinx.coroutines.*
-import me.gegenbauer.catspy.concurrency.ModelScope
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.util.*
 import javax.swing.JComponent
-import kotlin.coroutines.CoroutineContext
 
 open class DefaultFocusListener : FocusListener {
 
@@ -32,6 +29,7 @@ fun JComponent.withPropertyChangeListenerDisabled(propertyName: String, action: 
     listenerList[propertyName] = propertyChangeListenersCache
 }
 
+@Suppress("UNCHECKED_CAST")
 var JComponent.propertyChangeListenerList: MutableMap<String, Array<EventListener>>?
     get() {
         val changeSupportField = getFieldDeeply("changeSupport")

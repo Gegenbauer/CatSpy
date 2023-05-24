@@ -9,7 +9,7 @@ class JComponentVisibilityProperty(component: JComponent): BasePropertyAdapter<J
 
     override val propertyChangeListener: HierarchyListener = HierarchyListener {
         if (it.changeFlags and HierarchyEvent.SHOWING_CHANGED.toLong() != 0L) {
-            propertyChangeObserver?.invoke(component.isShowing)
+            notifyValueChange(component.isShowing)
         }
     }
 

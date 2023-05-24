@@ -9,7 +9,7 @@ class AbstractButtonSelectedProperty(component: AbstractButton) :
     BasePropertyAdapter<AbstractButton, Boolean, ItemListener>(component) {
 
     override val propertyChangeListener: ItemListener = ItemListener { e: ItemEvent ->
-        propertyChangeObserver?.invoke(e.stateChange == ItemEvent.SELECTED)
+        notifyValueChange(e.stateChange == ItemEvent.SELECTED)
     }
 
     init {

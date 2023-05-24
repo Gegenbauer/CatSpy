@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     kotlin("jvm") version Kotlin.version
     `java-library`
@@ -15,6 +17,13 @@ dependencies {
     testImplementation(projects.log)
     testImplementation(Weisj.darklafCore.group, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
     testImplementation(JGoodies.binding.group, JGoodies.binding.artifact, JGoodies.binding.version)
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "11"
+        freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+    }
 }
 
 tasks.getByName<Test>("test") {

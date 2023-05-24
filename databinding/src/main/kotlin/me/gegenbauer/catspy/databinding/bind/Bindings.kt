@@ -19,6 +19,7 @@ interface Bindable {
 
 private const val KEY_BINDING_CACHE = "binding_cache"
 
+@Suppress("UNCHECKED_CAST")
 internal fun JComponent.getOrCreateBindingCache(): MutableMap<ObservableComponentProperty<*>, BindingItem> {
     var bindingCache = getClientProperty(KEY_BINDING_CACHE) as? MutableMap<ObservableComponentProperty<*>, BindingItem>
     if (bindingCache == null) {
@@ -28,6 +29,7 @@ internal fun JComponent.getOrCreateBindingCache(): MutableMap<ObservableComponen
     return bindingCache
 }
 
+@Suppress("UNCHECKED_CAST")
 var JComponent.bindingCache: MutableMap<ObservableComponentProperty<*>, BindingItem>?
     get() = getClientProperty(KEY_BINDING_CACHE) as? MutableMap<ObservableComponentProperty<*>, BindingItem>
     set(value) {
@@ -50,10 +52,7 @@ enum class BindType : Bindable {
                 return
             }
             GLog.d(TAG, "[bind ONE_WAY_TO_SOURCE] binding ${componentProperty.getDisplayName()} to ${viewModelProperty.getDisplayName()}")
-            val observer = ComponentPropertyObserver<T> { newValue ->
-                GLog.d(TAG, "[ComponentPropertyObserver] ${componentProperty.getDisplayName()} property change to $newValue")
-                viewModelProperty.updateValue(newValue)
-            }
+            val observer = ComponentPropertyObserver(viewModelProperty, componentProperty)
             componentProperty.addObserver(observer)
             bindingCache[componentProperty] = BindingItem(this, componentProperty, viewModelProperty, observer)
         }
@@ -69,10 +68,7 @@ enum class BindType : Bindable {
                 GLog.w(TAG, "[bind ONE_WAY_TO_TARGET] binding ${bindingCache[componentProperty]?.javaClass?.simpleName} already exists")
                 return
             }
-            val observer = ViewModelPropertyObserver<T> { newValue ->
-                GLog.d(TAG, "[ViewModelPropertyObserver] ${viewModelProperty.getDisplayName()} property change to $newValue")
-                componentProperty.updateValue(newValue)
-            }
+            val observer = ViewModelPropertyObserver(componentProperty, viewModelProperty)
             viewModelProperty.addObserver(observer)
             bindingCache[componentProperty] = BindingItem(this, componentProperty, viewModelProperty, null, observer)
         }
@@ -89,15 +85,9 @@ enum class BindType : Bindable {
                 GLog.w(TAG, "[bind TWO_WAY] binding ${bindingCache[componentProperty]?.javaClass?.simpleName} already exists")
                 return
             }
-            val viewModelPropertyObserver = ViewModelPropertyObserver<T> { newValue ->
-                GLog.d(TAG, "[ViewModelPropertyObserver] ${viewModelProperty.getDisplayName()} property change to $newValue")
-                componentProperty.updateValue(newValue)
-            }
+            val viewModelPropertyObserver = ViewModelPropertyObserver(componentProperty, viewModelProperty)
             viewModelProperty.addObserver(viewModelPropertyObserver)
-            val componentPropertyObserver = ComponentPropertyObserver<T> { newValue ->
-                GLog.d(TAG, "[ComponentPropertyObserver] ${componentProperty.getDisplayName()} property change to $newValue")
-                viewModelProperty.updateValue(newValue)
-            }
+            val componentPropertyObserver = ComponentPropertyObserver(viewModelProperty, componentProperty)
             componentProperty.addObserver(componentPropertyObserver)
             bindingCache[componentProperty] = BindingItem(this, componentProperty, viewModelProperty, componentPropertyObserver, viewModelPropertyObserver)
         }
@@ -109,7 +99,7 @@ data class BindingItem(
     val componentProperty: ObservableComponentProperty<*>,
     val viewModelProperty: ObservableViewModelProperty<*>,
     var componentPropertyChangeListener: ComponentPropertyObserver<*>? = null,
-    var viewModelPropertyChangeListener: ViewModelPropertyObserver<*>? = null
+    var viewModelPropertyChangeListener: ViewModelPropertyObserver<*>? = null,
 ) {
     override fun hashCode(): Int {
         return componentProperty.hashCode()

@@ -3,16 +3,15 @@ package me.gegenbauer.catspy.databinding.bind
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.AppScope
-import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.concurrency.isInMainThread
 import me.gegenbauer.catspy.databinding.property.support.PropertyAdapter
 import javax.swing.JComponent
 
 abstract class ObservableComponentProperty<T>(
     val component: JComponent,
 ) : ObservableProperty<T>() {
-    private var propertyChangeObserver: ((T?) -> Unit)? = null
     private val propertyAdapter: PropertyAdapter<T, *> = getPropertyAdapterImpl().apply {
-        observeValueChange(this@ObservableComponentProperty::updateValue)
+        observeValueChange(this@ObservableComponentProperty)
     }
 
     abstract fun getPropertyAdapterImpl(): PropertyAdapter<T, *>
@@ -23,13 +22,17 @@ abstract class ObservableComponentProperty<T>(
         return "${component.javaClass.simpleName}_${component.hashCode()}_${getValueType()}"
     }
 
-    final override fun updateValue(newValue: T?) {
-        if (value != newValue && newValue != null) {
-            AppScope.launch(Dispatchers.UI) {
-                setProperty(newValue)
+    override fun updateValueInternal(newValue: T?) {
+        value = newValue
+        if (isInMainThread()) {
+            setProperty(value)
+            notifyValueChange(value)
+        } else {
+            AppScope.launch(Dispatchers.Main) {
+                setProperty(value)
+                notifyValueChange(value)
             }
         }
-        super.updateValue(newValue)
     }
 
     /**

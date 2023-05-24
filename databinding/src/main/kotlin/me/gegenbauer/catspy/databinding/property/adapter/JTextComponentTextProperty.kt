@@ -2,7 +2,6 @@ package me.gegenbauer.catspy.databinding.property.adapter
 
 import me.gegenbauer.catspy.databinding.property.support.BasePropertyAdapter
 import me.gegenbauer.catspy.databinding.property.support.DefaultDocumentListener
-import me.gegenbauer.catspy.databinding.property.support.withDocumentListenerDisabled
 import javax.swing.event.DocumentListener
 import javax.swing.text.JTextComponent
 
@@ -12,7 +11,7 @@ class JTextComponentTextProperty(component: JTextComponent) :
     override val propertyChangeListener: DocumentListener = object : DefaultDocumentListener() {
 
         override fun contentUpdate(content: String) {
-            propertyChangeObserver?.invoke(content)
+            notifyValueChange(content)
         }
     }
 
@@ -28,9 +27,7 @@ class JTextComponentTextProperty(component: JTextComponent) :
         if (component.text == value) {
             return
         }
-        component.withDocumentListenerDisabled(propertyChangeListener) {
-            text = value
-        }
+        component.text = value
         component.repaint()
     }
 

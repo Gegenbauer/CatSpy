@@ -1,10 +1,17 @@
 package me.gegenbauer.catspy.databinding.property.support
 
-abstract class BasePropertyAdapter<COMPONENT, VALUE, LISTENER>(protected val component: COMPONENT) : PropertyAdapter<VALUE, LISTENER> {
+import me.gegenbauer.catspy.databinding.bind.*
 
-    protected var propertyChangeObserver: ((VALUE?) -> Unit)? = null
+abstract class BasePropertyAdapter<COMPONENT, VALUE, LISTENER>(protected val component: COMPONENT) :
+    PropertyAdapter<VALUE, LISTENER> {
 
-    override fun observeValueChange(observer: (VALUE?) -> Unit) {
+    protected var propertyChangeObserver: ValueUpdater<VALUE>? = null
+
+    override fun observeValueChange(observer: ValueUpdater<VALUE>) {
         propertyChangeObserver = observer
+    }
+
+    protected fun notifyValueChange(value: VALUE?) {
+        propertyChangeObserver?.updateValue(value)
     }
 }

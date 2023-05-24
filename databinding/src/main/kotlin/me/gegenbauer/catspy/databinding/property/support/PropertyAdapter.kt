@@ -1,11 +1,13 @@
 package me.gegenbauer.catspy.databinding.property.support
 
+import me.gegenbauer.catspy.databinding.bind.ValueUpdater
+
 interface PropertyAdapter<VALUE, LISTENER> {
     val propertyChangeListener: LISTENER
 
     fun updateValue(value: VALUE?)
 
-    fun observeValueChange(observer: (VALUE?) -> Unit)
+    fun observeValueChange(observer: ValueUpdater<VALUE>)
 
     @Disposable
     fun removePropertyChangeListener()

@@ -19,8 +19,8 @@ fun enabledProperty(component: JComponent): ObservableComponentProperty<Boolean>
 
     override fun createProperty(component: JComponent) = enabledProperty(component)
 
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_Enabled}"
+    override fun getValueType(): String {
+        return "Enabled"
     }
 }
 
@@ -29,8 +29,8 @@ fun visibilityProperty(component: JComponent): ObservableComponentProperty<Boole
 
     override fun createProperty(component: JComponent) = visibilityProperty(component)
 
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_Visibility}"
+    override fun getValueType(): String {
+        return "Visibility"
     }
 }
 
@@ -39,8 +39,8 @@ fun selectedProperty(component: AbstractButton): ObservableComponentProperty<Boo
 
     override fun createProperty(component: JComponent) = selectedProperty(component as AbstractButton)
 
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_Selected}"
+    override fun getValueType(): String {
+        return "Selected"
     }
 }
 
@@ -50,8 +50,8 @@ fun textProperty(component: JTextComponent): ObservableComponentProperty<String>
 
     override fun createProperty(component: JComponent) = textProperty(component as JTextComponent)
 
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_Text}"
+    override fun getValueType(): String {
+        return "Text"
     }
 }
 
@@ -60,28 +60,30 @@ fun textProperty(component: JLabel): ObservableComponentProperty<String> = objec
 
     override fun createProperty(component: JComponent) = textProperty(component as JLabel)
 
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_Text}"
+    override fun getValueType(): String {
+        return "Text"
     }
 }
 
 fun <T> listProperty(component: JComboBox<T>): ObservableComponentProperty<List<T>> = object : ObservableComponentProperty<List<T>>(component) {
     override fun getPropertyAdapterImpl(): PropertyAdapter<List<T>, ListDataListener> = JComboBoxListProperty(component)
 
+    @Suppress("UNCHECKED_CAST")
     override fun createProperty(component: JComponent) = listProperty(component as JComboBox<T>)
 
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_List}"
+    override fun getValueType(): String {
+        return "List"
     }
 }
 
 fun <T> selectedIndexProperty(component: JComboBox<T>): ObservableComponentProperty<Int> = object : ObservableComponentProperty<Int>(component) {
     override fun getPropertyAdapterImpl(): PropertyAdapter<Int, ItemListener> = JComboBoxSelectedIndexProperty(component)
 
+    @Suppress("UNCHECKED_CAST")
     override fun createProperty(component: JComponent) = selectedIndexProperty(component as JComboBox<T>)
 
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_SelectedIndex}"
+    override fun getValueType(): String {
+        return "SelectedIndex"
     }
 }
 
@@ -92,10 +94,11 @@ fun <T> customProperty(component: JComponent, propertyName: String, initValue: T
         setProperty(initValue)
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun createProperty(component: JComponent) = customProperty(component as JComboBox<T>, propertyName, initValue)
 
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_Custom_$propertyName}"
+    override fun getValueType(): String {
+        return "Custom_$propertyName"
     }
 }
 
@@ -104,8 +107,8 @@ fun dividerProperty(component: JSplitPane): ObservableComponentProperty<Int> = o
 
     override fun createProperty(component: JComponent) = dividerProperty(component as JSplitPane)
 
-    override fun getDisplayName(): String {
-        return "${component.javaClass.simpleName}_${component.hashCode()}_Divider}"
+    override fun getValueType(): String {
+        return "Divider"
     }
 }
 
