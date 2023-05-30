@@ -21,14 +21,18 @@ dependencies {
     implementation(projects.log)
     implementation(projects.concurrency)
     implementation(projects.databinding)
+    implementation(projects.task)
+    implementation(projects.ddmlib)
     implementation(FormDev.flatLaf.group, FormDev.flatLaf.artifact, FormDev.flatLaf.version)
     implementation(Weisj.darklafCore.group, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
     implementation(Weisj.darklafVisualPadding.group, Weisj.darklafVisualPadding.artifact, Weisj.darklafVisualPadding.version)
     implementation(Gson.gson.group, Gson.gson.artifact, Gson.gson.version)
+    implementation("com.fifesoft:autocomplete:3.3.1")
+    testImplementation(kotlin("test"))
 }
 
 tasks.test {
-    useJUnit()
+    useJUnitPlatform()
 }
 
 tasks.withType<KotlinCompile> {

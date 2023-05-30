@@ -38,6 +38,18 @@ object FormDev {
     val flatLaf = Dependency(groupName, "flatlaf", "3.0")
 }
 
+object Adam {
+    val groupName = "com.malinskiy.adam"
+
+    val adam = Dependency(groupName, "adam", "0.5.0")
+}
+
+object Slf4j {
+    val groupName = "org.slf4j"
+
+    val simple = Dependency(groupName, "slf4j-simple", "1.7.32")
+}
+
 data class Dependency(
     val group: String,
     val artifact: String,

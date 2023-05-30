@@ -6,7 +6,9 @@ include(
     "app",
     "databinding",
     "log",
-    "concurrency"
+    "concurrency",
+    "ddmlib",
+    "task",
 )
 
 pluginManagement {

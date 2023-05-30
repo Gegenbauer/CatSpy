@@ -10,9 +10,10 @@ import kotlin.reflect.jvm.isAccessible
 
 private const val TAG = "Reflection"
 
-fun Any.invokeMethod(methodName: String, vararg args: Any?) {
-    kotlin.runCatching {
+fun Any.invokeMethod(methodName: String, vararg args: Any?): Any? {
+    return kotlin.runCatching {
         val method = this::class.declaredMemberFunctions.firstOrNull { it.name == methodName }
+        method?.isAccessible = true
         if (method != null && method.isAccessible) {
             method.call(this, *args)
         } else {
