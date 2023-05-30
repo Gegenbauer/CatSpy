@@ -3,6 +3,10 @@ package me.gegenbauer.catspy.ui.combobox.highlight
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.FilterComboBox.fontBackgroundInclude
 import me.gegenbauer.catspy.ui.combobox.HistoryItem
+import me.gegenbauer.catspy.ui.filter.AutoCompleteFilterField
+import org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter
+import java.awt.Color
+import java.awt.Component
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
@@ -22,31 +26,41 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
     var useColorTag: Boolean = true
     private var isHighlightEnabled = true
     private val customHighlighters = arrayListOf<Any>()
+    private val component = AutoCompleteFilterField()
+    private val textEditor = editorComponent as JTextComponent
+    private val errorHighlightPainter = SquiggleUnderlineHighlightPainter(Color.RED)
+    private val excludeHighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleExclude)
+    private val includeHighlightPainter = DefaultHighlighter.DefaultHighlightPainter(fontBackgroundInclude)
+    private val operatorHighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleSeparator)
 
     override fun setItem(item: Any?) {
         if (item is String || item is HistoryItem<*>) {
-            if (item.toString() != editor.text) {
-                editor.text = item.toString()
+            if (item.toString() != textEditor.text) {
+                textEditor.text = item.toString()
                 updateHighlighter()
             }
         } else {
-            editor.text = ""
+            textEditor.text = ""
         }
     }
 
+    override fun getEditorComponent(): Component {
+        return component
+    }
+
     override fun getItem(): Any {
-        return editor.text
+        return textEditor.text
     }
 
     init {
-        editor.addCaretListener {
+        textEditor.addCaretListener {
             if (it.dot != it.mark) {
                 removeHighlighter()
             } else {
                 updateHighlighter()
             }
         }
-        editor.addMouseListener(object : MouseAdapter() {
+        textEditor.addMouseListener(object : MouseAdapter() {
             override fun mousePressed(e: MouseEvent?) {
                 removeHighlighter()
             }
@@ -60,12 +74,12 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
                 }
             }
         })
-        editor.addFocusListener(object : FocusAdapter() {
+        textEditor.addFocusListener(object : FocusAdapter() {
             override fun focusLost(e: FocusEvent?) {
                 updateHighlighter()
             }
         })
-        editor.document.addDocumentListener(object : DocumentListener {
+        textEditor.document.addDocumentListener(object : DocumentListener {
             override fun insertUpdate(e: DocumentEvent?) {
                 updateHighlighter()
             }
@@ -84,10 +98,13 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
         if (!isHighlightEnabled) {
             return
         }
-        val painterInclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(fontBackgroundInclude)
-        val painterExclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleExclude)
-        val painterSeparator: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleSeparator)
-        val text = editor.text
+        val painterInclude: Highlighter.HighlightPainter =
+            DefaultHighlighter.DefaultHighlightPainter(fontBackgroundInclude)
+        val painterExclude: Highlighter.HighlightPainter =
+            DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleExclude)
+        val painterSeparator: Highlighter.HighlightPainter =
+            DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleSeparator)
+        val text = textEditor.text
         val separator = "|"
         try {
             removeHighlighter()
@@ -101,18 +118,37 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
                 }
                 if (startPos in 0 until endPos) {
                     if (text[startPos] == '-') {
-                        customHighlighters.add(editor.highlighter.addHighlight(startPos, endPos, painterExclude))
+                        customHighlighters.add(textEditor.highlighter.addHighlight(startPos, endPos, painterExclude))
                     } else if (useColorTag && text[startPos] == '#' && startPos < (endPos - 1) && text[startPos + 1].isDigit()) {
                         val color = ColorScheme.filteredBGs[text[startPos + 1].digitToInt()]
-                        val painterColor: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(color)
-                        customHighlighters.add(editor.highlighter.addHighlight(startPos, startPos + 2, painterColor))
-                        customHighlighters.add(editor.highlighter.addHighlight(startPos + 2, endPos, painterInclude))
+                        val painterColor: Highlighter.HighlightPainter =
+                            DefaultHighlighter.DefaultHighlightPainter(color)
+                        customHighlighters.add(
+                            textEditor.highlighter.addHighlight(
+                                startPos,
+                                startPos + 2,
+                                painterColor
+                            )
+                        )
+                        customHighlighters.add(
+                            textEditor.highlighter.addHighlight(
+                                startPos + 2,
+                                endPos,
+                                painterInclude
+                            )
+                        )
                     } else {
-                        customHighlighters.add(editor.highlighter.addHighlight(startPos, endPos, painterInclude))
+                        customHighlighters.add(textEditor.highlighter.addHighlight(startPos, endPos, painterInclude))
                     }
                 }
                 if (separatorPos >= 0) {
-                    customHighlighters.add(editor.highlighter.addHighlight(separatorPos, separatorPos + 1, painterSeparator))
+                    customHighlighters.add(
+                        textEditor.highlighter.addHighlight(
+                            separatorPos,
+                            separatorPos + 1,
+                            painterSeparator
+                        )
+                    )
                 }
                 currPos = endPos + 1
             }

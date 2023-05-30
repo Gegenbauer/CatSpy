@@ -20,7 +20,6 @@ class SettingsMenu : JMenu() {
     private val itemLogCommand = JMenuItem("${STRINGS.ui.logCmd}(${STRINGS.ui.adb})")
     private val itemLogFile = JMenuItem(STRINGS.ui.logFile)
     // TODO itemFilterIncremental has no sense
-    val itemFilterIncremental = JCheckBoxMenuItem("${STRINGS.ui.filter}-${STRINGS.ui.incremental}")
     val itemDebug = JCheckBoxMenuItem(STRINGS.ui.debug)
     private val menuLogLevel = JMenu(STRINGS.ui.logLevel)
     private val logLevelGroup = ButtonGroup()
@@ -46,13 +45,10 @@ class SettingsMenu : JMenu() {
         when (it.source) {
             itemLogCommand -> openLogCommandConfigurationDialog()
             itemLogFile -> openLogCommandConfigurationDialog()
-            itemFilterIncremental -> UIConfManager.uiConf.filterIncrementalEnabled = itemFilterIncremental.state
         }
     }
     var onLogLevelChangedListener: (LogLevel) -> Unit = {}
     private var logLevel: String = ""
-    val filterIncremental: Boolean
-        get() = itemFilterIncremental.state
 
     init {
         text = STRINGS.ui.setting
@@ -92,18 +88,13 @@ class SettingsMenu : JMenu() {
             })
         }
 
-        itemFilterIncremental.state = UIConfManager.uiConf.filterIncrementalEnabled
-
         itemLogFile.addActionListener(itemClickListener)
         itemLogCommand.addActionListener(itemClickListener)
-        itemFilterIncremental.addActionListener(itemClickListener)
 
         add(itemLogCommand)
         add(itemLogFile)
         addSeparator()
         add(menuLogLevel)
-        addSeparator()
-        add(itemFilterIncremental)
         addSeparator()
         add(itemThemeSettings)
         addSeparator()

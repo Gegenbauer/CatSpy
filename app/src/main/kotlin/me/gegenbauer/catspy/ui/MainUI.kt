@@ -1148,41 +1148,15 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
 
             if (KeyEvent.VK_ENTER == event.keyCode) {
                 when {
-                    event.source == showLogCombo.editor.editorComponent && showLogToggle.isSelected -> {
-                        resetComboItem(
-                            MainViewModel.logFilterHistory,
-                            MainViewModel.logFilterCurrentContent.value ?: ""
-                        )
-                        filteredTableModel.filterLog = MainViewModel.logFilterCurrentContent.value ?: ""
-                    }
-
-                    event.source == boldLogCombo.editor.editorComponent && boldLogToggle.isSelected -> {
-                        resetComboItem(MainViewModel.boldHistory, MainViewModel.boldCurrentContent.value ?: "")
-                        filteredTableModel.filterHighlightLog = MainViewModel.boldCurrentContent.value ?: ""
-                    }
-
-                    event.source == showTagCombo.editor.editorComponent && showTagToggle.isSelected -> {
-                        resetComboItem(
-                            MainViewModel.tagFilterHistory,
-                            MainViewModel.tagFilterCurrentContent.value ?: ""
-                        )
-                        filteredTableModel.filterTag = MainViewModel.tagFilterCurrentContent.value ?: ""
-                    }
-
-                    event.source == showPidCombo.editor.editorComponent && showPidToggle.isSelected -> {
-                        resetComboItem(
-                            MainViewModel.pidFilterHistory,
-                            MainViewModel.pidFilterCurrentContent.value ?: ""
-                        )
-                        filteredTableModel.filterPid = MainViewModel.pidFilterCurrentContent.value ?: ""
-                    }
-
-                    event.source == showTidCombo.editor.editorComponent && showTidToggle.isSelected -> {
-                        resetComboItem(
-                            MainViewModel.tidFilterHistory,
-                            MainViewModel.tidFilterCurrentContent.value ?: ""
-                        )
-                        filteredTableModel.filterTid = MainViewModel.tidFilterCurrentContent.value ?: ""
+                    event.source in listOf(
+                        showLogCombo.editor.editorComponent,
+                        boldLogCombo.editor.editorComponent,
+                        showTagCombo.editor.editorComponent,
+                        showPidCombo.editor.editorComponent,
+                        showTidCombo.editor.editorComponent
+                    ) -> {
+                        updateComboBox()
+                        updateFilter()
                     }
 
                     event.source == logCmdCombo.editor.editorComponent -> {
@@ -1206,36 +1180,23 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                         applyScrollBack()
                     }
                 }
-            } else if (settingsMenu.filterIncremental) {
-                when {
-                    event.source == showLogCombo.editor.editorComponent && showLogToggle.isSelected -> {
-                        val item = showLogCombo.editor.item.toString()
-                        filteredTableModel.filterLog = item
-                    }
-
-                    event.source == boldLogCombo.editor.editorComponent && boldLogToggle.isSelected -> {
-                        val item = boldLogCombo.editor.item.toString()
-                        filteredTableModel.filterHighlightLog = item
-                    }
-
-                    event.source == showTagCombo.editor.editorComponent && showTagToggle.isSelected -> {
-                        val item = showTagCombo.editor.item.toString()
-                        filteredTableModel.filterTag = item
-                    }
-
-                    event.source == showPidCombo.editor.editorComponent && showPidToggle.isSelected -> {
-                        val item = showPidCombo.editor.item.toString()
-                        filteredTableModel.filterPid = item
-                    }
-
-                    event.source == showTidCombo.editor.editorComponent && showTidToggle.isSelected -> {
-                        val item = showTidCombo.editor.item.toString()
-                        filteredTableModel.filterTid = item
-                    }
-                }
             }
             super.keyReleased(event)
         }
+    }
+
+    private fun updateComboBox() {
+        resetComboItem(MainViewModel.logFilterHistory, MainViewModel.logFilterCurrentContent.value ?: "")
+        resetComboItem(MainViewModel.tagFilterHistory, MainViewModel.tagFilterCurrentContent.value ?: "")
+        resetComboItem(MainViewModel.pidFilterHistory, MainViewModel.pidFilterCurrentContent.value ?: "")
+        resetComboItem(MainViewModel.tidFilterHistory, MainViewModel.tidFilterCurrentContent.value ?: "")
+        resetComboItem(MainViewModel.boldHistory, MainViewModel.boldCurrentContent.value ?: "")
+    }
+
+    private fun updateFilter() {
+        val logcatFilter = LogcatRealTimeFilter(
+
+        )
     }
 
     internal inner class ItemHandler : ItemListener {
@@ -1401,6 +1362,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     }
 
     fun resetComboItem(viewModelProperty: ObservableViewModelProperty<List<HistoryItem<String>>>, item: String) {
+        if (item.isBlank()) return
         val list = viewModelProperty.value
         list ?: return
         val historyItem = HistoryItem(item)

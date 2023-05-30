@@ -57,7 +57,6 @@ public final class LogCatMessageParser {
      * doesn't match the expected format.
      *
      * @param line   raw text that should be the header line from logcat -v long
-     * @param device device from which these log messages have been received
      * @return a {@link LogCatHeader} which represents the passed in text
      */
     @Nullable

@@ -14,7 +14,7 @@ import me.gegenbauer.catspy.task.*
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.combobox.FilterComboBox
-import me.gegenbauer.catspy.ui.log.LogItem.Companion.fgColor
+import me.gegenbauer.catspy.ui.log.LogcatLogItem.Companion.fgColor
 import me.gegenbauer.catspy.utils.toHtml
 import java.awt.Color
 import java.io.BufferedReader
@@ -49,7 +49,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     private var matcherSearchLog: Matcher = patternSearchLog.matcher("")
     private var normalSearchLogSplit: List<String>? = null
     private val columnNames = arrayOf("line", "log")
-    private val logItems: MutableList<LogItem> = ArrayList()
+    private val logItems: MutableList<LogcatLogItem> = ArrayList()
     private val cachedItems = ArrayList<LogFilterItem>()
     private val logNum = AtomicInteger(0)
 
@@ -79,13 +79,13 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             if (field != value) {
                 isFilterUpdated = true
                 field = value
-            }
-            mainUI.showLogCombo.errorMsg = ""
-            val patterns = parsePattern(value, true)
-            filterShowLog = patterns[0]
-            filterHideLog = patterns[1]
+                mainUI.showLogCombo.errorMsg = ""
+                val patterns = parsePattern(value, true)
+                filterShowLog = patterns[0]
+                filterHideLog = patterns[1]
 
-            baseModel?.filterLog = value
+                baseModel?.filterLog = value
+            }
         }
 
     private var filterShowLog: String = ""
@@ -161,11 +161,11 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             if (field != value) {
                 isFilterUpdated = true
                 field = value
+                mainUI.showTagCombo.errorMsg = ""
+                val patterns = parsePattern(value, false)
+                filterShowTag = patterns[0]
+                filterHideTag = patterns[1]
             }
-            mainUI.showTagCombo.errorMsg = ""
-            val patterns = parsePattern(value, false)
-            filterShowTag = patterns[0]
-            filterHideTag = patterns[1]
         }
 
     private var filterShowTag: String = ""
@@ -184,11 +184,11 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             if (field != value) {
                 isFilterUpdated = true
                 field = value
+                mainUI.showPidCombo.errorMsg = ""
+                val patterns = parsePattern(value, false)
+                filterShowPid = patterns[0]
+                filterHidePid = patterns[1]
             }
-            mainUI.showPidCombo.errorMsg = ""
-            val patterns = parsePattern(value, false)
-            filterShowPid = patterns[0]
-            filterHidePid = patterns[1]
         }
 
     private var filterShowPid: String = ""
@@ -208,11 +208,11 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             if (field != value) {
                 isFilterUpdated = true
                 field = value
+                mainUI.showTidCombo.errorMsg = ""
+                val patterns = parsePattern(value, false)
+                patterns[0].let { filterShowTid = it }
+                patterns[1].let { filterHideTid = it }
             }
-            mainUI.showTidCombo.errorMsg = ""
-            val patterns = parsePattern(value, false)
-            patterns[0].let { filterShowTid = it }
-            patterns[1].let { filterHideTid = it }
         }
 
     private var filterShowTid: String = ""
@@ -308,6 +308,11 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     var scrollBackSplitFile = false
 
     var scrollBackKeep = false
+    var logFilter: LogcatRealTimeFilter = LogcatRealTimeFilter()
+        set(value) {
+            field = value
+            isFilterUpdated = true
+        }
 
     private var patternShowLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
     private var patternHideLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
@@ -440,7 +445,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         if (isAppend) {
             if (logItems.size > 0) {
                 logItems.add(
-                    LogItem.from(
+                    LogcatLogItem.from(
                         "${STRINGS.ui.app} - APPEND LOG : ${file.absoluteFile}",
                         logNum.getAndIncrement()
                     )
@@ -457,7 +462,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
         line = bufferedReader.readLine()
         while (line != null) {
-            val item = LogItem.from(line, logNum.getAndIncrement())
+            val item = LogcatLogItem.from(line, logNum.getAndIncrement())
             logItems.add(item)
             line = bufferedReader.readLine()
         }
@@ -1011,7 +1016,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             logItems.clear()
             logNum.set(0)
 
-            val logItems: MutableList<LogItem> = mutableListOf()
+            val logItems: MutableList<LogcatLogItem> = mutableListOf()
             if (bookmarkMode) {
                 for (item in baseModel!!.logItems) {
                     if (BookmarkManager.isBookmark(item.num)) {
@@ -1123,7 +1128,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         }
     }
 
-    internal data class LogFilterItem(val item: LogItem, val isShow: Boolean)
+    internal data class LogFilterItem(val item: LogcatLogItem, val isShow: Boolean)
 
     fun isScanning(): Boolean {
         return logcatTask?.isTaskRunning() ?: false
@@ -1185,7 +1190,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             Thread.sleep(5000)
             mainUI.restartAdbLogcat()
             startLogcatTask()
-            logItems.add(LogItem("${STRINGS.ui.app} - RESTART LOGCAT", level = LogLevel.ERROR))
+            logItems.add(LogcatLogItem("${STRINGS.ui.app} - RESTART LOGCAT", level = LogLevel.ERROR))
         }
     }
 
@@ -1255,7 +1260,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         count.incrementAndGet()
         cachedCount.incrementAndGet()
         var isShow: Boolean
-        val item = LogItem.from(line, logNum.getAndIncrement())
+        val item = LogcatLogItem.from(line, logNum.getAndIncrement())
 
         isShow = true
 

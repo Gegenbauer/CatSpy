@@ -65,7 +65,6 @@ object MainViewModel {
     //endregion
 
     //region Menu
-    val filterIncremental = ObservableViewModelProperty(UIConfManager.uiConf.filterIncrementalEnabled)
     val fullLog = ObservableViewModelProperty(UIConfManager.uiConf.logFullViewEnabled)
     val rotation = ObservableViewModelProperty(getEnum<Rotation>(UIConfManager.uiConf.rotation))
     val logLevel = ObservableViewModelProperty(UIConfManager.uiConf.logLevel)
@@ -109,7 +108,6 @@ object MainViewModel {
 
             //region Menu
             selectedProperty(settingsMenu.itemDebug) bindDual GlobalViewModel.debug
-            selectedProperty(settingsMenu.itemFilterIncremental) bindDual filterIncremental
             selectedProperty(viewMenu.itemFull) bindDual fullLog
             fullLog.addObserver {
                 if (it != false) {

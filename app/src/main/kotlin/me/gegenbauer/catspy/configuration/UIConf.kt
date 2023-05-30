@@ -50,7 +50,6 @@ data class UIConf(
     var logFontSize: Int = 14,
     var logFontStyle: Int = 0,
     var logFullViewEnabled: Boolean = true, // TODO 应用启动时，如果 panel 不可见，启动后再可见，样式没有使用 laf
-    var filterIncrementalEnabled: Boolean = false,
     val strColorList: MutableList<String> = mutableListOf(),
     /** 界面主题 end **/
 

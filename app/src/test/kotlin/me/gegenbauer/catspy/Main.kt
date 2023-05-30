@@ -6,7 +6,6 @@ import com.github.weisj.darklaf.ui.button.DarkButtonUI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.gegenbauer.catspy.command.LogCmdManager
 import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
@@ -32,7 +31,7 @@ fun main() {
             GlobalViewModel.init()
         }
         ThemeManager.installTheme()
-        LafManager.registerInitTask { theme: Theme, defaults: UIDefaults ->
+        LafManager.registerInitTask { _: Theme, defaults: UIDefaults ->
             defaults[DarkButtonUI.KEY_VARIANT] = DarkButtonUI.VARIANT_BORDERLESS
         }
         val frame = JFrame()
