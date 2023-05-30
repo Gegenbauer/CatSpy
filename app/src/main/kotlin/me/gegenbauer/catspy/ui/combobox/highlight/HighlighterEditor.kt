@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.ui.combobox.highlight
 
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.FilterComboBox.fontBackgroundInclude
+import me.gegenbauer.catspy.ui.combobox.HistoryItem
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
@@ -23,9 +24,9 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
     private val customHighlighters = arrayListOf<Any>()
 
     override fun setItem(item: Any?) {
-        if (item is String) {
-            if (item != editor.text) {
-                editor.text = item
+        if (item is String || item is HistoryItem<*>) {
+            if (item.toString() != editor.text) {
+                editor.text = item.toString()
                 updateHighlighter()
             }
         } else {

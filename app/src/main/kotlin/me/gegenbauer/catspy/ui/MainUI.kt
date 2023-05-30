@@ -21,9 +21,8 @@ import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.task.*
 import me.gegenbauer.catspy.ui.button.*
+import me.gegenbauer.catspy.ui.combobox.*
 import me.gegenbauer.catspy.ui.combobox.FilterComboBox
-import me.gegenbauer.catspy.ui.combobox.darkComboBox
-import me.gegenbauer.catspy.ui.combobox.filterComboBox
 import me.gegenbauer.catspy.ui.container.WrapablePanel
 import me.gegenbauer.catspy.ui.dialog.GoToDialog
 import me.gegenbauer.catspy.ui.dialog.LogTableDialog
@@ -59,7 +58,7 @@ import kotlin.system.exitProcess
 /**
  *  TODO 将底部状态栏抽出，并增加进度条，显示某些任务进度
  */
-class MainUI(title: String) : JFrame(title), TaskListener {
+class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     companion object {
         private const val TAG = "MainUI"
     }
@@ -286,7 +285,7 @@ class MainUI(title: String) : JFrame(title), TaskListener {
     override fun onFinalResult(task: Task, data: Any) {
         super.onFinalResult(task, data)
         if (task is GetDeviceTask) {
-            MainViewModel.connectedDevices.updateValue(data as ArrayList<String>)
+            MainViewModel.connectedDevices.updateValue((data as ArrayList<String>).toHistoryItemList())
         }
     }
 
@@ -449,8 +448,10 @@ class MainUI(title: String) : JFrame(title), TaskListener {
         updateLogCmdCombo()
 
         val targetDevice = UIConfManager.uiConf.adbDevice
-        deviceCombo.insertItemAt(targetDevice, 0)
-        deviceCombo.selectedIndex = 0
+        targetDevice.takeIf { it.isNotEmpty() }?.let {
+            deviceCombo.addItem(targetDevice)
+            deviceCombo.selectedIndex = 0
+        }
 
         deviceStatus.text = STRINGS.ui.connected
         setDeviceComboColor(true)
@@ -637,7 +638,9 @@ class MainUI(title: String) : JFrame(title), TaskListener {
     fun windowedModeLogPanel(logPanel: FullLogPanel) {
         detachLogPanel(logPanel)
         if (viewMenu.itemFull.state) {
-            val logTableDialog = LogTableDialog(this@MainUI, logPanel)
+            val logTableDialog = LogTableDialog(logPanel) {
+                attachLogPanel(logPanel)
+            }
             logTableDialog.isVisible = true
         }
     }
@@ -850,7 +853,7 @@ class MainUI(title: String) : JFrame(title), TaskListener {
         }
     }
 
-    internal inner class PopUpCombobox(private val combo: JComboBox<String>) : JPopupMenu() {
+    internal inner class PopUpCombobox(private val combo: HistoryComboBox<String>) : JPopupMenu() {
         private val selectAllItem: JMenuItem = JMenuItem("Select All")
         private val copyItem: JMenuItem = JMenuItem("Copy")
         private val pasteItem: JMenuItem = JMenuItem("Paste")
@@ -1119,7 +1122,7 @@ class MainUI(title: String) : JFrame(title), TaskListener {
         }
     }
 
-    fun updateLogCmdCombo() {
+    override fun updateLogCmdCombo() {
         logCmdCombo.toolTipText = "\"${LogCmdManager.logCmd}\"\n\n${STRINGS.toolTip.logCmdCombo}"
 
         if (LogCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
@@ -1397,14 +1400,21 @@ class MainUI(title: String) : JFrame(title), TaskListener {
         }
     }
 
-    fun <T> resetComboItem(viewModelProperty: ObservableViewModelProperty<List<T>>, item: T) {
+    fun resetComboItem(viewModelProperty: ObservableViewModelProperty<List<HistoryItem<String>>>, item: String) {
         val list = viewModelProperty.value
         list ?: return
-        if (list.contains(item)) {
+        val historyItem = HistoryItem(item)
+        if (list.contains(historyItem)) {
+            viewModelProperty.updateValue(ArrayList(list).apply {
+                remove(historyItem)
+                add(historyItem)
+                sortWith(HistoryItem.comparator)
+            })
             return
         }
         viewModelProperty.updateValue(ArrayList(list).apply {
-            add(0, item)
+            add(historyItem)
+            sortWith(HistoryItem.comparator)
         })
         return
     }

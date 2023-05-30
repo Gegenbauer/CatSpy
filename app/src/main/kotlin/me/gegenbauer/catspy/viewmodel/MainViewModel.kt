@@ -5,11 +5,12 @@ import me.gegenbauer.catspy.databinding.bind.*
 import me.gegenbauer.catspy.databinding.property.support.*
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.button.ButtonDisplayMode
-import me.gegenbauer.catspy.ui.combobox.FilterComboBox
+import me.gegenbauer.catspy.ui.combobox.HistoryComboBox
+import me.gegenbauer.catspy.ui.combobox.HistoryItem
+import me.gegenbauer.catspy.ui.combobox.toHistoryItemList
 import me.gegenbauer.catspy.ui.panel.Rotation
 import me.gegenbauer.catspy.utils.editorComponent
 import me.gegenbauer.catspy.utils.getEnum
-import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JToggleButton
 
@@ -19,27 +20,27 @@ object MainViewModel {
     //region Toolbar
     //region Filter
     val logFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.logFilterEnabled)
-    val logFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.logFilterHistory.toList())
+    val logFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.logFilterHistory.toHistoryItemList())
     val logFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val logFilterCurrentContent = ObservableViewModelProperty<String>()
 
     val tagFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.tagFilterEnabled)
-    val tagFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.tagFilterHistory.toList())
+    val tagFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.tagFilterHistory.toHistoryItemList())
     val tagFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val tagFilterCurrentContent = ObservableViewModelProperty<String>()
 
     val pidFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.pidFilterEnabled)
-    val pidFilterHistory = ObservableViewModelProperty(arrayListOf<String>().toList())
+    val pidFilterHistory = ObservableViewModelProperty(arrayListOf<String>().toHistoryItemList())
     val pidFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val pidFilterCurrentContent = ObservableViewModelProperty<String>()
 
     val tidFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.tidFilterEnabled)
-    val tidFilterHistory = ObservableViewModelProperty(arrayListOf<String>().toList())
+    val tidFilterHistory = ObservableViewModelProperty(arrayListOf<String>().toHistoryItemList())
     val tidFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val tidFilterCurrentContent = ObservableViewModelProperty<String>()
 
     val boldEnabled = ObservableViewModelProperty(UIConfManager.uiConf.boldEnabled)
-    val boldHistory = ObservableViewModelProperty(UIConfManager.uiConf.highlightHistory.toList())
+    val boldHistory = ObservableViewModelProperty(UIConfManager.uiConf.highlightHistory.toHistoryItemList())
     val boldSelectedIndex = ObservableViewModelProperty<Int>()
     val boldCurrentContent = ObservableViewModelProperty<String>()
 
@@ -47,11 +48,11 @@ object MainViewModel {
     //endregion
 
     //region ADB
-    val connectedDevices = ObservableViewModelProperty(arrayListOf<String>().toList())
+    val connectedDevices = ObservableViewModelProperty(arrayListOf<HistoryItem<String>>().toList())
     val deviceSelectedIndex = ObservableViewModelProperty<Int>()
     val currentDevice = ObservableViewModelProperty<String>()
 
-    val logCmdHistory = ObservableViewModelProperty(UIConfManager.uiConf.logCmdHistory.toList())
+    val logCmdHistory = ObservableViewModelProperty(UIConfManager.uiConf.logCmdHistory.toHistoryItemList())
     val logCmdSelectedIndex = ObservableViewModelProperty<Int>()
     val logCmdCurrentContent = ObservableViewModelProperty<String>()
 
@@ -73,7 +74,7 @@ object MainViewModel {
     //endregion
 
     //region SearchBar
-    val searchHistory = ObservableViewModelProperty(UIConfManager.uiConf.searchHistory.toList())
+    val searchHistory = ObservableViewModelProperty(UIConfManager.uiConf.searchHistory.toHistoryItemList())
     val searchSelectedIndex = ObservableViewModelProperty<Int>()
     val searchCurrentContent = ObservableViewModelProperty<String>()
     //endregion
@@ -129,8 +130,6 @@ object MainViewModel {
 
             visibilityProperty(searchPanel) bindDual searchPanelVisible
             selectedProperty(viewMenu.itemSearch) bindDual searchPanelVisible
-
-            reorderAfterByLRU(searchSelectedIndex, searchHistory)
             //endregion
 
             //region LogPanel
@@ -148,10 +147,10 @@ object MainViewModel {
     }
 
     private fun bindLogFilter(
-        comboBox: FilterComboBox,
+        comboBox: HistoryComboBox<String>,
         toggle: JToggleButton,
         selectedIndexProperty: ObservableViewModelProperty<Int>,
-        listProperty: ObservableViewModelProperty<List<String>>,
+        listProperty: ObservableViewModelProperty<List<HistoryItem<String>>>,
         enabledProperty: ObservableViewModelProperty<Boolean>,
         editorContentProperty: ObservableViewModelProperty<String>,
     ) {
@@ -161,37 +160,17 @@ object MainViewModel {
         listProperty(comboBox) bindDual listProperty
         selectedIndexProperty(comboBox) bindLeft selectedIndexProperty
         textProperty(comboBox.editorComponent) bindDual editorContentProperty
-        reorderAfterByLRU(selectedIndexProperty, listProperty)
     }
 
     private fun bindNormalCombo(
-        comboBox: JComboBox<String>,
+        comboBox: HistoryComboBox<String>,
         selectedIndexProperty: ObservableViewModelProperty<Int>,
-        listProperty: ObservableViewModelProperty<List<String>>,
+        listProperty: ObservableViewModelProperty<List<HistoryItem<String>>>,
         editorContentProperty: ObservableViewModelProperty<String>,
     ) {
         listProperty(comboBox) bindDual listProperty
         selectedIndexProperty(comboBox) bindLeft selectedIndexProperty
         textProperty(comboBox.editorComponent) bindDual editorContentProperty
-        reorderAfterByLRU(selectedIndexProperty, listProperty)
-    }
-
-    /**
-     * 按下 Enter 进行搜索后，将该项提至最前
-     */
-    private fun reorderAfterByLRU(
-        selectedIndexProperty: ObservableViewModelProperty<Int>,
-        listProperty: ObservableViewModelProperty<List<String>>
-    ) {
-        selectedIndexProperty.addObserver { selectedIndex ->
-            selectedIndex ?: return@addObserver
-            if (selectedIndex < 0) {
-                return@addObserver
-            }
-            listProperty.value?.let {
-                listProperty.updateValue(it.updateListByLRU(it[selectedIndex]))
-            }
-        }
     }
 
     private fun bindWithButtonDisplayMode(vararg component: JComponent) {

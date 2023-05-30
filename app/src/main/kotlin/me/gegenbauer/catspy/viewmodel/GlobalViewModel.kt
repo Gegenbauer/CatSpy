@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.viewmodel
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.ui.combobox.toContentList
 import me.gegenbauer.catspy.ui.log.LogLevel
 import me.gegenbauer.catspy.ui.panel.Rotation
 
@@ -32,23 +33,23 @@ object GlobalViewModel {
         MainViewModel.apply {
             searchHistory.addObserver {
                 UIConfManager.uiConf.searchHistory.clear()
-                UIConfManager.uiConf.searchHistory.addAll(it!!)
+                UIConfManager.uiConf.searchHistory.addAll(it!!.toContentList())
             }
             logFilterHistory.addObserver {
                 UIConfManager.uiConf.logFilterHistory.clear()
-                UIConfManager.uiConf.logFilterHistory.addAll(it!!)
+                UIConfManager.uiConf.logFilterHistory.addAll(it!!.toContentList())
             }
             tagFilterHistory.addObserver {
                 UIConfManager.uiConf.tagFilterHistory.clear()
-                UIConfManager.uiConf.tagFilterHistory.addAll(it!!)
+                UIConfManager.uiConf.tagFilterHistory.addAll(it!!.toContentList())
             }
             boldHistory.addObserver {
                 UIConfManager.uiConf.highlightHistory.clear()
-                UIConfManager.uiConf.highlightHistory.addAll(it!!)
+                UIConfManager.uiConf.highlightHistory.addAll(it!!.toContentList())
             }
             logCmdHistory.addObserver {
                 UIConfManager.uiConf.logCmdHistory.clear()
-                UIConfManager.uiConf.logCmdHistory.addAll(it!!)
+                UIConfManager.uiConf.logCmdHistory.addAll(it!!.toContentList())
             }
             fullLog.addObserver {
                 UIConfManager.uiConf.logFullViewEnabled = it ?: true

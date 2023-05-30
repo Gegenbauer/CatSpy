@@ -130,13 +130,13 @@ object Bindings {
         observable: ObservableViewModelProperty<T>,
         bindType: BindType = BindType.TWO_WAY
     ) {
-        scope.launch(Dispatchers.UI) {
+        scope.launch(Dispatchers.UI.immediate) {
             bindType.bind(componentProperty, observable)
         }
     }
 
     fun unBind(componentProperty: ObservableComponentProperty<*>) {
-        scope.launch(Dispatchers.UI) {
+        scope.launch(Dispatchers.UI.immediate) {
             unBindInternal(componentProperty)
         }
     }

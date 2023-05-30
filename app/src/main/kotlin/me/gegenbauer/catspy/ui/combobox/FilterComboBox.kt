@@ -11,7 +11,6 @@ import me.gegenbauer.catspy.ui.combobox.highlight.HighlighterEditor
 import me.gegenbauer.catspy.utils.applyTooltip
 import java.awt.event.MouseEvent
 import javax.swing.ComboBoxEditor
-import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.ToolTipManager
 import javax.swing.event.DocumentEvent
@@ -19,7 +18,7 @@ import javax.swing.event.DocumentListener
 import javax.swing.plaf.ComboBoxUI
 import javax.swing.text.JTextComponent
 
-class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTag: Boolean = true, private val tooltip: String? = null) : JComboBox<String>() {
+class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTag: Boolean = true, private val tooltip: String? = null) : HistoryComboBox<String>() {
 
     private val editorComponent: JTextComponent // create new instance when theme changed(setUI invoked)
         get() = getEditor().editorComponent as JTextComponent
@@ -261,17 +260,22 @@ class FilterComboBox(private val enableHighlight: Boolean = true, val useColorTa
 
     }
 
-    fun getAllItems(): List<String> {
-        return mutableListOf<String>().apply {
+    fun getAllItems(): List<HistoryItem<String>> {
+        return mutableListOf<HistoryItem<String>>().apply {
             for (i in 0 until itemCount) {
                 add(getItemAt(i))
             }
         }
     }
 
-    override fun addItem(item: String?) {
-        if (item.isNullOrEmpty()) return
+    override fun addItem(item: HistoryItem<String>?) {
+        if (item == null || item.content.isEmpty()) return
         super.addItem(item)
+    }
+
+    fun addItem(item: String?) {
+        if (item.isNullOrEmpty()) return
+        super.addItem(HistoryItem(item))
     }
 
     companion object {

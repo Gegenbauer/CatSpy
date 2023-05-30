@@ -5,7 +5,7 @@ import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
-import me.gegenbauer.catspy.ui.MainUI
+import me.gegenbauer.catspy.ui.ILogCmdManager
 import me.gegenbauer.catspy.ui.addHSeparator
 import me.gegenbauer.catspy.ui.button.GButton
 import me.gegenbauer.catspy.utils.Utils
@@ -19,7 +19,9 @@ import javax.swing.table.DefaultTableModel
 
 
 // TODO refactor
-class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd} ${STRINGS.ui.setting}", true), ActionListener {
+class LogCmdSettingsDialog(parent: JFrame) :
+    JDialog(parent, "${STRINGS.ui.logCmd} ${STRINGS.ui.setting}", true),
+    ActionListener {
     private val adbCmdBtn: JButton = GButton(STRINGS.ui.select)
     private val adbSaveBtn: JButton = GButton(STRINGS.ui.select)
     private val okBtn: JButton = GButton(STRINGS.ui.ok)
@@ -36,7 +38,8 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
     private val logCmdTableModel: LogCmdTableModel
     private val logCmdTable: JTable
 
-    inner class LogCmdTableModel(logCommands: Array<Array<Any>>, columnNames: Array<String>) : DefaultTableModel(logCommands, columnNames) {
+    inner class LogCmdTableModel(logCommands: Array<Array<Any>>, columnNames: Array<String>) :
+        DefaultTableModel(logCommands, columnNames) {
         override fun isCellEditable(row: Int, column: Int): Boolean {
             return false
         }
@@ -55,8 +58,6 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
         }
     }
 
-    private val mainUI = parent
-
     init {
         val rowHeight = 30
         adbCmdBtn.preferredSize = Dimension(adbCmdBtn.preferredSize.width, rowHeight)
@@ -73,16 +74,16 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
         val columnNames = arrayOf("Num", "Cmd")
 
         val logCommands = arrayOf(
-                arrayOf<Any>("1(fixed)", LogCmdManager.DEFAULT_LOGCAT),
-                arrayOf<Any>("2", ""),
-                arrayOf<Any>("3", ""),
-                arrayOf<Any>("4", ""),
-                arrayOf<Any>("5", ""),
-                arrayOf<Any>("6", ""),
-                arrayOf<Any>("7", ""),
-                arrayOf<Any>("8", ""),
-                arrayOf<Any>("9", ""),
-                arrayOf<Any>("10", ""),
+            arrayOf<Any>("1(fixed)", LogCmdManager.DEFAULT_LOGCAT),
+            arrayOf<Any>("2", ""),
+            arrayOf<Any>("3", ""),
+            arrayOf<Any>("4", ""),
+            arrayOf<Any>("5", ""),
+            arrayOf<Any>("6", ""),
+            arrayOf<Any>("7", ""),
+            arrayOf<Any>("8", ""),
+            arrayOf<Any>("9", ""),
+            arrayOf<Any>("10", ""),
         )
 
         UIConfManager.uiConf.logCmdHistory.forEachIndexed { index, cmd ->
@@ -199,15 +200,21 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
             val prefix = prefixTF.text.trim()
 
             if (prefix.contains('\\')
-                    || prefix.contains('/')
-                    || prefix.contains(':')
-                    || prefix.contains('*')
-                    || prefix.contains('?')
-                    || prefix.contains('"')
-                    || prefix.contains("<")
-                    || prefix.contains(">")
-                    || prefix.contains("|")) {
-                JOptionPane.showMessageDialog(this, "Invalid prefix : ${prefixTF.text}", "Error", JOptionPane.ERROR_MESSAGE)
+                || prefix.contains('/')
+                || prefix.contains(':')
+                || prefix.contains('*')
+                || prefix.contains('?')
+                || prefix.contains('"')
+                || prefix.contains("<")
+                || prefix.contains(">")
+                || prefix.contains("|")
+            ) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Invalid prefix : ${prefixTF.text}",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                )
                 return
             }
 
@@ -226,7 +233,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
             UIConfManager.uiConf.adbLogCommand = LogCmdManager.logCmd
             UIConfManager.uiConf.adbCommand = LogCmdManager.adbCmd
             UIConfManager.uiConf.adbPrefix = LogCmdManager.prefix
-            mainUI.updateLogCmdCombo()
+            (owner as? ILogCmdManager)?.updateLogCmdCombo()
             UIConfManager.saveUI()
             dispose()
         } else if (e.source == cancelBtn) {
@@ -234,7 +241,8 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
         }
     }
 
-    inner class LogCmdDialog(parent: JDialog) :JDialog(parent, STRINGS.ui.logCmd, true), ActionListener, FocusListener {
+    inner class LogCmdDialog(parent: JDialog) : JDialog(parent, STRINGS.ui.logCmd, true), ActionListener,
+        FocusListener {
         private var adbRadio: JRadioButton
         private var cmdRadio: JRadioButton
 
@@ -351,8 +359,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${STRINGS.ui.logCmd
         override fun focusGained(e: FocusEvent) {
             if (e.source == adbTF) {
                 adbRadio.isSelected = true
-            }
-            else if (e.source == cmdTF) {
+            } else if (e.source == cmdTF) {
                 cmdRadio.isSelected = true
             }
         }
