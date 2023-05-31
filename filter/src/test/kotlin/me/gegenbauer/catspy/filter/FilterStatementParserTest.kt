@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy
+package me.gegenbauer.catspy.filter
 
 import me.gegenbauer.catspy.ui.filter.FilterStatementParser
 

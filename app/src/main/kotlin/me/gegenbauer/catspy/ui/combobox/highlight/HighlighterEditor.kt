@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.ui.combobox.highlight
 
+import me.gegenbauer.catspy.filter.ui.AutoCompleteFilterField
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.FilterComboBox.fontBackgroundInclude
 import me.gegenbauer.catspy.ui.combobox.HistoryItem
-import me.gegenbauer.catspy.ui.filter.AutoCompleteFilterField
 import org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter
 import java.awt.Color
 import java.awt.Component

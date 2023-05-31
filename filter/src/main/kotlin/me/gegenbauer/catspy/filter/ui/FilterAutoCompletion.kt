@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.ui.filter
+package me.gegenbauer.catspy.filter.ui
 
 import me.gegenbauer.catspy.databinding.property.support.getFieldDeeply
 import me.gegenbauer.catspy.databinding.property.support.invokeMethod

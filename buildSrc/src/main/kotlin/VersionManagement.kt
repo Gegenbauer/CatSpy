@@ -50,6 +50,12 @@ object Slf4j {
     val simple = Dependency(groupName, "slf4j-simple", "1.7.32")
 }
 
+object Fifesoft {
+    val groupName = "com.fifesoft"
+
+    val autocomplete = Dependency(groupName, "autocomplete", "3.3.1")
+}
+
 data class Dependency(
     val group: String,
     val artifact: String,

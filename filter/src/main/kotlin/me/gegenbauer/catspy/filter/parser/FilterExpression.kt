@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.ui.filter
+package me.gegenbauer.catspy.filter.parser
 
 open class FilterExpression(
     open val wholeExpression: String = "",

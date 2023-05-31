@@ -9,6 +9,8 @@ include(
     "concurrency",
     "ddmlib",
     "task",
+    "filter",
+    "utils",
 )
 
 pluginManagement {

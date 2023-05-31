@@ -286,8 +286,6 @@ object Menu {
     const val MENU_ITEM_ICON_SIZE = 20
 }
 
-interface ThemeAware {
+fun interface ThemeAware {
     fun onThemeChanged(theme: Theme, properties: Hashtable<Any, Any>)
 }
-
-var iconDefaultSize = 15

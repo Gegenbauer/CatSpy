@@ -1,8 +1,5 @@
-package me.gegenbauer.catspy.filter
+package me.gegenbauer.catspy.filter.parser
 
-import me.gegenbauer.catspy.ui.filter.FilterAndExpression
-import me.gegenbauer.catspy.ui.filter.FilterOrExpression
-import me.gegenbauer.catspy.ui.filter.FilterStatementParser
 import kotlin.test.Test
 
 class FilterStatementParserTest {

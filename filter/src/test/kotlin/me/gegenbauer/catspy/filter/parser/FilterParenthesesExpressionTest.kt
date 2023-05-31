@@ -1,7 +1,6 @@
-package me.gegenbauer.catspy.filter
+package me.gegenbauer.catspy.filter.parser
 
-import me.gegenbauer.catspy.ui.filter.FilterExpression.Companion.toFilterExpression
-import me.gegenbauer.catspy.ui.filter.FilterParenthesesExpression
+import me.gegenbauer.catspy.filter.parser.FilterExpression.Companion.toFilterExpression
 import kotlin.test.Test
 
 

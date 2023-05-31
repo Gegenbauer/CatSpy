@@ -17,17 +17,22 @@ dependencies {
     implementation(files("../libs/flatlaf-2.1.jar"))
     implementation(files("../libs/swingx-1.6.1.jar"))
     implementation(kotlin("reflect"))
+
     implementation(compose.desktop.currentOs)
     implementation(projects.log)
     implementation(projects.concurrency)
     implementation(projects.databinding)
     implementation(projects.task)
     implementation(projects.ddmlib)
-    implementation(FormDev.flatLaf.group, FormDev.flatLaf.artifact, FormDev.flatLaf.version)
-    implementation(Weisj.darklafCore.group, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
-    implementation(Weisj.darklafVisualPadding.group, Weisj.darklafVisualPadding.artifact, Weisj.darklafVisualPadding.version)
-    implementation(Gson.gson.group, Gson.gson.artifact, Gson.gson.version)
+    implementation(projects.filter)
+    implementation(projects.utils)
+
+    implementation(FormDev.groupName, FormDev.flatLaf.artifact, FormDev.flatLaf.version)
+    implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
+    implementation(Weisj.groupName, Weisj.darklafVisualPadding.artifact, Weisj.darklafVisualPadding.version)
+    implementation(Gson.groupName, Gson.gson.artifact, Gson.gson.version)
     implementation("com.fifesoft:autocomplete:3.3.1")
+
     testImplementation(kotlin("test"))
 }
 

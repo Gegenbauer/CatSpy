@@ -7,7 +7,6 @@ plugins {
 dependencies {
     compileOnly(projects.log)
     compileOnly(projects.concurrency)
-    compileOnly(projects.concurrency)
 }
 
 tasks.getByName<Test>("test") {

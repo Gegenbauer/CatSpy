@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.filter
+package me.gegenbauer.catspy.filter.parser
 
 import me.gegenbauer.catspy.ui.filter.FilterExpression
 import me.gegenbauer.catspy.ui.filter.FilterExpression.Companion.toFilterExpression

@@ -1,6 +1,6 @@
-package me.gegenbauer.catspy.ui.filter
+package me.gegenbauer.catspy.filter.parser
 
-import me.gegenbauer.catspy.ui.filter.FilterExpression.Companion.toFilterExpression
+import me.gegenbauer.catspy.filter.parser.FilterExpression.Companion.toFilterExpression
 
 class FilterStatementParser {
     // filter expression example: (tag:servicemanager | message:get) | (level:info & message~:"ser$")

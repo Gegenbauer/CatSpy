@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.ui.filter
+package me.gegenbauer.catspy.filter.ui
 
 import me.gegenbauer.catspy.utils.interceptEvent
 import org.fife.ui.autocomplete.BasicCompletion
