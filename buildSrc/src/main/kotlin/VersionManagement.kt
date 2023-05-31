@@ -56,6 +56,12 @@ object Fifesoft {
     val autocomplete = Dependency(groupName, "autocomplete", "3.3.1")
 }
 
+object Mockk {
+    val groupName = "io.mockk"
+
+    val mockk = Dependency(groupName, "mockk", "1.12.5")
+}
+
 data class Dependency(
     val group: String,
     val artifact: String,

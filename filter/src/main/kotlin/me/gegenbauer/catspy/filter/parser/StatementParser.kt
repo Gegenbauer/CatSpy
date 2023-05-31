@@ -3,6 +3,8 @@ package me.gegenbauer.catspy.filter.parser
 import me.gegenbauer.catspy.filter.parser.FilterExpression.Companion.toFilterExpression
 
 // TODO recognize the invalid expression
+// TODO support value surrounded by double quotes, allow all character except double quotes; Recognize invalid double quotes;
+// TODO add double quotes case for all character check
 class StatementParser {
     // filter expression example: (tag:servicemanager | message:get) | (level:info & message~:"ser$")
 
@@ -10,22 +12,15 @@ class StatementParser {
         return parseExpression(expression.toFilterExpression())
     }
 
-
     /**
      * Pair Parentheses Expression
      */
     private fun parseExpression(expression: FilterExpression): FilterExpression {
         val trimmedExpression = expression.trim()
         if (ParenthesesExpression.isParenthesesExpression(trimmedExpression)) {
-            val start = System.currentTimeMillis()
-            return parseParenthesesExpression(trimmedExpression).apply {
-                println("parse $trimmedExpression cost: ${System.currentTimeMillis() - start}ms")
-            }
+            return parseParenthesesExpression(trimmedExpression)
         }
-        val start = System.currentTimeMillis()
-        return parseLiteralExpression(trimmedExpression).apply {
-            println("parse $trimmedExpression cost: ${System.currentTimeMillis() - start}ms")
-        }
+        return parseLiteralExpression(trimmedExpression)
     }
 
     // (tag:servicemanager | message:get) | (level:info & message~:"ser$") is ok
@@ -33,30 +28,20 @@ class StatementParser {
     // Exclude the first and last blank character interference
     // Record the start and end position of the expression
     private fun parseParenthesesExpression(expression: FilterExpression): ParenthesesExpression {
-        val expressions = mutableListOf<FilterExpression>()
-        var parenthesesCount = 0
         val trimmedExpression = expression.trim()
-        var start = trimmedExpression.start
-
-        for (index in trimmedExpression.start..trimmedExpression.end) {
-            val c = trimmedExpression.wholeExpression[index]
-            if (c == ParenthesesExpression.LEFT) {
-                parenthesesCount++
-            } else if (c == ParenthesesExpression.RIGHT) {
-                parenthesesCount--
-            }
-            if ((parenthesesCount == 0) && Operator.isOperator(c)) {
-                expressions.add(parseExpression(expression.crop(trimmedExpression.start + 1, index - 1)))
-                start = index + 1
-            }
-        }
-        expressions.add(parseExpression(expression.crop(start + 1, trimmedExpression.end - 1)))
-        return ParenthesesExpression(expressions, trimmedExpression.wholeExpression, trimmedExpression.start, trimmedExpression.end)
+        return ParenthesesExpression(
+            parseExpression(
+                trimmedExpression.crop(
+                    trimmedExpression.start + 1,
+                    trimmedExpression.end - 1
+                )
+            ), trimmedExpression
+        )
     }
 
     /**
      * Pair Literal Expression
-     * if the expression contains | or &, then it is a pair literal expression
+     * if the expression contains | or &, then it is a pair of literal expressions
      * Eg: tag:servicemanager | message:get, return FilterOrExpression(FilterLiteralExpression(tag:servicemanager), FilterLiteralExpression(message:get))
      * Eg: (tag:servicemanager | message:get) & (tag:service | message:post), return FilterAndExpression(FilterOrExpression(FilterLiteralExpression(tag:servicemanager), FilterLiteralExpression(message:get)), FilterOrExpression(FilterLiteralExpression(tag:service), FilterLiteralExpression(message:post)))
      */
@@ -75,9 +60,9 @@ class StatementParser {
                 val left = parseExpression(expression.crop(trimmedExpression.start, index - 1))
                 val right = parseExpression(expression.crop(index + 1, trimmedExpression.end))
                 return if (Operator.isOrOperator(c)) {
-                    OrExpression(left, right, trimmedExpression.wholeExpression, trimmedExpression.start, trimmedExpression.end)
+                    OrExpression(left, right, trimmedExpression)
                 } else {
-                    AndExpression(left, right, trimmedExpression.wholeExpression, trimmedExpression.start, trimmedExpression.end)
+                    AndExpression(left, right, trimmedExpression)
                 }
             }
         }
@@ -86,11 +71,12 @@ class StatementParser {
 
     private fun parseSingleLiteralExpression(expression: FilterExpression): FilterExpression {
         val trimmedExpression = expression.trim()
+        if (!trimmedExpression.wholeExpression.contains(LiteralExpression.SPLITTER)) {
+            return LiteralExpression(FilterKey.Message, NormalFilterValue(trimmedExpression.getContent()), trimmedExpression)
+        }
         val tokens = trimmedExpression.getContent().split(LiteralExpression.SPLITTER)
-        if (tokens.size > 2) {
-            return InvalidLiteralExpression(trimmedExpression.wholeExpression, trimmedExpression.start, trimmedExpression.end)
-        } else if (tokens.size == 1) {
-            return LiteralExpression(FilterKey.Message, NormalFilterValue(tokens[0]), trimmedExpression.wholeExpression, trimmedExpression.start, trimmedExpression.end)
+        if ((tokens.size > 2) || (tokens.size == 2 && tokens[1].isBlank())) { // only one token, eg: servicemanager
+            return InvalidLiteralExpression(trimmedExpression)
         }
         val trimmedTokenLeftPart = tokens[0].trim()
         val trimmedTokenRightPart = tokens[1].trim()
@@ -98,14 +84,18 @@ class StatementParser {
         val isExclude = trimmedTokenLeftPart.startsWith(LiteralExpression.EXCLUDE_FLAG)
         val keyStart = if (isExclude) 1 else 0
         val keyEnd = if (isRegex) trimmedTokenLeftPart.length - 1 else trimmedTokenLeftPart.length
+        val key = FilterKey.from(trimmedTokenLeftPart.substring(keyStart, keyEnd))
+        if (key == FilterKey.UNKNOWN) {
+            return LiteralExpression(
+                FilterKey.Message,
+                NormalFilterValue(trimmedExpression.getContent()),
+                trimmedExpression
+            )
+        }
         return if (isRegex) {
-            val key = FilterKey.from(trimmedTokenLeftPart.substring(keyStart, keyEnd))
-            val value = RegexFilterValue(trimmedTokenRightPart)
-            LiteralExpression(key, value, trimmedExpression.wholeExpression, trimmedExpression.start, trimmedExpression.end, isExclude)
+            LiteralExpression(key, RegexFilterValue(trimmedTokenRightPart), trimmedExpression, isExclude)
         } else {
-            val key = FilterKey.from(trimmedTokenLeftPart.substring(keyStart, keyEnd))
-            val value = NormalFilterValue(trimmedTokenRightPart)
-            LiteralExpression(key, value, trimmedExpression.wholeExpression, trimmedExpression.start, trimmedExpression.end, isExclude)
+            LiteralExpression(key, NormalFilterValue(trimmedTokenRightPart), trimmedExpression, isExclude)
         }
     }
 }

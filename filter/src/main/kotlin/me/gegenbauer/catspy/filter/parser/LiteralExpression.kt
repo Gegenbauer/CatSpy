@@ -7,7 +7,17 @@ class LiteralExpression(
     start: Int,
     end: Int,
     val isExclude: Boolean = false,
-): FilterExpression(wholeExpression, start, end) {
+) : FilterExpression(wholeExpression, start, end) {
+
+    constructor(key: FilterKey, value: FilterValue, expression: FilterExpression, isExclude: Boolean = false) : this(
+        key,
+        value,
+        expression.wholeExpression,
+        expression.start,
+        expression.end,
+        isExclude
+    )
+
     companion object {
         const val EXCLUDE_FLAG = "-"
         const val REGEX_FLAG = "~"

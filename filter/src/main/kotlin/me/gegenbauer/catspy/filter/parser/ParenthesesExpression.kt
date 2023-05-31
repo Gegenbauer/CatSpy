@@ -1,11 +1,19 @@
 package me.gegenbauer.catspy.filter.parser
 
 class ParenthesesExpression(
-    val expressions: MutableList<FilterExpression>,
+    val innerExpression: FilterExpression,
     wholeExpression: String,
     start: Int,
     end: Int,
 ) : FilterExpression(wholeExpression, start, end) {
+
+    constructor(innerExpression: FilterExpression, expression: FilterExpression) : this(
+        expression,
+        expression.wholeExpression,
+        expression.start,
+        expression.end
+    )
+
     companion object {
         const val LEFT = '('
         const val RIGHT = ')'
@@ -61,6 +69,6 @@ class ParenthesesExpression(
     }
 
     override fun toString(): String {
-        return "expressions=$expressions"
+        return "expressions=$innerExpression"
     }
 }

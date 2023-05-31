@@ -17,6 +17,7 @@ dependencies {
     testImplementation(projects.utils)
     testImplementation(projects.databinding)
     testImplementation(kotlin("reflect"))
+    testImplementation(Mockk.groupName, Mockk.mockk.artifact, Mockk.mockk.version)
 }
 
 tasks.getByName<Test>("test") {

@@ -6,6 +6,8 @@ open class FilterExpression(
     open val end: Int = 0,
 ) {
 
+    constructor(expression: FilterExpression) : this(expression.wholeExpression, expression.start, expression.end)
+
     fun getContent(): String {
         return wholeExpression.substring(start, end + 1)
     }
@@ -38,7 +40,7 @@ open class FilterExpression(
     }
 }
 
-sealed class FilterKey(val key: String) {
+sealed class FilterKey(val value: String) {
     object Tag : FilterKey("tag")
 
     object Pid : FilterKey("pid")
@@ -51,6 +53,8 @@ sealed class FilterKey(val key: String) {
 
     object Age : FilterKey("age")
 
+    object UNKNOWN : FilterKey("unknown")
+
     companion object {
         // 使用反射来实现
         private val keyToObjectMap = FilterKey::class.nestedClasses.filter { clazz ->
@@ -58,11 +62,11 @@ sealed class FilterKey(val key: String) {
         }.map {
             it.objectInstance as FilterKey
         }.associateBy {
-            it.key
+            it.value
         }
 
         fun from(key: String): FilterKey {
-            return keyToObjectMap[key] ?: throw IllegalArgumentException("Invalid key: $key")
+            return keyToObjectMap[key] ?: UNKNOWN
         }
     }
 }

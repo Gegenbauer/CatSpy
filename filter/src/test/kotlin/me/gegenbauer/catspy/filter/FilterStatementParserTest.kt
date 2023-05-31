@@ -4,7 +4,7 @@ import me.gegenbauer.catspy.filter.parser.StatementParser
 
 fun main() {
     // (tag:servicemanager | message:get) | (level:info & message~:"ser$")
-    val expression = "(tag:servicemanager | message:get) | (level:info & message~:\"ser$\")"
+    val expression = "((tag:servicemanager | message:get) | (level:info & message~:\"ser$\"))"
 //    val expression = "(tag:servicemanager)"
     val parser = StatementParser()
     val costList = arrayListOf<Int>()

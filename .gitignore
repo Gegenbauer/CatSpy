@@ -4,3 +4,4 @@ build
 log_viewer.xml
 LogViewer*
 glog*
+*.log*
