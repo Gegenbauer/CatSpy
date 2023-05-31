@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.filter.parser
 
-class InvalidFilterLiteralExpression(
+class InvalidLiteralExpression(
     wholeExpression: String,
     start: Int,
     end: Int,

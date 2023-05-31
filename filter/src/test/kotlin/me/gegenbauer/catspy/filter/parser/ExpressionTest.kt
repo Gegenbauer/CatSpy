@@ -1,10 +1,9 @@
 package me.gegenbauer.catspy.filter.parser
 
-import me.gegenbauer.catspy.ui.filter.FilterExpression
-import me.gegenbauer.catspy.ui.filter.FilterExpression.Companion.toFilterExpression
+import me.gegenbauer.catspy.filter.parser.FilterExpression.Companion.toFilterExpression
 import kotlin.test.Test
 
-class FilterExpressionTest {
+class ExpressionTest {
 
     @Test
     fun `should return filter expression with correct start and end index for a string expression without blank character`() {

@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.filter.parser
 
-sealed class FilterOperator(val operator: Char) {
-    object And: FilterOperator('&')
+sealed class Operator(val operator: Char) {
+    object And: Operator('&')
 
-    object Or: FilterOperator('|')
+    object Or: Operator('|')
 
     companion object {
         private val operators = listOf(And.operator, Or.operator)
