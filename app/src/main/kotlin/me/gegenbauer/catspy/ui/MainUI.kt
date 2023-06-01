@@ -14,7 +14,6 @@ import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
-import me.gegenbauer.catspy.databinding.property.support.DefaultDocumentListener
 import me.gegenbauer.catspy.databinding.property.support.PROPERTY_TEXT
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
@@ -1147,8 +1146,8 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
             }
 
             if (KeyEvent.VK_ENTER == event.keyCode) {
-                when {
-                    event.source in listOf(
+                when (event.source) {
+                    in listOf(
                         showLogCombo.editor.editorComponent,
                         boldLogCombo.editor.editorComponent,
                         showTagCombo.editor.editorComponent,
@@ -1158,8 +1157,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                         updateComboBox()
                         updateFilter()
                     }
-
-                    event.source == logCmdCombo.editor.editorComponent -> {
+                    logCmdCombo.editor.editorComponent -> {
                         if (LogCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
                             reconnectAdb()
                         } else {
@@ -1171,12 +1169,10 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                             updateLogCmdCombo()
                         }
                     }
-
-                    event.source == deviceCombo.editor.editorComponent -> {
+                    deviceCombo.editor.editorComponent -> {
                         reconnectAdb()
                     }
-
-                    event.source == scrollBackTF -> {
+                    scrollBackTF -> {
                         applyScrollBack()
                     }
                 }
@@ -1194,9 +1190,11 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     }
 
     private fun updateFilter() {
-        val logcatFilter = LogcatRealTimeFilter(
-
-        )
+        filteredTableModel.filterLog = MainViewModel.logFilterCurrentContent.value ?: ""
+        filteredTableModel.filterHighlightLog = MainViewModel.boldCurrentContent.value ?: ""
+        filteredTableModel.filterTag = MainViewModel.tagFilterCurrentContent.value ?: ""
+        filteredTableModel.filterPid = MainViewModel.pidFilterCurrentContent.value ?: ""
+        filteredTableModel.filterTid = MainViewModel.tidFilterCurrentContent.value ?: ""
     }
 
     internal inner class ItemHandler : ItemListener {

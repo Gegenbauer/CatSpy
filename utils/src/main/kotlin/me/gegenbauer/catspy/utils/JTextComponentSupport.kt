@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.databinding.property.support
+package me.gegenbauer.catspy.utils
 
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener

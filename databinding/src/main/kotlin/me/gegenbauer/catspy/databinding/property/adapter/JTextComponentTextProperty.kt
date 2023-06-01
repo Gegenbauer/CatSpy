@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.databinding.property.adapter
 
 import me.gegenbauer.catspy.databinding.property.support.BasePropertyAdapter
-import me.gegenbauer.catspy.databinding.property.support.DefaultDocumentListener
+import me.gegenbauer.catspy.utils.DefaultDocumentListener
 import javax.swing.event.DocumentListener
 import javax.swing.text.JTextComponent
 

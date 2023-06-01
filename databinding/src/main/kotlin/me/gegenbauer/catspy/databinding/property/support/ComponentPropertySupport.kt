@@ -44,7 +44,6 @@ fun selectedProperty(component: AbstractButton): ObservableComponentProperty<Boo
     }
 }
 
-
 fun textProperty(component: JTextComponent): ObservableComponentProperty<String> = object : ObservableComponentProperty<String>(component) {
     override fun getPropertyAdapterImpl(): PropertyAdapter<String, DocumentListener> = JTextComponentTextProperty(component)
 

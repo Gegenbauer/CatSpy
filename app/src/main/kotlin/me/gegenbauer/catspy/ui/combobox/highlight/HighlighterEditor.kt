@@ -1,12 +1,11 @@
 package me.gegenbauer.catspy.ui.combobox.highlight
 
-import me.gegenbauer.catspy.filter.ui.AutoCompleteFilterField
+import me.gegenbauer.catspy.filter.ui.enableAutoComplete
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.FilterComboBox.fontBackgroundInclude
 import me.gegenbauer.catspy.ui.combobox.HistoryItem
 import org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter
 import java.awt.Color
-import java.awt.Component
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
@@ -26,7 +25,6 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
     var useColorTag: Boolean = true
     private var isHighlightEnabled = true
     private val customHighlighters = arrayListOf<Any>()
-    private val component = AutoCompleteFilterField()
     private val textEditor = editorComponent as JTextComponent
     private val errorHighlightPainter = SquiggleUnderlineHighlightPainter(Color.RED)
     private val excludeHighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleExclude)
@@ -44,8 +42,10 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
         }
     }
 
-    override fun getEditorComponent(): Component {
-        return component
+    override fun createEditorComponent(): JTextField {
+        return super.createEditorComponent().apply {
+            enableAutoComplete()
+        }
     }
 
     override fun getItem(): Any {

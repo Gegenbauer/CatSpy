@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.databinding.property.support
+package me.gegenbauer.catspy.utils
 
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener

@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.ui.combobox.highlight
 
 import com.github.weisj.darklaf.ui.combobox.DarkComboBoxUI
-import me.gegenbauer.catspy.databinding.property.support.DefaultFocusListener
+import me.gegenbauer.catspy.utils.DefaultFocusListener
 import java.awt.event.FocusEvent
 import javax.swing.ComboBoxEditor
 

@@ -5,6 +5,7 @@ plugins {
 }
 
 dependencies {
+    implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
     compileOnly(projects.log)
     compileOnly(projects.utils)
     compileOnly(projects.databinding)

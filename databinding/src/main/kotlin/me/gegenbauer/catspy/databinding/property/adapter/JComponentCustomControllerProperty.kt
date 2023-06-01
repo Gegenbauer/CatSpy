@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.databinding.property.adapter
 
 import me.gegenbauer.catspy.databinding.property.support.BasePropertyAdapter
-import me.gegenbauer.catspy.databinding.property.support.setField
+import me.gegenbauer.catspy.utils.setField
 import javax.swing.JComponent
 
 class JComponentCustomControllerProperty<VALUE>(component: JComponent, val propertyName: String): BasePropertyAdapter<JComponent, VALUE, Any>(component) {

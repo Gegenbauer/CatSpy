@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.databinding.property.support
+package me.gegenbauer.catspy.utils
 
 import me.gegenbauer.catspy.log.GLog
 import java.lang.reflect.Field

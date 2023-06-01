@@ -4,7 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import me.gegenbauer.catspy.concurrency.IgnoreFastCallbackScheduler
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.databinding.property.support.BasePropertyAdapter
-import me.gegenbauer.catspy.databinding.property.support.withPropertyChangeListenerDisabled
+import me.gegenbauer.catspy.utils.withPropertyChangeListenerDisabled
 import java.beans.PropertyChangeListener
 import javax.swing.JSplitPane
 

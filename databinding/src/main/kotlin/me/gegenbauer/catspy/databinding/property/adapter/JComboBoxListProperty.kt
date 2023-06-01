@@ -1,8 +1,7 @@
 package me.gegenbauer.catspy.databinding.property.adapter
 
 import me.gegenbauer.catspy.databinding.property.support.BasePropertyAdapter
-import me.gegenbauer.catspy.databinding.property.support.DefaultListDataListener
-import me.gegenbauer.catspy.databinding.property.support.withAllListenerDisabled
+import me.gegenbauer.catspy.utils.DefaultListDataListener
 import javax.swing.JComboBox
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
