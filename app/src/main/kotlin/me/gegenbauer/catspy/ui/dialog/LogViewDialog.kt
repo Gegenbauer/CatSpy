@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.ui.dialog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.utils.Utils
+import me.gegenbauer.catspy.viewmodel.MainViewModel
 import java.awt.Dimension
 import java.awt.event.*
 import javax.swing.*
@@ -117,13 +118,14 @@ class LogViewDialog(parent: JFrame, log: String, caretPos: Int) : JDialog(parent
 
                     searchAddItem -> {
                         if (textArea.selectedText.isNullOrEmpty()) return
-                        var text = mainUI.getTextSearchCombo()
+                        var text = MainViewModel.searchCurrentContent.getValueNonNull()
                         text += "|" + textArea.selectedText
-                        mainUI.setTextSearchCombo(text)
+                        MainViewModel.searchCurrentContent.updateValue(text)
                     }
 
                     searchSetItem -> {
-                        mainUI.setTextSearchCombo(textArea.selectedText)
+                        MainViewModel.searchPanelVisible.updateValue(true)
+                        MainViewModel.searchCurrentContent.updateValue(textArea.selectedText)
                     }
 
                     copyItem -> {

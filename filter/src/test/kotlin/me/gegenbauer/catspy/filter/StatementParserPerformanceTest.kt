@@ -8,7 +8,7 @@ fun main() {
 //    val expression = "(tag:servicemanager)"
     val parser = StatementParser()
     val costList = arrayListOf<Int>()
-    for (i in 0..100) {
+    for (i in 0..100000) {
         val startTime = System.currentTimeMillis()
         val filterExpression = parser.parse(expression)
         val endTime = System.currentTimeMillis()

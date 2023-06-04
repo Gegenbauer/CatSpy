@@ -39,6 +39,10 @@ class LogcatLogItem(
         private const val TAG_INDEX = 5
         private val splitRegex = Pattern.compile("\\s+")
 
+        fun LogcatLogItem.isShow(): Boolean {
+            return !hidden
+        }
+
         fun from(line: String, num: Int): LogcatLogItem {
             val items = line.split(splitRegex)
             return runCatching {

@@ -66,6 +66,27 @@ object GlobalViewModel {
             splitPanelDividerLocation.addObserver {
                 UIConfManager.uiConf.dividerLocation = it ?: 500
             }
+            logFilterEnabled.addObserver {
+                UIConfManager.uiConf.logFilterEnabled = it ?: false
+            }
+            tagFilterEnabled.addObserver {
+                UIConfManager.uiConf.tagFilterEnabled = it ?: false
+            }
+            pidFilterEnabled.addObserver {
+                UIConfManager.uiConf.pidFilterEnabled = it ?: false
+            }
+            tidFilterEnabled.addObserver {
+                UIConfManager.uiConf.tidFilterEnabled = it ?: false
+            }
+            boldEnabled.addObserver {
+                UIConfManager.uiConf.boldEnabled = it ?: false
+            }
+            filterMatchCaseEnabled.addObserver {
+                UIConfManager.uiConf.filterMatchCaseEnabled = it ?: false
+            }
+            searchMatchCase.addObserver {
+                UIConfManager.uiConf.searchMatchCaseEnabled = it ?: false
+            }
         }
     }
 }

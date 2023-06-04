@@ -24,6 +24,9 @@ class FilterAutoCompletion(provider: CompletionProvider) : AutoCompletion(provid
                 if (isAutoCompleteEnabled && isAutoActivationEnabled) {
                     refreshPopupWindow()
                 }
+                if (completionProvider.getCompletions(c).isEmpty()) {
+                    hidePopupWindow()
+                }
             }
         })
     }

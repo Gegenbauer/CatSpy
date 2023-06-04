@@ -58,6 +58,6 @@ open class HistoryComboBoxModel<T>(items: List<T> = emptyList()) : DefaultComboB
     }
 
     companion object {
-        private const val MAX_SIZE = 3
+        private const val MAX_SIZE = 20
     }
 }

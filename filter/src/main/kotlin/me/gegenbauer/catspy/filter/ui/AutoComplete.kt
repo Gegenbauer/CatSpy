@@ -17,7 +17,6 @@ fun JTextComponent.enableAutoComplete() {
     // disable enter key
     interceptEvent(this, KeyEvent.VK_ENTER, KeyEvent.KEY_PRESSED) {
         ac.insertCurrentCompletion()
-
     }
     // A CompletionProvider is what knows of all possible completions, and
     // analyzes the contents of the text area at the caret position to

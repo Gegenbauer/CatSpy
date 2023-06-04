@@ -4,7 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.databinding.BindingLog
 import java.awt.Component
 import javax.swing.JComponent
 
@@ -48,10 +48,10 @@ enum class BindType : Bindable {
         ) {
             val bindingCache = componentProperty.component.getOrCreateBindingCache()
             if (bindingCache.containsKey(componentProperty)) {
-                GLog.w(TAG, "[bind ONE_WAY_TO_SOURCE] binding ${bindingCache[componentProperty]?.javaClass?.simpleName} already exists")
+                BindingLog.w(TAG, "[bind ONE_WAY_TO_SOURCE] binding ${bindingCache[componentProperty]?.javaClass?.simpleName} already exists")
                 return
             }
-            GLog.d(TAG, "[bind ONE_WAY_TO_SOURCE] binding ${componentProperty.getDisplayName()} to ${viewModelProperty.getDisplayName()}")
+            BindingLog.d(TAG, "[bind ONE_WAY_TO_SOURCE] binding ${componentProperty.getDisplayName()} to ${viewModelProperty.getDisplayName()}")
             val observer = ComponentPropertyObserver(viewModelProperty, componentProperty)
             componentProperty.addObserver(observer)
             bindingCache[componentProperty] = BindingItem(this, componentProperty, viewModelProperty, observer)
@@ -62,10 +62,10 @@ enum class BindType : Bindable {
             componentProperty: ObservableComponentProperty<T>,
             viewModelProperty: ObservableViewModelProperty<T>
         ) {
-            GLog.d(TAG, "[bind ONE_WAY_TO_TARGET] binding prepare to bind ${componentProperty.getDisplayName()} to ${viewModelProperty.getDisplayName()}")
+            BindingLog.d(TAG, "[bind ONE_WAY_TO_TARGET] binding prepare to bind ${componentProperty.getDisplayName()} to ${viewModelProperty.getDisplayName()}")
             val bindingCache = componentProperty.component.getOrCreateBindingCache()
             if (bindingCache.containsKey(componentProperty)) {
-                GLog.w(TAG, "[bind ONE_WAY_TO_TARGET] binding ${bindingCache[componentProperty]?.javaClass?.simpleName} already exists")
+                BindingLog.w(TAG, "[bind ONE_WAY_TO_TARGET] binding ${bindingCache[componentProperty]?.javaClass?.simpleName} already exists")
                 return
             }
             val observer = ViewModelPropertyObserver(componentProperty, viewModelProperty)
@@ -79,10 +79,10 @@ enum class BindType : Bindable {
             componentProperty: ObservableComponentProperty<T>,
             viewModelProperty: ObservableViewModelProperty<T>
         ) {
-            GLog.d(TAG, "[bind TWO_WAY] binding prepare to bind ${componentProperty.getDisplayName()} to ${viewModelProperty.getDisplayName()}")
+            BindingLog.d(TAG, "[bind TWO_WAY] binding prepare to bind ${componentProperty.getDisplayName()} to ${viewModelProperty.getDisplayName()}")
             val bindingCache = componentProperty.component.getOrCreateBindingCache()
             if (bindingCache.containsKey(componentProperty)) {
-                GLog.w(TAG, "[bind TWO_WAY] binding ${bindingCache[componentProperty]?.javaClass?.simpleName} already exists")
+                BindingLog.w(TAG, "[bind TWO_WAY] binding ${bindingCache[componentProperty]?.javaClass?.simpleName} already exists")
                 return
             }
             val viewModelPropertyObserver = ViewModelPropertyObserver(componentProperty, viewModelProperty)
@@ -158,10 +158,10 @@ object Bindings {
         val component = componentProperty.component
         val bindingCache = component.getOrCreateBindingCache()
         if (!bindingCache.containsKey(componentProperty)) {
-            GLog.w(TAG, "[unBind] binding ${componentProperty.getDisplayName()} not exists")
+            BindingLog.w(TAG, "[unBind] binding ${componentProperty.getDisplayName()} not exists")
             return
         }
-        GLog.d(TAG, "[unBind] unBinding ${componentProperty.getDisplayName()}")
+        BindingLog.d(TAG, "[unBind] unBinding ${componentProperty.getDisplayName()}")
         val bindingItem = bindingCache[componentProperty]!!
         (bindingItem.viewModelProperty as ObservableViewModelProperty<Any>)
             .removeObserver(bindingItem.viewModelPropertyChangeListener as? ViewModelPropertyObserver<Any>)

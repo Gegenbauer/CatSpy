@@ -1,12 +1,16 @@
 package me.gegenbauer.catspy.filter.parser
 
-open class FilterExpression(
+open class FilterExpression internal constructor(
     open val wholeExpression: String = "",
     open val start: Int = 0,
     open val end: Int = 0,
-) {
+) : IQuoteAnalyzer by QuoteAnalyzer(), IParenthesesAnalyzer by ParenthesesAnalyzer() {
 
-    constructor(expression: FilterExpression) : this(expression.wholeExpression, expression.start, expression.end)
+    internal constructor(expression: FilterExpression) : this(
+        expression.wholeExpression,
+        expression.start,
+        expression.end
+    )
 
     fun getContent(): String {
         return wholeExpression.substring(start, end + 1)
@@ -16,26 +20,50 @@ open class FilterExpression(
         return FilterExpression(wholeExpression, start, end)
     }
 
+    fun lastCharBefore(index: Int): Char {
+        if (index == 0) {
+            throw IllegalArgumentException("Index must be greater than 0")
+        }
+        return wholeExpression[index - 1]
+    }
+
+    fun isQuoteValid(): Boolean {
+        return getInvalidQuotePairIndexes().isEmpty()
+    }
+
     override fun toString(): String {
         return getContent()
     }
 
     fun trim(): FilterExpression {
         val trimmedRange = trimmedRange()
-        return FilterExpression(wholeExpression, trimmedRange.first, trimmedRange.last)
+        return FilterExpression(wholeExpression, trimmedRange.first, trimmedRange.last).apply {
+            // must analyze parentheses after quote.
+            setQuotePairs(getQuotePairs())
+            setParenthesesPairs(getParenthesesPairs())
+        }
     }
 
     companion object {
+        fun String.toFilterExpression(): FilterExpression {
+            return from(this)
+        }
+
         private fun from(expression: String): FilterExpression {
             val trimmedRange = expression.trimmedRange()
             if (trimmedRange.first == -1 || trimmedRange.last == -1) {
-                return FilterExpression(expression, 0, expression.length - 1)
+                // expression is blank
+                return FilterExpression(expression, 0, expression.length - 1).apply {
+                    // must analyze parentheses after quote.
+                    analyzeQuote(this)
+                    analyzeParentheses(this)
+                }
             }
-            return FilterExpression(expression, trimmedRange.first, trimmedRange.last)
-        }
-
-        fun String.toFilterExpression(): FilterExpression {
-            return from(this)
+            return FilterExpression(expression, trimmedRange.first, trimmedRange.last).apply {
+                // must analyze parentheses after quote.
+                analyzeQuote(this)
+                analyzeParentheses(this)
+            }
         }
     }
 }
@@ -80,8 +108,9 @@ class NormalFilterValue(
 ) : FilterValue(value)
 
 class RegexFilterValue(
-    value: String,
-) : FilterValue(value)
+    val regex: Regex
+) : FilterValue(regex.pattern)
+
 
 fun String.trimmedRange(): IntRange {
     val trimmed = this.trim()

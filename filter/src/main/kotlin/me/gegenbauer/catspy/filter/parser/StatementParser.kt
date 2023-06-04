@@ -9,7 +9,15 @@ class StatementParser {
     // filter expression example: (tag:servicemanager | message:get) | (level:info & message~:"ser$")
 
     fun parse(expression: String): FilterExpression {
-        return parseExpression(expression.toFilterExpression())
+        val filterExpression = expression.toFilterExpression()
+        if (filterExpression.isQuoteValid().not()) {
+            return InvalidLiteralExpression(expression, filterExpression.getInvalidQuoteIndex())
+        }
+        val invalidIndex = findInvalidIndexForUnpairedParentheses(filterExpression)
+        if (invalidIndex != -1) {
+            return InvalidParenthesesExpression(expression, invalidIndex, invalidIndex)
+        }
+        return parseExpression(filterExpression)
     }
 
     /**
@@ -17,7 +25,7 @@ class StatementParser {
      */
     private fun parseExpression(expression: FilterExpression): FilterExpression {
         val trimmedExpression = expression.trim()
-        if (ParenthesesExpression.isParenthesesExpression(trimmedExpression)) {
+        if (isParenthesesExpression(trimmedExpression)) {
             return parseParenthesesExpression(trimmedExpression)
         }
         return parseLiteralExpression(trimmedExpression)
@@ -50,16 +58,19 @@ class StatementParser {
         var parenthesesCount = 0
         val trimmedExpression = expression.trim()
         for (index in trimmedExpression.start..trimmedExpression.end) {
+            if (expression.isInQuote(index)) {
+                continue
+            }
             val c = trimmedExpression.wholeExpression[index]
-            if (c == ParenthesesExpression.LEFT) {
+            if (TokenType.PARENTHESIS_LEFT.match(c)) {
                 parenthesesCount++
-            } else if (c == ParenthesesExpression.RIGHT) {
+            } else if (TokenType.PARENTHESIS_RIGHT.match(c)) {
                 parenthesesCount--
             }
-            if (parenthesesCount == 0 && Operator.isOperator(c)) {
+            if (parenthesesCount == 0 && c.isOperator()) {
                 val left = parseExpression(expression.crop(trimmedExpression.start, index - 1))
                 val right = parseExpression(expression.crop(index + 1, trimmedExpression.end))
-                return if (Operator.isOrOperator(c)) {
+                return if (TokenType.OPERATOR_OR.match(c)) {
                     OrExpression(left, right, trimmedExpression)
                 } else {
                     AndExpression(left, right, trimmedExpression)
@@ -71,17 +82,22 @@ class StatementParser {
 
     private fun parseSingleLiteralExpression(expression: FilterExpression): FilterExpression {
         val trimmedExpression = expression.trim()
-        if (!trimmedExpression.wholeExpression.contains(LiteralExpression.SPLITTER)) {
+        val splitterIndex = findSplitterIndex(trimmedExpression)
+        if (splitterIndex == -1) {
             return LiteralExpression(FilterKey.Message, NormalFilterValue(trimmedExpression.getContent()), trimmedExpression)
         }
-        val tokens = trimmedExpression.getContent().split(LiteralExpression.SPLITTER)
-        if ((tokens.size > 2) || (tokens.size == 2 && tokens[1].isBlank())) { // only one token, eg: servicemanager
+        val leftPart = trimmedExpression.wholeExpression.substring(trimmedExpression.start, splitterIndex)
+        if (splitterIndex + 1 > trimmedExpression.end) {
             return InvalidLiteralExpression(trimmedExpression)
         }
-        val trimmedTokenLeftPart = tokens[0].trim()
-        val trimmedTokenRightPart = tokens[1].trim()
-        val isRegex = trimmedTokenLeftPart.endsWith(LiteralExpression.REGEX_FLAG)
-        val isExclude = trimmedTokenLeftPart.startsWith(LiteralExpression.EXCLUDE_FLAG)
+        val rightPart = trimmedExpression.wholeExpression.substring(splitterIndex + 1, trimmedExpression.end + 1)
+        if (rightPart.isBlank()) { // only one token, eg: servicemanager
+            return InvalidLiteralExpression(trimmedExpression)
+        }
+        val trimmedTokenLeftPart = leftPart.trim()
+        val trimmedTokenRightPart = rightPart.trim()
+        val isRegex = trimmedTokenLeftPart.endsWith(TokenType.REGEX_FLAG.value)
+        val isExclude = trimmedTokenLeftPart.startsWith(TokenType.EXCLUDE_FLAG.value)
         val keyStart = if (isExclude) 1 else 0
         val keyEnd = if (isRegex) trimmedTokenLeftPart.length - 1 else trimmedTokenLeftPart.length
         val key = FilterKey.from(trimmedTokenLeftPart.substring(keyStart, keyEnd))
@@ -93,9 +109,31 @@ class StatementParser {
             )
         }
         return if (isRegex) {
-            LiteralExpression(key, RegexFilterValue(trimmedTokenRightPart), trimmedExpression, isExclude)
+            val regex = runCatching {
+                Regex(
+                    trimmedTokenRightPart
+                        .removeSurrounding(TokenType.DOUBLE_QUOTE.value.toString())
+                        .replace(TokenType.ESCAPE.value.toString(), "")
+                )
+            }.onFailure {
+                return InvalidLiteralExpression(trimmedExpression, it.localizedMessage)
+            }.getOrThrow()
+
+            LiteralExpression(key, RegexFilterValue(regex), trimmedExpression, isExclude)
         } else {
             LiteralExpression(key, NormalFilterValue(trimmedTokenRightPart), trimmedExpression, isExclude)
         }
+    }
+
+    private fun findSplitterIndex(filterExpression: FilterExpression): Int {
+        for (index in filterExpression.start..filterExpression.end) {
+            if (filterExpression.isInQuote(index)) {
+                continue
+            }
+            if (TokenType.SPLITTER.match(filterExpression.wholeExpression[index])) {
+                return index
+            }
+        }
+        return -1
     }
 }

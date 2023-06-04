@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.command.LogCmdManager
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
@@ -27,6 +26,7 @@ import me.gegenbauer.catspy.ui.dialog.GoToDialog
 import me.gegenbauer.catspy.ui.dialog.LogTableDialog
 import me.gegenbauer.catspy.ui.icon.DayNightIcon
 import me.gegenbauer.catspy.ui.log.*
+import me.gegenbauer.catspy.ui.log.LogcatRealTimeFilter.Companion.toFilterItem
 import me.gegenbauer.catspy.ui.menu.FileMenu
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
@@ -86,22 +86,22 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     private val showTagPanel = JPanel()
     private val showTagTogglePanel = JPanel(GridLayout(1, 1))
     val showTagToggle = ColorToggleButton(STRINGS.ui.tag, STRINGS.toolTip.tagToggle)
-    val showTagCombo = filterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.tagCombo) withName STRINGS.ui.tag
+    val showTagCombo = filterComboBox(tooltip = STRINGS.toolTip.tagCombo) withName STRINGS.ui.tag
 
     private val showPidPanel = JPanel()
     private val showPidTogglePanel = JPanel(GridLayout(1, 1))
     val showPidToggle = ColorToggleButton(STRINGS.ui.pid, STRINGS.toolTip.pidToggle)
-    val showPidCombo = filterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.pidCombo) withName STRINGS.ui.pid
+    val showPidCombo = filterComboBox(tooltip = STRINGS.toolTip.pidCombo) withName STRINGS.ui.pid
 
     private val showTidPanel = JPanel()
     private val showTidTogglePanel = JPanel(GridLayout(1, 1))
     val showTidToggle = ColorToggleButton(STRINGS.ui.tid, STRINGS.toolTip.tidToggle)
-    val showTidCombo = filterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.tidCombo) withName STRINGS.ui.tid
+    val showTidCombo = filterComboBox(tooltip = STRINGS.toolTip.tidCombo) withName STRINGS.ui.tid
 
     private val boldLogPanel = JPanel()
     private val boldLogTogglePanel = JPanel(GridLayout(1, 1))
     val boldLogToggle = ColorToggleButton(STRINGS.ui.bold, STRINGS.toolTip.boldToggle)
-    val boldLogCombo = filterComboBox(useColorTag = false, tooltip = STRINGS.toolTip.boldCombo)
+    val boldLogCombo = filterComboBox(tooltip = STRINGS.toolTip.boldCombo)
 
     private val matchCaseTogglePanel = JPanel(GridLayout(1, 1))
     val matchCaseToggle = ColorToggleButton("Aa", STRINGS.toolTip.caseToggle)
@@ -224,8 +224,8 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     }
     val settingsMenu = SettingsMenu().apply {
         onLogLevelChangedListener = {
-            filteredTableModel.filterLevel = it
             MainViewModel.logLevel.updateValue(it.logName)
+            updateLogFilter()
         }
     }
     private val helpMenu = HelpMenu()
@@ -240,7 +240,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     //region events
     private val logPanelMouseListener = LogPanelMouseListener()
     private val keyHandler = KeyHandler()
-    private val itemHandler = ItemHandler()
     private val actionHandler = ActionHandler()
     private val popupMenuHandler = PopupMenuHandler()
     private val mouseHandler = MouseHandler()
@@ -266,15 +265,22 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         LogCmdManager.setMainUI(this)
         configureWindow()
 
-        LogCmdManager.addEventListener(AdbHandler())
-
         createUI()
 
         registerEvent()
 
+        observeViewModelValue()
+
         MainViewModel.bind(this)
 
         refreshDevices()
+    }
+
+    private fun observeViewModelValue() {
+        MainViewModel.adbProcessStopped.addObserver { filteredTableModel.pause(it == true) }
+        MainViewModel.filterMatchCaseEnabled.addObserver { filteredTableModel.matchCase = it == true }
+        MainViewModel.searchMatchCase.addObserver { filteredTableModel.searchMatchCase = it == true }
+        MainViewModel.splitFile.addObserver { filteredTableModel.scrollBackSplitFile = it == true }
     }
 
     private fun refreshDevices() {
@@ -439,11 +445,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         statusBar.add(statusMethod, BorderLayout.WEST)
         statusBar.add(statusTF, BorderLayout.CENTER)
 
-        showLogCombo.updateTooltip()
-        showTagCombo.updateTooltip()
-        boldLogCombo.updateTooltip()
-        searchPanel.searchCombo.updateTooltip()
-
         updateLogCmdCombo()
 
         val targetDevice = UIConfManager.uiConf.adbDevice
@@ -459,27 +460,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         GLog.d(TAG, "[createUI] log font: $customFont")
         splitLogPane.filteredLogPanel.customFont = customFont
         splitLogPane.fullLogPanel.customFont = customFont
-
-        filteredTableModel.filterLevel = getLevelFromName(MainViewModel.logLevel.value ?: LogLevel.WARN.logName)
-
-        if (showLogToggle.isSelected) {
-            filteredTableModel.filterLog = showLogCombo.selectedItem?.toString() ?: ""
-        }
-        if (boldLogToggle.isSelected) {
-            filteredTableModel.filterHighlightLog = boldLogCombo.selectedItem?.toString() ?: ""
-        }
-        if (searchPanel.isVisible) {
-            filteredTableModel.filterSearchLog = searchPanel.searchCombo.selectedItem?.toString() ?: ""
-        }
-        if (showTagToggle.isSelected) {
-            filteredTableModel.filterTag = showTagCombo.selectedItem?.toString() ?: ""
-        }
-        if (showPidToggle.isSelected) {
-            filteredTableModel.filterPid = showPidCombo.selectedItem?.toString() ?: ""
-        }
-        if (showTidToggle.isSelected) {
-            filteredTableModel.filterTid = showTidCombo.selectedItem?.toString() ?: ""
-        }
 
         viewMenu.itemFull.state = UIConfManager.uiConf.logFullViewEnabled
         if (!viewMenu.itemFull.state) {
@@ -544,7 +524,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         logToolBar.addMouseListener(mouseHandler)
         startBtn.addActionListener(actionHandler)
         startBtn.addMouseListener(mouseHandler)
-        pauseToggle.addItemListener(itemHandler)
         stopBtn.addActionListener(actionHandler)
         stopBtn.addMouseListener(mouseHandler)
         clearViewsBtn.addActionListener(actionHandler)
@@ -552,20 +531,12 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         saveBtn.addActionListener(actionHandler)
         saveBtn.addMouseListener(mouseHandler)
         showLogCombo.addPopupMenuListener(popupMenuHandler)
-        showLogToggle.addItemListener(itemHandler)
-        boldLogToggle.addItemListener(itemHandler)
-        showTagToggle.addItemListener(itemHandler)
-        showPidToggle.addItemListener(itemHandler)
-        showTidToggle.addItemListener(itemHandler)
         logCmdCombo.addPopupMenuListener(popupMenuHandler)
         adbConnectBtn.addActionListener(actionHandler)
         adbRefreshBtn.addActionListener(actionHandler)
         adbDisconnectBtn.addActionListener(actionHandler)
-        matchCaseToggle.addItemListener(itemHandler)
         scrollBackApplyBtn.addActionListener(actionHandler)
-        scrollBackKeepToggle.addItemListener(itemHandler)
         scrollBackTF.addKeyListener(keyHandler)
-        scrollBackSplitFileToggle.addItemListener(itemHandler)
         filterPanel.addMouseListener(mouseHandler)
         toolBarPanel.addMouseListener(mouseHandler)
         statusMethod.addPropertyChangeListener(statusChangeListener)
@@ -655,6 +626,8 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         statusMethod.text = " ${STRINGS.ui.open} "
         filteredTableModel.stopAll()
 
+        updateLogFilter()
+
         if (isAppend) {
             statusTF.text += "| $path"
         } else {
@@ -728,10 +701,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     fun restartAdbLogcat() {
         GLog.d(TAG, "[restartAdbLogcat]")
         LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
-    }
-
-    fun pause(pause: Boolean) {
-        filteredTableModel.pause(pause)
     }
 
     private fun startFileFollow(filePath: String) {
@@ -905,44 +874,16 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         private val pasteItem = JMenuItem("Paste").apply {
             icon = loadDarklafThemedIcon("menu/paste.svg")
         }
-        private val removeColorTagsItem = JMenuItem("Remove All Color Tags")
-        private val removeOneColorTagItem = JMenuItem("Remove Color Tag")
-        private val addColorTagItems: ArrayList<JMenuItem> = arrayListOf()
         private val actionHandler = ActionHandler()
 
         init {
             selectAllItem.addActionListener(actionHandler)
             copyItem.addActionListener(actionHandler)
             pasteItem.addActionListener(actionHandler)
-            removeColorTagsItem.addActionListener(actionHandler)
-            removeOneColorTagItem.addActionListener(actionHandler)
 
-            updateMenuItems()
-            ThemeManager.registerThemeUpdateListener { updateMenuItems() }
-        }
-
-        private fun updateMenuItems() {
-            removeAll()
             add(selectAllItem)
             add(copyItem)
             add(pasteItem)
-            add(removeColorTagsItem)
-            if (this.combo.useColorTag) {
-                add(removeOneColorTagItem)
-                addColorTagItems.clear()
-                val colorTagIndexes = 1..9
-                colorTagIndexes.map {
-                    JMenuItem("Add Color Tag : #$it").apply {
-                        isOpaque = true
-                        foreground = ColorScheme.filteredFGs[it]
-                        background = ColorScheme.filteredBGs[it]
-                        addActionListener(actionHandler)
-                    }
-                }.forEach {
-                    addColorTagItems.add(it)
-                    add(it)
-                }
-            }
         }
 
         internal inner class ActionHandler : ActionListener {
@@ -962,31 +903,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                     pasteItem -> {
                         val editorCom = combo.editorComponent
                         editorCom.paste()
-                    }
-
-                    removeColorTagsItem -> {
-                        combo.removeAllColorTags()
-                        if (combo == showLogCombo) {
-                            applyShowLogComboEditor()
-                        }
-                    }
-
-                    removeOneColorTagItem -> {
-                        combo.removeColorTag()
-                        if (combo == showLogCombo) {
-                            applyShowLogComboEditor()
-                        }
-                    }
-
-                    else -> {
-                        val item = event.source as JMenuItem
-                        if (addColorTagItems.contains(item)) {
-                            val textSplit = item.text.split(":")
-                            combo.addColorTag(textSplit[1].trim())
-                            if (combo == showLogCombo) {
-                                applyShowLogComboEditor()
-                            }
-                        }
                     }
                 }
             }
@@ -1079,23 +995,8 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         showLogCombo.updateTooltip()
     }
 
-    fun getTextSearchCombo(): String {
-        if (searchPanel.searchCombo.selectedItem == null) {
-            return ""
-        }
-        return searchPanel.searchCombo.selectedItem!!.toString()
-    }
-
-    fun setTextSearchCombo(text: String) {
-        searchPanel.searchCombo.selectedItem = text
-        filteredTableModel.filterSearchLog = searchPanel.searchCombo.selectedItem!!.toString()
-        searchPanel.isVisible = true
-        viewMenu.itemSearch.state = searchPanel.isVisible
-    }
-
     fun applyShowLogCombo() {
         resetComboItem(MainViewModel.logFilterHistory, MainViewModel.logFilterCurrentContent.value ?: "")
-        filteredTableModel.filterLog = MainViewModel.logFilterCurrentContent.value ?: ""
     }
 
     fun applyShowLogComboEditor() {
@@ -1145,7 +1046,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                 updateLogCmdCombo()
             }
 
-            if (KeyEvent.VK_ENTER == event.keyCode) {
+            if (KeyEvent.VK_ENTER == event.keyCode && event.isControlDown) {
                 when (event.source) {
                     in listOf(
                         showLogCombo.editor.editorComponent,
@@ -1155,7 +1056,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                         showTidCombo.editor.editorComponent
                     ) -> {
                         updateComboBox()
-                        updateFilter()
+                        updateLogFilter()
                     }
                     logCmdCombo.editor.editorComponent -> {
                         if (LogCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
@@ -1189,90 +1090,19 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         resetComboItem(MainViewModel.boldHistory, MainViewModel.boldCurrentContent.value ?: "")
     }
 
-    private fun updateFilter() {
-        filteredTableModel.filterLog = MainViewModel.logFilterCurrentContent.value ?: ""
-        filteredTableModel.filterHighlightLog = MainViewModel.boldCurrentContent.value ?: ""
-        filteredTableModel.filterTag = MainViewModel.tagFilterCurrentContent.value ?: ""
-        filteredTableModel.filterPid = MainViewModel.pidFilterCurrentContent.value ?: ""
-        filteredTableModel.filterTid = MainViewModel.tidFilterCurrentContent.value ?: ""
+    private fun updateLogFilter() {
+        filteredTableModel.logFilter = LogcatRealTimeFilter(
+            showLogCombo.filterItem,
+            showTagCombo.filterItem,
+            showPidCombo.filterItem,
+            showTidCombo.filterItem,
+            getLevelFromFlag(MainViewModel.logLevel.getValueNonNull()),
+            MainViewModel.searchMatchCase.getValueNonNull()
+        )
     }
 
-    internal inner class ItemHandler : ItemListener {
-        override fun itemStateChanged(event: ItemEvent) {
-            when (event.source) {
-                showLogToggle -> {
-                    if (showLogToggle.isSelected && showLogCombo.selectedItem != null) {
-                        filteredTableModel.filterLog = showLogCombo.selectedItem!!.toString()
-                    } else {
-                        filteredTableModel.filterLog = ""
-                    }
-                    UIConfManager.uiConf.logFilterEnabled = showLogToggle.isSelected
-                }
-
-                boldLogToggle -> {
-                    if (boldLogToggle.isSelected && boldLogCombo.selectedItem != null) {
-                        filteredTableModel.filterHighlightLog = boldLogCombo.selectedItem!!.toString()
-                    } else {
-                        filteredTableModel.filterHighlightLog = ""
-                    }
-                    UIConfManager.uiConf.boldEnabled = boldLogToggle.isSelected
-                }
-
-                showTagToggle -> {
-                    if (showTagToggle.isSelected && showTagCombo.selectedItem != null) {
-                        filteredTableModel.filterTag = showTagCombo.selectedItem!!.toString()
-                    } else {
-                        filteredTableModel.filterTag = ""
-                    }
-                    UIConfManager.uiConf.tagFilterEnabled = showTagToggle.isSelected
-                }
-
-                showPidToggle -> {
-                    if (showPidToggle.isSelected && showPidCombo.selectedItem != null) {
-                        filteredTableModel.filterPid = showPidCombo.selectedItem!!.toString()
-                    } else {
-                        filteredTableModel.filterPid = ""
-                    }
-                    UIConfManager.uiConf.pidFilterEnabled = showPidToggle.isSelected
-                }
-
-                showTidToggle -> {
-                    if (showTidToggle.isSelected && showTidCombo.selectedItem != null) {
-                        filteredTableModel.filterTid = showTidCombo.selectedItem!!.toString()
-                    } else {
-                        filteredTableModel.filterTid = ""
-                    }
-                    UIConfManager.uiConf.tidFilterEnabled = showTidToggle.isSelected
-                }
-
-                matchCaseToggle -> {
-                    filteredTableModel.matchCase = matchCaseToggle.isSelected
-                    UIConfManager.uiConf.filterMatchCaseEnabled = matchCaseToggle.isSelected
-                }
-
-                scrollBackKeepToggle -> {
-                    filteredTableModel.scrollBackKeep = scrollBackKeepToggle.isSelected
-                }
-
-                pauseToggle -> {
-                    pause(pauseToggle.isSelected)
-                }
-            }
-        }
-    }
-
-    internal inner class AdbHandler : LogCmdManager.AdbEventListener {
-        override fun changedStatus(event: LogCmdManager.AdbEvent) {
-            when (event.cmd) {
-                LogCmdManager.CMD_CONNECT -> {
-
-                }
-
-                LogCmdManager.CMD_DISCONNECT -> {
-
-                }
-            }
-        }
+    private fun updateSearchFilter() {
+        filteredTableModel.searchFilterItem = searchPanel.searchCombo.filterItem
     }
 
     internal inner class PopupMenuHandler : PopupMenuListener {
@@ -1283,60 +1113,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                 return
             }
             when (event.source) {
-                showLogCombo -> {
-                    if (showLogCombo.selectedIndex < 0) {
-                        return
-                    }
-                    val combo = showLogCombo
-                    val item = combo.selectedItem!!.toString()
-                    if (combo.editor.item.toString() != item) {
-                        return
-                    }
-                    resetComboItem(MainViewModel.logFilterHistory, MainViewModel.logFilterCurrentContent.value ?: "")
-                    filteredTableModel.filterLog = MainViewModel.logFilterCurrentContent.value ?: ""
-                    combo.updateTooltip()
-                }
-
-                boldLogCombo -> {
-                    if (boldLogCombo.selectedIndex < 0) {
-                        return
-                    }
-                    val combo = boldLogCombo
-                    resetComboItem(MainViewModel.boldHistory, MainViewModel.boldCurrentContent.value ?: "")
-                    filteredTableModel.filterHighlightLog = MainViewModel.boldCurrentContent.value ?: ""
-                    combo.updateTooltip()
-                }
-
-                showTagCombo -> {
-                    if (showTagCombo.selectedIndex < 0) {
-                        return
-                    }
-                    val combo = showTagCombo
-                    resetComboItem(MainViewModel.tagFilterHistory, MainViewModel.tagFilterCurrentContent.value ?: "")
-                    filteredTableModel.filterTag = MainViewModel.tagFilterCurrentContent.value ?: ""
-                    combo.updateTooltip()
-                }
-
-                showPidCombo -> {
-                    if (showPidCombo.selectedIndex < 0) {
-                        return
-                    }
-                    val combo = showPidCombo
-                    resetComboItem(MainViewModel.pidFilterHistory, MainViewModel.pidFilterCurrentContent.value ?: "")
-                    filteredTableModel.filterPid = MainViewModel.pidFilterCurrentContent.value ?: ""
-                    combo.updateTooltip()
-                }
-
-                showTidCombo -> {
-                    if (showTidCombo.selectedIndex < 0) {
-                        return
-                    }
-                    val combo = showTidCombo
-                    resetComboItem(MainViewModel.tidFilterHistory, MainViewModel.tidFilterCurrentContent.value ?: "")
-                    filteredTableModel.filterTid = MainViewModel.tidFilterCurrentContent.value ?: ""
-                    combo.updateTooltip()
-                }
-
                 logCmdCombo -> {
                     if (logCmdCombo.selectedIndex < 0) {
                         return
@@ -1436,7 +1212,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
 
     inner class SearchPanel : JPanel() {
         val closeBtn: JButton = GButton("X") applyTooltip STRINGS.toolTip.searchCloseBtn
-        val searchCombo: FilterComboBox = filterComboBox(useColorTag = false) applyTooltip STRINGS.toolTip.searchCombo
+        val searchCombo: FilterComboBox = filterComboBox() applyTooltip STRINGS.toolTip.searchCombo
         val searchMatchCaseToggle: ColorToggleButton =
             ColorToggleButton("Aa") applyTooltip STRINGS.toolTip.searchCaseToggle
         var isInternalTargetView = true  // true : filter view, false : full view
@@ -1514,10 +1290,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
             if (aFlag) {
                 searchCombo.requestFocus()
                 searchCombo.editor.selectAll()
-
-                filteredTableModel.filterSearchLog = searchCombo.selectedItem?.toString() ?: ""
-            } else {
-                filteredTableModel.filterSearchLog = ""
             }
         }
 
@@ -1571,7 +1343,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                     when (event.source) {
                         searchCombo.editor.editorComponent -> {
                             resetComboItem(MainViewModel.searchHistory, MainViewModel.searchCurrentContent.value ?: "")
-                            filteredTableModel.filterSearchLog = MainViewModel.searchCurrentContent.value ?: ""
+                            updateSearchFilter()
                             if (KeyEvent.SHIFT_DOWN_MASK == event.modifiersEx) {
                                 moveToPrev()
                             } else {
@@ -1597,8 +1369,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                             return
                         }
                         resetComboItem(MainViewModel.searchHistory, MainViewModel.searchCurrentContent.value ?: "")
-                        filteredTableModel.filterSearchLog = MainViewModel.searchCurrentContent.value ?: ""
-                        searchCombo.updateTooltip()
                     }
                 }
             }

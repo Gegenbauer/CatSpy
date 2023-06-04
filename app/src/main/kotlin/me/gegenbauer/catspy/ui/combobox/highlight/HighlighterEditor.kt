@@ -22,7 +22,6 @@ import javax.swing.text.JTextComponent
 
 class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
 
-    var useColorTag: Boolean = true
     private var isHighlightEnabled = true
     private val customHighlighters = arrayListOf<Any>()
     private val textEditor = editorComponent as JTextComponent
@@ -44,7 +43,7 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
 
     override fun createEditorComponent(): JTextField {
         return super.createEditorComponent().apply {
-            enableAutoComplete()
+            //enableAutoComplete()
         }
     }
 
@@ -119,24 +118,6 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
                 if (startPos in 0 until endPos) {
                     if (text[startPos] == '-') {
                         customHighlighters.add(textEditor.highlighter.addHighlight(startPos, endPos, painterExclude))
-                    } else if (useColorTag && text[startPos] == '#' && startPos < (endPos - 1) && text[startPos + 1].isDigit()) {
-                        val color = ColorScheme.filteredBGs[text[startPos + 1].digitToInt()]
-                        val painterColor: Highlighter.HighlightPainter =
-                            DefaultHighlighter.DefaultHighlightPainter(color)
-                        customHighlighters.add(
-                            textEditor.highlighter.addHighlight(
-                                startPos,
-                                startPos + 2,
-                                painterColor
-                            )
-                        )
-                        customHighlighters.add(
-                            textEditor.highlighter.addHighlight(
-                                startPos + 2,
-                                endPos,
-                                painterInclude
-                            )
-                        )
                     } else {
                         customHighlighters.add(textEditor.highlighter.addHighlight(startPos, endPos, painterInclude))
                     }

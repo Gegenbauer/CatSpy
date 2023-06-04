@@ -23,26 +23,31 @@ object MainViewModel {
     val logFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.logFilterHistory.toHistoryItemList())
     val logFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val logFilterCurrentContent = ObservableViewModelProperty<String>()
+    val logFilterErrorMessage = ObservableViewModelProperty<String>()
 
     val tagFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.tagFilterEnabled)
     val tagFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.tagFilterHistory.toHistoryItemList())
     val tagFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val tagFilterCurrentContent = ObservableViewModelProperty<String>()
+    val tagFilterErrorMessage = ObservableViewModelProperty<String>()
 
     val pidFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.pidFilterEnabled)
     val pidFilterHistory = ObservableViewModelProperty(arrayListOf<String>().toHistoryItemList())
     val pidFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val pidFilterCurrentContent = ObservableViewModelProperty<String>()
+    val pidFilterErrorMessage = ObservableViewModelProperty<String>()
 
     val tidFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.tidFilterEnabled)
     val tidFilterHistory = ObservableViewModelProperty(arrayListOf<String>().toHistoryItemList())
     val tidFilterSelectedIndex = ObservableViewModelProperty<Int>()
     val tidFilterCurrentContent = ObservableViewModelProperty<String>()
+    val tidFilterErrorMessage = ObservableViewModelProperty<String>()
 
     val boldEnabled = ObservableViewModelProperty(UIConfManager.uiConf.boldEnabled)
     val boldHistory = ObservableViewModelProperty(UIConfManager.uiConf.highlightHistory.toHistoryItemList())
     val boldSelectedIndex = ObservableViewModelProperty<Int>()
     val boldCurrentContent = ObservableViewModelProperty<String>()
+    val boldErrorMessage = ObservableViewModelProperty<String>()
 
     val filterMatchCaseEnabled = ObservableViewModelProperty(UIConfManager.uiConf.filterMatchCaseEnabled)
     //endregion
@@ -76,6 +81,8 @@ object MainViewModel {
     val searchHistory = ObservableViewModelProperty(UIConfManager.uiConf.searchHistory.toHistoryItemList())
     val searchSelectedIndex = ObservableViewModelProperty<Int>()
     val searchCurrentContent = ObservableViewModelProperty<String>()
+    val searchMatchCase = ObservableViewModelProperty(UIConfManager.uiConf.searchMatchCaseEnabled)
+    val searchErrorMessage = ObservableViewModelProperty<String>()
     //endregion
 
     //region LogPanel
@@ -90,11 +97,11 @@ object MainViewModel {
         mainUI.apply {
             //region Toolbar
             //region Filter
-            bindLogFilter(showLogCombo, showLogToggle, logFilterSelectedIndex, logFilterHistory, logFilterEnabled, logFilterCurrentContent)
-            bindLogFilter(showTagCombo, showTagToggle, tagFilterSelectedIndex, tagFilterHistory, tagFilterEnabled, tagFilterCurrentContent)
-            bindLogFilter(showPidCombo, showPidToggle, pidFilterSelectedIndex, pidFilterHistory, pidFilterEnabled, pidFilterCurrentContent)
-            bindLogFilter(showTidCombo, showTidToggle, tidFilterSelectedIndex, tidFilterHistory, tidFilterEnabled, tidFilterCurrentContent)
-            bindLogFilter(boldLogCombo, boldLogToggle, boldSelectedIndex, boldHistory, boldEnabled, boldCurrentContent)
+            bindLogFilter(showLogCombo, showLogToggle, logFilterSelectedIndex, logFilterHistory, logFilterEnabled, logFilterCurrentContent, logFilterErrorMessage)
+            bindLogFilter(showTagCombo, showTagToggle, tagFilterSelectedIndex, tagFilterHistory, tagFilterEnabled, tagFilterCurrentContent, tagFilterErrorMessage)
+            bindLogFilter(showPidCombo, showPidToggle, pidFilterSelectedIndex, pidFilterHistory, pidFilterEnabled, pidFilterCurrentContent, pidFilterErrorMessage)
+            bindLogFilter(showTidCombo, showTidToggle, tidFilterSelectedIndex, tidFilterHistory, tidFilterEnabled, tidFilterCurrentContent, tidFilterErrorMessage)
+            bindLogFilter(boldLogCombo, boldLogToggle, boldSelectedIndex, boldHistory, boldEnabled, boldCurrentContent, boldErrorMessage)
 
             selectedProperty(matchCaseToggle) bindDual filterMatchCaseEnabled
             //endregion
@@ -104,6 +111,7 @@ object MainViewModel {
             bindNormalCombo(logCmdCombo, logCmdSelectedIndex, logCmdHistory, logCmdCurrentContent)
 
             selectedProperty(retryAdbToggle) bindDual retryAdb
+            selectedProperty(pauseToggle) bindDual adbProcessStopped
             //endregion
 
             //region Menu
@@ -125,9 +133,12 @@ object MainViewModel {
             listProperty(searchPanel.searchCombo) bindDual searchHistory
             selectedIndexProperty(searchPanel.searchCombo) bindLeft searchSelectedIndex
             textProperty(searchPanel.searchCombo.editorComponent) bindDual searchCurrentContent
+            customProperty(searchPanel.searchCombo, "errorMsg", "") bindDual searchErrorMessage
 
             visibilityProperty(searchPanel) bindDual searchPanelVisible
             selectedProperty(viewMenu.itemSearch) bindDual searchPanelVisible
+
+            selectedProperty(searchPanel.searchMatchCaseToggle) bindDual searchMatchCase
             //endregion
 
             //region LogPanel
@@ -151,6 +162,7 @@ object MainViewModel {
         listProperty: ObservableViewModelProperty<List<HistoryItem<String>>>,
         enabledProperty: ObservableViewModelProperty<Boolean>,
         editorContentProperty: ObservableViewModelProperty<String>,
+        errorMessageProperty: ObservableViewModelProperty<String>,
     ) {
         selectedProperty(toggle) bindDual enabledProperty
         enabledProperty(comboBox) bindDual enabledProperty
@@ -158,6 +170,7 @@ object MainViewModel {
         listProperty(comboBox) bindDual listProperty
         selectedIndexProperty(comboBox) bindLeft selectedIndexProperty
         textProperty(comboBox.editorComponent) bindDual editorContentProperty
+        customProperty(comboBox, "errorMsg", "") bindLeft errorMessageProperty
     }
 
     private fun bindNormalCombo(

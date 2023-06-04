@@ -45,7 +45,7 @@ class StatementParserTest {
         assertEquals(filterExpression.getContent(), "message~:\"ser$\"")
         assertEquals(filterExpression.key, FilterKey.Message)
         assert(filterExpression.value is RegexFilterValue)
-        assertEquals(filterExpression.value.value, "\"ser$\"")
+        assertEquals(filterExpression.value.value, "ser$")
     }
 
     @Test
@@ -76,8 +76,32 @@ class StatementParserTest {
     }
 
     @Test
-    fun `should return InvalidLiteralExpression when parse literal expression with multi separator`() {
+    fun `should return LiteralExpression when parse literal expression with multi separator`() {
         val expression = "message~:tag:asd "
+        val filterExpression = parser.parse(expression)
+        assertTrue(filterExpression is LiteralExpression)
+        assertEquals(filterExpression.key, FilterKey.Message)
+        assertEquals(filterExpression.value.value, "tag:asd")
+    }
+
+    @Test
+    fun `should return correct expression when parse expression with parentheses contains in double quote pair`() {
+        val expression = "message~:\"(tag:asd)\""
+        val filterExpression = parser.parse(expression)
+        assertEquals(filterExpression.getContent(), expression)
+    }
+
+    @Test
+    fun `should return correct regex when parse regex expression`() {
+        val expression = "message~:\"\\\"ser$\""
+        val result = parser.parse(expression)
+        assertTrue(result is LiteralExpression)
+        assertEquals(result.value.value, "\"ser\$")
+    }
+
+    @Test
+    fun `should return InvalidLiteralExpression when parse literal expression with invalid regex`() {
+        val expression = "message~:\"ser$"
         val filterExpression = parser.parse(expression)
         assertTrue(filterExpression is InvalidLiteralExpression)
     }

@@ -17,10 +17,4 @@ class LiteralExpression(
         expression.end,
         isExclude
     )
-
-    companion object {
-        const val EXCLUDE_FLAG = "-"
-        const val REGEX_FLAG = "~"
-        const val SPLITTER = ":"
-    }
 }

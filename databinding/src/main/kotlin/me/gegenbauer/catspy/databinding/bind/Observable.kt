@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.databinding.bind
 
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.databinding.BindingLog
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -26,7 +26,7 @@ class ComponentPropertyObserver<T>(
     val componentProperty: ObservableComponentProperty<T>
 ) : Observer<T> {
     override fun onChange(newValue: T?) {
-        GLog.d(TAG, "[ComponentPropertyObserver] ${componentProperty.getDisplayName()} property change to $newValue")
+        BindingLog.d(TAG, "[ComponentPropertyObserver] ${componentProperty.getDisplayName()} property change to $newValue")
         viewModelProperty.updateValue(newValue)
     }
 }
@@ -36,7 +36,7 @@ class ViewModelPropertyObserver<T>(
     val viewModelProperty: ObservableViewModelProperty<T>
 ) : Observer<T> {
     override fun onChange(newValue: T?) {
-        GLog.d(TAG, "[ViewModelPropertyObserver] ${viewModelProperty.getDisplayName()} property change to $newValue")
+        BindingLog.d(TAG, "[ViewModelPropertyObserver] ${viewModelProperty.getDisplayName()} property change to $newValue")
         componentProperty.updateValue(newValue)
     }
 }
@@ -51,10 +51,14 @@ open class ObservableProperty<T>(value: T? = null) : Observable<T>, ValueUpdater
     override fun updateValue(newValue: T?) {
         if (this.value == newValue) return
         if (!filterStrategy(newValue)) {
-            GLog.d(ObservableComponentProperty.TAG, "[updateValue] ignored by filterStrategy")
+            BindingLog.d(ObservableComponentProperty.TAG, "[updateValue] ignored by filterStrategy")
             return
         }
         updateValueInternal(newValue)
+    }
+
+    fun getValueNonNull(): T {
+        return value ?: throw IllegalStateException("value assert nonnull is null")
     }
 
     protected open fun updateValueInternal(newValue: T?) {

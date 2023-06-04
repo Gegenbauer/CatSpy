@@ -13,8 +13,10 @@ import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.task.*
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
-import me.gegenbauer.catspy.ui.combobox.FilterComboBox
+import me.gegenbauer.catspy.ui.log.FilterItem.Companion.isNotEmpty
 import me.gegenbauer.catspy.ui.log.LogcatLogItem.Companion.fgColor
+import me.gegenbauer.catspy.ui.log.LogcatLogItem.Companion.isShow
+import me.gegenbauer.catspy.ui.log.LogcatRealTimeFilter.Companion.emptyRealTimeFilter
 import me.gegenbauer.catspy.utils.toHtml
 import java.awt.Color
 import java.io.BufferedReader
@@ -23,14 +25,11 @@ import java.io.FileReader
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.regex.Matcher
 import java.util.regex.Pattern
-import java.util.regex.PatternSyntaxException
 import javax.swing.JOptionPane
 import javax.swing.SwingUtilities
 import javax.swing.event.TableModelEvent
 import javax.swing.table.AbstractTableModel
-import kotlin.collections.ArrayList
 import kotlin.concurrent.write
 
 
@@ -45,18 +44,13 @@ fun interface LogTableModelListener {
  */
 class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableModel?) : AbstractTableModel(),
     TaskListener {
-    private var patternSearchLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var matcherSearchLog: Matcher = patternSearchLog.matcher("")
-    private var normalSearchLogSplit: List<String>? = null
     private val columnNames = arrayOf("line", "log")
     private val logItems: MutableList<LogcatLogItem> = ArrayList()
-    private val cachedItems = ArrayList<LogFilterItem>()
+    private val cachedItems = ArrayList<LogcatLogItem>()
     private val logNum = AtomicInteger(0)
 
     private val scope = ModelScope()
     private val eventListeners = ArrayList<LogTableModelListener>()
-    private val filteredFGMap = mutableMapOf<String, Color>()
-    private val filteredBGMap = mutableMapOf<String, Color>()
     private val taskManager = TaskManager()
     private val updateUITask = PeriodicTask(DURATION_UPDATE_UI, ::updateTableUI, "updateTableUI")
     private var logcatTask: LogcatTask? = null
@@ -66,165 +60,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
     var selectionChanged = false
 
-    var filterLevel: LogLevel = LogLevel.NONE
-        set(value) {
-            if (field != value) {
-                isFilterUpdated = true
-                field = value
-            }
-        }
-
-    var filterLog: String = ""
-        set(value) {
-            if (field != value) {
-                isFilterUpdated = true
-                field = value
-                mainUI.showLogCombo.errorMsg = ""
-                val patterns = parsePattern(value, true)
-                filterShowLog = patterns[0]
-                filterHideLog = patterns[1]
-
-                baseModel?.filterLog = value
-            }
-        }
-
-    private var filterShowLog: String = ""
-        set(value) {
-            field = value
-            patternShowLog = compilePattern(value, patternCase, patternShowLog, mainUI.showLogCombo)
-        }
-
-    private var filterHideLog: String = ""
-        set(value) {
-            field = value
-            patternHideLog = compilePattern(value, patternCase, patternHideLog, mainUI.showLogCombo)
-        }
-
-    var filterHighlightLog: String = ""
-        set(value) {
-            val patterns = parsePattern(value, false)
-            if (field != patterns[0]) {
-                isFilterUpdated = true
-                field = patterns[0]
-            }
-        }
-
-    private fun updateFilterSearchLog(field: String) {
-        var normalSearchLog = ""
-        val searchLogSplit = field.split("|")
-        regexSearchLog = ""
-
-        for (logUnit in searchLogSplit) {
-            val hasIt: Boolean = logUnit.chars().anyMatch { c -> "\\.[]{}()*+?^$|".indexOf(c.toChar()) >= 0 }
-            if (hasIt) {
-                if (regexSearchLog.isEmpty()) {
-                    regexSearchLog = logUnit
-                } else {
-                    regexSearchLog += "|$logUnit"
-                }
-            } else {
-                if (normalSearchLog.isEmpty()) {
-                    normalSearchLog = logUnit
-                } else {
-                    normalSearchLog += "|$logUnit"
-                }
-
-                if (searchPatternCase == Pattern.CASE_INSENSITIVE) {
-                    normalSearchLog = normalSearchLog.uppercase()
-                }
-            }
-        }
-
-        mainUI.searchPanel.searchCombo.errorMsg = ""
-        patternSearchLog =
-            compilePattern(regexSearchLog, searchPatternCase, patternSearchLog, mainUI.searchPanel.searchCombo)
-        matcherSearchLog = patternSearchLog.matcher("")
-
-        normalSearchLogSplit = normalSearchLog.split("|")
-    }
-
-    var filterSearchLog: String = ""
-        set(value) {
-            val patterns = parsePattern(value, false)
-            if (field != patterns[0]) {
-                isFilterUpdated = true
-                field = patterns[0]
-
-                updateFilterSearchLog(field)
-            }
-
-            baseModel?.filterSearchLog = value
-        }
-
-    var filterTag: String = ""
-        set(value) {
-            if (field != value) {
-                isFilterUpdated = true
-                field = value
-                mainUI.showTagCombo.errorMsg = ""
-                val patterns = parsePattern(value, false)
-                filterShowTag = patterns[0]
-                filterHideTag = patterns[1]
-            }
-        }
-
-    private var filterShowTag: String = ""
-        set(value) {
-            field = value
-            patternShowTag = compilePattern(value, patternCase, patternShowTag, mainUI.showTagCombo)
-        }
-    private var filterHideTag: String = ""
-        set(value) {
-            field = value
-            patternHideTag = compilePattern(value, patternCase, patternHideTag, mainUI.showTagCombo)
-        }
-
-    var filterPid: String = ""
-        set(value) {
-            if (field != value) {
-                isFilterUpdated = true
-                field = value
-                mainUI.showPidCombo.errorMsg = ""
-                val patterns = parsePattern(value, false)
-                filterShowPid = patterns[0]
-                filterHidePid = patterns[1]
-            }
-        }
-
-    private var filterShowPid: String = ""
-        set(value) {
-            field = value
-            patternShowPid = compilePattern(value, patternCase, patternShowPid, mainUI.showPidCombo)
-        }
-
-    private var filterHidePid: String = ""
-        set(value) {
-            field = value
-            patternHidePid = compilePattern(value, patternCase, patternHidePid, mainUI.showPidCombo)
-        }
-
-    var filterTid: String = ""
-        set(value) {
-            if (field != value) {
-                isFilterUpdated = true
-                field = value
-                mainUI.showTidCombo.errorMsg = ""
-                val patterns = parsePattern(value, false)
-                patterns[0].let { filterShowTid = it }
-                patterns[1].let { filterHideTid = it }
-            }
-        }
-
-    private var filterShowTid: String = ""
-        set(value) {
-            field = value
-            patternShowTid = compilePattern(value, patternCase, patternShowTid, mainUI.showTidCombo)
-        }
-    private var filterHideTid: String = ""
-        set(value) {
-            field = value
-            patternHideTid = compilePattern(value, patternCase, patternHideTid, mainUI.showTidCombo)
-        }
+    var highlightFilterItem: FilterItem = FilterItem.emptyItem
+    var searchFilterItem: FilterItem = FilterItem.emptyItem
 
     private var patternCase = Pattern.CASE_INSENSITIVE
     var matchCase: Boolean = false
@@ -235,27 +72,13 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 } else {
                     0
                 }
-
-                mainUI.showLogCombo.errorMsg = ""
-                patternShowLog = compilePattern(filterShowLog, patternCase, patternShowLog, mainUI.showLogCombo)
-                patternHideLog = compilePattern(filterHideLog, patternCase, patternHideLog, mainUI.showLogCombo)
-                mainUI.showTagCombo.errorMsg = ""
-                patternShowTag = compilePattern(filterShowTag, patternCase, patternShowTag, mainUI.showTagCombo)
-                patternHideTag = compilePattern(filterHideTag, patternCase, patternHideTag, mainUI.showTagCombo)
-                mainUI.showPidCombo.errorMsg = ""
-                patternShowPid = compilePattern(filterShowPid, patternCase, patternShowPid, mainUI.showPidCombo)
-                patternHidePid = compilePattern(filterHidePid, patternCase, patternHidePid, mainUI.showPidCombo)
-                mainUI.showTidCombo.errorMsg = ""
-                patternShowTid = compilePattern(filterShowTid, patternCase, patternShowTid, mainUI.showTidCombo)
-                patternHideTid = compilePattern(filterHideTid, patternCase, patternHideTid, mainUI.showTidCombo)
-
-                isFilterUpdated = true
-
-                field = value
             }
+
+            updateLogWithFilter()
+
+            field = value
         }
 
-    private var regexSearchLog = ""
     private var searchPatternCase = Pattern.CASE_INSENSITIVE
     var searchMatchCase: Boolean = false
         set(value) {
@@ -266,14 +89,9 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                     0
                 }
 
-                isFilterUpdated = true
-
-                field = value
-
-                updateFilterSearchLog(filterSearchLog)
-
                 baseModel?.searchMatchCase = value
             }
+            field = value
         }
 
     var goToLast = true
@@ -308,95 +126,14 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     var scrollBackSplitFile = false
 
     var scrollBackKeep = false
-    var logFilter: LogcatRealTimeFilter = LogcatRealTimeFilter()
+    var logFilter: LogcatRealTimeFilter = emptyRealTimeFilter
         set(value) {
+            if (value != field) {
+                isFilterUpdated = true
+                updateLogWithFilter()
+            }
             field = value
-            isFilterUpdated = true
         }
-
-    private var patternShowLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var patternHideLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var patternShowTag: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var patternHideTag: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var patternShowPid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var patternHidePid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var patternShowTid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var patternHideTid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-
-    private fun parsePattern(pattern: String, isUpdateColor: Boolean): Array<String> {
-        val patterns: Array<String> = Array(2) { "" }
-
-        val strs = pattern.split("|")
-        var prevPatternIdx = -1
-        if (isUpdateColor) {
-            filteredFGMap.clear()
-            filteredBGMap.clear()
-        }
-
-        for (item in strs) {
-            if (prevPatternIdx != -1) {
-                patterns[prevPatternIdx] += "|"
-                patterns[prevPatternIdx] += item
-                if (item.substring(item.length - 1) != "\\") {
-                    prevPatternIdx = -1
-                }
-                continue
-            }
-
-            if (item.isNotEmpty()) {
-                if (item[0] != '-') {
-                    if (patterns[0].isNotEmpty()) {
-                        patterns[0] += "|"
-                    }
-
-                    if (2 < item.length && item[0] == '#' && item[1].isDigit()) {
-                        val key = item.substring(2)
-                        patterns[0] += key
-                        if (isUpdateColor) {
-                            filteredFGMap[key.uppercase()] = ColorScheme.filteredFGs[item[1].digitToInt()]
-                            filteredBGMap[key.uppercase()] = ColorScheme.filteredBGs[item[1].digitToInt()]
-                        }
-                    } else {
-                        patterns[0] += item
-                    }
-
-                    if (item.substring(item.length - 1) == "\\") {
-                        prevPatternIdx = 0
-                    }
-                } else {
-                    if (patterns[1].isNotEmpty()) {
-                        patterns[1] += "|"
-                    }
-
-                    if (3 < item.length && item[1] == '#' && item[2].isDigit()) {
-                        patterns[1] += item.substring(3)
-                    } else {
-                        patterns[1] += item.substring(1)
-                    }
-
-                    if (item.substring(item.length - 1) == "\\") {
-                        prevPatternIdx = 1
-                    }
-                }
-            }
-        }
-
-        return patterns
-    }
-
-    private fun compilePattern(regex: String, flags: Int, prevPattern: Pattern, comboBox: FilterComboBox?): Pattern {
-        var pattern = prevPattern
-        try {
-            pattern = Pattern.compile(regex, flags)
-        } catch (ex: PatternSyntaxException) {
-            ex.printStackTrace()
-            comboBox?.errorMsg = ex.message.toString()
-        }
-
-        return pattern
-    }
-
-    private var filteredItemsThread: Thread? = null
 
     fun loadFromFile(file: File, isAppend: Boolean) {
         logTempFile = file
@@ -404,25 +141,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             loadFile(file, isAppend)
         } else {
             isFilterUpdated = true
-
-            if (filteredItemsThread == null) {
-                filteredItemsThread = Thread {
-                    while (true) {
-                        try {
-                            if (isFilterUpdated) {
-                                mainUI.markLine()
-                                makeFilteredItems(true)
-                            }
-                            Thread.sleep(100)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-                }
-
-                filteredItemsThread?.start()
-            }
         }
+        updateLogWithFilter()
     }
 
     fun clearItems() {
@@ -514,10 +234,6 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         return logItems[row].fgColor
     }
 
-    private var patternPrintSearch: Pattern? = null
-    private var patternPrintHighlight: Pattern? = null
-    private var patternPrintFilter: Pattern? = null
-
     fun getPrintValue(value: String, row: Int, isSelected: Boolean): String {
         var newValue = value
         if (newValue.indexOf("<") >= 0) {
@@ -531,18 +247,20 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
         val searchStarts: Queue<Int> = LinkedList()
         val searchEnds: Queue<Int> = LinkedList()
-        if (patternPrintSearch != null) {
-            val matcher = patternPrintSearch!!.matcher(stringBuilder.toString())
+        searchFilterItem.takeIf { it.isNotEmpty() }?.let {
+            val matcher = searchFilterItem.positiveFilter.matcher(stringBuilder.toString())
             while (matcher.find()) {
                 searchStarts.add(matcher.start(0))
                 searchEnds.add(matcher.end(0))
             }
         }
 
+
+
         val highlightStarts: Queue<Int> = LinkedList()
         val highlightEnds: Queue<Int> = LinkedList()
-        if (patternPrintHighlight != null) {
-            val matcher = patternPrintHighlight!!.matcher(stringBuilder.toString())
+        highlightFilterItem.takeIf { it.isNotEmpty() }?.let {
+            val matcher = highlightFilterItem.positiveFilter.matcher(stringBuilder.toString())
             while (matcher.find()) {
                 highlightStarts.add(matcher.start(0))
                 highlightEnds.add(matcher.end(0))
@@ -551,8 +269,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
         val filterStarts: Queue<Int> = LinkedList()
         val filterEnds: Queue<Int> = LinkedList()
-        if (patternPrintFilter != null) {
-            val matcher = patternPrintFilter!!.matcher(stringBuilder.toString())
+        logFilter.filterLog.takeIf { it.isNotEmpty() }?.let {
+            val matcher = logFilter.filterLog.positiveFilter.matcher(stringBuilder.toString())
             while (matcher.find()) {
                 filterStarts.add(matcher.start(0))
                 filterEnds.add(matcher.end(0))
@@ -777,14 +495,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
                 starts.push(filterS)
                 ends.push(filterE)
-                val key = newValue.substring(filterS, filterE).uppercase()
-                if (filteredFGMap[key] != null) {
-                    fgColors.push(filteredFGMap[key])
-                    bgColors.push(filteredBGMap[key])
-                } else {
-                    fgColors.push(ColorScheme.filteredFGs[0])
-                    bgColors.push(ColorScheme.filteredBGs[0])
-                }
+                fgColors.push(ColorScheme.filteredFGs[0])
+                bgColors.push(ColorScheme.filteredBGs[0])
 
                 if (filterS < filterSNext) {
                     filterS = filterSNext
@@ -926,92 +638,16 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         return stringBuilder.toString()
     }
 
-    private fun makePattenPrintValue() {
-        if (baseModel == null) {
-            return
-        }
-
-        baseModel?.filterSearchLog = filterSearchLog
-        if (filterSearchLog.isEmpty()) {
-            patternPrintSearch = null
-            baseModel?.patternPrintSearch = null
-        } else {
-            var start = 0
-            var index = 0
-            var skip = false
-
-            while (index != -1) {
-                index = filterSearchLog.indexOf('|', start)
-                start = index + 1
-                if (index == 0 || index == filterSearchLog.lastIndex || filterSearchLog[index + 1] == '|') {
-                    skip = true
-                    break
-                }
-            }
-
-            if (!skip) {
-                patternPrintSearch = Pattern.compile(filterSearchLog, searchPatternCase)
-                baseModel?.patternPrintSearch = patternPrintSearch
-            }
-        }
-
-        baseModel?.filterHighlightLog = filterHighlightLog
-        if (filterHighlightLog.isEmpty()) {
-            patternPrintHighlight = null
-            baseModel?.patternPrintHighlight = null
-        } else {
-            var start = 0
-            var index = 0
-            var skip = false
-
-            while (index != -1) {
-                index = filterHighlightLog.indexOf('|', start)
-                start = index + 1
-                if (index == 0 || index == filterHighlightLog.lastIndex || filterHighlightLog[index + 1] == '|') {
-                    skip = true
-                    break
-                }
-            }
-
-            if (!skip) {
-                patternPrintHighlight = Pattern.compile(filterHighlightLog, patternCase)
-                baseModel?.patternPrintHighlight = patternPrintHighlight
-            }
-        }
-
-        if (filterShowLog.isEmpty()) {
-            patternPrintFilter = null
-            baseModel?.patternPrintFilter = null
-        } else {
-            var start = 0
-            var index = 0
-            var skip = false
-
-            while (index != -1) {
-                index = filterShowLog.indexOf('|', start)
-                start = index + 1
-                if (index == 0 || index == filterShowLog.lastIndex || filterShowLog[index + 1] == '|') {
-                    skip = true
-                    break
-                }
-            }
-
-            if (!skip) {
-                patternPrintFilter = Pattern.compile(filterShowLog, patternCase)
-                baseModel?.patternPrintFilter = patternPrintFilter
-            }
-        }
-
-        return
-    }
-
-    private fun makeFilteredItems(isRedraw: Boolean) {
+    private fun updateLogWithFilter() {
+        if (baseModel != null && baseModel?.logItems?.isEmpty() == true) return
         if (baseModel == null || !isFilterUpdated) {
-            GLog.d(TAG, "skip makeFilteredItems $baseModel, $isFilterUpdated")
+            GLog.d(TAG, "[updateLogWithFilter] skip makeFilteredItems $baseModel, $isFilterUpdated")
             return
         } else {
             isFilterUpdated = false
         }
+        GLog.d(TAG, "[updateLogWithFilter] filter: $logFilter")
+        // TODO use [Dispatchers.UI.immediate] will return wrong filter data
         AppScope.launch(Dispatchers.UI) {
             logItems.clear()
             logNum.set(0)
@@ -1024,95 +660,12 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                     }
                 }
             } else {
-                makePattenPrintValue()
-                var isShow: Boolean
-
-                var regexShowLog = ""
-                var normalShowLog = ""
-                val showLogSplit = filterShowLog.split("|")
-
-                for (logUnit in showLogSplit) {
-                    val hasIt: Boolean = logUnit.chars().anyMatch { c -> "\\.[]{}()*+?^$|".indexOf(c.toChar()) >= 0 }
-                    if (hasIt) {
-                        if (regexShowLog.isEmpty()) {
-                            regexShowLog = logUnit
-                        } else {
-                            regexShowLog += "|$logUnit"
-                        }
-                    } else {
-                        if (normalShowLog.isEmpty()) {
-                            normalShowLog = logUnit
-                        } else {
-                            normalShowLog += "|$logUnit"
-                        }
-
-                        if (patternCase == Pattern.CASE_INSENSITIVE) {
-                            normalShowLog = normalShowLog.uppercase()
-                        }
-                    }
-                }
-
-                val patternShowLog = Pattern.compile(regexShowLog, patternCase)
-                val matcherShowLog = patternShowLog.matcher("")
-                val normalShowLogSplit = normalShowLog.split("|")
-
-                GLog.d(TAG, "Show Log $normalShowLog, $regexShowLog")
                 for (item in baseModel!!.logItems) {
                     if (isFilterUpdated) {
-                        break
+                        return@launch
                     }
 
-                    isShow = true
-
-                    if (!fullMode) {
-                        if (item.level != LogLevel.NONE && item.level < filterLevel) {
-                            isShow = false
-                        } else if ((filterHideLog.isNotEmpty() && patternHideLog.matcher(item.logLine).find())
-                            || (filterHideTag.isNotEmpty() && patternHideTag.matcher(item.tag).find())
-                            || (filterHidePid.isNotEmpty() && patternHidePid.matcher(item.pid).find())
-                            || (filterHideTid.isNotEmpty() && patternHideTid.matcher(item.tid).find())
-                        ) {
-                            isShow = false
-                        } else if (filterShowLog.isNotEmpty()) {
-                            var isFound = false
-                            if (normalShowLog.isNotEmpty()) {
-                                var logLine = ""
-                                logLine = if (patternCase == Pattern.CASE_INSENSITIVE) {
-                                    item.logLine.uppercase()
-                                } else {
-                                    item.logLine
-                                }
-                                for (sp in normalShowLogSplit) {
-                                    if (logLine.contains(sp)) {
-                                        isFound = true
-                                        break
-                                    }
-                                }
-                            }
-
-                            if (!isFound) {
-                                if (regexShowLog.isEmpty()) {
-                                    isShow = false
-                                } else {
-                                    matcherShowLog.reset(item.logLine)
-                                    if (!matcherShowLog.find()) {
-                                        isShow = false
-                                    }
-                                }
-                            }
-                        }
-
-                        if (isShow) {
-                            if ((filterShowTag.isNotEmpty() && !patternShowTag.matcher(item.tag).find())
-                                || (filterShowPid.isNotEmpty() && !patternShowPid.matcher(item.pid).find())
-                                || (filterShowTid.isNotEmpty() && !patternShowTid.matcher(item.tid).find())
-                            ) {
-                                isShow = false
-                            }
-                        }
-                    }
-
-                    if (isShow || BookmarkManager.isBookmark(item.num)) {
+                    if (fullMode || BookmarkManager.isBookmark(item.num) || logFilter.filter(item)) {
                         logItems.add(item)
                     }
                 }
@@ -1120,15 +673,12 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
 
             this@LogTableModel.logItems.clear()
             this@LogTableModel.logItems.addAll(logItems)
-        }
-
-        if (!isFilterUpdated && isRedraw) {
-            fireTableDataChanged()
-            baseModel?.fireTableDataChanged()
+            if (!isFilterUpdated) {
+                fireTableDataChanged()
+                baseModel?.fireTableDataChanged()
+            }
         }
     }
-
-    internal data class LogFilterItem(val item: LogcatLogItem, val isShow: Boolean)
 
     fun isScanning(): Boolean {
         return logcatTask?.isTaskRunning() ?: false
@@ -1147,7 +697,6 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         clear()
         fireTableDataChanged()
         baseModel?.fireTableDataChanged()
-        makePattenPrintValue()
     }
 
     private fun startLogcatTask() {
@@ -1209,13 +758,13 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             updateUILock.write {
                 GLog.d(TAG, "[updateTableUITask] get lock")
                 baseModel?.cachedItems?.forEach {
-                    baseModel!!.logItems.add(it.item)
+                    baseModel!!.logItems.add(it)
                 }
                 if (!scrollBackKeep && scrollback > 0 && baseModel!!.logItems.count() > scrollback) {
                     baseModel!!.logItems.removeIf { it.num in (baseModel!!.logItems.size - scrollback)..baseModel!!.logItems.size }
                 }
                 cachedItems.forEach {
-                    if (it.isShow || BookmarkManager.isBookmark(it.item.num)) logItems.add(it.item)
+                    if (it.isShow() || BookmarkManager.isBookmark(it.num)) logItems.add(it)
                 }
                 if (!scrollBackKeep && scrollback > 0 && logItems.count() > scrollback) {
                     logItems.removeIf { it.num in (logItems.size - scrollback)..logItems.size }
@@ -1259,57 +808,18 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
     private fun processLine(line: String) {
         count.incrementAndGet()
         cachedCount.incrementAndGet()
-        var isShow: Boolean
         val item = LogcatLogItem.from(line, logNum.getAndIncrement())
 
-        isShow = true
-
-        if (bookmarkMode) {
-            isShow = false
-        }
-
         if (!fullMode) {
-            if (isShow && item.level < filterLevel) {
-                isShow = false
-            }
-            if (isShow
-                && (filterHideLog.isNotEmpty() && patternHideLog.matcher(item.logLine)
-                    .find())
-                || (filterShowLog.isNotEmpty() && !patternShowLog.matcher(item.logLine)
-                    .find())
-            ) {
-                isShow = false
-            }
-            if (isShow
-                && ((filterHideTag.isNotEmpty() && patternHideTag.matcher(item.tag).find())
-                        || (filterShowTag.isNotEmpty() && !patternShowTag.matcher(item.tag)
-                    .find()))
-            ) {
-                isShow = false
-            }
-            if (isShow
-                && ((filterHidePid.isNotEmpty() && patternHidePid.matcher(item.pid).find())
-                        || (filterShowPid.isNotEmpty() && !patternShowPid.matcher(item.pid)
-                    .find()))
-            ) {
-                isShow = false
-            }
-            if (isShow
-                && ((filterHideTid.isNotEmpty() && patternHideTid.matcher(item.tid).find())
-                        || (filterShowTid.isNotEmpty() && !patternShowTid.matcher(item.tid)
-                    .find()))
-            ) {
-                isShow = false
-            }
+            item.setHidden(logFilter.filter(item).not())
         }
-        val filterItem = LogFilterItem(item, isShow)
         if (selectionChanged) {
             selectionChanged = false
         }
 
         updateUILock.write {
-            baseModel?.cachedItems?.add(filterItem)
-            cachedItems.add(filterItem)
+            baseModel?.cachedItems?.add(item)
+            cachedItems.add(item)
         }
     }
 
@@ -1369,7 +879,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             startRow = selectedRow + 1
             endRow = logItems.count() - 1
             if (startRow >= endRow) {
-                mainUI.showSearchResultTooltip(isNext, "\"${filterSearchLog}\" ${STRINGS.ui.notFound}")
+                mainUI.showSearchResultTooltip(isNext, "\"$searchFilterItem\" ${STRINGS.ui.notFound}")
                 return
             }
         } else {
@@ -1377,7 +887,7 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
             endRow = 0
 
             if (startRow < endRow) {
-                mainUI.showSearchResultTooltip(isNext, "\"${filterSearchLog}\" ${STRINGS.ui.notFound}")
+                mainUI.showSearchResultTooltip(isNext, "\"$searchFilterItem\" ${STRINGS.ui.notFound}")
                 return
             }
         }
@@ -1385,29 +895,8 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
         var idxFound = -1
         for (idx in startRow toward endRow) {
             val item = logItems[idx]
-            if (normalSearchLogSplit != null) {
-                var logLine = ""
-                logLine = if (searchPatternCase == Pattern.CASE_INSENSITIVE) {
-                    item.logLine.uppercase()
-                } else {
-                    item.logLine
-                }
-                for (sp in normalSearchLogSplit!!) {
-                    if (sp.isNotEmpty() && logLine.contains(sp)) {
-                        idxFound = idx
-                        break
-                    }
-                }
-            }
-
-            if (idxFound < 0 && regexSearchLog.isNotEmpty()) {
-                matcherSearchLog.reset(item.logLine)
-                if (matcherSearchLog.find()) {
-                    idxFound = idx
-                }
-            }
-
-            if (idxFound >= 0) {
+            if (searchFilterItem.positiveFilter.matcher(item.logLine).find()) {
+                idxFound = idx
                 break
             }
         }
@@ -1419,8 +908,13 @@ class LogTableModel(private val mainUI: MainUI, private var baseModel: LogTableM
                 mainUI.splitLogPane.fullLogPanel.goToRow(idxFound, 0)
             }
         } else {
-            mainUI.showSearchResultTooltip(isNext, "\"${filterSearchLog}\" ${STRINGS.ui.notFound}")
+            mainUI.showSearchResultTooltip(isNext, "\"$searchFilterItem\" ${STRINGS.ui.notFound}")
         }
+    }
+
+    override fun fireTableDataChanged() {
+        super.fireTableDataChanged()
+        GLog.d(TAG, "[fireTableDataChanged]")
     }
 
     companion object {
