@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.ui.log
+package me.gegenbauer.catspy.data.model.log
 
 interface LogItem {
     fun setHidden(hidden: Boolean)

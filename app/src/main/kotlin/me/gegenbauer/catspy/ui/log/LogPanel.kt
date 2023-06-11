@@ -183,10 +183,6 @@ abstract class LogPanel(
         return table.getValueAt(table.selectedRow, 0).toString().trim().toInt()
     }
 
-    fun getSelectedRow(): Int {
-        return table.selectedRow
-    }
-
     internal inner class AdjustmentHandler : AdjustmentListener {
         override fun adjustmentValueChanged(event: AdjustmentEvent) {
             if (event.source == scrollPane.verticalScrollBar) {
@@ -214,14 +210,12 @@ abstract class LogPanel(
     }
 
     internal inner class TableModelHandler : LogTableModelListener {
-        @Synchronized
+
         override fun tableChanged(event: TableModelEvent) {
             if ((event.source as LogTableModel).rowCount == 0) {
                 oldLogVPos = -1
             } else {
-                AppScope.launch(Dispatchers.UI) {
-                    tableChangedInternal(event)
-                }
+                tableChangedInternal(event)
             }
         }
 

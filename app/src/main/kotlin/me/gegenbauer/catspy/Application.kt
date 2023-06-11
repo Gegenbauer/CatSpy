@@ -58,7 +58,7 @@ class Application {
                 mainUI.isVisible = true
                 ThemeManager.registerDefaultThemeUpdateListener()
 
-                addClickListenerForAllComponents(mainUI.components)
+                //addClickListenerForAllComponents(mainUI.components)
             }
         }
 

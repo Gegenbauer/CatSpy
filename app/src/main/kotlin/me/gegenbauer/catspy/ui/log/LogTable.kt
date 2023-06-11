@@ -331,16 +331,6 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
         }
     }
 
-    override fun repaint(r: Rectangle?) {
-        super.repaint(r)
-        GLog.d(TAG, "[repaint]")
-    }
-
-    override fun paint(g: Graphics?) {
-        super.paint(g)
-        GLog.d(TAG, "[repaint]")
-    }
-
     companion object {
         private const val TAG = "LogTable"
         private fun JTable.getNewBackground(num: Int, row: Int): Color {

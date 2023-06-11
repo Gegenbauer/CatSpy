@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.ui.log
+package me.gegenbauer.catspy.data.model.log
 
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app

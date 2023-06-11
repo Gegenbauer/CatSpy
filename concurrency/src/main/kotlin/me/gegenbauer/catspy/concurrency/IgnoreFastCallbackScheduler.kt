@@ -18,7 +18,7 @@ class IgnoreFastCallbackScheduler(private val dispatcher: CoroutineDispatcher, p
     }
 }
 
-interface CallbackSchedule {
+fun interface CallbackSchedule {
     fun schedule(callback: Callback)
 }
 

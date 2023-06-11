@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.ui.log
+package me.gegenbauer.catspy.data.model.log
 
 import me.gegenbauer.catspy.cache.PatternProvider
 import me.gegenbauer.catspy.cache.PatternProvider.Companion.toPatternKey
@@ -32,6 +32,9 @@ class LogcatRealTimeFilter(
     )
 
     override fun filter(item: LogcatLogItem): Boolean {
+        if (this == emptyRealTimeFilter) {
+            return true
+        }
         if (item.level < this.filterLevel) {
             return false
         }

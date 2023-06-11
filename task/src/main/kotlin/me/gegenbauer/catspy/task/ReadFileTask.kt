@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.task
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import me.gegenbauer.catspy.log.GLog
 import java.io.File
@@ -11,19 +10,14 @@ import java.io.File
  */
 open class ReadFileTask(
     private val file: File,
-    private val cacheAllContent: Boolean = false,
-    private val delay: Long = 500
-) :
-    PausableTask(Dispatchers.IO, "ReadFileTask") {
-    private val contentCache = StringBuilder()
-    private val batchStr = mutableListOf<String>()
-    private val batchCount = 20000
-    private var currentCount = 0
+) : PausableTask(Dispatchers.IO, "ReadFileTask") {
+
+    private var accumulateSize = 0
 
     override suspend fun startInCoroutine() {
         super.startInCoroutine()
         if (file.exists().not()) {
-            notifyError("File: ${file.absolutePath} not exist")
+            notifyError(IllegalArgumentException("File ${file.absolutePath} does not exist"))
             return
         }
         GLog.d(name, "[startInCoroutine] read file: ${file.absolutePath}")
@@ -35,22 +29,19 @@ open class ReadFileTask(
             if (!scope.isActive) {
                 break
             }
-            addPausePoint()
-            currentCount += line!!.length
-            batchStr.add(line!!)
-            if (batchStr.size == batchCount) {
-                notifyProgress(batchStr)
-                batchStr.clear()
-                GLog.d(name, "[startInCoroutine] progress=${currentCount / totalSize.toFloat()}}")
-                delay(delay)
-            }
-            if (cacheAllContent) {
-                contentCache.appendLine(line)
+            line?.let {
+                addPausePoint()
+                notifyProgress(it)
+                accumulateSize += it.length
+                if (accumulateSize == BATCH_COUNT) {
+                    GLog.d(name, "[startInCoroutine] progress=${accumulateSize / totalSize.toFloat()}}")
+                }
             }
         }
-        notifyProgress(batchStr)
-        batchStr.clear()
-        GLog.d(name, "[startInCoroutine] progress=${currentCount / totalSize.toFloat()}}")
-        notifyFinalResult(if (cacheAllContent) contentCache.toString() else "")
+        GLog.d(name, "[startInCoroutine] progress=${accumulateSize / totalSize.toFloat()}}")
+    }
+
+    companion object {
+        private const val BATCH_COUNT = 2000
     }
 }

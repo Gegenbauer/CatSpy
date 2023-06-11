@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.task
 import kotlinx.coroutines.*
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.log.GLog
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
 abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.IO, override val name: String) : Task {
@@ -12,6 +13,7 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
     }
 
     private val listeners = mutableSetOf<TaskListener>()
+    private val running = AtomicBoolean(false)
 
     override fun start() {
         GLog.d(name, "[start]")
@@ -30,6 +32,10 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
 
     open fun isPausing(): Boolean {
         return false
+    }
+
+    protected fun setRunning(running: Boolean) {
+        this.running.set(running)
     }
 
     override fun resume() {
@@ -65,21 +71,33 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
         listeners.forEach { it.onCancel(this) }
     }
 
-    protected fun notifyProgress(data: Any) {
+    protected fun notifyProgress(data: Any = Any()) {
         listeners.forEach { it.onProgress(this, data) }
     }
 
-    protected fun notifyFinalResult(data: Any) {
+    protected fun notifyRepeat() {
+        listeners.forEach { it.onRepeat(this) }
+    }
+
+    protected fun notifyFinalResult(data: Any = emptyResult) {
         listeners.forEach { it.onFinalResult(this, data) }
     }
 
-    protected fun notifyError(error: String = "", t: Throwable? = null) {
-        listeners.forEach { it.onError(this, error, t) }
+    protected fun notifyError(t: Throwable) {
+        listeners.forEach { it.onError(this, t) }
+    }
+
+    override fun isRunning(): Boolean {
+        return running.get()
     }
 
     override fun cancel() {
         GLog.d(name, "[cancel]")
         notifyCancel()
         scope.cancel()
+    }
+
+    companion object {
+        val emptyResult = Any()
     }
 }

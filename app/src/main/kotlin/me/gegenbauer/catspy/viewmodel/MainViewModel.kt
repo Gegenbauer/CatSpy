@@ -62,10 +62,8 @@ object MainViewModel {
     val logCmdCurrentContent = ObservableViewModelProperty<String>()
 
     val retryAdb = ObservableViewModelProperty(UIConfManager.uiConf.retryAdbEnabled)
-    val adbProcessStopped = ObservableViewModelProperty(false)
+    val pauseAll = ObservableViewModelProperty(false)
 
-    val splitFile = ObservableViewModelProperty(UIConfManager.uiConf.logScrollBackSplitFileEnabled)
-    val spiltBatchCount = ObservableViewModelProperty(0)
     val searchPanelVisible = ObservableViewModelProperty(false)
     //endregion
 
@@ -111,7 +109,7 @@ object MainViewModel {
             bindNormalCombo(logCmdCombo, logCmdSelectedIndex, logCmdHistory, logCmdCurrentContent)
 
             selectedProperty(retryAdbToggle) bindDual retryAdb
-            selectedProperty(pauseToggle) bindDual adbProcessStopped
+            selectedProperty(pauseToggle) bindDual pauseAll
             //endregion
 
             //region Menu
@@ -148,8 +146,7 @@ object MainViewModel {
             //region Style
             bindWithButtonDisplayMode(
                 startBtn, stopBtn, pauseToggle, saveBtn, clearViewsBtn, adbConnectBtn, adbRefreshBtn, adbDisconnectBtn,
-                scrollBackApplyBtn, retryAdbToggle, retryAdbToggle, scrollBackSplitFileToggle, scrollBackKeepToggle,
-                scrollBackLabel
+                retryAdbToggle, retryAdbToggle
             )
             //endregion
         }

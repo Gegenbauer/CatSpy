@@ -11,10 +11,15 @@ import me.gegenbauer.catspy.command.LogCmdManager
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.data.model.log.LogcatLogItem
+import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter
+import me.gegenbauer.catspy.data.model.log.getLevelFromFlag
+import me.gegenbauer.catspy.data.repo.log.*
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.PROPERTY_TEXT
 import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.task.*
@@ -26,7 +31,6 @@ import me.gegenbauer.catspy.ui.dialog.GoToDialog
 import me.gegenbauer.catspy.ui.dialog.LogTableDialog
 import me.gegenbauer.catspy.ui.icon.DayNightIcon
 import me.gegenbauer.catspy.ui.log.*
-import me.gegenbauer.catspy.ui.log.LogcatRealTimeFilter.Companion.toFilterItem
 import me.gegenbauer.catspy.ui.menu.FileMenu
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
@@ -42,11 +46,8 @@ import java.awt.datatransfer.StringSelection
 import java.awt.event.*
 import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
-import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.PopupMenuEvent
@@ -57,10 +58,20 @@ import kotlin.system.exitProcess
 /**
  *  TODO 将底部状态栏抽出，并增加进度条，显示某些任务进度
  */
-class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
-    companion object {
-        private const val TAG = "MainUI"
-    }
+class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogObservable.Observer<LogcatLogItem> {
+
+    //region task
+    private val taskManager = TaskManager()
+    private val getDeviceTask = GetDeviceTask().apply { addListener(this@MainUI) }
+    private val updateLogUITask = PeriodicTask(500, "updateLogUITask")
+    private var selectedLine = 0
+    //endregion
+
+    //region log data
+    private val logProvider = LogcatLogProvider()
+    private val fullLogcatRepository = FullLogcatRepository(updateLogUITask)
+    private val filteredLogcatRepository = FilteredLogcatRepository(taskManager, updateLogUITask, BookmarkManager)
+    //endregion
 
     //region filterPanel
     private val filterPanel = JPanel()
@@ -139,29 +150,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     val adbRefreshBtn = StatefulButton(loadIcon("refresh.png"), STRINGS.ui.refresh, STRINGS.toolTip.refreshBtn)
     val clearViewsBtn = StatefulButton(loadIcon("clear.png"), STRINGS.ui.clearViews, STRINGS.toolTip.clearBtn)
     //endregion
-
-    //region scrollBackPanel
-    private val scrollBackPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
-
-    val scrollBackLabel = StatefulLabel(loadIcon("scrollback.png"), STRINGS.ui.scrollBackLines)
-    val scrollBackTF =
-        JTextField(UIConfManager.uiConf.logScrollBackCount.toString()) applyTooltip STRINGS.toolTip.scrollBackTf
-    val scrollBackSplitFileToggle = StatefulToggleButton(
-        loadIcon("splitfile_off.png"),
-        DayNightIcon(loadIcon("splitfile_on.png"), loadIcon("splitfile_on_dark.png")),
-        STRINGS.ui.splitFile,
-        loadIcon("toggle_on_warn.png"),
-        tooltip = STRINGS.toolTip.scrollBackSplitChk
-    )
-    val scrollBackApplyBtn = StatefulButton(loadIcon("apply.png"), STRINGS.ui.apply, STRINGS.toolTip.scrollBackApplyBtn)
-    val scrollBackKeepToggle = StatefulToggleButton(
-        loadIcon("keeplog_off.png"),
-        DayNightIcon(loadIcon("keeplog_on.png"), loadIcon("keeplog_on_dark.png")),
-        STRINGS.ui.keep,
-        loadIcon("toggle_on_warn.png"),
-        tooltip = STRINGS.toolTip.scrollBackKeepToggle
-    )
-    //endregion
     //endregion
 
     //region searchPanel
@@ -171,9 +159,8 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
 
     //region splitLogPane
     private val splitLogWithEmptyStatePanel = EmptyStatePanel()
-
-    private val fullTableModel = LogTableModel(this, null)
-    val filteredTableModel = LogTableModel(this, fullTableModel)
+    private val fullTableModel = LogTableModel(this, fullLogcatRepository)
+    val filteredTableModel = LogTableModel(this, filteredLogcatRepository)
     val splitLogPane = SplitLogPane(this, fullTableModel, filteredTableModel).apply {
         onFocusGained = {
             searchPanel.setTargetView(it)
@@ -246,9 +233,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     private val statusChangeListener = StatusChangeListener()
 
     //endregion
-    private val taskManager = TaskManager()
-    private val getDeviceTask = GetDeviceTask().apply { addListener(this@MainUI) }
-    private var selectedLine = 0
 
     var customFont: Font = Font(
         UIConfManager.uiConf.logFontName,
@@ -262,7 +246,11 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         }
 
     init {
-        LogCmdManager.setMainUI(this)
+        refreshDevices()
+
+        logProvider.addObserver(fullLogcatRepository)
+        logProvider.addObserver(filteredLogcatRepository)
+
         configureWindow()
 
         createUI()
@@ -272,15 +260,14 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         observeViewModelValue()
 
         MainViewModel.bind(this)
-
-        refreshDevices()
     }
 
     private fun observeViewModelValue() {
-        MainViewModel.adbProcessStopped.addObserver { filteredTableModel.pause(it == true) }
-        MainViewModel.filterMatchCaseEnabled.addObserver { filteredTableModel.matchCase = it == true }
+        MainViewModel.pauseAll.addObserver {
+            taskManager.updatePauseState(it == true)
+        }
+        MainViewModel.filterMatchCaseEnabled.addObserver { updateLogFilter() }
         MainViewModel.searchMatchCase.addObserver { filteredTableModel.searchMatchCase = it == true }
-        MainViewModel.splitFile.addObserver { filteredTableModel.scrollBackSplitFile = it == true }
     }
 
     private fun refreshDevices() {
@@ -291,6 +278,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         super.onFinalResult(task, data)
         if (task is GetDeviceTask) {
             MainViewModel.connectedDevices.updateValue((data as ArrayList<String>).toHistoryItemList())
+            MainViewModel.currentDevice.updateValue(data.firstOrNull())
         }
     }
 
@@ -315,8 +303,8 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
 
     private fun exit() {
         saveConfigOnDestroy()
-        filteredTableModel.stopAll()
-        fullTableModel.stopAll()
+        logProvider.stopCollectLog()
+        logProvider.destroy()
         LogCmdManager.stop()
         taskManager.cancelAll()
         exitProcess(0)
@@ -379,8 +367,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         deviceStatus.border = BorderFactory.createEmptyBorder(3, 0, 3, 0)
         deviceStatus.horizontalAlignment = JLabel.CENTER
 
-        scrollBackTF.preferredSize = Dimension(80, scrollBackTF.preferredSize.height)
-
         itemFilterPanel.add(showTagPanel)
         itemFilterPanel.add(showPidPanel)
         itemFilterPanel.add(showTidPanel)
@@ -414,17 +400,9 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         logToolBar.addVSeparator2()
         logToolBar.add(clearViewsBtn)
 
-        scrollBackPanel.addVSeparator2()
-        scrollBackPanel.add(scrollBackLabel)
-        scrollBackPanel.add(scrollBackTF)
-        scrollBackPanel.add(scrollBackSplitFileToggle)
-        scrollBackPanel.add(scrollBackApplyBtn)
-        scrollBackPanel.add(scrollBackKeepToggle)
-
         toolBarPanel.layout = BorderLayout()
         toolBarPanel.border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
         toolBarPanel.add(logToolBar, BorderLayout.CENTER)
-        toolBarPanel.add(scrollBackPanel, BorderLayout.EAST)
 
         filterPanel.add(toolBarPanel, BorderLayout.NORTH)
         filterPanel.add(searchPanel, BorderLayout.SOUTH)
@@ -466,13 +444,9 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
             windowedModeLogPanel(splitLogPane.fullLogPanel)
         }
 
-        filteredTableModel.scrollback = UIConfManager.uiConf.logScrollBackCount
-        scrollBackSplitFileToggle.isSelected = UIConfManager.uiConf.logScrollBackSplitFileEnabled
-        filteredTableModel.scrollBackSplitFile = UIConfManager.uiConf.logScrollBackSplitFileEnabled
-        filteredTableModel.matchCase = UIConfManager.uiConf.filterMatchCaseEnabled
-
         searchPanel.searchMatchCaseToggle.isSelected = UIConfManager.uiConf.searchMatchCaseEnabled
         filteredTableModel.searchMatchCase = UIConfManager.uiConf.searchMatchCaseEnabled
+        fullTableModel.searchMatchCase = UIConfManager.uiConf.searchMatchCaseEnabled
 
         splitLogWithEmptyStatePanel.setContent(splitLogPane)
         splitLogWithEmptyStatePanel.action = fileMenu::onClickFileOpen
@@ -535,8 +509,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         adbConnectBtn.addActionListener(actionHandler)
         adbRefreshBtn.addActionListener(actionHandler)
         adbDisconnectBtn.addActionListener(actionHandler)
-        scrollBackApplyBtn.addActionListener(actionHandler)
-        scrollBackTF.addKeyListener(keyHandler)
         filterPanel.addMouseListener(mouseHandler)
         toolBarPanel.addMouseListener(mouseHandler)
         statusMethod.addPropertyChangeListener(statusChangeListener)
@@ -545,6 +517,13 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
         fullTableModel.addLogTableModelListener { event ->
             splitLogWithEmptyStatePanel.contentVisible = (event.source as LogTableModel).rowCount > 0
         }
+        splitLogPane.fullLogPanel.table.selectionModel.addListSelectionListener {
+            fullLogcatRepository.selectedRow = it.firstIndex
+        }
+        splitLogPane.filteredLogPanel.table.selectionModel.addListSelectionListener {
+            filteredLogcatRepository.selectedRow = it.firstIndex
+        }
+        logProvider.addObserver(this)
     }
 
     fun registerComboBoxEditorEvent() {
@@ -586,7 +565,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
             }
 
             STRINGS.ui.adb, STRINGS.ui.cmd, "${STRINGS.ui.adb} ${STRINGS.ui.stop}", "${STRINGS.ui.cmd} ${STRINGS.ui.stop}" -> {
-                LogCmdManager.targetDevice.ifEmpty { STRINGS.ui.app }
+                (MainViewModel.currentDevice.value ?: "").ifEmpty { STRINGS.ui.app }
             }
 
             else -> {
@@ -624,60 +603,39 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     fun openFile(path: String, isAppend: Boolean) {
         GLog.d(TAG, "[openFile] Opening: $path, $isAppend")
         statusMethod.text = " ${STRINGS.ui.open} "
-        filteredTableModel.stopAll()
-
         updateLogFilter()
+
+        if (updateLogUITask.isRunning().not()) {
+            taskManager.exec(updateLogUITask)
+        }
+        logProvider.stopCollectLog()
+        logProvider.startCollectLog(FileLogCollector(taskManager, path))
 
         if (isAppend) {
             statusTF.text += "| $path"
         } else {
             statusTF.text = path
         }
-        val file = File(path)
-        fullTableModel.loadFromFile(file, isAppend)
-        filteredTableModel.loadFromFile(file, isAppend)
-
-        repaint()
 
         return
     }
 
-    fun setSaveLogFile() {
-        val dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH.mm.ss")
-        var device = deviceCombo.selectedItem?.toString() ?: ""
-        device = device.substringBefore(":")
-        if (LogCmdManager.prefix.isEmpty()) {
-            LogCmdManager.prefix = STRINGS.ui.app
-        }
-
-        val filePath =
-            "${LogCmdManager.logSavePath}/${LogCmdManager.prefix}_${device}_${dtf.format(LocalDateTime.now())}.txt"
-        var file = File(filePath)
-        var idx = 1
-        var filePathSaved = filePath
-        while (file.isFile) {
-            filePathSaved = "${filePath}-$idx.txt"
-            file = File(filePathSaved)
-            idx++
-        }
-
-        statusTF.text = filePathSaved
-    }
-
-    fun startAdbScan(reconnect: Boolean) {
+    fun startAdbScan() {
         if (LogCmdManager.getType() == LogCmdManager.TYPE_CMD) {
             statusMethod.text = " ${STRINGS.ui.cmd} "
         } else {
             statusMethod.text = " ${STRINGS.ui.adb} "
         }
+        updateLogFilter()
 
-        filteredTableModel.stopAll()
-        pauseToggle.isSelected = false
-        setSaveLogFile()
-        if (reconnect) {
-            LogCmdManager.targetDevice = deviceCombo.selectedItem?.toString() ?: ""
+        if (updateLogUITask.isRunning().not()) {
+            taskManager.exec(updateLogUITask)
         }
-        filteredTableModel.startScan()
+        logProvider.stopCollectLog()
+        logProvider.startCollectLog(RealTimeLogCollector(taskManager, MainViewModel.currentDevice.value ?: ""))
+        MainViewModel.pauseAll.updateValue(false)
+
+        statusTF.text = logProvider.logTempFile?.absolutePath ?: ""
     }
 
     fun stopAll() {
@@ -687,17 +645,20 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
             statusMethod.text = " ${STRINGS.ui.adb} ${STRINGS.ui.stop} "
         }
 
-        if (!filteredTableModel.isScanning()) {
+        if (!logProvider.isCollecting()) {
             GLog.d(TAG, "stopAdbScan : not adb scanning mode")
             return
         }
-        filteredTableModel.stopAll()
+
+        logProvider.stopCollectLog()
+        taskManager.cancelAll()
     }
 
     fun isRestartAdbLogcat(): Boolean {
         return MainViewModel.retryAdb.value ?: false
     }
 
+    // TODO Restart adb
     fun restartAdbLogcat() {
         GLog.d(TAG, "[restartAdbLogcat]")
         LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
@@ -706,8 +667,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     private fun startFileFollow(filePath: String) {
         statusTF.text = filePath
         statusMethod.text = " ${STRINGS.ui.follow} "
-        filteredTableModel.stopAll()
-        filteredTableModel.startFollow(File(filePath))
+        // TODO file follow
     }
 
     internal inner class ActionHandler : ActionListener {
@@ -722,12 +682,8 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                     LogCmdManager.disconnect()
                 }
 
-                scrollBackApplyBtn -> {
-                    applyScrollBack()
-                }
-
                 startBtn -> {
-                    startAdbScan(true)
+                    startAdbScan()
                 }
 
                 stopBtn -> {
@@ -743,7 +699,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                 }
 
                 saveBtn -> {
-                    if (filteredTableModel.isScanning()) {
+                    if (logProvider.isCollecting()) {
                         // TODO Save As
                     } else {
                         // TODO Disable Save button
@@ -752,18 +708,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                 }
             }
         }
-    }
-
-    private fun applyScrollBack() {
-        try {
-            filteredTableModel.scrollback = scrollBackTF.text.toString().trim().toInt()
-        } catch (e: java.lang.NumberFormatException) {
-            filteredTableModel.scrollback = 0
-            scrollBackTF.text = "0"
-        }
-        filteredTableModel.scrollBackSplitFile = scrollBackSplitFileToggle.isSelected
-        UIConfManager.uiConf.logScrollBackCount = scrollBackTF.text.toInt()
-        UIConfManager.uiConf.logScrollBackSplitFileEnabled = scrollBackSplitFileToggle.isSelected
     }
 
     private fun connect() {
@@ -778,7 +722,8 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     }
 
     private fun clearViews() {
-        filteredTableModel.clearItems()
+        filteredLogcatRepository.clear()
+        fullLogcatRepository.clear()
         repaint()
     }
 
@@ -963,13 +908,13 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
             Thread.sleep(200)
             clearViews()
             Thread.sleep(200)
-            startAdbScan(true)
+            startAdbScan()
         }.start()
     }
 
     fun startAdbLog() {
         Thread {
-            startAdbScan(true)
+            startAdbScan()
         }.start()
     }
 
@@ -1058,6 +1003,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                         updateComboBox()
                         updateLogFilter()
                     }
+
                     logCmdCombo.editor.editorComponent -> {
                         if (LogCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
                             reconnectAdb()
@@ -1070,12 +1016,11 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
                             updateLogCmdCombo()
                         }
                     }
+
                     deviceCombo.editor.editorComponent -> {
                         reconnectAdb()
                     }
-                    scrollBackTF -> {
-                        applyScrollBack()
-                    }
+
                 }
             }
             super.keyReleased(event)
@@ -1091,13 +1036,13 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
     }
 
     private fun updateLogFilter() {
-        filteredTableModel.logFilter = LogcatRealTimeFilter(
+        filteredLogcatRepository.logFilter = LogcatRealTimeFilter(
             showLogCombo.filterItem,
             showTagCombo.filterItem,
             showPidCombo.filterItem,
             showTidCombo.filterItem,
             getLevelFromFlag(MainViewModel.logLevel.getValueNonNull()),
-            MainViewModel.searchMatchCase.getValueNonNull()
+            MainViewModel.filterMatchCaseEnabled.getValueNonNull()
         )
     }
 
@@ -1459,6 +1404,19 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager {
             delay(1000)
             targetPanel.toolTipText = ""
         }
+    }
+
+    override fun onError(error: Throwable) {
+        JOptionPane.showMessageDialog(
+            this,
+            error,
+            "Error",
+            JOptionPane.ERROR_MESSAGE
+        )
+    }
+
+    companion object {
+        private const val TAG = "MainUI"
     }
 }
 

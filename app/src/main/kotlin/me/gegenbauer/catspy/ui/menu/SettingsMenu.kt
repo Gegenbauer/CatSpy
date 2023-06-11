@@ -5,8 +5,8 @@ import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.Menu.MENU_ITEM_ICON_SIZE
 import me.gegenbauer.catspy.ui.dialog.LogCmdSettingsDialog
-import me.gegenbauer.catspy.ui.log.LogLevel
-import me.gegenbauer.catspy.ui.log.getLevelFromName
+import me.gegenbauer.catspy.data.model.log.LogLevel
+import me.gegenbauer.catspy.data.model.log.getLevelFromName
 import me.gegenbauer.catspy.utils.findFrameFromParent
 import me.gegenbauer.catspy.utils.loadDarklafThemedIcon
 import java.awt.Dialog

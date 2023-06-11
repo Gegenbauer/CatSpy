@@ -4,7 +4,7 @@ import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.ui.combobox.toContentList
-import me.gegenbauer.catspy.ui.log.LogLevel
+import me.gegenbauer.catspy.data.model.log.LogLevel
 import me.gegenbauer.catspy.ui.panel.Rotation
 
 object GlobalViewModel {

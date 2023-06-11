@@ -7,8 +7,8 @@ import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.ui.combobox.highlight.CustomEditorDarkComboBoxUI
 import me.gegenbauer.catspy.ui.combobox.highlight.HighlighterEditor
-import me.gegenbauer.catspy.ui.log.FilterItem
-import me.gegenbauer.catspy.ui.log.LogcatRealTimeFilter.Companion.toFilterItem
+import me.gegenbauer.catspy.data.model.log.FilterItem
+import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter.Companion.toFilterItem
 import me.gegenbauer.catspy.utils.DefaultDocumentListener
 import me.gegenbauer.catspy.utils.applyTooltip
 import java.awt.event.MouseEvent

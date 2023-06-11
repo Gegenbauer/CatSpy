@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.task
 
 import kotlinx.coroutines.CoroutineScope
-import me.gegenbauer.catspy.log.GLog
 
 interface Task {
     val name: String
@@ -10,15 +9,13 @@ interface Task {
 
     fun start()
 
-    fun pause() {
-        GLog.d(name, "[pause]")
-    }
+    fun pause()
 
-    fun resume() {
-        GLog.d(name, "[resume]")
-    }
+    fun resume()
 
     fun cancel()
+
+    fun isRunning(): Boolean
 
     fun addListener(taskListener: TaskListener)
 

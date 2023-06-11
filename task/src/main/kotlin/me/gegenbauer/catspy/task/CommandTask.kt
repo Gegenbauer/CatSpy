@@ -48,26 +48,27 @@ abstract class CommandTask(
                         .directory(workingDirectory)
                     builder.command().addAll(args)
                     builder.environment().putAll(envVars)
-                    onPrepareProcess(builder)
                     val process = builder.start().apply { this@CommandTask.process = this }
-                    GLog.d(name, "[onProcessStart] set process $process")
+                    onProcessStart()
                     readOutput(process)
                     readError(process)
                 }
             }.buffer(8 * 1024 * 1024 * 50, BufferOverflow.DROP_OLDEST)
         }.onFailure {
             GLog.e(name, "[execute]", it)
-            notifyError(t = it)
+            notifyError(it)
         }.getOrElse { emptyFlow() }
+    }
+
+    protected open fun onProcessStart() {
+        GLog.d(name, "[onProcessStart] $process")
+        setRunning(true)
     }
 
     protected open fun onProcessEnd() {
         GLog.d(name, "[onProcessEnd] $process")
+        setRunning(false)
         notifyStop()
-    }
-
-    protected open fun onPrepareProcess(processBuilder: ProcessBuilder) {
-        GLog.d(name, "[onProcessPrepared] $process")
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -89,14 +90,10 @@ abstract class CommandTask(
             process.errorStream.readAllBytes().toString(Charsets.UTF_8).let {
                 if (it.isNotEmpty()) {
                     GLog.e(name, "[readError] $process, $it")
-                    notifyError(it)
+                    notifyError(IllegalStateException(it))
                 }
             }
         }
-    }
-
-    fun isTaskRunning(): Boolean {
-        return process?.isAlive == true
     }
 
     override fun cancel() {

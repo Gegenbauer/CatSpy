@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.configuration
 
 import me.gegenbauer.catspy.manager.CustomListManager
-import me.gegenbauer.catspy.ui.log.LogLevel
+import me.gegenbauer.catspy.data.model.log.LogLevel
 import me.gegenbauer.catspy.ui.panel.Rotation
 import me.gegenbauer.catspy.utils.filesDir
 import java.awt.Font
