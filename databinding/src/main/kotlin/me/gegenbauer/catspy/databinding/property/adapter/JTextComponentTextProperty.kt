@@ -28,7 +28,6 @@ class JTextComponentTextProperty(component: JTextComponent) :
             return
         }
         component.text = value
-        component.repaint()
     }
 
     companion object {

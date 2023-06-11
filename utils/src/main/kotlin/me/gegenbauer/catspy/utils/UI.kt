@@ -51,3 +51,7 @@ fun JPanel.addVSeparator1(height: Int = 20) {
     add(separator1)
     add(Box.createHorizontalStrut(2))
 }
+
+fun JComponent.setWidth(width: Int) {
+    preferredSize = Dimension(width, preferredSize.height)
+}

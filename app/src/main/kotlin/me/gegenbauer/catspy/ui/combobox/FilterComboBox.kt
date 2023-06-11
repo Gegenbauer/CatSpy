@@ -2,17 +2,16 @@ package me.gegenbauer.catspy.ui.combobox
 
 import com.github.weisj.darklaf.settings.ThemeSettings
 import com.github.weisj.darklaf.theme.Theme
+import me.gegenbauer.catspy.data.model.log.FilterItem
+import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter.Companion.toFilterItem
 import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.ui.combobox.highlight.CustomEditorDarkComboBoxUI
 import me.gegenbauer.catspy.ui.combobox.highlight.HighlighterEditor
-import me.gegenbauer.catspy.data.model.log.FilterItem
-import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter.Companion.toFilterItem
 import me.gegenbauer.catspy.utils.DefaultDocumentListener
 import me.gegenbauer.catspy.utils.applyTooltip
 import java.awt.event.MouseEvent
-import javax.swing.ComboBoxEditor
 import javax.swing.JComponent
 import javax.swing.ToolTipManager
 import javax.swing.event.DocumentEvent
@@ -27,11 +26,6 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
     var filterItem: FilterItem = FilterItem.emptyItem
     private val editorComponent: JTextComponent // create new instance when theme changed(setUI invoked)
         get() = getEditor().editorComponent as JTextComponent
-    private var customEditor: ComboBoxEditor = BasicComboBoxEditor()
-        set(value) {
-            field = value
-            setEditor(value)
-        }
 
     var enabledTfTooltip = false
         set(value) {
@@ -59,14 +53,17 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
     }
 
     override fun setUI(ui: ComboBoxUI?) {
-        customEditor = if (enableHighlight) {
+        val newEditor = if (enableHighlight) {
             HighlighterEditor()
         } else {
             BasicComboBoxEditor()
         }
-        super.setUI(CustomEditorDarkComboBoxUI(customEditor.apply {
-            Bindings.rebind(customEditor.editorComponent as JComponent, this.editorComponent as JComponent)
-            configureEditorComponent(customEditor.editorComponent as JTextComponent)
+        super.setUI(CustomEditorDarkComboBoxUI(newEditor.apply {
+            if (getEditor() != null) {
+                Bindings.rebind(getEditor().editorComponent as JComponent, newEditor.editorComponent as JComponent)
+            }
+            configureEditorComponent(newEditor.editorComponent as JTextComponent)
+            setEditor(newEditor)
         }))
     }
 
@@ -74,10 +71,6 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
         editorComponent applyTooltip tooltip
         editorComponent withName this@FilterComboBox.componentName
         editorComponent.document.addDocumentListener(currentContentChangeListener)
-    }
-
-    override fun getEditor(): ComboBoxEditor {
-        return customEditor
     }
 
     fun addTooltipUpdateListener() {

@@ -142,7 +142,7 @@ object Bindings {
     }
 
     fun rebind(source: JComponent, target: JComponent) {
-        scope.launch(Dispatchers.UI) {
+        scope.launch(Dispatchers.UI.immediate) {
             val bindingCache = source.getOrCreateBindingCache()
             bindingCache.forEach { (componentProperty, bindingItem) ->
                 unBindInternal(componentProperty)

@@ -335,9 +335,8 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
         showTidTogglePanel.add(showTidToggle)
 
         deviceStatus.isEnabled = false
-        val deviceComboPanel = JPanel(BorderLayout())
-        deviceComboPanel.add(deviceCombo, BorderLayout.CENTER)
-        deviceComboPanel.add(deviceStatus, BorderLayout.LINE_END)
+        deviceCombo.setWidth(150)
+        logCmdCombo.setWidth(200)
 
         matchCaseTogglePanel.add(matchCaseToggle)
 
@@ -361,9 +360,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
         showTidPanel.add(showTidTogglePanel, BorderLayout.WEST)
         showTidPanel.add(showTidCombo, BorderLayout.CENTER)
 
-        logCmdCombo.minimumSize = Dimension(200, 15)
-        deviceCombo.minimumSize = Dimension(200, 15)
-        deviceStatus.minimumSize = Dimension(100, 15)
+        deviceCombo.isEditable = false
         deviceStatus.border = BorderFactory.createEmptyBorder(3, 0, 3, 0)
         deviceStatus.horizontalAlignment = JLabel.CENTER
 
@@ -393,7 +390,8 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
         logToolBar.addVSeparator2()
         logToolBar.add(logCmdCombo)
         logToolBar.addVSeparator2()
-        logToolBar.add(deviceComboPanel)
+        logToolBar.add(deviceCombo)
+        logToolBar.add(deviceStatus)
         logToolBar.add(adbConnectBtn)
         logToolBar.add(adbDisconnectBtn)
         logToolBar.add(adbRefreshBtn)

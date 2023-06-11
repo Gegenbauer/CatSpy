@@ -30,6 +30,9 @@ class FilteredLogcatRepository(
     }
 
     override fun onFilterUpdate() {
+        if (fullLogItems.isEmpty()) {
+            return
+        }
         GLog.d(TAG, "[onFilterUpdate]")
         updatingFilter.set(true)
         cancelFilterUpdate()
@@ -46,6 +49,7 @@ class FilteredLogcatRepository(
     override fun cancelFilterUpdate() {
         GLog.d(TAG, "[cancelFilterUpdate]")
         updateFilterTask?.cancel()
+        updatingFilter.set(false)
     }
 
     override fun processCacheForUIUpdate() {
