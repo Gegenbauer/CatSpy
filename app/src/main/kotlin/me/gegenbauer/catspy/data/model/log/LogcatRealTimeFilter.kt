@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.data.model.log
 import me.gegenbauer.catspy.cache.PatternProvider
 import me.gegenbauer.catspy.cache.PatternProvider.Companion.toPatternKey
 import me.gegenbauer.catspy.context.ServiceManager
+import java.lang.StringBuilder
 import java.util.*
 import java.util.regex.Pattern
 
@@ -86,6 +87,8 @@ class LogcatRealTimeFilter(
 
     companion object {
         val emptyRealTimeFilter = LogcatRealTimeFilter("", "", "", "", LogLevel.VERBOSE)
+        private const val PATTERN_SPLITTER = "|"
+        private const val NEGATIVE_PATTERN_PREFIX = '-'
         fun String.toFilterItem(matchCase: Boolean = false): FilterItem {
             if (this.isEmpty()) {
                 return FilterItem.emptyItem
@@ -94,16 +97,45 @@ class LogcatRealTimeFilter(
             val patternProvider = ServiceManager.getContextService(PatternProvider::class.java)
             var errorMessage = ""
             val positiveFilter = runCatching {
-                patternProvider.get(patterns[0].toPatternKey(matchCase))
+                patternProvider.get(patterns.first.toPatternKey(matchCase))
             }.onFailure {
                 errorMessage = it.message ?: ""
             }.getOrDefault(PatternProvider.emptyPattern)
             val negativeFilter = runCatching {
-                patternProvider.get(patterns[1].toPatternKey(matchCase))
+                patternProvider.get(patterns.second.toPatternKey(matchCase))
             }.onFailure {
                 errorMessage += ", ${it.message ?: ""}"
             }.getOrDefault(PatternProvider.emptyPattern)
             return FilterItem(positiveFilter, negativeFilter, errorMessage)
+        }
+
+        // TODO 无法正确解析只包含 negativePattern 的字符串，eg: "-Activity"
+        fun parsePattern(pattern: String): Pair<String, String> {
+            val positivePattern = StringBuilder()
+            val negativePattern = StringBuilder()
+            val splitStrings = pattern.split(PATTERN_SPLITTER)
+            for (item in splitStrings) {
+                val trimmedItem = item.trim()
+                if (trimmedItem.isEmpty()) {
+                    continue
+                }
+                if (trimmedItem[0] != NEGATIVE_PATTERN_PREFIX) {
+                    positivePattern.appendPattern(trimmedItem)
+                } else {
+                    negativePattern.appendPattern(trimmedItem.substring(1))
+                }
+            }
+
+            return Pair(positivePattern.toString(), negativePattern.toString())
+        }
+
+        private fun StringBuilder.appendPattern(pattern: String) {
+            if (pattern.isNotEmpty()) {
+                if (this.isNotEmpty()) {
+                    this.append(PATTERN_SPLITTER)
+                }
+                this.append(pattern)
+            }
         }
     }
 }
@@ -154,47 +186,4 @@ data class FilterItem(
             return this != emptyItem
         }
     }
-}
-
-private fun parsePattern(pattern: String): Array<String> {
-    val patterns: Array<String> = Array(2) { "" }
-
-    val splitStrings = pattern.split("|")
-    var prevPatternIdx = -1
-
-    for (item in splitStrings) {
-        if (prevPatternIdx != -1) {
-            patterns[prevPatternIdx] += "|"
-            patterns[prevPatternIdx] += item
-
-            if (item.substring(item.length - 1) != "\\") {
-                prevPatternIdx = -1
-            }
-            continue
-        }
-
-        if (item.isNotEmpty()) {
-            if (item[0] != '-') {
-                if (patterns[0].isNotEmpty()) {
-                    patterns[0] += "|"
-                }
-
-                patterns[0] += item
-
-                if (item.substring(item.length - 1) == "\\") {
-                    prevPatternIdx = 0
-                }
-            } else {
-                if (patterns[1].isNotEmpty()) {
-                    patterns[1] += "|"
-                }
-
-                if (item.substring(item.length - 1) == "\\") {
-                    prevPatternIdx = 1
-                }
-            }
-        }
-    }
-
-    return patterns
 }

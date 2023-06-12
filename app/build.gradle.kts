@@ -31,9 +31,10 @@ dependencies {
     implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
     implementation(Weisj.groupName, Weisj.darklafVisualPadding.artifact, Weisj.darklafVisualPadding.version)
     implementation(Gson.groupName, Gson.gson.artifact, Gson.gson.version)
-    implementation("com.fifesoft:autocomplete:3.3.1")
+    implementation(Fifesoft.groupName, Fifesoft.autocomplete.artifact, Fifesoft.autocomplete.version)
 
     testImplementation(kotlin("test"))
+    testImplementation(Mockk.groupName, Mockk.mockk.artifact, Mockk.mockk.version)
 }
 
 tasks.test {

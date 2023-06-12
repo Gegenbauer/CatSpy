@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.data.model.log.LogFilter
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem
 import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter
 import me.gegenbauer.catspy.task.PeriodicTask
@@ -31,7 +32,7 @@ abstract class BaseLogcatRepository(
             }
             field = value
         }
-    override var logFilter: LogcatRealTimeFilter = LogcatRealTimeFilter.emptyRealTimeFilter
+    override var logFilter: LogFilter<LogcatLogItem> = LogcatRealTimeFilter.emptyRealTimeFilter
         set(value) {
             if (field != value) {
                 onFilterUpdate()

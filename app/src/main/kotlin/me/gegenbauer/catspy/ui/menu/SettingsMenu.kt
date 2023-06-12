@@ -30,7 +30,7 @@ class SettingsMenu : JMenu() {
                 val item = it.source as JRadioButtonMenuItem
                 if (item.isSelected) {
                     logLevel = item.text
-                    onLogLevelChangedListener(getLevelFromName(item.text.first().toString()))
+                    onLogLevelChangedListener(getLevelFromName(item.text.toString()))
                 }
             }
         }

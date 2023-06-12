@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.ui.log
 import me.gegenbauer.catspy.data.model.log.FilterItem
 import me.gegenbauer.catspy.data.model.log.FilterItem.Companion.isNotEmpty
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem.Companion.fgColor
+import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter
 import me.gegenbauer.catspy.data.repo.log.FullLogcatRepository
 import me.gegenbauer.catspy.data.repo.log.LogRepository
 import me.gegenbauer.catspy.log.GLog
@@ -37,6 +38,12 @@ class LogTableModel(
     var selectionChanged = false
 
     var highlightFilterItem: FilterItem = FilterItem.emptyItem
+        set(value) {
+            if (field != value) {
+                field = value
+                fireTableDataChanged()
+            }
+        }
     var searchFilterItem: FilterItem = FilterItem.emptyItem
 
     private var searchPatternCase = Pattern.CASE_INSENSITIVE
@@ -150,8 +157,9 @@ class LogTableModel(
 
             val filterStarts: Queue<Int> = LinkedList()
             val filterEnds: Queue<Int> = LinkedList()
-            logRepository.logFilter.filterLog.takeIf { it.isNotEmpty() }?.let {
-                val matcher = logRepository.logFilter.filterLog.positiveFilter.matcher(stringBuilder.toString())
+            val logcatRealTimeFilter = logRepository.logFilter as LogcatRealTimeFilter
+            logcatRealTimeFilter.filterLog.takeIf { it.isNotEmpty() }?.let {
+                val matcher = logcatRealTimeFilter.filterLog.positiveFilter.matcher(stringBuilder.toString())
                 while (matcher.find()) {
                     filterStarts.add(matcher.start(0))
                     filterEnds.add(matcher.end(0))

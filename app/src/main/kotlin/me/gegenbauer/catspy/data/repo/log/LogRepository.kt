@@ -1,11 +1,11 @@
 package me.gegenbauer.catspy.data.repo.log
 
+import me.gegenbauer.catspy.data.model.log.LogFilter
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem
-import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter
 
 interface LogRepository : LogObservable.Observer<LogcatLogItem> {
 
-    var logFilter: LogcatRealTimeFilter
+    var logFilter: LogFilter<LogcatLogItem>
 
     var fullMode: Boolean
 

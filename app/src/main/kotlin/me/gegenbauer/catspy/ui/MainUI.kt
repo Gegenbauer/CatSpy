@@ -13,7 +13,7 @@ import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem
 import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter
-import me.gegenbauer.catspy.data.model.log.getLevelFromFlag
+import me.gegenbauer.catspy.data.model.log.getLevelFromName
 import me.gegenbauer.catspy.data.repo.log.*
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
@@ -30,7 +30,8 @@ import me.gegenbauer.catspy.ui.container.WrapablePanel
 import me.gegenbauer.catspy.ui.dialog.GoToDialog
 import me.gegenbauer.catspy.ui.dialog.LogTableDialog
 import me.gegenbauer.catspy.ui.icon.DayNightIcon
-import me.gegenbauer.catspy.ui.log.*
+import me.gegenbauer.catspy.ui.log.FullLogPanel
+import me.gegenbauer.catspy.ui.log.LogTableModel
 import me.gegenbauer.catspy.ui.menu.FileMenu
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
@@ -525,20 +526,20 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
     }
 
     fun registerComboBoxEditorEvent() {
-        showLogCombo.editor.editorComponent.addKeyListener(keyHandler)
-        showLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        boldLogCombo.editor.editorComponent.addKeyListener(keyHandler)
-        boldLogCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        showTagCombo.editor.editorComponent.addKeyListener(keyHandler)
-        showTagCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        showPidCombo.editor.editorComponent.addKeyListener(keyHandler)
-        showPidCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        showTidCombo.editor.editorComponent.addKeyListener(keyHandler)
-        showTidCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        logCmdCombo.editor.editorComponent.addKeyListener(keyHandler)
-        logCmdCombo.editor.editorComponent.addMouseListener(mouseHandler)
-        deviceCombo.editor.editorComponent.addKeyListener(keyHandler)
-        deviceCombo.editor.editorComponent.addMouseListener(mouseHandler)
+        showLogCombo.editorComponent.addKeyListener(keyHandler)
+        showLogCombo.editorComponent.addMouseListener(mouseHandler)
+        boldLogCombo.editorComponent.addKeyListener(keyHandler)
+        boldLogCombo.editorComponent.addMouseListener(mouseHandler)
+        showTagCombo.editorComponent.addKeyListener(keyHandler)
+        showTagCombo.editorComponent.addMouseListener(mouseHandler)
+        showPidCombo.editorComponent.addKeyListener(keyHandler)
+        showPidCombo.editorComponent.addMouseListener(mouseHandler)
+        showTidCombo.editorComponent.addKeyListener(keyHandler)
+        showTidCombo.editorComponent.addMouseListener(mouseHandler)
+        logCmdCombo.editorComponent.addKeyListener(keyHandler)
+        logCmdCombo.editorComponent.addMouseListener(mouseHandler)
+        deviceCombo.editorComponent.addKeyListener(keyHandler)
+        deviceCombo.editorComponent.addMouseListener(mouseHandler)
         searchPanel.registerComboBoxEditorEvent()
     }
 
@@ -858,12 +859,12 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
         override fun mouseReleased(event: MouseEvent) {
             if (SwingUtilities.isRightMouseButton(event)) {
                 when (event.source) {
-                    deviceCombo.editor.editorComponent -> {
+                    deviceCombo.editorComponent -> {
                         popupMenu = PopUpCombobox(deviceCombo)
                         popupMenu?.show(event.component, event.x, event.y)
                     }
 
-                    showLogCombo.editor.editorComponent, boldLogCombo.editor.editorComponent, showTagCombo.editor.editorComponent, showPidCombo.editor.editorComponent, showTidCombo.editor.editorComponent -> {
+                    showLogCombo.editorComponent, boldLogCombo.editorComponent, showTagCombo.editorComponent, showPidCombo.editorComponent, showTidCombo.editorComponent -> {
                         popupMenu = PopUpFilterCombobox((event.source as JComponent).parent as FilterComboBox)
                         popupMenu?.show(event.component, event.x, event.y)
                     }
@@ -952,15 +953,15 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
     fun setDeviceComboColor(isConnected: Boolean) {
         if (isConnected) {
             if (Theme.isDark(ThemeSettings.getInstance().theme)) {
-                deviceCombo.editor.editorComponent.foreground = Color(0x7070C0)
+                deviceCombo.editorComponent.foreground = Color(0x7070C0)
             } else {
-                deviceCombo.editor.editorComponent.foreground = Color.BLUE
+                deviceCombo.editorComponent.foreground = Color.BLUE
             }
         } else {
             if (Theme.isDark(ThemeSettings.getInstance().theme)) {
-                deviceCombo.editor.editorComponent.foreground = Color(0xC07070)
+                deviceCombo.editorComponent.foreground = Color(0xC07070)
             } else {
-                deviceCombo.editor.editorComponent.foreground = Color.RED
+                deviceCombo.editorComponent.foreground = Color.RED
             }
         }
     }
@@ -970,39 +971,40 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
 
         if (LogCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
             if (Theme.isDark(ThemeSettings.getInstance().theme)) {
-                logCmdCombo.editor.editorComponent.foreground = Color(0x7070C0)
+                logCmdCombo.editorComponent.foreground = Color(0x7070C0)
             } else {
-                logCmdCombo.editor.editorComponent.foreground = Color.BLUE
+                logCmdCombo.editorComponent.foreground = Color.BLUE
             }
         } else {
             if (Theme.isDark(ThemeSettings.getInstance().theme)) {
-                logCmdCombo.editor.editorComponent.foreground = Color(0xC07070)
+                logCmdCombo.editorComponent.foreground = Color(0xC07070)
             } else {
-                logCmdCombo.editor.editorComponent.foreground = Color.RED
+                logCmdCombo.editorComponent.foreground = Color.RED
             }
         }
     }
 
     internal inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(event: KeyEvent) {
-            if (KeyEvent.VK_ENTER != event.keyCode && event.source == logCmdCombo.editor.editorComponent) {
+            if (KeyEvent.VK_ENTER != event.keyCode && event.source == logCmdCombo.editorComponent) {
                 updateLogCmdCombo()
             }
 
             if (KeyEvent.VK_ENTER == event.keyCode && event.isControlDown) {
                 when (event.source) {
                     in listOf(
-                        showLogCombo.editor.editorComponent,
-                        boldLogCombo.editor.editorComponent,
-                        showTagCombo.editor.editorComponent,
-                        showPidCombo.editor.editorComponent,
-                        showTidCombo.editor.editorComponent
+                        showLogCombo.editorComponent,
+                        boldLogCombo.editorComponent,
+                        showTagCombo.editorComponent,
+                        showPidCombo.editorComponent,
+                        showTidCombo.editorComponent,
+                        boldLogCombo.editorComponent,
                     ) -> {
                         updateComboBox()
                         updateLogFilter()
                     }
 
-                    logCmdCombo.editor.editorComponent -> {
+                    logCmdCombo.editorComponent -> {
                         if (LogCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
                             reconnectAdb()
                         } else {
@@ -1015,7 +1017,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
                         }
                     }
 
-                    deviceCombo.editor.editorComponent -> {
+                    deviceCombo.editorComponent -> {
                         reconnectAdb()
                     }
 
@@ -1039,9 +1041,10 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
             showTagCombo.filterItem,
             showPidCombo.filterItem,
             showTidCombo.filterItem,
-            getLevelFromFlag(MainViewModel.logLevel.getValueNonNull()),
+            getLevelFromName(MainViewModel.logLevel.getValueNonNull()),
             MainViewModel.filterMatchCaseEnabled.getValueNonNull()
         )
+        filteredTableModel.highlightFilterItem = boldLogCombo.filterItem
     }
 
     private fun updateSearchFilter() {
@@ -1224,7 +1227,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
         }
 
         fun registerComboBoxEditorEvent() {
-            searchCombo.editor.editorComponent.addKeyListener(searchKeyHandler)
+            searchCombo.editorComponent.addKeyListener(searchKeyHandler)
         }
 
         override fun setVisible(aFlag: Boolean) {
@@ -1284,7 +1287,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
             override fun keyReleased(event: KeyEvent) {
                 if (KeyEvent.VK_ENTER == event.keyCode) {
                     when (event.source) {
-                        searchCombo.editor.editorComponent -> {
+                        searchCombo.editorComponent -> {
                             resetComboItem(MainViewModel.searchHistory, MainViewModel.searchCurrentContent.value ?: "")
                             updateSearchFilter()
                             if (KeyEvent.SHIFT_DOWN_MASK == event.modifiersEx) {
