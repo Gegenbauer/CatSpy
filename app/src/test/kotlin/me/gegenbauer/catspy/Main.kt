@@ -11,14 +11,11 @@ import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.task.LogcatTask
-import me.gegenbauer.catspy.task.TaskManager
-import me.gegenbauer.catspy.ui.button.GButton
 import me.gegenbauer.catspy.utils.filesDir
 import me.gegenbauer.catspy.viewmodel.GlobalViewModel
 import java.awt.Dimension
 import javax.swing.JFrame
-import javax.swing.JOptionPane
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.UIDefaults
 
@@ -37,20 +34,27 @@ fun main() {
         val frame = JFrame()
         frame.size = Dimension(500, 500)
         val panel = JPanel()
-        val button1 = GButton("Pause")
-        val button2 = GButton("Resume")
-        panel.add(button1)
-        panel.add(button2)
+        val label = JLabel("<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                "    <title>Sample text</title>\n" +
+                "    <style>\n" +
+                "        .red-text {\n" +
+                "            color: red;\n" +
+                "            text-decoration: underline;\n" +
+                "        }\n" +
+                "        span {\n" +
+                "            background-color: white;\n" +
+                "        }\n" +
+                "    </style>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "    <span class=\"red-text\">123</span><span>456789</span>\n" +
+                "</body>\n" +
+                "</html>")
+        panel.add(label)
         frame.add(panel)
-        val logcatTask = LogcatTask("53373619")
-        TaskManager().exec(logcatTask)
-        button1.addActionListener {
-            logcatTask.pause()
-        }
-        button2.addActionListener {
-            logcatTask.resume()
-        }
-        JOptionPane.showMessageDialog(frame, "e.message", "Error", JOptionPane.ERROR_MESSAGE)
         frame.isVisible = true
     }
 }

@@ -55,3 +55,7 @@ fun JPanel.addVSeparator1(height: Int = 20) {
 fun JComponent.setWidth(width: Int) {
     preferredSize = Dimension(width, preferredSize.height)
 }
+
+fun JComponent.setHeight(height: Int) {
+    preferredSize = Dimension(preferredSize.width, height)
+}

@@ -87,6 +87,11 @@ object GlobalViewModel {
             searchMatchCase.addObserver {
                 UIConfManager.uiConf.searchMatchCaseEnabled = it ?: false
             }
+            logFont.addObserver {
+                UIConfManager.uiConf.logFontName = it?.fontName ?: "DialogInput"
+                UIConfManager.uiConf.logFontSize = it?.size ?: 14
+                UIConfManager.uiConf.logFontStyle = it?.style ?: 0
+            }
         }
     }
 }

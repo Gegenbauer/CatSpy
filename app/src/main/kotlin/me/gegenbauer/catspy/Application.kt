@@ -8,6 +8,8 @@ import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.ThemeManager
+import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.configuration.toFont
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
@@ -19,6 +21,7 @@ import me.gegenbauer.catspy.utils.currentPlatform
 import me.gegenbauer.catspy.utils.filesDir
 import me.gegenbauer.catspy.utils.isInDebugMode
 import me.gegenbauer.catspy.viewmodel.GlobalViewModel
+import me.gegenbauer.catspy.viewmodel.MainViewModel
 import java.awt.Container
 import java.util.*
 import javax.swing.JComponent
@@ -73,6 +76,7 @@ class Application {
 
         private fun adjustAfterThemeLoaded(theme: Theme, properties: Properties) {
             themeAwareControllers.forEach { it.onThemeChanged(theme, properties) }
+            MainViewModel.logFont.updateValue(theme.toFont())
         }
 
         private fun addClickListenerForAllComponents(components: Array<java.awt.Component>) {

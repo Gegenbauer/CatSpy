@@ -89,6 +89,7 @@ object MainViewModel {
 
     //region Style
     val buttonDisplayMode = ObservableViewModelProperty(ButtonDisplayMode.ALL) // TODO save configuration of this
+    val logFont = ObservableViewModelProperty(UIConfManager.uiConf.getLogFont())
     //endregion
 
     fun bind(mainUI: MainUI) {

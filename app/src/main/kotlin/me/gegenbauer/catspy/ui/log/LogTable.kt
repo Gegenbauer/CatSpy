@@ -1,22 +1,18 @@
 package me.gegenbauer.catspy.ui.log
 
-import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.manager.BookmarkManager
-import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
-import me.gegenbauer.catspy.ui.panel.VStatusPanel
 import me.gegenbauer.catspy.ui.dialog.LogViewDialog
-import me.gegenbauer.catspy.ui.log.LogTableModel.Companion.COLUMN_LOG
 import me.gegenbauer.catspy.ui.log.LogTableModel.Companion.COLUMN_NUM
+import me.gegenbauer.catspy.ui.panel.VStatusPanel
 import me.gegenbauer.catspy.utils.findFrameFromParent
 import me.gegenbauer.catspy.utils.isDoubleClick
-import java.awt.*
+import java.awt.Dimension
 import java.awt.event.*
 import javax.swing.*
-import javax.swing.border.AbstractBorder
-import javax.swing.table.DefaultTableCellRenderer
 
 class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
+
     init {
         setShowGrid(false)
         tableHeader = null
@@ -24,13 +20,11 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
         autoscrolls = true
         dragEnabled = true
         dropMode = DropMode.INSERT
-
-        val columnNum = columnModel.getColumn(COLUMN_NUM)
-        columnNum.cellRenderer = NumCellRenderer()
-
-        val columnLog = columnModel.getColumn(COLUMN_LOG)
-        columnLog.cellRenderer = LogCellRenderer()
         intercellSpacing = Dimension(0, 0)
+
+        columns.forEach { it.configureColumn(this) }
+
+        updateRowHeight()
 
         val enter = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0)
         getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(enter, "none")
@@ -39,6 +33,11 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
         addKeyListener(TableKeyHandler())
     }
 
+    private fun updateRowHeight() {
+        setRowHeight(getFontMetrics(font).height)
+    }
+
+    // TODO use this to update column width
     fun updateColumnWidth(width: Int, scrollVBarWidth: Int) {
         if (rowCount <= 0) {
             return
@@ -51,7 +50,7 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
         val preferredLogWidth = newWidth - column0Width - VStatusPanel.VIEW_RECT_WIDTH - scrollVBarWidth - 2
 
         val columnNum = columnModel.getColumn(COLUMN_NUM)
-        val columnLog = columnModel.getColumn(COLUMN_LOG)
+        val columnLog = columnModel.getColumn(COLUMN_NUM)
         if (columnNum.preferredWidth != column0Width) {
             columnNum.preferredWidth = column0Width
             columnLog.preferredWidth = preferredLogWidth
@@ -62,91 +61,7 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
         }
     }
 
-    internal class LineNumBorder(val color: Color, private val thickness: Int) : AbstractBorder() {
-        override fun paintBorder(c: Component, g: Graphics, x: Int, y: Int, width: Int, height: Int) {
-            if (width > 0) {
-                g.color = color
-                for (i in 1..thickness) {
-                    g.drawLine(width - i, y, width - i, height)
-                }
-            }
-        }
-
-        override fun getBorderInsets(c: Component): Insets {
-            return getBorderInsets(c, Insets(0, 0, 0, thickness))
-        }
-
-        override fun getBorderInsets(c: Component?, insets: Insets): Insets {
-            return insets.apply { set(0, 0, 0, thickness) }
-        }
-
-        override fun isBorderOpaque(): Boolean {
-            return true
-        }
-    }
-
-    internal class NumCellRenderer : DefaultTableCellRenderer() {
-        init {
-            horizontalAlignment = JLabel.RIGHT
-            verticalAlignment = JLabel.CENTER
-        }
-
-        override fun getTableCellRendererComponent(
-            table: JTable?,
-            value: Any?,
-            isSelected: Boolean,
-            hasFocus: Boolean,
-            row: Int,
-            col: Int
-        ): Component {
-            var num = -1
-            if (value != null) {
-                num = value.toString().trim().toInt()
-            }
-            val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
-            label.border = LineNumBorder(ColorScheme.numLogSeparatorBG, 1)
-
-            foreground = ColorScheme.lineNumFG
-            background = table?.getNewBackground(num, row)
-
-            return label
-        }
-    }
-
-    internal class LogCellRenderer : DefaultTableCellRenderer() {
-        override fun getTableCellRendererComponent(
-            table: JTable?,
-            value: Any?,
-            isSelected: Boolean,
-            hasFocus: Boolean,
-            row: Int,
-            col: Int
-        ): Component {
-            val logTable = table as? LogTable
-            logTable ?: return this
-
-            val newValue: String = if (value != null) {
-                logTable.tableModel.getPrintValue(value.toString(), row, isSelected)
-            } else {
-                ""
-            }
-            // use html to render the log. Table cell use label.
-            val label: JLabel = if (newValue.isEmpty()) {
-                foreground = logTable.tableModel.getFgColor(row)
-                super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
-            } else {
-                super.getTableCellRendererComponent(table, newValue, isSelected, hasFocus, row, col) as JLabel
-            }
-
-            label.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
-            val numValue = logTable.tableModel.getValueAt(row, 0)
-            val num = numValue.toString().trim().toInt()
-            background = logTable.getNewBackground(num, row)
-            return label
-        }
-    }
-
-   private fun downPage() {
+    private fun downPage() {
         val toRect = visibleRect
         toRect.y = (selectedRow + 3) * rowHeight
         scrollRectToVisible(toRect)
@@ -160,7 +75,7 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
         return
     }
 
-   private fun downLine() {
+    private fun downLine() {
         val toRect = visibleRect
         val rowY = selectedRow * rowHeight
         if (visibleRect.y + visibleRect.height - 4 * rowHeight < rowY) {
@@ -170,7 +85,7 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
         return
     }
 
-   private fun upLine() {
+    private fun upLine() {
         val toRect = visibleRect
         val rowY = selectedRow * rowHeight
         if (visibleRect.y + 3 * rowHeight > rowY) {
@@ -197,11 +112,12 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
     }
 
     private fun getRowsContent(rows: List<Int>): String {
-        return rows.joinToString("\n") { this.tableModel.getValueAt(it, 1).toString() }
+        return rows.joinToString("\n") { this.tableModel.getItem(it).logLine }
     }
 
+    //TODO add render effect for this
     private fun getRowsContent(rows: IntArray): String {
-        return rows.joinToString("\n") { this.tableModel.getValueAt(it, 1).toString() }
+        return rows.joinToString("\n") { this.tableModel.getItem(it).logLine }
     }
 
     private fun updateBookmark(rows: IntArray) {
@@ -316,10 +232,21 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
         }
     }
 
+    override fun updateUI() {
+        super.updateUI()
+        updateRowHeight()
+        if (columns != null) {
+            columns.forEach { it.configureColumn(this) }
+        }
+    }
+
     internal inner class TableKeyHandler : KeyAdapter() {
         override fun keyPressed(event: KeyEvent) {
             when {
-                event.keyCode == KeyEvent.VK_B && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> updateBookmark(selectedRows)
+                event.keyCode == KeyEvent.VK_B && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> updateBookmark(
+                    selectedRows
+                )
+
                 event.keyCode == KeyEvent.VK_PAGE_DOWN -> downPage()
                 event.keyCode == KeyEvent.VK_PAGE_UP -> upPage()
                 event.keyCode == KeyEvent.VK_DOWN -> downLine()
@@ -333,18 +260,5 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
 
     companion object {
         private const val TAG = "LogTable"
-        private fun JTable.getNewBackground(num: Int, row: Int): Color {
-            return if (BookmarkManager.isBookmark(num)) {
-                if (isRowSelected(row)) {
-                    ColorScheme.bookmarkSelectedBG
-                } else {
-                    ColorScheme.bookmarkBG
-                }
-            } else if (isRowSelected(row)) {
-                ColorScheme.selectedBG
-            } else {
-                ColorScheme.logBG
-            }
-        }
     }
 }

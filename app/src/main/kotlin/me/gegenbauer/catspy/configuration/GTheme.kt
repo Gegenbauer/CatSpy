@@ -2,18 +2,27 @@ package me.gegenbauer.catspy.configuration
 
 import com.github.weisj.darklaf.theme.*
 import com.github.weisj.darklaf.theme.spec.AccentColorRule
+import com.github.weisj.darklaf.theme.spec.FontPrototype
 import com.github.weisj.darklaf.theme.spec.FontSizeRule
 import me.gegenbauer.catspy.utils.toArgb
+import java.awt.Font
+
+const val DEFAULT_FONT_SIZE = 14
+const val DEFAULT_FONT_STYLE = 0
+const val DEFAULT_FONT_FAMILY = "DialogInput.plain"
+const val DEFAULT_FONT_SCALE_PERCENTAGE = 100
+const val DEFAULT_THEME = "OneDark"
 
 data class GTheme(
-    val theme: String,
-    val fontScalePercentage: Int,
-    val accentColor: Int,
-    val selectionColor: Int,
-    val isSystemPreferencesEnabled: Boolean,
-    val isAccentColorFollowsSystem: Boolean,
-    val isSelectionColorFollowsSystem: Boolean,
-    val isThemeFollowsSystem: Boolean
+    val theme: String = DEFAULT_THEME,
+    val fontScalePercentage: Int = DEFAULT_FONT_SCALE_PERCENTAGE,
+    val fontFamily: String = DEFAULT_FONT_FAMILY,
+    val accentColor: Int = 0,
+    val selectionColor: Int = 0,
+    val isSystemPreferencesEnabled: Boolean = false,
+    val isAccentColorFollowsSystem: Boolean = false,
+    val isSelectionColorFollowsSystem: Boolean = false,
+    val isThemeFollowsSystem: Boolean = false
 )
 
 private val themes = arrayListOf(
@@ -39,4 +48,13 @@ fun GTheme.fontSizeRule(): FontSizeRule? {
 fun GTheme.accentColorRule(): AccentColorRule? {
     if (accentColor == 0 || selectionColor == 0) return null
     return AccentColorRule.fromColor(accentColor.toArgb(), selectionColor.toArgb())
+}
+
+fun GTheme.fontPrototype(): FontPrototype? {
+    if (fontFamily.isBlank()) return null
+    return FontPrototype(fontFamily)
+}
+
+fun Theme.toFont(): Font {
+    return Font(fontPrototype.family(), 0, (DEFAULT_FONT_SIZE.toFloat() * fontSizeRule.percentage / 100).toInt())
 }

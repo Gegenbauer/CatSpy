@@ -13,17 +13,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.log.appendPath
 import me.gegenbauer.catspy.utils.currentPlatform
-import me.gegenbauer.catspy.utils.loadResourceAsStream
 import me.gegenbauer.catspy.utils.toArgb
 import java.io.File
 import java.util.*
 import javax.swing.UIDefaults
 
+// TODO 升级增删字段兼容
 object ThemeManager {
-    private const val DEFAULT_THEME_DIR = "themes"
-    private const val DEFAULT_THEME_FILENAME = "default.json"
     private const val THEME_FILENAME = "global.json"
     private val themeFile = File(currentPlatform.getFilesDir(), THEME_FILENAME)
     private val settingsConfiguration: SettingsConfiguration = loadThemeSettings()
@@ -38,6 +35,7 @@ object ThemeManager {
     private fun ensureThemeFile() {
         if (!themeFile.exists()) {
             createThemeFile()
+            themeFile.writeText(Gson().toJson(GTheme()))
         }
     }
 
@@ -82,10 +80,6 @@ object ThemeManager {
 
     private fun createThemeFile() {
         themeFile.createNewFile()
-        val defaultThemeJson = loadResourceAsStream(DEFAULT_THEME_DIR.appendPath(DEFAULT_THEME_FILENAME))
-            .bufferedReader()
-            .use { it.readText() }
-        themeFile.writeText(defaultThemeJson)
     }
 
     suspend fun applyTempTheme() {
@@ -107,6 +101,7 @@ object ThemeManager {
         return SettingsConfiguration().apply {
             theme = getTheme(gTheme.theme)
             fontSizeRule = gTheme.fontSizeRule()
+            fontPrototype = gTheme.fontPrototype()
             accentColorRule = gTheme.accentColorRule()
             isSystemPreferencesEnabled = gTheme.isSystemPreferencesEnabled
             isAccentColorFollowsSystem = gTheme.isAccentColorFollowsSystem
@@ -119,6 +114,7 @@ object ThemeManager {
         val gTheme = GTheme(
             settingsConfiguration.theme.name,
             settingsConfiguration.fontSizeRule.percentage,
+            settingsConfiguration.fontPrototype.family() ?: DEFAULT_FONT_FAMILY,
             settingsConfiguration.accentColorRule.accentColor.toArgb(),
             settingsConfiguration.accentColorRule.selectionColor.toArgb(),
             settingsConfiguration.isSystemPreferencesEnabled,
@@ -132,6 +128,7 @@ object ThemeManager {
     private fun updateTheme(theme: Theme) {
         settingsConfiguration.theme = theme
         settingsConfiguration.fontSizeRule = theme.fontSizeRule
+        settingsConfiguration.fontPrototype = theme.fontPrototype
         settingsConfiguration.accentColorRule = theme.accentColorRule
         settingsConfiguration.isSystemPreferencesEnabled = ThemeSettings.getInstance().isSystemPreferencesEnabled
         settingsConfiguration.isAccentColorFollowsSystem = ThemeSettings.getInstance().isAccentColorFollowsSystem

@@ -602,6 +602,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
     fun openFile(path: String, isAppend: Boolean) {
         GLog.d(TAG, "[openFile] Opening: $path, $isAppend")
         statusMethod.text = " ${STRINGS.ui.open} "
+        logProvider.clear()
         updateLogFilter()
 
         if (updateLogUITask.isRunning().not()) {
