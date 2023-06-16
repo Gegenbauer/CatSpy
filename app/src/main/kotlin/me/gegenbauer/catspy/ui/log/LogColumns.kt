@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.ui.log
 
+import me.gegenbauer.catspy.data.model.log.FilterItem.Companion.getMatchedList
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem.Companion.fgColor
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.render.html.HtmlStringRender
@@ -105,7 +106,14 @@ private val columnLevel = object : Column {
     override val index: Int = 4
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
-        return SimpleLogCellRender()
+        return object : SimpleLogCellRender() {
+            override fun getRenderedContent(logTable: LogTable, row: Int, content: String): String {
+                val logItem = logTable.tableModel.getItem(row)
+                val foreground = logItem.fgColor
+                return HtmlStringRender(content).foreground(0, content.length - 1, foreground)
+                    .render()
+            }
+        }
     }
 }
 
@@ -122,11 +130,9 @@ private val columnTag = object : Column {
                     render.foreground(0, render.raw.length - 1, ColorScheme.tagFG)
                     render.bold(0, render.raw.length - 1)
                 }
-                logTable.tableModel.getLogFilter().filterTag.positiveFilter.matcher(render.raw).let {
-                    while (it.find()) {
-                        render.highlight(it.start(), it.end(), ColorScheme.filteredBGs[0])
-                        render.foreground(it.start(), it.end(), ColorScheme.filteredFGs[0])
-                    }
+                logTable.tableModel.getLogFilter().filterTag.getMatchedList(render.raw).forEach {
+                    render.highlight(it.first, it.second, ColorScheme.filteredBGs[0])
+                    render.foreground(it.first, it.second, ColorScheme.filteredFGs[0])
                 }
             }
         }
@@ -193,28 +199,22 @@ private open class SimpleLogCellRender : DefaultTableCellRenderer() {
         return label
     }
 
-    private fun getRenderedContent(logTable: LogTable, row: Int, content: String): String {
+    protected open fun getRenderedContent(logTable: LogTable, row: Int, content: String): String {
         val render = HtmlStringRender(content)
         val logItem = logTable.tableModel.getItem(row)
         val foreground = logItem.fgColor
         render.foreground(0, content.length - 1, foreground)
-        logTable.tableModel.searchFilterItem.positiveFilter.matcher(content).let {
-            while (it.find()) {
-                render.highlight(it.start(), it.end(), ColorScheme.searchBG)
-                render.foreground(it.start(), it.end(), ColorScheme.searchFG)
-            }
+        logTable.tableModel.searchFilterItem.getMatchedList(content).forEach {
+            render.highlight(it.first, it.second, ColorScheme.searchBG)
+            render.foreground(it.first, it.second, ColorScheme.searchFG)
         }
-        logTable.tableModel.highlightFilterItem.positiveFilter.matcher(content).let {
-            while (it.find()) {
-                render.highlight(it.start(), it.end(), ColorScheme.highlightBG)
-                render.foreground(it.start(), it.end(), ColorScheme.highlightFG)
-            }
+        logTable.tableModel.highlightFilterItem.getMatchedList(content).forEach {
+            render.highlight(it.first, it.second, ColorScheme.highlightBG)
+            render.foreground(it.first, it.second, ColorScheme.highlightFG)
         }
-        logTable.tableModel.getLogFilter().filterLog.positiveFilter.matcher(content).let {
-            while (it.find()) {
-                render.highlight(it.start(), it.end(), ColorScheme.filteredBGs[0])
-                render.foreground(it.start(), it.end(), ColorScheme.filteredFGs[0])
-            }
+        logTable.tableModel.getLogFilter().filterLog.getMatchedList(content).forEach {
+            render.highlight(it.first, it.second, ColorScheme.filteredBGs[0])
+            render.foreground(it.first, it.second, ColorScheme.filteredFGs[0])
         }
         addRenderItem(logTable, row, render)
         return render.render()

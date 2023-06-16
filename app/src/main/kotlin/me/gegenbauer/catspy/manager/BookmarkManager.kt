@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.manager
 
-interface BookmarkChangeListener {
+fun interface BookmarkChangeListener {
     fun bookmarkChanged()
 }
 

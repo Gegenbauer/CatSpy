@@ -11,44 +11,50 @@ import kotlin.math.roundToInt
 class HtmlStringRender(override val raw: String) : StringRender {
     private val spans = mutableListOf<Span>()
 
-    override fun bold(start: Int, end: Int) {
+    override fun bold(start: Int, end: Int): StringRender {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.BOLD))
         }
+        return this
     }
 
-    override fun italic(start: Int, end: Int) {
+    override fun italic(start: Int, end: Int): StringRender {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.ITALIC))
         }
+        return this
     }
 
-    override fun strikethrough(start: Int, end: Int) {
+    override fun strikethrough(start: Int, end: Int): StringRender {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.STRIKETHROUGH))
         }
+        return this
     }
 
-    override fun highlight(start: Int, end: Int, color: Color) {
+    override fun highlight(start: Int, end: Int, color: Color): StringRender {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.HIGHLIGHT, color))
         }
+        return this
     }
 
-    override fun foreground(start: Int, end: Int, color: Color) {
+    override fun foreground(start: Int, end: Int, color: Color): StringRender {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.FOREGROUND, color))
         }
+        return this
     }
 
-    override fun underline(start: Int, end: Int) {
+    override fun underline(start: Int, end: Int): StringRender {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.UNDERLINE))
         }
+        return this
     }
 
     private fun checkIndex(start: Int, end: Int): Boolean {
-        return start >= 0 && end < raw.length && start < end
+        return start >= 0 && end < raw.length && start <= end
     }
 
     override fun render(): String {
@@ -64,18 +70,27 @@ class HtmlStringRender(override val raw: String) : StringRender {
         spanPoints.add(0)
         spanPoints.add(raw.length - 1)
 
+        val singleCharSpans = spans.filter { it.start == it.end }
+
         // 根据所有 start 和 end 重新划分 span
         val subSpans = mutableListOf<Span>()
-        for (i in 0 until spanPoints.size - 1) {
-            val start = spanPoints.elementAt(i)
-            val end = spanPoints.elementAt(i + 1) - 1
-
-            val coveringSpans = spans.filter { start >= it.start && end <= it.end }
-            coveringSpans.forEach {
-                subSpans.add(Span(start, end, it.type, it.color))
+        for (i in 0 until spanPoints.size) {
+            // 特殊情况 start == end
+            val subSingleCharSpans = singleCharSpans.filter { it.start == spanPoints.elementAt(i) }
+            if (subSingleCharSpans.isNotEmpty()) {
+                subSpans.addAll(subSingleCharSpans)
             }
-            if (coveringSpans.isEmpty()) {
-                subSpans.add(Span(start, end, SpanType.NORMAL))
+            if (i < spanPoints.size - 1) {
+                val start = spanPoints.elementAt(i)
+                val end = spanPoints.elementAt(i + 1) - 1
+
+                val coveringSpans = spans.filter { start >= it.start && end <= it.end }
+                coveringSpans.forEach {
+                    subSpans.add(Span(start, end, it.type, it.color))
+                }
+                if (coveringSpans.isEmpty()) {
+                    subSpans.add(Span(start, end, SpanType.NORMAL))
+                }
             }
         }
 

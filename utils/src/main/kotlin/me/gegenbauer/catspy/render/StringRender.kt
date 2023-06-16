@@ -7,17 +7,17 @@ interface StringRender {
 
     val raw: String
 
-    fun bold(start: Int, end: Int)
+    fun bold(start: Int, end: Int): StringRender
 
-    fun italic(start: Int, end: Int)
+    fun italic(start: Int, end: Int): StringRender
 
-    fun strikethrough(start: Int, end: Int)
+    fun strikethrough(start: Int, end: Int): StringRender
 
-    fun highlight(start: Int, end: Int, color: Color)
+    fun highlight(start: Int, end: Int, color: Color): StringRender
 
-    fun foreground(start: Int, end: Int, color: Color)
+    fun foreground(start: Int, end: Int, color: Color): StringRender
 
-    fun underline(start: Int, end: Int)
+    fun underline(start: Int, end: Int): StringRender
 
     fun render(): String
 

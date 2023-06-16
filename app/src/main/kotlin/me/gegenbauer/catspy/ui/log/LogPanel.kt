@@ -1,10 +1,6 @@
 package me.gegenbauer.catspy.ui.log
 
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.concurrency.AppScope
-import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.log.GLog
@@ -54,7 +50,6 @@ abstract class LogPanel(
     private val tableModelHandler = TableModelHandler()
     private val actionHandler = ActionHandler()
     private val bookmarkHandler = BookmarkHandler()
-    private val componentHandler = ComponentHandler()
 
     private var oldLogVPos = -1
     private var oldLogHPos = -1
@@ -96,8 +91,6 @@ abstract class LogPanel(
         add(ctrlPanel, BorderLayout.NORTH)
         add(vStatusPanel, BorderLayout.WEST)
         add(scrollPane, BorderLayout.CENTER)
-
-        addComponentListener(componentHandler)
     }
 
     open fun updateTableBar(customArray: ArrayList<CustomListManager.CustomElement>) {
@@ -221,7 +214,6 @@ abstract class LogPanel(
 
         private fun tableChangedInternal(event: TableModelEvent) {
             updateTableUI()
-            table.updateColumnWidth(this@LogPanel.width, scrollPane.verticalScrollBar.width)
             onTableContentChanged(event)
         }
     }
@@ -288,13 +280,6 @@ abstract class LogPanel(
                 tableModel.bookmarkMode = true
             }
             table.repaint()
-        }
-    }
-
-    internal inner class ComponentHandler : ComponentAdapter() {
-        override fun componentResized(e: ComponentEvent) {
-            table.updateColumnWidth(e.component.width, scrollPane.verticalScrollBar.width)
-            super.componentResized(e)
         }
     }
 

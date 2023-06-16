@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.ui.log
 
+import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.dialog.LogViewDialog
@@ -8,6 +9,7 @@ import me.gegenbauer.catspy.ui.panel.VStatusPanel
 import me.gegenbauer.catspy.utils.findFrameFromParent
 import me.gegenbauer.catspy.utils.isDoubleClick
 import java.awt.Dimension
+import java.awt.Graphics
 import java.awt.event.*
 import javax.swing.*
 
@@ -35,30 +37,6 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
 
     private fun updateRowHeight() {
         setRowHeight(getFontMetrics(font).height)
-    }
-
-    // TODO use this to update column width
-    fun updateColumnWidth(width: Int, scrollVBarWidth: Int) {
-        if (rowCount <= 0) {
-            return
-        }
-
-        val fontMetrics = getFontMetrics(font)
-        val value = this.tableModel.getValueAt(rowCount - 1, 0)
-        val column0Width = fontMetrics.stringWidth(value.toString()) + 20
-        val newWidth = width.coerceAtLeast(2600)
-        val preferredLogWidth = newWidth - column0Width - VStatusPanel.VIEW_RECT_WIDTH - scrollVBarWidth - 2
-
-        val columnNum = columnModel.getColumn(COLUMN_NUM)
-        val columnLog = columnModel.getColumn(COLUMN_NUM)
-        if (columnNum.preferredWidth != column0Width) {
-            columnNum.preferredWidth = column0Width
-            columnLog.preferredWidth = preferredLogWidth
-        } else {
-            if (columnLog.preferredWidth != preferredLogWidth) {
-                columnLog.preferredWidth = preferredLogWidth
-            }
-        }
     }
 
     private fun downPage() {
@@ -256,6 +234,13 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
             }
             super.keyPressed(event)
         }
+    }
+
+    override fun paint(g: Graphics?) {
+        val start = System.currentTimeMillis()
+        super.paint(g)
+        val end = System.currentTimeMillis()
+        GLog.d(TAG, "paint cost ${end - start}ms")
     }
 
     companion object {

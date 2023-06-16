@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.data.model.log
 import me.gegenbauer.catspy.cache.PatternProvider
 import me.gegenbauer.catspy.cache.PatternProvider.Companion.toPatternKey
 import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.data.model.log.FilterItem.Companion.isEmpty
 import java.lang.StringBuilder
 import java.util.*
 import java.util.regex.Pattern
@@ -184,6 +185,18 @@ data class FilterItem(
 
         fun FilterItem.isNotEmpty(): Boolean {
             return this != emptyItem
+        }
+
+        fun FilterItem.getMatchedList(text: String): List<Pair<Int, Int>> {
+            if (positiveFilter.pattern().isEmpty()) {
+                return emptyList()
+            }
+            val positiveMatcher = this.positiveFilter.matcher(text)
+            val matchedList = mutableListOf<Pair<Int, Int>>()
+            while (positiveMatcher.find()) {
+                matchedList.add(Pair(positiveMatcher.start(), positiveMatcher.end()))
+            }
+            return matchedList
         }
     }
 }
