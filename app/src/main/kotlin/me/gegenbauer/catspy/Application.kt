@@ -8,7 +8,6 @@ import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.ThemeManager
-import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.configuration.toFont
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.log.GLog
@@ -16,7 +15,7 @@ import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
-import me.gegenbauer.catspy.ui.VStatusPanel
+import me.gegenbauer.catspy.ui.VStatusPanelTheme
 import me.gegenbauer.catspy.utils.currentPlatform
 import me.gegenbauer.catspy.utils.filesDir
 import me.gegenbauer.catspy.utils.isInDebugMode
@@ -66,8 +65,8 @@ class Application {
         }
 
         private val themeAwareControllers = listOf(
-            VStatusPanel,
-            ColorScheme
+            VStatusPanelTheme,
+            ColorScheme,
         )
 
         private fun adjustBeforeThemeLoaded(theme: Theme, defaults: UIDefaults) {

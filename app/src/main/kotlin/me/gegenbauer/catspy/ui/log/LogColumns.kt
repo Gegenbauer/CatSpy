@@ -3,12 +3,13 @@ package me.gegenbauer.catspy.ui.log
 import me.gegenbauer.catspy.data.model.log.FilterItem.Companion.getMatchedList
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem.Companion.fgColor
 import me.gegenbauer.catspy.manager.BookmarkManager
-import me.gegenbauer.catspy.render.html.HtmlStringRender
+import me.gegenbauer.catspy.render.html.HtmlStringRenderer
 import me.gegenbauer.catspy.ui.ColorScheme
 import java.awt.Color
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Insets
+import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.JTable
 import javax.swing.border.AbstractBorder
@@ -56,27 +57,27 @@ private val columnIndex = object : Column {
 
 private val columnTime = object : Column {
     override val name: String = "time"
-    override val maxCharCount: Int = 14
+    override val maxCharCount: Int = 15
     override val index: Int = 1
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
-        return SimpleLogCellRender()
+        return SimpleLogCellRenderer()
     }
 }
 
 private val columnPid = object : Column {
     override val name: String = "pid"
-    override val maxCharCount: Int = 6
+    override val maxCharCount: Int = 7
     override val index: Int = 2
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
-        return object : SimpleLogCellRender() {
-            override fun addRenderItem(logTable: LogTable, row: Int, render: HtmlStringRender) {
-                if (logTable.tableModel.boldPid) {
-                    render.clear(HtmlStringRender.SpanType.FOREGROUND)
-                    render.foreground(0, render.raw.length - 1, ColorScheme.pidFG)
-                    render.bold(0, render.raw.length - 1)
-                }
+        return object : BoldLogCellRenderer() {
+            override fun shouldBold(table: LogTable): Boolean {
+                return table.tableModel.boldPid
+            }
+
+            override fun getBoldColor(): Color {
+                return ColorScheme.pidFG
             }
         }
     }
@@ -84,17 +85,17 @@ private val columnPid = object : Column {
 
 private val columnTid = object : Column {
     override val name: String = "tid"
-    override val maxCharCount: Int = 6
+    override val maxCharCount: Int = 7
     override val index: Int = 3
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
-        return object : SimpleLogCellRender() {
-            override fun addRenderItem(logTable: LogTable, row: Int, render: HtmlStringRender) {
-                if (logTable.tableModel.boldTid) {
-                    render.clear(HtmlStringRender.SpanType.FOREGROUND)
-                    render.foreground(0, render.raw.length - 1, ColorScheme.tidFG)
-                    render.bold(0, render.raw.length - 1)
-                }
+        return object : BoldLogCellRenderer() {
+            override fun shouldBold(table: LogTable): Boolean {
+                return table.tableModel.boldTid
+            }
+
+            override fun getBoldColor(): Color {
+                return ColorScheme.tidFG
             }
         }
     }
@@ -102,38 +103,27 @@ private val columnTid = object : Column {
 
 private val columnLevel = object : Column {
     override val name: String = "level"
-    override val maxCharCount: Int = 3
+    override val maxCharCount: Int = 4
     override val index: Int = 4
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
-        return object : SimpleLogCellRender() {
-            override fun getRenderedContent(logTable: LogTable, row: Int, content: String): String {
-                val logItem = logTable.tableModel.getItem(row)
-                val foreground = logItem.fgColor
-                return HtmlStringRender(content).foreground(0, content.length - 1, foreground)
-                    .render()
-            }
-        }
+        return SimpleLogCellRenderer()
     }
 }
 
 private val columnTag = object : Column {
     override val name: String = "tag"
-    override val maxCharCount: Int = 20
+    override val maxCharCount: Int = 21
     override val index: Int = 5
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
-        return object : SimpleLogCellRender() {
-            override fun addRenderItem(logTable: LogTable, row: Int, render: HtmlStringRender) {
-                if (logTable.tableModel.boldTag) {
-                    render.clear(HtmlStringRender.SpanType.FOREGROUND)
-                    render.foreground(0, render.raw.length - 1, ColorScheme.tagFG)
-                    render.bold(0, render.raw.length - 1)
-                }
-                logTable.tableModel.getLogFilter().filterTag.getMatchedList(render.raw).forEach {
-                    render.highlight(it.first, it.second, ColorScheme.filteredBGs[0])
-                    render.foreground(it.first, it.second, ColorScheme.filteredFGs[0])
-                }
+        return object : BoldLogCellRenderer() {
+            override fun shouldBold(table: LogTable): Boolean {
+                return table.tableModel.boldTag
+            }
+
+            override fun getBoldColor(): Color {
+                return ColorScheme.tagFG
             }
         }
     }
@@ -145,7 +135,7 @@ private val columnMessage = object : Column {
     override val index: Int = 6
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
-        return SimpleLogCellRender()
+        return MessageLogCellRenderer()
     }
 }
 
@@ -155,10 +145,6 @@ internal interface Column {
     val index: Int
 
     fun getCellRenderer(): DefaultTableCellRenderer
-
-    fun getTemplateByCount(count: Int): String {
-        return (0 until count).joinToString()
-    }
 
     fun configureColumn(table: JTable) {
         val tableColumn = if (table.columnCount <= index) {
@@ -177,12 +163,76 @@ internal interface Column {
     }
 }
 
-private open class SimpleLogCellRender : DefaultTableCellRenderer() {
+private class SimpleLogCellRenderer : DefaultLogTableCellRenderer() {
     init {
         horizontalAlignment = JLabel.LEFT
         verticalAlignment = JLabel.CENTER
     }
 
+    override fun render(table: LogTable, label: JLabel, row: Int, col: Int, content: String) {
+        foreground = table.tableModel.getItem(row).fgColor
+    }
+}
+
+private abstract class BoldLogCellRenderer : DefaultLogTableCellRenderer() {
+
+    init {
+        horizontalAlignment = JLabel.LEFT
+        verticalAlignment = JLabel.CENTER
+    }
+
+    override fun render(table: LogTable, label: JLabel, row: Int, col: Int, content: String) {
+        foreground = table.tableModel.getItem(row).fgColor
+        if (shouldBold(table)) {
+            val renderer = HtmlStringRenderer(content)
+            renderer.foreground(0, renderer.raw.length - 1, getBoldColor())
+            renderer.bold(0, renderer.raw.length - 1)
+            label.text = renderer.render()
+        }
+    }
+
+    abstract fun shouldBold(table: LogTable): Boolean
+
+    abstract fun getBoldColor(): Color
+}
+
+private open class MessageLogCellRenderer : DefaultLogTableCellRenderer() {
+    init {
+        horizontalAlignment = JLabel.LEFT
+        verticalAlignment = JLabel.CENTER
+    }
+
+    override fun render(table: LogTable, label: JLabel, row: Int, col: Int, content: String) {
+        label.text = getRenderedContent(table, row, content)
+    }
+
+    protected open fun getRenderedContent(logTable: LogTable, row: Int, content: String): String {
+        val renderer = HtmlStringRenderer(content)
+        val logItem = logTable.tableModel.getItem(row)
+        val foreground = logItem.fgColor
+        renderer.foreground(0, content.length - 1, foreground)
+        logTable.tableModel.searchFilterItem.getMatchedList(content).forEach {
+            renderer.highlight(it.first, it.second, ColorScheme.searchBG)
+            renderer.foreground(it.first, it.second, ColorScheme.searchFG)
+        }
+        logTable.tableModel.highlightFilterItem.getMatchedList(content).forEach {
+            renderer.highlight(it.first, it.second, ColorScheme.highlightBG)
+            renderer.foreground(it.first, it.second, ColorScheme.highlightFG)
+        }
+        logTable.tableModel.getLogFilter().filterLog.getMatchedList(content).forEach {
+            renderer.highlight(it.first, it.second, ColorScheme.filteredBGs[0])
+            renderer.foreground(it.first, it.second, ColorScheme.filteredFGs[0])
+        }
+        addRenderItem(logTable, row, renderer)
+        return renderer.render()
+    }
+
+    open fun addRenderItem(logTable: LogTable, row: Int, renderer: HtmlStringRenderer) {
+        // Empty Implementation
+    }
+}
+
+private abstract class DefaultLogTableCellRenderer: DefaultTableCellRenderer() {
     override fun getTableCellRendererComponent(
         table: JTable?,
         value: Any?,
@@ -193,34 +243,16 @@ private open class SimpleLogCellRender : DefaultTableCellRenderer() {
     ): Component {
         val logTable = table as LogTable
         val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
+        label.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
         val content = value as? String ?: ""
         background = logTable.getColumnBackground(col, row)
-        label.text = getRenderedContent(logTable, row, content)
+        render(table, label, row, col, content)
         return label
     }
 
-    protected open fun getRenderedContent(logTable: LogTable, row: Int, content: String): String {
-        val render = HtmlStringRender(content)
-        val logItem = logTable.tableModel.getItem(row)
-        val foreground = logItem.fgColor
-        render.foreground(0, content.length - 1, foreground)
-        logTable.tableModel.searchFilterItem.getMatchedList(content).forEach {
-            render.highlight(it.first, it.second, ColorScheme.searchBG)
-            render.foreground(it.first, it.second, ColorScheme.searchFG)
-        }
-        logTable.tableModel.highlightFilterItem.getMatchedList(content).forEach {
-            render.highlight(it.first, it.second, ColorScheme.highlightBG)
-            render.foreground(it.first, it.second, ColorScheme.highlightFG)
-        }
-        logTable.tableModel.getLogFilter().filterLog.getMatchedList(content).forEach {
-            render.highlight(it.first, it.second, ColorScheme.filteredBGs[0])
-            render.foreground(it.first, it.second, ColorScheme.filteredFGs[0])
-        }
-        addRenderItem(logTable, row, render)
-        return render.render()
+    open fun render(table: LogTable, label: JLabel, row: Int, col: Int, content: String) {
+        // Empty Implementation
     }
-
-    open fun addRenderItem(logTable: LogTable, row: Int, render: HtmlStringRender) {}
 }
 
 private class LineNumBorder(val color: Color, private val thickness: Int) : AbstractBorder() {

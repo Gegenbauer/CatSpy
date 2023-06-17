@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.render.html
 
-import me.gegenbauer.catspy.render.StringRender
+import me.gegenbauer.catspy.render.StringRenderer
 import me.gegenbauer.catspy.utils.toHtml
 import java.awt.Color
 import kotlin.math.roundToInt
@@ -8,45 +8,45 @@ import kotlin.math.roundToInt
 /**
  * Renders a string with HTML tags.
  */
-class HtmlStringRender(override val raw: String) : StringRender {
+class HtmlStringRenderer(override val raw: String) : StringRenderer {
     private val spans = mutableListOf<Span>()
 
-    override fun bold(start: Int, end: Int): StringRender {
+    override fun bold(start: Int, end: Int): StringRenderer {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.BOLD))
         }
         return this
     }
 
-    override fun italic(start: Int, end: Int): StringRender {
+    override fun italic(start: Int, end: Int): StringRenderer {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.ITALIC))
         }
         return this
     }
 
-    override fun strikethrough(start: Int, end: Int): StringRender {
+    override fun strikethrough(start: Int, end: Int): StringRenderer {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.STRIKETHROUGH))
         }
         return this
     }
 
-    override fun highlight(start: Int, end: Int, color: Color): StringRender {
+    override fun highlight(start: Int, end: Int, color: Color): StringRenderer {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.HIGHLIGHT, color))
         }
         return this
     }
 
-    override fun foreground(start: Int, end: Int, color: Color): StringRender {
+    override fun foreground(start: Int, end: Int, color: Color): StringRenderer {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.FOREGROUND, color))
         }
         return this
     }
 
-    override fun underline(start: Int, end: Int): StringRender {
+    override fun underline(start: Int, end: Int): StringRenderer {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.UNDERLINE))
         }
@@ -58,6 +58,9 @@ class HtmlStringRender(override val raw: String) : StringRender {
     }
 
     override fun render(): String {
+        if (raw.isEmpty()) {
+            return raw
+        }
         if (spans.isEmpty()) {
             return raw
         }
@@ -82,7 +85,7 @@ class HtmlStringRender(override val raw: String) : StringRender {
             }
             if (i < spanPoints.size - 1) {
                 val start = spanPoints.elementAt(i)
-                val end = spanPoints.elementAt(i + 1) - 1
+                val end = spanPoints.elementAt(i + 1)
 
                 val coveringSpans = spans.filter { start >= it.start && end <= it.end }
                 coveringSpans.forEach {

@@ -64,6 +64,10 @@ abstract class BaseLogcatRepository(
         addLogItem(logItem)
     }
 
+    override fun onLogCleared() {
+        clear()
+    }
+
     override fun <R> accessCacheItems(visitor: (MutableList<LogcatLogItem>) -> R): R {
        return cacheItemLock.write { visitor(cacheItems) }
     }
@@ -147,11 +151,9 @@ abstract class BaseLogcatRepository(
     }
 
     override fun clear() {
-        scope.launch(Dispatchers.UI) {
-            cacheItemLock.write {
-                logItems.clear()
-                notifyLogItemRemove(0, Int.MAX_VALUE)
-            }
+        cacheItemLock.write {
+            logItems.clear()
+            notifyLogItemRemove(0, Int.MAX_VALUE)
         }
     }
 

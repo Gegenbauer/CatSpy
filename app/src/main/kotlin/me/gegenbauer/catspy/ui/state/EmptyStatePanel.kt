@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.ui.state
 
 import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.ui.EmptyStatePanel
+import me.gegenbauer.catspy.ui.EmptyStatePanelTheme
 import me.gegenbauer.catspy.ui.button.GButton
 import me.gegenbauer.catspy.utils.loadIcon
 import java.awt.BorderLayout
@@ -16,7 +16,7 @@ class EmptyStatePanel : JPanel() {
 
     private val emptyImage = GButton(loadIcon("empty_state.svg", w = 60, h = 60)).apply {
         preferredSize = Dimension(120, 120)
-        background = EmptyStatePanel.iconBackground
+        background = EmptyStatePanelTheme.iconBackground
     }
     private val emptyContainer = JPanel().apply {
         layout = GridBagLayout()

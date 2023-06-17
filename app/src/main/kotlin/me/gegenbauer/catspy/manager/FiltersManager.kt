@@ -10,7 +10,7 @@ import javax.swing.JList
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
-class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI, logPanel){
+class FiltersManager(mainUI: MainUI, logPanel: LogPanel): CustomListManager(mainUI, logPanel){
     private val listSelectionHandler = ListSelectionHandler()
     private val mouseHandler = MouseHandler()
     private val keyHandler = KeyHandler()

@@ -32,11 +32,15 @@ class LogcatLogProvider: LogProvider<LogcatLogItem> {
     }
 
     override fun onLogItemReceived(logItem: LogcatLogItem) {
-        callbacks.forEach { it.onLogItemReceived(logItem) }
+        notifyLogItemReceived(logItem)
+    }
+
+    override fun onLogCleared() {
+        notifyLogCleared()
     }
 
     override fun onError(error: Throwable) {
-        callbacks.forEach { it.onError(error) }
+        notifyError(error)
     }
 
     override fun addObserver(observer: LogObservable.Observer<LogcatLogItem>) {
@@ -53,5 +57,9 @@ class LogcatLogProvider: LogProvider<LogcatLogItem> {
 
     override fun notifyError(error: Throwable) {
         callbacks.forEach { it.onError(error) }
+    }
+
+    override fun notifyLogCleared() {
+        callbacks.forEach { it.onLogCleared() }
     }
 }

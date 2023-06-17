@@ -49,6 +49,10 @@ abstract class BaseLogcatLogCollector(
         callbacks.forEach { it.onLogItemReceived(logItem) }
     }
 
+    override fun notifyLogCleared() {
+        callbacks.forEach { it.onLogCleared() }
+    }
+
     override fun pauseCollecting() {
         collectorTask.pause()
     }
@@ -73,6 +77,7 @@ abstract class BaseLogcatLogCollector(
     override fun clear() {
         logItems.clear()
         logCount.set(0)
+        notifyLogCleared()
     }
 
     override fun onError(task: Task, t: Throwable) {

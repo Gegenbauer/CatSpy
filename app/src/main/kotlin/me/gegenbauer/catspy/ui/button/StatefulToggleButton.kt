@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.ui.button
 
 import me.gegenbauer.catspy.databinding.bind.componentName
-import me.gegenbauer.catspy.ui.ToggleButton
+import me.gegenbauer.catspy.ui.ToggleButtonTheme
 import javax.swing.Icon
 import javax.swing.JToggleButton
 
@@ -31,8 +31,8 @@ class StatefulToggleButton(
         when (mode) {
             ButtonDisplayMode.TEXT -> {
                 text = originalText
-                icon = overrideDefaultToggleIcon ?: ToggleButton.defaultIconUnselected
-                selectedIcon = overrideDefaultToggleSelectedIcon ?: ToggleButton.defaultIconSelected
+                icon = overrideDefaultToggleIcon ?: ToggleButtonTheme.defaultIconUnselected
+                selectedIcon = overrideDefaultToggleSelectedIcon ?: ToggleButtonTheme.defaultIconSelected
             }
 
             ButtonDisplayMode.ICON -> {

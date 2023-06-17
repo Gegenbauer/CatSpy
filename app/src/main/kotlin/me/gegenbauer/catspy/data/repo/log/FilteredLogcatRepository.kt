@@ -8,7 +8,6 @@ import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.task.OneTimeTask
 import me.gegenbauer.catspy.task.PeriodicTask
-import me.gegenbauer.catspy.task.Task
 import me.gegenbauer.catspy.task.TaskManager
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantReadWriteLock

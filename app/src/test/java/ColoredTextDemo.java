@@ -18,12 +18,12 @@ public class ColoredTextDemo {
 
             String raw = "01234567890123456789";
 
-            HtmlStringRender render = new HtmlStringRender();
-            render.bold(0, 5);
-            render.highlight(0, 10, Color.BLUE);
-            render.highlight(4, 12, Color.RED);
-            render.italic(4, 12);
-            JLabel label = new JLabel(render.render(raw));
+            HtmlStringRender renderer = new HtmlStringRender();
+            renderer.bold(0, 5);
+            renderer.highlight(0, 10, Color.BLUE);
+            renderer.highlight(4, 12, Color.RED);
+            renderer.italic(4, 12);
+            JLabel label = new JLabel(renderer.render(raw));
             label.setFont(new Font("Arial", Font.PLAIN, 20));
             frame.add(label, BorderLayout.CENTER);
 

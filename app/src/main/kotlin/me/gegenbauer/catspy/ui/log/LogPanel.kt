@@ -2,17 +2,18 @@ package me.gegenbauer.catspy.ui.log
 
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
 import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.databinding.bind.Bindings
+import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
+import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.manager.BookmarkChangeListener
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.manager.CustomListManager
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.ColorScheme
-import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.button.ColorToggleButton
-import me.gegenbauer.catspy.ui.button.GButton
-import me.gegenbauer.catspy.ui.button.TableBarButton
+import me.gegenbauer.catspy.ui.button.StatefulToggleButton
 import me.gegenbauer.catspy.ui.container.WrapablePanel
 import me.gegenbauer.catspy.ui.panel.VStatusPanel
 import me.gegenbauer.catspy.ui.popup.PopUpLogPanel
@@ -22,7 +23,10 @@ import java.awt.BorderLayout
 import java.awt.Font
 import java.awt.Insets
 import java.awt.Rectangle
-import java.awt.event.*
+import java.awt.event.AdjustmentEvent
+import java.awt.event.AdjustmentListener
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
@@ -30,15 +34,14 @@ import javax.swing.event.TableModelEvent
 
 
 // TODO refactor
-abstract class LogPanel(
-    val mainUI: MainUI,
-    protected val tableModel: LogTableModel
-) : JPanel() {
+abstract class LogPanel(protected val tableModel: LogTableModel) : JPanel() {
     val table = LogTable(tableModel)
     protected val ctrlMainPanel: WrapablePanel = WrapablePanel() withName "ctrlMainPanel"
 
-    private val firstBtn = GButton(loadIcon<DerivableImageIcon>("top.png")) applyTooltip STRINGS.toolTip.viewFirstBtn
-    private val lastBtn = GButton(loadIcon<DerivableImageIcon>("bottom.png")) applyTooltip STRINGS.toolTip.viewLastBtn
+    private val firstCb =
+        StatefulToggleButton(loadIcon<DerivableImageIcon>("top.png")) applyTooltip STRINGS.toolTip.viewFirstBtn
+    private val lastCb =
+        StatefulToggleButton(loadIcon<DerivableImageIcon>("bottom.png")) applyTooltip STRINGS.toolTip.viewLastBtn
     private val tagBtn = ColorToggleButton(STRINGS.ui.tag) applyTooltip STRINGS.toolTip.viewTagToggle
     private val pidBtn = ColorToggleButton(STRINGS.ui.pid) applyTooltip STRINGS.toolTip.viewPidToggle
     private val tidBtn = ColorToggleButton(STRINGS.ui.tid) applyTooltip STRINGS.toolTip.viewTidToggle
@@ -48,8 +51,9 @@ abstract class LogPanel(
     private val adjustmentHandler = AdjustmentHandler()
     private val listSelectionHandler = ListSelectionHandler()
     private val tableModelHandler = TableModelHandler()
-    private val actionHandler = ActionHandler()
     private val bookmarkHandler = BookmarkHandler()
+
+    private val viewModel = LogPanelViewModel()
 
     private var oldLogVPos = -1
     private var oldLogHPos = -1
@@ -57,19 +61,47 @@ abstract class LogPanel(
     init {
         layout = BorderLayout()
         Insets(2, 3, 1, 3).apply {
-            firstBtn.margin = this
-            lastBtn.margin = this
+            firstCb.margin = this
+            lastCb.margin = this
         }
         Insets(0, 3, 0, 3).apply {
             tagBtn.margin = this
             pidBtn.margin = this
             tidBtn.margin = this
         }
-        firstBtn.addActionListener(actionHandler)
-        lastBtn.addActionListener(actionHandler)
-        tagBtn.addActionListener(actionHandler)
-        pidBtn.addActionListener(actionHandler)
-        tidBtn.addActionListener(actionHandler)
+
+        viewModel.bind()
+
+        viewModel.goToLast.addObserver { if (it == true) goToLast() }
+        viewModel.goToFirst.addObserver { if (it == true) goToFirst() }
+        viewModel.boldPid.addObserver {
+            tableModel.boldPid = it == true
+            table.repaint()
+        }
+        viewModel.boldTid.addObserver {
+            tableModel.boldTid = it == true
+            table.repaint()
+        }
+        viewModel.boldTag.addObserver {
+            tableModel.boldTag = it == true
+            table.repaint()
+        }
+    }
+
+    private inner class LogPanelViewModel {
+        val goToLast = ObservableViewModelProperty(false)
+        val goToFirst = ObservableViewModelProperty(false)
+        val boldPid = ObservableViewModelProperty(false)
+        val boldTid = ObservableViewModelProperty(false)
+        val boldTag = ObservableViewModelProperty(false)
+
+        fun bind() {
+            Bindings.bind(selectedProperty(firstCb), goToFirst)
+            Bindings.bind(selectedProperty(lastCb), goToLast)
+            Bindings.bind(selectedProperty(pidBtn), boldPid)
+            Bindings.bind(selectedProperty(tidBtn), boldTid)
+            Bindings.bind(selectedProperty(tagBtn), boldTag)
+        }
     }
 
     protected open fun createUI() {
@@ -95,14 +127,12 @@ abstract class LogPanel(
 
     open fun updateTableBar(customArray: ArrayList<CustomListManager.CustomElement>) {
         ctrlMainPanel.removeAll()
-        ctrlMainPanel.add(firstBtn)
-        ctrlMainPanel.add(lastBtn)
+        ctrlMainPanel.add(firstCb)
+        ctrlMainPanel.add(lastCb)
         ctrlMainPanel.add(pidBtn)
         ctrlMainPanel.add(tidBtn)
         ctrlMainPanel.add(tagBtn)
     }
-
-    protected abstract fun getCustomActionButton(customArray: ArrayList<CustomListManager.CustomElement>): TableBarButton
 
     var customFont: Font = Font(
         UIConfManager.uiConf.logFontName,
@@ -145,11 +175,15 @@ abstract class LogPanel(
     }
 
     fun setGoToLast(value: Boolean) {
-        tableModel.goToLast = value
+        viewModel.goToLast.updateValue(value)
+    }
+
+    fun setGoToFirst(value: Boolean) {
+        viewModel.goToFirst.updateValue(value)
     }
 
     fun getGoToLast(): Boolean {
-        return tableModel.goToLast
+        return viewModel.goToLast.getValueNonNull()
     }
 
     fun goToFirst() {
@@ -160,9 +194,9 @@ abstract class LogPanel(
     }
 
     fun goToLast() {
+        setGoToFirst(false)
         if (table.rowCount > 0) {
             goToRow(table.rowCount - 1, -1)
-            setGoToLast(true)
             updateTableUI()
         }
         return
@@ -226,10 +260,6 @@ abstract class LogPanel(
         }
     }
 
-    protected open fun onTableFilterStateChanged(event: TableModelEvent) {
-        // Empty implementation
-    }
-
     internal inner class ListSelectionHandler : ListSelectionListener {
         override fun valueChanged(event: ListSelectionEvent) {
             onListSelectionChanged(event)
@@ -239,38 +269,6 @@ abstract class LogPanel(
 
     protected open fun onListSelectionChanged(event: ListSelectionEvent) {
         // Empty implementation
-    }
-
-    internal inner class ActionHandler : ActionListener {
-        override fun actionPerformed(event: ActionEvent) {
-            when (event.source) {
-                firstBtn -> {
-                    goToFirst()
-                }
-
-                lastBtn -> {
-                    goToLast()
-                }
-
-                tagBtn -> {
-                    val selected = tagBtn.model.isSelected
-                    tableModel.boldTag = selected
-                    table.repaint()
-                }
-
-                pidBtn -> {
-                    val selected = pidBtn.model.isSelected
-                    tableModel.boldPid = selected
-                    table.repaint()
-                }
-
-                tidBtn -> {
-                    val selected = tidBtn.model.isSelected
-                    tableModel.boldTid = selected
-                    table.repaint()
-                }
-            }
-        }
     }
 
     internal inner class BookmarkHandler : BookmarkChangeListener {
@@ -285,7 +283,7 @@ abstract class LogPanel(
 
     internal inner class MouseHandler : MouseAdapter() {
 
-        private val popupMenu: JPopupMenu = PopUpLogPanel(mainUI)
+        private val popupMenu: JPopupMenu = PopUpLogPanel()
 
         override fun mouseReleased(event: MouseEvent) {
             if (SwingUtilities.isRightMouseButton(event)) {

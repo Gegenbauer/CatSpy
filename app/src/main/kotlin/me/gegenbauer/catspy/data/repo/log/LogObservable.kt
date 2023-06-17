@@ -10,10 +10,14 @@ interface LogObservable<T: LogItem> {
 
     fun notifyLogItemReceived(logItem: T)
 
+    fun notifyLogCleared()
+
     fun notifyError(error: Throwable)
 
     interface Observer<T: LogItem> {
         fun onLogItemReceived(logItem: T) {}
+
+        fun onLogCleared() {}
 
         fun onError(error: Throwable) {}
     }

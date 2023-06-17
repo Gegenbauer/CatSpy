@@ -5,13 +5,14 @@ import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.dialog.LogViewDialog
 import me.gegenbauer.catspy.ui.log.LogTableModel.Companion.COLUMN_NUM
-import me.gegenbauer.catspy.ui.panel.VStatusPanel
 import me.gegenbauer.catspy.utils.findFrameFromParent
 import me.gegenbauer.catspy.utils.isDoubleClick
 import java.awt.Dimension
 import java.awt.Graphics
+import java.awt.Rectangle
 import java.awt.event.*
 import javax.swing.*
+
 
 class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
 
@@ -19,7 +20,7 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
         setShowGrid(false)
         tableHeader = null
         autoResizeMode = AUTO_RESIZE_OFF
-        autoscrolls = true
+        autoscrolls = false
         dragEnabled = true
         dropMode = DropMode.INSERT
         intercellSpacing = Dimension(0, 0)
@@ -33,6 +34,33 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
 
         addMouseListener(MouseHandler())
         addKeyListener(TableKeyHandler())
+    }
+
+    override fun changeSelection(rowIndex: Int, columnIndex: Int, toggle: Boolean, extend: Boolean) {
+        super.changeSelection(rowIndex, columnIndex, toggle, extend)
+        scrollColumnToVisible(rowIndex, columnIndex);
+    }
+
+    private fun scrollColumnToVisible(rowIndex: Int, columnIndex: Int) {
+        val cellRect: Rectangle = getCellRect(rowIndex, columnIndex, false)
+        val leftX = cellRect.x
+        val rightX = cellRect.x + cellRect.width
+
+        //assuming we're in scroll pane
+        val width = width.coerceAtMost(parent.width)
+        val scrolledX = -x
+        var visibleLeft = scrolledX
+        var visibleRight = visibleLeft + width
+
+        //bonus, scroll if only a little of a column is visible
+        visibleLeft += THRESHOLD
+        visibleRight -= THRESHOLD
+        val isCellVisible = (leftX < visibleRight // otherwise cell is hidden on the right
+                && rightX > visibleLeft // otherwise cell is hidden on the left
+                )
+        if (!isCellVisible) {
+            scrollRectToVisible(cellRect)
+        }
     }
 
     private fun updateRowHeight() {
@@ -245,5 +273,6 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
 
     companion object {
         private const val TAG = "LogTable"
+        private const val THRESHOLD = 10
     }
 }

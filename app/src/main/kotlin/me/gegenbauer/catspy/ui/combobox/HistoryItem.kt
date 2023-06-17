@@ -1,5 +1,7 @@
 package me.gegenbauer.catspy.ui.combobox
 
+import java.util.Comparator
+
 class HistoryItem<T>(
     val content: T,
     private val lastUsed: Long = System.currentTimeMillis()
@@ -21,7 +23,7 @@ class HistoryItem<T>(
     }
 
     companion object {
-        val comparator = compareBy<HistoryItem<*>> { it.lastUsed }.reversed()
+        val comparator: Comparator<HistoryItem<*>> = compareBy<HistoryItem<*>> { it.lastUsed }.reversed()
     }
 }
 

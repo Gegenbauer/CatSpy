@@ -25,8 +25,8 @@ class SplitLogPane(
 
     var onFocusGained: (Boolean) -> Unit = {}
 
-    val fullLogPanel = FullLogPanel(mainUI, fullTableModel)
-    val filteredLogPanel = FilteredLogPanel(mainUI, filteredTableModel, this, fullLogPanel)
+    val fullLogPanel = FullLogPanel(fullTableModel)
+    val filteredLogPanel = FilteredLogPanel(filteredTableModel, this, fullLogPanel)
     var rotation: Rotation = Rotation.ROTATION_LEFT_RIGHT
         set(value) {
             field = value

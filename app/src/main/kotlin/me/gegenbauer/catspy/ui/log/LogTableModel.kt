@@ -54,8 +54,6 @@ class LogTableModel(
             field = value
         }
 
-    var goToLast = true
-
     var boldTag = false
     var boldPid = false
     var boldTid = false
@@ -205,7 +203,6 @@ class LogTableModel(
 
             TableModelEvent.DELETE -> {
                 if (event.endRow == Int.MAX_VALUE) {
-                    goToLast = true
                     BookmarkManager.clear()
                     fireTableDataChanged()
                     Runtime.getRuntime().gc()

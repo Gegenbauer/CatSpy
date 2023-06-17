@@ -10,23 +10,23 @@ import javax.swing.plaf.ColorUIResource
 
 private val properties = UIManager.getDefaults()
 
-object ToggleButton {
+object ToggleButtonTheme {
     val defaultIconUnselected: Icon = loadIcon("toggle_off.png")
     val defaultIconSelected: Icon = loadIcon("toggle_on.png")
 }
 
-object FilterComboBox {
+object FilterComboBoxTheme {
     val fontBackgroundInclude: Color
         get() = properties.getColor("ComboBox.editBackground") ?: Color(255, 255, 255, 255)
     val fontBackgroundExclude = properties.getColor("ComboBox.selectionBackground") ?: Color(38F, 117F, 191F)
 }
 
-object EmptyStatePanel {
+object EmptyStatePanelTheme {
     val iconBackground: Color
         get() = properties.getColor("Button.borderless.hover") ?: Color(242, 242, 242, 242)
 }
 
-object VStatusPanel: ThemeAware {
+object VStatusPanelTheme: ThemeAware {
     val backgroundDark: Color = Color(0x46494B)
     val backgroundLight: Color = Color(0xFFFFFF)
     val bookmarkLight: Color = Color(0x000000)

@@ -1037,14 +1037,18 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
     }
 
     private fun updateLogFilter() {
-        filteredLogcatRepository.logFilter = LogcatRealTimeFilter(
+        LogcatRealTimeFilter(
             showLogCombo.filterItem,
             showTagCombo.filterItem,
             showPidCombo.filterItem,
             showTidCombo.filterItem,
             getLevelFromName(MainViewModel.logLevel.getValueNonNull()),
             MainViewModel.filterMatchCaseEnabled.getValueNonNull()
-        )
+        ).apply {
+            filteredLogcatRepository.logFilter = this
+            fullLogcatRepository.logFilter = this
+
+        }
         filteredTableModel.highlightFilterItem = boldLogCombo.filterItem
     }
 
