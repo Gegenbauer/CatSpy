@@ -42,8 +42,6 @@ class PatternProvider(override val size: Int = DEFAULT_CACHE_SIZE) : Cacheable<P
         }
     }
 
-    override fun onContextCreated(context: Context) {}
-
     override fun onContextDestroyed(context: Context) {
         clear()
     }

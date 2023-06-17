@@ -1,5 +1,9 @@
 package me.gegenbauer.catspy.ui.log
 
+import com.github.weisj.darklaf.ui.util.DarkUIUtil
+import me.gegenbauer.catspy.context.ContextConfigurable
+import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.context.parentFrame
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.ui.MainUI
@@ -14,7 +18,7 @@ import java.awt.event.*
 import javax.swing.*
 
 
-class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
+class LogTable(val tableModel: LogTableModel) : JTable(tableModel), ContextConfigurable {
 
     init {
         setShowGrid(false)
@@ -34,6 +38,10 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
 
         addMouseListener(MouseHandler())
         addKeyListener(TableKeyHandler())
+    }
+
+    override fun configureContext(contextId: Int) {
+        // Empty Implementation
     }
 
     override fun changeSelection(rowIndex: Int, columnIndex: Int, toggle: Boolean, extend: Boolean) {
@@ -127,15 +135,19 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel) {
     }
 
     private fun updateBookmark(rows: IntArray) {
-        if (BookmarkManager.checkNewRow(rows)) {
-            rows.forEach(BookmarkManager::addBookmark)
+        val context = parentFrame ?: return
+        val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
+        if (bookmarkManager.checkNewRow(rows)) {
+            rows.forEach(bookmarkManager::addBookmark)
         } else {
-            rows.forEach(BookmarkManager::updateBookmark)
+            rows.forEach(bookmarkManager::updateBookmark)
         }
     }
 
     private fun deleteBookmark(rows: IntArray) {
-        rows.forEach(BookmarkManager::removeBookmark)
+        val context = parentFrame ?: return
+        val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
+        rows.forEach(bookmarkManager::removeBookmark)
     }
 
     internal inner class PopUpTable : JPopupMenu() {

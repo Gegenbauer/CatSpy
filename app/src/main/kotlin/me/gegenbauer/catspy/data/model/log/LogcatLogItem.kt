@@ -4,7 +4,6 @@ import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.ui.ColorScheme
 import java.awt.Color
-import java.util.regex.Pattern
 
 class LogcatLogItem(
     val logLine: String,
@@ -42,7 +41,6 @@ class LogcatLogItem(
         private const val LEVEL_INDEX = 4
         private const val TAG_INDEX = 5
         private const val MESSAGE_INDEX = 6
-        private val splitRegex = Pattern.compile("\\s+")
 
         fun LogcatLogItem.isShow(): Boolean {
             return !hidden
@@ -67,7 +65,7 @@ class LogcatLogItem(
                     } else {
                         LogLevel.VERBOSE
                     }
-                    LogcatLogItem(line, num, level = level)
+                    LogcatLogItem(line, num, level = level, message = line)
                 }
             }.getOrElse {
                 LogcatLogItem(line, num)

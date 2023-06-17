@@ -6,6 +6,10 @@ package me.gegenbauer.catspy.context
 class ContextServiceProviderImpl : ContextServiceProvider {
     private val providers = mutableMapOf<Int, ServiceProvider>()
 
+    override fun <T : ContextService> getContextService(contextId: Int, serviceType: Class<out T>): T {
+        return getContextService(GlobalContextManager.getContext(contextId)!!, serviceType)
+    }
+
     override fun <T : ContextService> getContextService(context: Context, serviceType: Class<out T>): T {
         val serviceProvider = providers.getOrPut(context.getId()) { createServiceProvider(context) }
         return serviceProvider.get(serviceType)
@@ -16,6 +20,12 @@ class ContextServiceProviderImpl : ContextServiceProvider {
     }
 
     override fun createServiceProvider(context: Context): ServiceProvider {
-        return ServiceProviderImpl(context.scope)
+        return ServiceProviderImpl()
+    }
+
+    override fun dispose(context: Context) {
+        providers.remove(context.getId())?.apply {
+            onContextDestroyed(context)
+        }
     }
 }

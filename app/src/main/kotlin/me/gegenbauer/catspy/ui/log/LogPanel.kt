@@ -2,6 +2,10 @@ package me.gegenbauer.catspy.ui.log
 
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
 import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.context.ContextConfigurable
+import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.context.parentFrame
+import me.gegenbauer.catspy.context.withFrameContext
 import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
@@ -34,7 +38,7 @@ import javax.swing.event.TableModelEvent
 
 
 // TODO refactor
-abstract class LogPanel(protected val tableModel: LogTableModel) : JPanel() {
+abstract class LogPanel(protected val tableModel: LogTableModel) : JPanel(), ContextConfigurable {
     val table = LogTable(tableModel)
     protected val ctrlMainPanel: WrapablePanel = WrapablePanel() withName "ctrlMainPanel"
 
@@ -104,12 +108,20 @@ abstract class LogPanel(protected val tableModel: LogTableModel) : JPanel() {
         }
     }
 
+    override fun configureContext(contextId: Int) {
+        table withFrameContext parentFrame!!
+        vStatusPanel withFrameContext parentFrame!!
+        parentFrame?.apply {
+            val bookmarkManager = ServiceManager.getContextService(this, BookmarkManager::class.java)
+            bookmarkManager.addBookmarkEventListener(bookmarkHandler)
+        }
+    }
+
     protected open fun createUI() {
         updateTableBar(arrayListOf())
         tableModel.addLogTableModelListener(tableModelHandler)
         table.columnSelectionAllowed = true
         table.selectionModel.addListSelectionListener(listSelectionHandler)
-        BookmarkManager.addBookmarkEventListener(bookmarkHandler)
         scrollPane.verticalScrollBar.unitIncrement = 20
 
         scrollPane.verticalScrollBar.addAdjustmentListener(adjustmentHandler)

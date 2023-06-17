@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.ui.button
 
 import me.gegenbauer.catspy.databinding.bind.componentName
+import me.gegenbauer.catspy.utils.setHeight
 import javax.swing.Icon
 
 class StatefulButton(
@@ -37,5 +38,17 @@ class StatefulButton(
         componentName = originalText ?: ""
         toolTipText = tooltip
         isRolloverEnabled = true
+
+        configureHeight()
+    }
+
+    override fun updateUI() {
+        super.updateUI()
+        configureHeight()
+    }
+
+    private fun configureHeight() {
+        val fontMetrics = getFontMetrics(font)
+        setHeight(fontMetrics.height + 10)
     }
 }

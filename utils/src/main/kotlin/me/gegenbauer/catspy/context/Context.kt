@@ -12,10 +12,6 @@ interface Context {
         return scope.getId(this)
     }
 
-    fun create() {}
-
-    fun destroy() {}
-
     companion object {
         val globalScope = object : Context {
             override val scope: ContextScope

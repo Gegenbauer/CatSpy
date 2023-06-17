@@ -1,5 +1,7 @@
 package me.gegenbauer.catspy.ui.log
 
+import com.github.weisj.darklaf.ui.util.DarkUIUtil
+import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.data.model.log.FilterItem
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem
 import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter
@@ -203,7 +205,8 @@ class LogTableModel(
 
             TableModelEvent.DELETE -> {
                 if (event.endRow == Int.MAX_VALUE) {
-                    BookmarkManager.clear()
+                    val bookmarkManager = ServiceManager.getContextService(mainUI, BookmarkManager::class.java)
+                    bookmarkManager.clear()
                     fireTableDataChanged()
                     Runtime.getRuntime().gc()
                 }

@@ -1,5 +1,7 @@
 package me.gegenbauer.catspy.ui.log
 
+import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.context.parentFrame
 import me.gegenbauer.catspy.data.model.log.FilterItem.Companion.getMatchedList
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem.Companion.fgColor
 import me.gegenbauer.catspy.manager.BookmarkManager
@@ -23,33 +25,15 @@ private val columnIndex = object : Column {
     override val index: Int = 0
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
-        return object : DefaultTableCellRenderer() {
+        return object : DefaultLogTableCellRenderer() {
             init {
                 horizontalAlignment = JLabel.RIGHT
                 verticalAlignment = JLabel.CENTER
             }
 
-            override fun getTableCellRendererComponent(
-                table: JTable?,
-                value: Any?,
-                isSelected: Boolean,
-                hasFocus: Boolean,
-                row: Int,
-                col: Int
-            ): Component {
-                var num = -1
-                if (value != null) {
-                    num = value.toString().trim().toInt()
-                }
-                val logTable = table as? LogTable
-                val label =
-                    super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
+            override fun render(table: LogTable, label: JLabel, row: Int, col: Int, content: String) {
                 label.border = LineNumBorder(ColorScheme.numLogSeparatorBG, 1)
-
                 foreground = ColorScheme.lineNumFG
-                background = logTable?.getColumnBackground(num, row)
-
-                return label
             }
         }
     }
@@ -245,7 +229,8 @@ private abstract class DefaultLogTableCellRenderer: DefaultTableCellRenderer() {
         val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
         label.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
         val content = value as? String ?: ""
-        background = logTable.getColumnBackground(col, row)
+        val logItem = logTable.tableModel.getItem(row)
+        background = logTable.getColumnBackground(logItem.num, row)
         render(table, label, row, col, content)
         return label
     }
@@ -279,7 +264,9 @@ private class LineNumBorder(val color: Color, private val thickness: Int) : Abst
 }
 
 private fun LogTable.getColumnBackground(num: Int, row: Int): Color {
-    return if (BookmarkManager.isBookmark(num)) {
+    val context = parentFrame ?: return ColorScheme.logBG
+    val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
+    return if (bookmarkManager.isBookmark(num)) {
         if (isRowSelected(row)) {
             ColorScheme.bookmarkSelectedBG
         } else {

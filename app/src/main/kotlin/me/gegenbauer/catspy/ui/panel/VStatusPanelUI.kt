@@ -1,6 +1,8 @@
 package me.gegenbauer.catspy.ui.panel
 
 import com.github.weisj.darklaf.ui.panel.DarkPanelUI
+import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.context.parentFrame
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.ui.log.LogTable
 import java.awt.Color
@@ -42,8 +44,11 @@ open class VStatusPanelUI: DarkPanelUI() {
         g.color = bookmarkColor
         for (row in 0 until logTable.rowCount) {
             val num = logTable.getValueAt(row, 0).toString().trim().toInt()
-            if (BookmarkManager.isBookmark(num)) {
-                g.fillRect(0, row * c.height / logTable.rowCount, c.width, 1)
+            panel.parentFrame?.apply {
+                val bookmarkManager = ServiceManager.getContextService(this, BookmarkManager::class.java)
+                if (bookmarkManager.isBookmark(num)) {
+                    g.fillRect(0, row * c.height / logTable.rowCount, c.width, 1)
+                }
             }
         }
     }

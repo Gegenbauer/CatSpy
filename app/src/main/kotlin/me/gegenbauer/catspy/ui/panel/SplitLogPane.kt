@@ -1,5 +1,8 @@
 package me.gegenbauer.catspy.ui.panel
 
+import me.gegenbauer.catspy.context.ContextConfigurable
+import me.gegenbauer.catspy.context.parentFrame
+import me.gegenbauer.catspy.context.withFrameContext
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainUI
@@ -21,7 +24,7 @@ class SplitLogPane(
     private val mainUI: MainUI,
     fullTableModel: LogTableModel,
     filteredTableModel: LogTableModel
-) : JSplitPane(), FocusListener {
+) : JSplitPane(), FocusListener, ContextConfigurable {
 
     var onFocusGained: (Boolean) -> Unit = {}
 
@@ -75,6 +78,11 @@ class SplitLogPane(
             }
         }
         SwingUtilities.updateComponentTreeUI(this)
+    }
+
+    override fun configureContext(contextId: Int) {
+        fullLogPanel withFrameContext parentFrame!!
+        filteredLogPanel withFrameContext parentFrame!!
     }
 
     fun resetWithCurrentRotation() {

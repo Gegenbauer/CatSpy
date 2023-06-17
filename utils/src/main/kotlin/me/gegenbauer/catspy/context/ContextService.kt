@@ -6,6 +6,5 @@ package me.gegenbauer.catspy.context
 interface ContextService {
     val scope: ContextScope
 
-    fun onContextCreated(context: Context)
     fun onContextDestroyed(context: Context)
 }

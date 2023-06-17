@@ -1,7 +1,9 @@
 package me.gegenbauer.catspy.task
 
+import java.util.concurrent.CopyOnWriteArrayList
+
 class TaskManager : TaskListener {
-    private val taskList = mutableListOf<Task>()
+    private val taskList = CopyOnWriteArrayList<Task>()
     private var paused = false
 
     override fun onStop(task: Task) {

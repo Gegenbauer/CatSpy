@@ -11,6 +11,7 @@ import me.gegenbauer.catspy.command.LogCmdManager
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.context.*
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem
 import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter
 import me.gegenbauer.catspy.data.model.log.getLevelFromName
@@ -25,7 +26,6 @@ import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.task.*
 import me.gegenbauer.catspy.ui.button.*
 import me.gegenbauer.catspy.ui.combobox.*
-import me.gegenbauer.catspy.ui.combobox.FilterComboBox
 import me.gegenbauer.catspy.ui.container.WrapablePanel
 import me.gegenbauer.catspy.ui.dialog.GoToDialog
 import me.gegenbauer.catspy.ui.dialog.LogTableDialog
@@ -59,7 +59,12 @@ import kotlin.system.exitProcess
 /**
  *  TODO 将底部状态栏抽出，并增加进度条，显示某些任务进度
  */
-class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogObservable.Observer<LogcatLogItem> {
+class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogObservable.Observer<LogcatLogItem>, Context, ContextConfigurable {
+    override val scope: ContextScope = ContextScope.FRAME
+
+    //region scoped service
+    private val bookmarkManager = ServiceManager.getContextService(this, BookmarkManager::class.java)
+    //endregion
 
     //region task
     private val taskManager = TaskManager()
@@ -71,7 +76,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
     //region log data
     private val logProvider = LogcatLogProvider()
     private val fullLogcatRepository = FullLogcatRepository(updateLogUITask)
-    private val filteredLogcatRepository = FilteredLogcatRepository(taskManager, updateLogUITask, BookmarkManager)
+    private val filteredLogcatRepository = FilteredLogcatRepository(taskManager, updateLogUITask, bookmarkManager)
     //endregion
 
     //region filterPanel
@@ -232,7 +237,6 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
     private val popupMenuHandler = PopupMenuHandler()
     private val mouseHandler = MouseHandler()
     private val statusChangeListener = StatusChangeListener()
-
     //endregion
 
     var customFont: Font = Font(
@@ -247,6 +251,8 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
         }
 
     init {
+        GlobalContextManager.register(this)
+
         refreshDevices()
 
         logProvider.addObserver(fullLogcatRepository)
@@ -261,6 +267,12 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
         observeViewModelValue()
 
         MainViewModel.bind(this)
+
+        configureContext(this.getId())
+    }
+
+    override fun configureContext(contextId: Int) {
+        splitLogPane withFrameContext this@MainUI
     }
 
     private fun observeViewModelValue() {
@@ -303,6 +315,7 @@ class MainUI(title: String) : JFrame(title), TaskListener, ILogCmdManager, LogOb
     }
 
     private fun exit() {
+        ServiceManager.dispose(this)
         saveConfigOnDestroy()
         logProvider.stopCollectLog()
         logProvider.destroy()
