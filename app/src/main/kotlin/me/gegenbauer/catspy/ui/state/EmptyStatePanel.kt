@@ -11,7 +11,7 @@ import java.awt.GridBagLayout
 import javax.swing.*
 
 class EmptyStatePanel : JPanel() {
-    var action: () -> Unit = {}
+    var action: (JComponent) -> Unit = { _ -> }
     private lateinit var content: JComponent
 
     private val emptyImage = GButton(loadIcon("empty_state.svg", w = 60, h = 60)).apply {
@@ -42,7 +42,7 @@ class EmptyStatePanel : JPanel() {
         layout = BorderLayout()
 
         emptyImage.isBorderPainted = false
-        emptyImage.addActionListener { action() }
+        emptyImage.addActionListener { action(it.source as JComponent) }
 
         add(emptyContainer, BorderLayout.CENTER)
     }

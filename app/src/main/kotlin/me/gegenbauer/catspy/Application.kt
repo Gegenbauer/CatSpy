@@ -9,6 +9,7 @@ import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.configuration.toFont
+import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
@@ -52,9 +53,10 @@ class Application {
                 ThemeManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
                 ThemeManager.registerInitTask(::adjustBeforeThemeLoaded)
                 ThemeManager.installTheme()
-                val mainUI = MainUI(STRINGS.ui.app)
+                val mainUI = MainUI(STRINGS.ui.app, Contexts())
+                mainUI.configureContext(mainUI)
                 ThemeManager.registerThemeUpdateListener { _ ->
-                    mainUI.registerComboBoxEditorEvent()
+                    //mainUI.registerComboBoxEditorEvent()
                 }
                 ThemeManager.applyTempTheme()
                 mainUI.isVisible = true

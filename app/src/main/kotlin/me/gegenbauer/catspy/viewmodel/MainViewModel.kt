@@ -8,6 +8,7 @@ import me.gegenbauer.catspy.ui.button.ButtonDisplayMode
 import me.gegenbauer.catspy.ui.combobox.HistoryComboBox
 import me.gegenbauer.catspy.ui.combobox.HistoryItem
 import me.gegenbauer.catspy.ui.combobox.toHistoryItemList
+import me.gegenbauer.catspy.ui.log.LogMainUI
 import me.gegenbauer.catspy.ui.panel.Rotation
 import me.gegenbauer.catspy.utils.editorComponent
 import me.gegenbauer.catspy.utils.getEnum
@@ -92,7 +93,7 @@ object MainViewModel {
     val logFont = ObservableViewModelProperty(UIConfManager.uiConf.getLogFont())
     //endregion
 
-    fun bind(mainUI: MainUI) {
+    fun bind(mainUI: LogMainUI) {
         mainUI.apply {
             //region Toolbar
             //region Filter

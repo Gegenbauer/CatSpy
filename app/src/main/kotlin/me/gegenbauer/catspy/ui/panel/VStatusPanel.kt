@@ -1,5 +1,8 @@
 package me.gegenbauer.catspy.ui.panel
 
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.ContextScope
+import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.ui.log.LogTable
 import java.awt.Color
@@ -12,13 +15,9 @@ import javax.swing.JPanel
 import javax.swing.plaf.ComponentUI
 
 
-class VStatusPanel(val logTable: LogTable) : JPanel() {
+class VStatusPanel(override val contexts: Contexts = Contexts.default) : JPanel(), Context {
+    override val scope: ContextScope = ContextScope.COMPONENT
 
-    companion object {
-        private const val TAG = "VStatusPanel"
-        const val VIEW_RECT_WIDTH = 20
-        const val VIEW_RECT_HEIGHT = 5
-    }
     init {
         preferredSize = Dimension(VIEW_RECT_WIDTH, VIEW_RECT_HEIGHT)
         border = BorderFactory.createLineBorder(Color.DARK_GRAY)
@@ -26,10 +25,13 @@ class VStatusPanel(val logTable: LogTable) : JPanel() {
     }
 
     override fun setUI(newUI: ComponentUI) {
-        if (newUI !is VStatusPanelUI) {
-            throw IllegalArgumentException("UI must be of type VStatusPanelUI")
-        }
+        require(newUI is VStatusPanelUI) { "UI must be of type VStatusPanelUI" }
         super.setUI(newUI)
+    }
+
+    override fun configureContext(context: Context) {
+        super.configureContext(context)
+        (getUI() as? VStatusPanelUI)?.setContexts(contexts)
     }
 
     override fun updateUI() {
@@ -38,13 +40,21 @@ class VStatusPanel(val logTable: LogTable) : JPanel() {
 
     internal inner class MouseHandler : MouseAdapter() {
         override fun mouseClicked(event: MouseEvent) {
+            val logTable = contexts.getContext(LogTable::class.java)
+            logTable ?: return
             val row = event.point.y * logTable.rowCount / height
             try {
                 logTable.scrollRectToVisible(Rectangle(logTable.getCellRect(row, 0, true)))
             } catch (e: IllegalArgumentException) {
-                GLog.d(TAG, "e : $e")
+                GLog.e(TAG, "", e)
             }
             super.mouseClicked(event)
         }
+    }
+
+    companion object {
+        private const val TAG = "VStatusPanel"
+        const val VIEW_RECT_WIDTH = 20
+        const val VIEW_RECT_HEIGHT = 5
     }
 }

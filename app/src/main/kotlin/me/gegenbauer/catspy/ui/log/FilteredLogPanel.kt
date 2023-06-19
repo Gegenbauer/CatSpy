@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.ui.log
 
-import me.gegenbauer.catspy.manager.CustomListManager
+import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.button.ColorToggleButton
 import me.gegenbauer.catspy.utils.applyTooltip
@@ -13,8 +13,9 @@ import javax.swing.event.ListSelectionEvent
 class FilteredLogPanel(
     tableModel: LogTableModel,
     private val focusHandler: FocusListener,
-    private val basePanel: LogPanel
-) : LogPanel(tableModel) {
+    private val basePanel: LogPanel,
+    contexts: Contexts = Contexts.default
+) : LogPanel(tableModel, contexts) {
 
     private val bookmarksBtn = ColorToggleButton(STRINGS.ui.bookmarks) applyTooltip STRINGS.toolTip.viewBookmarksToggle
     private val fullBtn = ColorToggleButton(STRINGS.ui.full) applyTooltip STRINGS.toolTip.viewFullToggle
@@ -34,8 +35,8 @@ class FilteredLogPanel(
         table.addFocusListener(focusHandler)
     }
 
-    override fun updateTableBar(customArray: ArrayList<CustomListManager.CustomElement>) {
-        super.updateTableBar(customArray)
+    override fun updateTableBar() {
+        super.updateTableBar()
         ctrlMainPanel.add(fullBtn)
         ctrlMainPanel.add(bookmarksBtn)
         ctrlMainPanel.updateUI()

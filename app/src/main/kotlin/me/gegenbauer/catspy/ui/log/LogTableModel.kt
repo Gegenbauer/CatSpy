@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.ui.log
 
-import com.github.weisj.darklaf.ui.util.DarkUIUtil
-import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.context.*
 import me.gegenbauer.catspy.data.model.log.FilterItem
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem
 import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter
@@ -11,7 +10,6 @@ import me.gegenbauer.catspy.data.repo.log.LogRepository
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.ui.MainUI
 import java.util.regex.Pattern
 import javax.swing.event.TableModelEvent
 import javax.swing.table.AbstractTableModel
@@ -27,9 +25,11 @@ fun interface LogTableModelListener {
  * TODO 整理任务停止和启动的逻辑
  */
 class LogTableModel(
-    private val mainUI: MainUI,
-    private val logRepository: LogRepository
-) : AbstractTableModel(), LogRepository.LogChangeListener {
+    private val logRepository: LogRepository,
+    override val contexts: Contexts = Contexts.default
+) : AbstractTableModel(), LogRepository.LogChangeListener, Context {
+    override val scope: ContextScope = ContextScope.COMPONENT
+
     private val eventListeners = ArrayList<LogTableModelListener>()
 
     var selectionChanged = false
@@ -139,7 +139,8 @@ class LogTableModel(
 
     private fun moveToSearch(isNext: Boolean) {
         val selectedRow = logRepository.selectedRow
-
+        val mainUI = contexts.getContext(LogMainUI::class.java)
+        mainUI ?: return
         logRepository.accessLogItems { logItems ->
             var startRow = 0
             var endRow = 0
@@ -193,6 +194,8 @@ class LogTableModel(
     }
 
     override fun onLogChanged(event: LogRepository.LogChangeEvent) {
+        val mainUI = contexts.getContext(LogMainUI::class.java)
+        mainUI ?: return
         when (event.type) {
             TableModelEvent.INSERT -> {
                 fireTableRowsInserted(event.startRow, event.endRow)

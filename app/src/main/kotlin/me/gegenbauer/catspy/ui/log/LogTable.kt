@@ -1,9 +1,7 @@
 package me.gegenbauer.catspy.ui.log
 
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
-import me.gegenbauer.catspy.context.ContextConfigurable
-import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.context.parentFrame
+import me.gegenbauer.catspy.context.*
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.ui.MainUI
@@ -18,7 +16,12 @@ import java.awt.event.*
 import javax.swing.*
 
 
-class LogTable(val tableModel: LogTableModel) : JTable(tableModel), ContextConfigurable {
+class LogTable(
+    val tableModel: LogTableModel,
+    override val contexts: Contexts = Contexts.default
+) : JTable(tableModel), Context {
+
+    override val scope: ContextScope = ContextScope.COMPONENT
 
     init {
         setShowGrid(false)
@@ -38,10 +41,6 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel), ContextConfi
 
         addMouseListener(MouseHandler())
         addKeyListener(TableKeyHandler())
-    }
-
-    override fun configureContext(contextId: Int) {
-        // Empty Implementation
     }
 
     override fun changeSelection(rowIndex: Int, columnIndex: Int, toggle: Boolean, extend: Boolean) {
@@ -135,7 +134,7 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel), ContextConfi
     }
 
     private fun updateBookmark(rows: IntArray) {
-        val context = parentFrame ?: return
+        val context = contexts.getContext(LogMainUI::class.java) ?: return
         val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
         if (bookmarkManager.checkNewRow(rows)) {
             rows.forEach(bookmarkManager::addBookmark)
@@ -145,12 +144,12 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel), ContextConfi
     }
 
     private fun deleteBookmark(rows: IntArray) {
-        val context = parentFrame ?: return
+        val context = contexts.getContext(LogMainUI::class.java) ?: return
         val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
         rows.forEach(bookmarkManager::removeBookmark)
     }
 
-    internal inner class PopUpTable : JPopupMenu() {
+    internal inner class PopUp : JPopupMenu() {
         var copyItem: JMenuItem = JMenuItem("Copy")
         var showEntireItem = JMenuItem("Show entire line")
         var bookmarkItem = JMenuItem("Bookmark")
@@ -181,7 +180,7 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel), ContextConfi
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
-                val frame = this@LogTable.findFrameFromParent<MainUI>()
+                val logMainUI = DarkUIUtil.getParentOfType(this@LogTable, LogMainUI::class.java)
                 when (event.source) {
                     copyItem -> {
                         this@LogTable.processKeyEvent(
@@ -205,19 +204,19 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel), ContextConfi
                     }
 
                     reconnectItem -> {
-                        frame.reconnectAdb()
+                        logMainUI.reconnectAdb()
                     }
 
                     startItem -> {
-                        frame.startAdbLog()
+                        logMainUI.startAdbLog()
                     }
 
                     stopItem -> {
-                        frame.stopAdbLog()
+                        logMainUI.stopAdbLog()
                     }
 
                     clearItem -> {
-                        frame.clearAdbLog()
+                        logMainUI.clearAdbLog()
                     }
                 }
             }
@@ -225,10 +224,11 @@ class LogTable(val tableModel: LogTableModel) : JTable(tableModel), ContextConfi
     }
 
     internal inner class MouseHandler : MouseAdapter() {
-        private val popupMenu: JPopupMenu = PopUpTable()
+        private val popupMenu: JPopupMenu = PopUp()
 
         override fun mouseReleased(event: MouseEvent) {
             if (SwingUtilities.isRightMouseButton(event)) {
+                popupMenu.updateUI()
                 popupMenu.show(event.component, event.x, event.y)
             } else {
                 popupMenu.isVisible = false

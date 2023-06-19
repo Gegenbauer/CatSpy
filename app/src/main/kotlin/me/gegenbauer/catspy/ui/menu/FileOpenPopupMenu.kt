@@ -1,21 +1,25 @@
 package me.gegenbauer.catspy.ui.menu
 
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.ContextScope
+import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.resource.strings.STRINGS
+import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.Menu
-import me.gegenbauer.catspy.utils.findFrameFromParent
 import me.gegenbauer.catspy.utils.loadThemedIcon
 import me.gegenbauer.catspy.utils.userHome
 import java.awt.Dimension
 import java.awt.event.ActionListener
-import java.awt.event.KeyEvent
 import java.io.File
 import javax.swing.JFileChooser
 import javax.swing.JFrame
-import javax.swing.JMenu
 import javax.swing.JMenuItem
+import javax.swing.JPopupMenu
 import javax.swing.filechooser.FileNameExtensionFilter
 
-class FileMenu : JMenu() {
+class FileOpenPopupMenu(override val contexts: Contexts = Contexts.default) : JPopupMenu(), Context {
+    override val scope: ContextScope = ContextScope.COMPONENT
+
     private val itemFileOpen = JMenuItem(STRINGS.ui.open).apply {
         icon = loadThemedIcon("file.svg", Menu.MENU_ITEM_ICON_SIZE)
     }
@@ -28,7 +32,6 @@ class FileMenu : JMenu() {
     private val itemFileAppendFiles = JMenuItem(STRINGS.ui.appendFiles).apply {
         icon = loadThemedIcon("append_files.svg", Menu.MENU_ITEM_ICON_SIZE)
     }
-    private val itemFileExit = JMenuItem(STRINGS.ui.exit)
 
     private val actionHandler = ActionListener {
         when (it.source) {
@@ -47,10 +50,6 @@ class FileMenu : JMenu() {
             itemFileAppendFiles -> {
                 onClickFileAppendFiles()
             }
-
-            itemFileExit -> {
-                onClickFileExit()
-            }
         }
     }
 
@@ -58,24 +57,18 @@ class FileMenu : JMenu() {
     var onFileListSelected: (Array<File>) -> Unit = {}
     var onFilesAppendSelected: (Array<File>) -> Unit = {}
     var onFileFollowSelected: (File) -> Unit = {}
-    var onExit: () -> Unit = {}
 
     init {
-        text = STRINGS.ui.file
-        mnemonic = KeyEvent.VK_F
-
         add(itemFileOpen)
         add(itemFileFollow)
         add(itemFileOpenFiles)
         add(itemFileAppendFiles)
         addSeparator()
-        add(itemFileExit)
 
         itemFileOpen.addActionListener(actionHandler)
         itemFileFollow.addActionListener(actionHandler)
         itemFileOpenFiles.addActionListener(actionHandler)
         itemFileAppendFiles.addActionListener(actionHandler)
-        itemFileExit.addActionListener(actionHandler)
     }
 
     fun onClickFileOpen() {
@@ -102,10 +95,6 @@ class FileMenu : JMenu() {
         }
     }
 
-    private fun onClickFileExit() {
-        onExit()
-    }
-
     private fun chooseSingleFile(title: String, onFileSelected: (File?) -> Unit) {
         chooseMultiFiles(title, false) {
             onFileSelected(it.firstOrNull())
@@ -117,7 +106,7 @@ class FileMenu : JMenu() {
         multiSelection: Boolean,
         onFilesSelected: (Array<File>) -> Unit
     ) {
-        val frame = findFrameFromParent<JFrame>()
+        val frame = contexts.getContext(MainUI::class.java) as? JFrame ?: return
         val chooser = JFileChooser(userHome)
         chooser.dialogTitle = STRINGS.ui.file + " " + title
         chooser.preferredSize = Dimension(

@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.ui.log
 
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.context.parentFrame
 import me.gegenbauer.catspy.data.model.log.FilterItem.Companion.getMatchedList
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem.Companion.fgColor
 import me.gegenbauer.catspy.manager.BookmarkManager
@@ -264,7 +263,7 @@ private class LineNumBorder(val color: Color, private val thickness: Int) : Abst
 }
 
 private fun LogTable.getColumnBackground(num: Int, row: Int): Color {
-    val context = parentFrame ?: return ColorScheme.logBG
+    val context = contexts.getContext(LogMainUI::class.java) ?: return ColorScheme.logBG
     val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
     return if (bookmarkManager.isBookmark(num)) {
         if (isRowSelected(row)) {

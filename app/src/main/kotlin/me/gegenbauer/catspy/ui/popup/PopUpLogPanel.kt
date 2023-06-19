@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.ui.popup
 
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import me.gegenbauer.catspy.ui.MainUI
+import me.gegenbauer.catspy.ui.log.LogMainUI
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.JMenuItem
@@ -25,22 +26,22 @@ class PopUpLogPanel : JPopupMenu(), ActionListener {
     }
 
     override fun actionPerformed(event: ActionEvent) {
-        val mainUI = DarkUIUtil.getParentOfType(this, MainUI::class.java)
+        val logMainUI = DarkUIUtil.getParentOfType(this, LogMainUI::class.java)
         when (event.source) {
             reconnectItem -> {
-                mainUI.reconnectAdb()
+                logMainUI.reconnectAdb()
             }
 
             startItem -> {
-                mainUI.startAdbLog()
+                logMainUI.startAdbLog()
             }
 
             stopItem -> {
-                mainUI.stopAdbLog()
+                logMainUI.stopAdbLog()
             }
 
             clearItem -> {
-                mainUI.clearAdbLog()
+                logMainUI.clearAdbLog()
             }
         }
     }

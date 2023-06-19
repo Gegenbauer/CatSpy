@@ -1,13 +1,11 @@
 package me.gegenbauer.catspy.ui.panel
 
-import me.gegenbauer.catspy.context.ContextConfigurable
-import me.gegenbauer.catspy.context.parentFrame
-import me.gegenbauer.catspy.context.withFrameContext
+import me.gegenbauer.catspy.context.*
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.log.FilteredLogPanel
 import me.gegenbauer.catspy.ui.log.FullLogPanel
+import me.gegenbauer.catspy.ui.log.LogMainUI
 import me.gegenbauer.catspy.ui.log.LogTableModel
 import me.gegenbauer.catspy.utils.currentPlatform
 import java.awt.datatransfer.DataFlavor
@@ -21,10 +19,11 @@ import javax.swing.SwingUtilities
 import javax.swing.TransferHandler
 
 class SplitLogPane(
-    private val mainUI: MainUI,
     fullTableModel: LogTableModel,
-    filteredTableModel: LogTableModel
-) : JSplitPane(), FocusListener, ContextConfigurable {
+    filteredTableModel: LogTableModel,
+    override val contexts: Contexts = Contexts.default
+) : JSplitPane(), FocusListener, Context {
+    override val scope: ContextScope = ContextScope.COMPONENT
 
     var onFocusGained: (Boolean) -> Unit = {}
 
@@ -80,11 +79,6 @@ class SplitLogPane(
         SwingUtilities.updateComponentTreeUI(this)
     }
 
-    override fun configureContext(contextId: Int) {
-        fullLogPanel withFrameContext parentFrame!!
-        filteredLogPanel withFrameContext parentFrame!!
-    }
-
     fun resetWithCurrentRotation() {
         changeRotation(rotation)
     }
@@ -99,7 +93,7 @@ class SplitLogPane(
         }
 
         override fun importData(info: TransferSupport): Boolean {
-            GLog.d(TAG, "importData")
+            GLog.d(TAG, "[importData] info = $info")
             if (!info.isDrop) {
                 return false
             }
@@ -150,7 +144,7 @@ class SplitLogPane(
                     STRINGS.ui.cancel
                 )
                 val value = JOptionPane.showOptionDialog(
-                    mainUI, STRINGS.ui.msgSelectOpenMode,
+                    this@SplitLogPane, STRINGS.ui.msgSelectOpenMode,
                     "",
                     JOptionPane.YES_NO_CANCEL_OPTION,
                     JOptionPane.PLAIN_MESSAGE,
@@ -159,10 +153,12 @@ class SplitLogPane(
                     options[0]
                 )
 
+                val logMainUI = contexts.getContext(LogMainUI::class.java)
+                logMainUI ?: return false
                 when (value) {
                     0 -> {
                         for (file in fileList) {
-                            mainUI.openFile(file.absolutePath, true)
+                            logMainUI.openFile(file.absolutePath, true)
                         }
                     }
 
@@ -170,10 +166,10 @@ class SplitLogPane(
                         var isFirst = true
                         for (file in fileList) {
                             if (isFirst) {
-                                mainUI.openFile(file.absolutePath, false)
+                                logMainUI.openFile(file.absolutePath, false)
                                 isFirst = false
                             } else {
-                                mainUI.openFile(file.absolutePath, true)
+                                logMainUI.openFile(file.absolutePath, true)
                             }
                         }
                     }

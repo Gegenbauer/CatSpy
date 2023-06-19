@@ -1,9 +1,8 @@
 package me.gegenbauer.catspy.ui.log
 
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
-import me.gegenbauer.catspy.manager.CustomListManager
+import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.button.TableBarButton
 import me.gegenbauer.catspy.utils.applyTooltip
 import java.awt.Insets
@@ -11,9 +10,13 @@ import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.event.ListSelectionEvent
 
-class FullLogPanel(tableModel: LogTableModel) : LogPanel(tableModel) {
+class FullLogPanel(
+    tableModel: LogTableModel,
+    contexts: Contexts = Contexts.default
+) : LogPanel(tableModel, contexts) {
 
-    private val windowedModeBtn = TableBarButton(STRINGS.ui.windowedMode) applyTooltip STRINGS.toolTip.viewWindowedModeBtn
+    private val windowedModeBtn =
+        TableBarButton(STRINGS.ui.windowedMode) applyTooltip STRINGS.toolTip.viewWindowedModeBtn
     private val actionHandler = ActionHandler()
 
     var isWindowedMode = false
@@ -28,8 +31,8 @@ class FullLogPanel(tableModel: LogTableModel) : LogPanel(tableModel) {
         createUI()
     }
 
-    override fun updateTableBar(customArray: ArrayList<CustomListManager.CustomElement>) {
-        super.updateTableBar(customArray)
+    override fun updateTableBar() {
+        super.updateTableBar()
         ctrlMainPanel.add(windowedModeBtn)
         ctrlMainPanel.updateUI()
     }
@@ -41,9 +44,9 @@ class FullLogPanel(tableModel: LogTableModel) : LogPanel(tableModel) {
         }
     }
 
-    private inner class ActionHandler: ActionListener {
+    private inner class ActionHandler : ActionListener {
         override fun actionPerformed(event: ActionEvent) {
-            val mainUI = DarkUIUtil.getParentOfType(this@FullLogPanel, MainUI::class.java)
+            val mainUI = DarkUIUtil.getParentOfType(this@FullLogPanel, LogMainUI::class.java)
             when (event.source) {
                 windowedModeBtn -> {
                     mainUI.windowedModeLogPanel(this@FullLogPanel)

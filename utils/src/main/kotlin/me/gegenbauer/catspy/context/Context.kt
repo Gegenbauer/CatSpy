@@ -6,14 +6,27 @@ import java.util.Objects
  * A context is a collection of services that can be used by the application.
  */
 interface Context {
+    val contexts: Contexts
+
     val scope: ContextScope
 
     fun getId(): Int {
         return scope.getId(this)
     }
 
+    fun setContexts(contexts: Contexts): Context {
+        this.contexts.set(contexts)
+        configureContext(this)
+        return this
+    }
+
+    fun configureContext(context: Context) {
+        contexts.putContext(context)
+    }
+
     companion object {
         val globalScope = object : Context {
+            override val contexts: Contexts = Contexts.default
             override val scope: ContextScope
                 get() = ContextScope.PROCESS
         }
@@ -37,6 +50,11 @@ enum class ContextScope : ContextIdentifier {
         }
     },
     WINDOW {
+        override fun getId(context: Context): Int {
+            return context.hashCode()
+        }
+    },
+    COMPONENT {
         override fun getId(context: Context): Int {
             return context.hashCode()
         }

@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.ui.panel
 
 import com.github.weisj.darklaf.ui.panel.DarkPanelUI
-import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.context.parentFrame
+import me.gegenbauer.catspy.context.*
 import me.gegenbauer.catspy.manager.BookmarkManager
+import me.gegenbauer.catspy.ui.log.LogMainUI
 import me.gegenbauer.catspy.ui.log.LogTable
 import java.awt.Color
 import java.awt.Graphics
@@ -11,20 +11,15 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.UIManager
 
-open class VStatusPanelUI: DarkPanelUI() {
+open class VStatusPanelUI(override val contexts: Contexts = Contexts.default) : DarkPanelUI(), Context {
+    override val scope: ContextScope = ContextScope.COMPONENT
+
     private var bookmarkColor = Color(0x000000)
     private var currentPositionColor = Color(0x000000)
-    private lateinit var panel: JPanel
-    private lateinit var logTable: LogTable
 
     override fun installDefaults(p: JPanel) {
         super.installDefaults(p)
         installBackgroundAndBookMarkColor(p)
-    }
-
-    override fun installUI(c: JComponent?) {
-        super.installUI(c)
-        panel = c as VStatusPanel
     }
 
     protected fun installBackgroundAndBookMarkColor(p: JPanel) {
@@ -35,16 +30,16 @@ open class VStatusPanelUI: DarkPanelUI() {
 
     override fun paint(g: Graphics, c: JComponent) {
         super.paint(g, c)
-        logTable = (panel as VStatusPanel).logTable
-        paintBookmarks(g, c)
-        paintCurrentPosition(g, c)
+        val logTable = contexts.getContext(LogTable::class.java) ?: return
+        paintBookmarks(logTable, g, c)
+        paintCurrentPosition(logTable, g, c)
     }
 
-    private fun paintBookmarks(g: Graphics, c: JComponent) {
+    private fun paintBookmarks(logTable: LogTable, g: Graphics, c: JComponent) {
         g.color = bookmarkColor
         for (row in 0 until logTable.rowCount) {
             val num = logTable.getValueAt(row, 0).toString().trim().toInt()
-            panel.parentFrame?.apply {
+            contexts.getContext(LogMainUI::class.java)?.apply {
                 val bookmarkManager = ServiceManager.getContextService(this, BookmarkManager::class.java)
                 if (bookmarkManager.isBookmark(num)) {
                     g.fillRect(0, row * c.height / logTable.rowCount, c.width, 1)
@@ -53,9 +48,9 @@ open class VStatusPanelUI: DarkPanelUI() {
         }
     }
 
-    private fun paintCurrentPosition(g: Graphics, c: JComponent) {
-        val visibleY:Long = (logTable.visibleRect.y).toLong()
-        val totalHeight:Long = (logTable.rowHeight * logTable.rowCount).toLong()
+    private fun paintCurrentPosition(logTable: LogTable, g: Graphics, c: JComponent) {
+        val visibleY: Long = (logTable.visibleRect.y).toLong()
+        val totalHeight: Long = (logTable.rowHeight * logTable.rowCount).toLong()
         if (logTable.rowCount != 0 && c.height != 0) {
             g.color = currentPositionColor
             var viewHeight = logTable.visibleRect.height * c.height / totalHeight

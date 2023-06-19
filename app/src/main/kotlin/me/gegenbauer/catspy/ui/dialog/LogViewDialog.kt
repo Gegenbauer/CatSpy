@@ -1,7 +1,9 @@
 package me.gegenbauer.catspy.ui.dialog
 
+import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainUI
+import me.gegenbauer.catspy.ui.log.LogMainUI
 import me.gegenbauer.catspy.utils.Utils
 import me.gegenbauer.catspy.viewmodel.MainViewModel
 import java.awt.Dimension
@@ -22,7 +24,8 @@ class LogViewDialog(parent: JFrame, log: String, caretPos: Int) : JDialog(parent
         textArea.caret.isVisible = true
         textArea.lineWrap = true
 
-        textArea.font = mainUI.customFont
+        val logMainUI = DarkUIUtil.getParentOfType(this, LogMainUI::class.java)
+        textArea.font = logMainUI.customFont
 
         textArea.addKeyListener(KeyHandler())
         textArea.addMouseListener(MouseHandler())
@@ -99,21 +102,22 @@ class LogViewDialog(parent: JFrame, log: String, caretPos: Int) : JDialog(parent
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
+                val logMainUI = DarkUIUtil.getParentOfType(this@LogViewDialog, LogMainUI::class.java)
                 when (event.source) {
                     includeItem -> {
                         if (textArea.selectedText.isNullOrEmpty()) return
-                        var text = mainUI.getTextShowLogCombo()
+                        var text = logMainUI.getTextShowLogCombo()
                         text += "|" + textArea.selectedText
-                        mainUI.setTextShowLogCombo(text)
-                        mainUI.applyShowLogCombo()
+                        logMainUI.setTextShowLogCombo(text)
+                        logMainUI.applyShowLogCombo()
                     }
 
                     excludeItem -> {
                         if (textArea.selectedText.isNullOrEmpty()) return
-                        var text = mainUI.getTextShowLogCombo()
+                        var text = logMainUI.getTextShowLogCombo()
                         text += "|-" + textArea.selectedText
-                        mainUI.setTextShowLogCombo(text)
-                        mainUI.applyShowLogCombo()
+                        logMainUI.setTextShowLogCombo(text)
+                        logMainUI.applyShowLogCombo()
                     }
 
                     searchAddItem -> {

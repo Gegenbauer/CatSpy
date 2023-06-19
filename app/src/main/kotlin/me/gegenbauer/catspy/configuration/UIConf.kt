@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.configuration
 
-import me.gegenbauer.catspy.manager.CustomListManager
 import me.gegenbauer.catspy.data.model.log.LogLevel
 import me.gegenbauer.catspy.ui.panel.Rotation
 import me.gegenbauer.catspy.utils.filesDir
@@ -68,14 +67,6 @@ data class UIConf(
     /** 搜索框配置 start **/
     var searchMatchCaseEnabled: Boolean = false,
     /** 搜索框配置 end **/
-
-    /** 过滤器列表 start **/
-    val filters: MutableList<CustomListManager.CustomElement> = mutableListOf(),
-    /** 过滤器列表 end **/
-
-    /** 命令列表 start **/
-    val commands: MutableList<CustomListManager.CustomElement> = mutableListOf(),
-    /** 命令列表 end **/
 ) {
     fun getLogFont(): Font {
         return Font(logFontName, logFontStyle, logFontSize)
