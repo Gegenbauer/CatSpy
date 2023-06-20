@@ -11,6 +11,7 @@ import java.util.*
 import javax.swing.JOptionPane
 
 
+// TODO remove
 object LogCmdManager {
     private const val TAG = "LogCmdManager"
 

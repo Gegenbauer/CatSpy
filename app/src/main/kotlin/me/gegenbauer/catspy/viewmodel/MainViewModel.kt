@@ -1,9 +1,14 @@
 package me.gegenbauer.catspy.viewmodel
 
 import me.gegenbauer.catspy.configuration.UIConfManager
-import me.gegenbauer.catspy.databinding.bind.*
+import me.gegenbauer.catspy.data.model.log.LogLevel
+import me.gegenbauer.catspy.data.model.log.getLevelFromName
+import me.gegenbauer.catspy.data.model.log.nameToLogLevel
+import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.catspy.databinding.bind.bindDual
+import me.gegenbauer.catspy.databinding.bind.bindLeft
+import me.gegenbauer.catspy.databinding.bind.bindRight
 import me.gegenbauer.catspy.databinding.property.support.*
-import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.button.ButtonDisplayMode
 import me.gegenbauer.catspy.ui.combobox.HistoryComboBox
 import me.gegenbauer.catspy.ui.combobox.HistoryItem
@@ -15,6 +20,7 @@ import me.gegenbauer.catspy.utils.getEnum
 import javax.swing.JComponent
 import javax.swing.JToggleButton
 
+// TODO 改为类
 object MainViewModel {
     private const val TAG = "MainViewModel"
 
@@ -44,6 +50,11 @@ object MainViewModel {
     val tidFilterCurrentContent = ObservableViewModelProperty<String>()
     val tidFilterErrorMessage = ObservableViewModelProperty<String>()
 
+    val logLevelFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.tidFilterEnabled)
+    val logLevelFilterHistory = ObservableViewModelProperty(nameToLogLevel.toList().sortedBy { it.second.logLevel }.map { it.second.logName }.toHistoryItemList())
+    val logLevelFilterSelectedIndex = ObservableViewModelProperty(0)
+    val logLevelFilterCurrentContent = ObservableViewModelProperty(nameToLogLevel.keys.first())
+
     val boldEnabled = ObservableViewModelProperty(UIConfManager.uiConf.boldEnabled)
     val boldHistory = ObservableViewModelProperty(UIConfManager.uiConf.highlightHistory.toHistoryItemList())
     val boldSelectedIndex = ObservableViewModelProperty<Int>()
@@ -69,9 +80,8 @@ object MainViewModel {
     //endregion
 
     //region Menu
-    val fullLog = ObservableViewModelProperty(UIConfManager.uiConf.logFullViewEnabled)
     val rotation = ObservableViewModelProperty(getEnum<Rotation>(UIConfManager.uiConf.rotation))
-    val logLevel = ObservableViewModelProperty(UIConfManager.uiConf.logLevel)
+    val logLevel = ObservableViewModelProperty(getLevelFromName(UIConfManager.uiConf.logLevel))
     //endregion
 
     //endregion
@@ -101,6 +111,7 @@ object MainViewModel {
             bindLogFilter(showTagCombo, showTagToggle, tagFilterSelectedIndex, tagFilterHistory, tagFilterEnabled, tagFilterCurrentContent, tagFilterErrorMessage)
             bindLogFilter(showPidCombo, showPidToggle, pidFilterSelectedIndex, pidFilterHistory, pidFilterEnabled, pidFilterCurrentContent, pidFilterErrorMessage)
             bindLogFilter(showTidCombo, showTidToggle, tidFilterSelectedIndex, tidFilterHistory, tidFilterEnabled, tidFilterCurrentContent, tidFilterErrorMessage)
+            bindLogFilter(logLevelCombo, logLevelToggle, logLevelFilterSelectedIndex, logLevelFilterHistory, logLevelFilterEnabled, logLevelFilterCurrentContent)
             bindLogFilter(boldLogCombo, boldLogToggle, boldSelectedIndex, boldHistory, boldEnabled, boldCurrentContent, boldErrorMessage)
 
             selectedProperty(matchCaseToggle) bindDual filterMatchCaseEnabled
@@ -115,15 +126,6 @@ object MainViewModel {
             //endregion
 
             //region Menu
-            selectedProperty(settingsMenu.itemDebug) bindDual GlobalViewModel.debug
-            selectedProperty(viewMenu.itemFull) bindDual fullLog
-            fullLog.addObserver {
-                if (it != false) {
-                    attachLogPanel(splitLogPane.fullLogPanel)
-                } else {
-                    detachLogPanel(splitLogPane.fullLogPanel)
-                }
-            }
             customProperty(splitLogPane, "rotation", Rotation.ROTATION_LEFT_RIGHT) bindDual rotation
             //endregion
 
@@ -136,7 +138,6 @@ object MainViewModel {
             customProperty(searchPanel.searchCombo, "errorMsg", "") bindDual searchErrorMessage
 
             visibilityProperty(searchPanel) bindDual searchPanelVisible
-            selectedProperty(viewMenu.itemSearch) bindDual searchPanelVisible
 
             selectedProperty(searchPanel.searchMatchCaseToggle) bindDual searchMatchCase
             //endregion
@@ -151,6 +152,10 @@ object MainViewModel {
                 retryAdbToggle, retryAdbToggle
             )
             //endregion
+
+            logLevelFilterCurrentContent.addObserver {
+                logLevel.updateValue(nameToLogLevel[logLevelFilterCurrentContent.value] ?: LogLevel.VERBOSE)
+            }
         }
     }
 
@@ -161,7 +166,7 @@ object MainViewModel {
         listProperty: ObservableViewModelProperty<List<HistoryItem<String>>>,
         enabledProperty: ObservableViewModelProperty<Boolean>,
         editorContentProperty: ObservableViewModelProperty<String>,
-        errorMessageProperty: ObservableViewModelProperty<String>,
+        errorMessageProperty: ObservableViewModelProperty<String>? = null,
     ) {
         selectedProperty(toggle) bindDual enabledProperty
         enabledProperty(comboBox) bindDual enabledProperty

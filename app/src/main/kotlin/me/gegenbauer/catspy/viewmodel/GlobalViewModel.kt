@@ -1,18 +1,16 @@
 package me.gegenbauer.catspy.viewmodel
 
 import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.data.model.log.LogLevel
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.ui.combobox.toContentList
-import me.gegenbauer.catspy.data.model.log.LogLevel
 import me.gegenbauer.catspy.ui.panel.Rotation
 
 object GlobalViewModel {
     val debug = ObservableViewModelProperty(UIConfManager.uiConf.debug)
     val versionCode = ObservableViewModelProperty(UIConfManager.uiConf.versionCode)
     val appHome = ObservableViewModelProperty(UIConfManager.uiConf.appHome)
-
-    val logLevel = ObservableViewModelProperty(UIConfManager.uiConf.logLevel)
 
     fun init() {
         // do nothing
@@ -51,9 +49,6 @@ object GlobalViewModel {
                 UIConfManager.uiConf.logCmdHistory.clear()
                 UIConfManager.uiConf.logCmdHistory.addAll(it!!.toContentList())
             }
-            fullLog.addObserver {
-                UIConfManager.uiConf.logFullViewEnabled = it ?: true
-            }
             rotation.addObserver {
                 UIConfManager.uiConf.rotation = it?.ordinal ?: Rotation.ROTATION_LEFT_RIGHT.ordinal
             }
@@ -61,7 +56,7 @@ object GlobalViewModel {
                 UIConfManager.uiConf.retryAdbEnabled = it ?: false
             }
             logLevel.addObserver {
-                UIConfManager.uiConf.logLevel = it ?: LogLevel.WARN.logName
+                UIConfManager.uiConf.logLevel = it?.logName ?: LogLevel.WARN.logName
             }
             splitPanelDividerLocation.addObserver {
                 UIConfManager.uiConf.dividerLocation = it ?: 500

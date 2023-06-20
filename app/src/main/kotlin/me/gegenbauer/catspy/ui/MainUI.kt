@@ -3,11 +3,13 @@ package me.gegenbauer.catspy.ui
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.context.*
+import me.gegenbauer.catspy.databinding.bind.bindDual
+import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.ui.log.LogMainUI
 import me.gegenbauer.catspy.ui.menu.HelpMenu
-import me.gegenbauer.catspy.ui.menu.ViewMenu
-import me.gegenbauer.catspy.ui.panel.next
+import me.gegenbauer.catspy.ui.menu.SettingsMenu
 import me.gegenbauer.catspy.utils.loadIconWithRealSize
+import me.gegenbauer.catspy.viewmodel.GlobalViewModel
 import me.gegenbauer.catspy.viewmodel.MainViewModel
 import java.awt.BorderLayout
 import java.awt.event.ActionEvent
@@ -24,20 +26,15 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
     override val scope: ContextScope = ContextScope.FRAME
 
     //region menu
-    val viewMenu = ViewMenu().apply {
-        onItemRotationClicked = {
-            MainViewModel.rotation.value?.let {
-                MainViewModel.rotation.updateValue(it.next())
-            }
-        }
-    }
     private val helpMenu = HelpMenu()
+    private val settingsMenu = SettingsMenu()
     private val menuBar = JMenuBar().apply {
-        add(viewMenu)
+        add(this@MainUI.settingsMenu)
         add(this@MainUI.helpMenu)
     }
     //endregion
 
+    private val tabbedPane = JTabbedPane()
     private val logMainUI = LogMainUI()
 
     init {
@@ -47,7 +44,13 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
 
         registerEvents()
 
+        bindViewModel()
+
         GlobalContextManager.register(this)
+    }
+
+    private fun bindViewModel() {
+        selectedProperty(settingsMenu.itemDebug) bindDual GlobalViewModel.debug
     }
 
     override fun configureContext(context: Context) {
@@ -101,7 +104,8 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
         jMenuBar = menuBar
         layout = BorderLayout()
 
-        add(logMainUI)
+        add(tabbedPane)
+        tabbedPane.add("日志", logMainUI)
 
         registerSearchStroke()
     }

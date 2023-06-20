@@ -34,7 +34,7 @@ private val flagToLevelMap = LogLevel::class.nestedClasses.filter { clazz ->
     it.flag
 }
 
-private val nameToLogLevel = LogLevel::class.nestedClasses.filter { clazz ->
+val nameToLogLevel = LogLevel::class.nestedClasses.filter { clazz ->
     LogLevel::class.java.isAssignableFrom(clazz.java) && (clazz.java != LogLevel::class.java)
 }.map {
     it.objectInstance as LogLevel

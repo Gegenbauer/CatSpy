@@ -38,6 +38,7 @@ data class UIConf(
     var tagFilterEnabled: Boolean = true,
     var pidFilterEnabled: Boolean = true,
     var tidFilterEnabled: Boolean = true,
+    var logLevelFilterEnabled: Boolean = true,
     var boldEnabled: Boolean = true,
     var filterMatchCaseEnabled: Boolean = false,
     /** 日志过滤项启用配置 end **/
@@ -48,7 +49,6 @@ data class UIConf(
     var logFontName: String = "DialogInput",
     var logFontSize: Int = 14,
     var logFontStyle: Int = 0,
-    var logFullViewEnabled: Boolean = true, // TODO 应用启动时，如果 panel 不可见，启动后再可见，样式没有使用 laf
     val strColorList: MutableList<String> = mutableListOf(),
     /** 界面主题 end **/
 

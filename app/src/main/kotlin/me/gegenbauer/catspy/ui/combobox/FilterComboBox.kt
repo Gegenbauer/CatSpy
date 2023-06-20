@@ -11,6 +11,7 @@ import me.gegenbauer.catspy.ui.combobox.highlight.CustomEditorDarkComboBoxUI
 import me.gegenbauer.catspy.ui.combobox.highlight.HighlighterEditor
 import me.gegenbauer.catspy.utils.DefaultDocumentListener
 import me.gegenbauer.catspy.utils.applyTooltip
+import java.awt.Dimension
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.ToolTipManager
@@ -170,9 +171,14 @@ fun filterComboBox(enableHighlight: Boolean = true, tooltip: String? = null): Fi
     val comboBox = FilterComboBox(enableHighlight, tooltip)
     comboBox.isEditable = true
     comboBox.addTooltipUpdateListener()
+    comboBox.preferredSize = Dimension(Int.MAX_VALUE, 30)
     return comboBox
 }
 
 fun darkComboBox(tooltip: String? = null): FilterComboBox {
     return filterComboBox(enableHighlight = false, tooltip)
+}
+
+fun readOnlyComboBox(tooltip: String? = null): FilterComboBox {
+    return filterComboBox(enableHighlight = false, tooltip).apply { isEditable = false }
 }

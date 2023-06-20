@@ -11,9 +11,10 @@ import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.context.*
+import me.gegenbauer.catspy.data.model.log.FilterItem
+import me.gegenbauer.catspy.data.model.log.LogLevel
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem
 import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter
-import me.gegenbauer.catspy.data.model.log.getLevelFromName
 import me.gegenbauer.catspy.data.repo.log.*
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
@@ -31,8 +32,6 @@ import me.gegenbauer.catspy.ui.dialog.GoToDialog
 import me.gegenbauer.catspy.ui.dialog.LogTableDialog
 import me.gegenbauer.catspy.ui.icon.DayNightIcon
 import me.gegenbauer.catspy.ui.menu.FileOpenPopupMenu
-import me.gegenbauer.catspy.ui.menu.SettingsMenu
-import me.gegenbauer.catspy.ui.menu.ViewMenu
 import me.gegenbauer.catspy.ui.panel.SplitLogPane
 import me.gegenbauer.catspy.ui.panel.next
 import me.gegenbauer.catspy.ui.state.EmptyStatePanel
@@ -92,7 +91,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     //endregion
 
     //region itemFilterPanel
-    private val itemFilterPanel = JPanel(FlowLayout(FlowLayout.LEADING, 0, 0))
+    // TODO 布局需要优化
+    private val itemFilterPanel = JPanel(GridBagLayout())
 
     private val showTagPanel = JPanel()
     private val showTagTogglePanel = JPanel(GridLayout(1, 1))
@@ -108,6 +108,11 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     private val showTidTogglePanel = JPanel(GridLayout(1, 1))
     val showTidToggle = ColorToggleButton(STRINGS.ui.tid, STRINGS.toolTip.tidToggle)
     val showTidCombo = filterComboBox(tooltip = STRINGS.toolTip.tidCombo) withName STRINGS.ui.tid
+
+    private val logLevelPanel = JPanel()
+    private val logLevelTogglePanel = JPanel(GridLayout(1, 1))
+    val logLevelToggle = ColorToggleButton(STRINGS.ui.logLevel)
+    val logLevelCombo = readOnlyComboBox() withName STRINGS.ui.logLevel
 
     private val boldLogPanel = JPanel()
     private val boldLogTogglePanel = JPanel(GridLayout(1, 1))
@@ -148,6 +153,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     val adbDisconnectBtn =
         StatefulButton(loadIcon("disconnect.png"), STRINGS.ui.disconnect, STRINGS.toolTip.disconnectBtn)
     val adbRefreshBtn = StatefulButton(loadIcon("refresh.png"), STRINGS.ui.refresh, STRINGS.toolTip.refreshBtn)
+    val rotateLogPanelBtn = StatefulButton(loadThemedIcon("rotate.svg"), STRINGS.ui.rotation, STRINGS.toolTip.rotationBtn)
     val clearViewsBtn = StatefulButton(loadIcon("clear.png"), STRINGS.ui.clearViews, STRINGS.toolTip.clearBtn)
     //endregion
     //endregion
@@ -202,21 +208,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
             }
         }
     }
-    val viewMenu = ViewMenu().apply {
-        onItemRotationClicked = {
-            MainViewModel.rotation.value?.let {
-                MainViewModel.rotation.updateValue(it.next())
-            }
-        }
-    }
-
-    // TODO settings menu
-    val settingsMenu = SettingsMenu().apply {
-        onLogLevelChangedListener = {
-            MainViewModel.logLevel.updateValue(it.logName)
-            updateLogFilter()
-        }
-    }
     //endregion
 
     //region events
@@ -268,6 +259,12 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
             taskManager.updatePauseState(it == true)
         }
         MainViewModel.filterMatchCaseEnabled.addObserver { updateLogFilter() }
+        MainViewModel.logLevel.addObserver { updateLogFilter() }
+        MainViewModel.logFilterEnabled.addObserver { updateLogFilter() }
+        MainViewModel.tagFilterEnabled.addObserver { updateLogFilter() }
+        MainViewModel.pidFilterEnabled.addObserver { updateLogFilter() }
+        MainViewModel.tidFilterEnabled.addObserver { updateLogFilter() }
+        MainViewModel.logLevelFilterEnabled.addObserver { updateLogFilter() }
         MainViewModel.searchMatchCase.addObserver { filteredTableModel.searchMatchCase = it == true }
     }
 
@@ -283,6 +280,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         }
     }
 
+    // TODO 关闭 tab 时调用
     private fun saveConfigOnDestroy() {
         UIConfManager.uiConf.adbDevice = LogCmdManager.targetDevice
         UIConfManager.uiConf.adbLogCommand = logCmdCombo.editor.item.toString()
@@ -295,10 +293,11 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     private fun createUI() {
         boldLogCombo.enabledTfTooltip = false
         showLogTogglePanel.add(showLogToggle)
-        boldLogTogglePanel.add(boldLogToggle)
         showTagTogglePanel.add(showTagToggle)
         showPidTogglePanel.add(showPidToggle)
         showTidTogglePanel.add(showTidToggle)
+        logLevelTogglePanel.add(logLevelToggle)
+        boldLogTogglePanel.add(boldLogToggle)
 
         deviceStatus.isEnabled = false
         deviceCombo.setWidth(150)
@@ -309,10 +308,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         showLogPanel.layout = BorderLayout()
         showLogPanel.add(showLogTogglePanel, BorderLayout.WEST)
         showLogPanel.add(showLogCombo, BorderLayout.CENTER)
-
-        boldLogPanel.layout = BorderLayout()
-        boldLogPanel.add(boldLogTogglePanel, BorderLayout.WEST)
-        boldLogPanel.add(boldLogCombo, BorderLayout.CENTER)
 
         showTagPanel.layout = BorderLayout()
         showTagPanel.add(showTagTogglePanel, BorderLayout.WEST)
@@ -326,20 +321,43 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         showTidPanel.add(showTidTogglePanel, BorderLayout.WEST)
         showTidPanel.add(showTidCombo, BorderLayout.CENTER)
 
+        logLevelPanel.layout = BorderLayout()
+        logLevelPanel.add(logLevelTogglePanel, BorderLayout.WEST)
+        logLevelPanel.add(logLevelCombo, BorderLayout.CENTER)
+
+        boldLogPanel.layout = BorderLayout()
+        boldLogPanel.add(boldLogTogglePanel, BorderLayout.WEST)
+        boldLogPanel.add(boldLogCombo, BorderLayout.CENTER)
+
         deviceCombo.isEditable = false
         deviceStatus.border = BorderFactory.createEmptyBorder(3, 0, 3, 0)
         deviceStatus.horizontalAlignment = JLabel.CENTER
 
-        itemFilterPanel.add(showTagPanel)
-        itemFilterPanel.add(showPidPanel)
-        itemFilterPanel.add(showTidPanel)
-        itemFilterPanel.add(boldLogPanel)
-        itemFilterPanel.add(matchCaseTogglePanel)
+        val averageConstraint = GridBagConstraints()
+        averageConstraint.fill = GridBagConstraints.HORIZONTAL
+        averageConstraint.weightx = 2.0
+        itemFilterPanel.add(showTagPanel, averageConstraint)
+        averageConstraint.weightx = 0.8
+        itemFilterPanel.add(showPidPanel, averageConstraint)
+        averageConstraint.weightx = 0.8
+        itemFilterPanel.add(showTidPanel, averageConstraint)
+        averageConstraint.weightx = 0.8
+        itemFilterPanel.add(logLevelPanel, averageConstraint)
+        averageConstraint.weightx = 1.2
+        itemFilterPanel.add(boldLogPanel, averageConstraint)
+        averageConstraint.weightx = 0.0
+        itemFilterPanel.add(matchCaseTogglePanel, averageConstraint)
 
-        logPanel.layout = BorderLayout()
+        logPanel.layout = GridBagLayout()
         logPanel.border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
-        logPanel.add(showLogPanel, BorderLayout.CENTER)
-        logPanel.add(itemFilterPanel, BorderLayout.EAST)
+        val constraintShowLogPanel = GridBagConstraints()
+        constraintShowLogPanel.fill = GridBagConstraints.HORIZONTAL
+        constraintShowLogPanel.weightx = 1.0
+        logPanel.add(showLogPanel, constraintShowLogPanel)
+        val constraintItemFilterPanel = GridBagConstraints()
+        constraintItemFilterPanel.fill = GridBagConstraints.HORIZONTAL
+        constraintItemFilterPanel.weightx = 2.0
+        logPanel.add(itemFilterPanel, constraintItemFilterPanel)
 
         filterLeftPanel.layout = BorderLayout()
         filterLeftPanel.add(logPanel, BorderLayout.NORTH)
@@ -361,6 +379,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         logToolBar.add(adbConnectBtn)
         logToolBar.add(adbDisconnectBtn)
         logToolBar.add(adbRefreshBtn)
+        logToolBar.addVSeparator2()
+        logToolBar.add(rotateLogPanelBtn)
         logToolBar.addVSeparator2()
         logToolBar.add(clearViewsBtn)
 
@@ -402,11 +422,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         GLog.d(TAG, "[createUI] log font: $customFont")
         splitLogPane.filteredLogPanel.customFont = customFont
         splitLogPane.fullLogPanel.customFont = customFont
-
-        viewMenu.itemFull.state = UIConfManager.uiConf.logFullViewEnabled
-        if (!viewMenu.itemFull.state) {
-            windowedModeLogPanel(splitLogPane.fullLogPanel)
-        }
 
         searchPanel.searchMatchCaseToggle.isSelected = UIConfManager.uiConf.searchMatchCaseEnabled
         filteredTableModel.searchMatchCase = UIConfManager.uiConf.searchMatchCaseEnabled
@@ -470,6 +485,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         stopBtn.addActionListener(actionHandler)
         stopBtn.addMouseListener(mouseHandler)
         clearViewsBtn.addActionListener(actionHandler)
+        rotateLogPanelBtn.addActionListener(actionHandler)
         clearViewsBtn.addMouseListener(mouseHandler)
         saveBtn.addActionListener(actionHandler)
         saveBtn.addMouseListener(mouseHandler)
@@ -549,7 +565,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     fun detachLogPanel(logPanel: FullLogPanel) {
         if (logPanel.parent == splitLogPane) {
             logPanel.isWindowedMode = true
-            viewMenu.itemRotation.isEnabled = false
             splitLogPane.remove(logPanel)
             SwingUtilities.updateComponentTreeUI(splitLogPane)
         }
@@ -557,17 +572,14 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     fun windowedModeLogPanel(logPanel: FullLogPanel) {
         detachLogPanel(logPanel)
-        if (viewMenu.itemFull.state) {
-            val logTableDialog = LogTableDialog(logPanel) {
-                attachLogPanel(logPanel)
-            }
-            logTableDialog.isVisible = true
+        val logTableDialog = LogTableDialog(logPanel) {
+            attachLogPanel(logPanel)
         }
+        logTableDialog.isVisible = true
     }
 
     fun attachLogPanel(logPanel: FullLogPanel) {
         logPanel.isWindowedMode = false
-        viewMenu.itemRotation.isEnabled = true
         splitLogPane.resetWithCurrentRotation()
     }
 
@@ -660,6 +672,12 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
                 stopBtn -> {
                     stopScan()
+                }
+
+                rotateLogPanelBtn -> {
+                    MainViewModel.rotation.value?.let {
+                        MainViewModel.rotation.updateValue(it.next())
+                    }
                 }
 
                 clearViewsBtn -> {
@@ -1013,16 +1031,15 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     private fun updateLogFilter() {
         LogcatRealTimeFilter(
-            showLogCombo.filterItem,
-            showTagCombo.filterItem,
-            showPidCombo.filterItem,
-            showTidCombo.filterItem,
-            getLevelFromName(MainViewModel.logLevel.getValueNonNull()),
+            if (MainViewModel.logFilterEnabled.getValueNonNull()) showLogCombo.filterItem else FilterItem.emptyItem,
+            if (MainViewModel.tagFilterEnabled.getValueNonNull()) showTagCombo.filterItem else FilterItem.emptyItem,
+            if (MainViewModel.pidFilterEnabled.getValueNonNull()) showPidCombo.filterItem else FilterItem.emptyItem,
+            if (MainViewModel.tidFilterEnabled.getValueNonNull()) showTidCombo.filterItem else FilterItem.emptyItem,
+            if (MainViewModel.logLevelFilterEnabled.getValueNonNull()) MainViewModel.logLevel.getValueNonNull() else LogLevel.VERBOSE,
             MainViewModel.filterMatchCaseEnabled.getValueNonNull()
         ).apply {
             filteredLogcatRepository.logFilter = this
             fullLogcatRepository.logFilter = this
-
         }
         filteredTableModel.highlightFilterItem = boldLogCombo.filterItem
     }
@@ -1249,7 +1266,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
                     closeBtn -> {
                         contentPanel.isVisible = false
-                        viewMenu.itemSearch.state = contentPanel.isVisible
                     }
                 }
             }
