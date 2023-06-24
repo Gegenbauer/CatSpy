@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.context
 import java.lang.ref.WeakReference
 
 class Contexts {
-    private val contexts = mutableMapOf<Int, WeakReference<Context>>()
+    private val contexts = mutableMapOf<Long, WeakReference<Context>>()
 
     fun putContext(context: Context): Contexts {
         contexts[context.getId()] = WeakReference(context)
@@ -15,7 +15,7 @@ class Contexts {
         return this
     }
 
-    fun getContext(contextId: Int): Context? {
+    fun getContext(contextId: Long): Context? {
         return contexts[contextId]?.get()
     }
 

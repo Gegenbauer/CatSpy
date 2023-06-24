@@ -1,11 +1,12 @@
 package me.gegenbauer.catspy.context
 
 import java.lang.ref.WeakReference
+import java.util.concurrent.ConcurrentHashMap
 
 object GlobalContextManager: ContextManager {
-    private val contexts = mutableMapOf<Int, WeakReference<Context>>()
+    private val contexts = ConcurrentHashMap<Long, WeakReference<Context>>()
 
-    override fun getContext(id: Int): Context? {
+    override fun getContext(id: Long): Context? {
         return contexts[id]?.get()
     }
 

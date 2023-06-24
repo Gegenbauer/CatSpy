@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.ui.menu
 
 import me.gegenbauer.catspy.context.Context
-import me.gegenbauer.catspy.context.ContextScope
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainUI
@@ -18,7 +17,6 @@ import javax.swing.JPopupMenu
 import javax.swing.filechooser.FileNameExtensionFilter
 
 class FileOpenPopupMenu(override val contexts: Contexts = Contexts.default) : JPopupMenu(), Context {
-    override val scope: ContextScope = ContextScope.COMPONENT
 
     private val itemFileOpen = JMenuItem(STRINGS.ui.open).apply {
         icon = loadThemedIcon("file.svg", Menu.MENU_ITEM_ICON_SIZE)

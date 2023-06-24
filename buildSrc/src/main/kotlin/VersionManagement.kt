@@ -62,6 +62,12 @@ object Mockk {
     val mockk = Dependency(groupName, "mockk", "1.12.5")
 }
 
+object TableLayout {
+    val groupName = "tablelayout"
+
+    val tablelayout = Dependency(groupName, "TableLayout", "20050920")
+}
+
 data class Dependency(
     val group: String,
     val artifact: String,

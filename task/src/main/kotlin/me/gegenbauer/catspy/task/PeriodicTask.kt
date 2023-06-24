@@ -6,9 +6,9 @@ import kotlinx.coroutines.delay
 import me.gegenbauer.catspy.concurrency.CPU
 
 class PeriodicTask(
-    private val period: Long,
+    var period: Long,
     name: String = "PeriodicTask",
-    private val task: Runnable = Runnable { },
+    private val task: suspend () -> Unit = {},
     dispatcher: CoroutineDispatcher = Dispatchers.CPU
 ) : PausableTask(dispatcher, name) {
 
@@ -18,7 +18,7 @@ class PeriodicTask(
         repeat(Int.MAX_VALUE) {
             delay(period)
             addPausePoint()
-            task.run()
+            task()
             notifyRepeat()
         }
         setRunning(false)

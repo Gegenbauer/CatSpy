@@ -9,9 +9,9 @@ import java.awt.Font
 
 const val DEFAULT_FONT_SIZE = 14
 const val DEFAULT_FONT_STYLE = 0
-const val DEFAULT_FONT_FAMILY = "DialogInput.plain"
+const val DEFAULT_FONT_FAMILY = "Dialog"
 const val DEFAULT_FONT_SCALE_PERCENTAGE = 100
-const val DEFAULT_THEME = "OneDark"
+const val DEFAULT_THEME = "One Dark"
 
 data class GTheme(
     val theme: String = DEFAULT_THEME,
@@ -37,7 +37,7 @@ private val themes = arrayListOf(
 
 fun getTheme(name: String?): Theme {
     name ?: return themes.first()
-    return themes.first { it.name == name }
+    return themes.firstOrNull { it.name == name } ?: themes.first()
 }
 
 fun GTheme.fontSizeRule(): FontSizeRule? {
@@ -57,4 +57,8 @@ fun GTheme.fontPrototype(): FontPrototype? {
 
 fun Theme.toFont(): Font {
     return Font(fontPrototype.family(), 0, (DEFAULT_FONT_SIZE.toFloat() * fontSizeRule.percentage / 100).toInt())
+}
+
+fun Font.newFont(size: Int = getSize(), family: String = getFamily(), style: Int = getStyle()): Font {
+    return Font(family, style, size)
 }

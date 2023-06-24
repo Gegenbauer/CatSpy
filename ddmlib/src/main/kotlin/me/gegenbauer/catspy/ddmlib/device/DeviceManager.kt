@@ -9,14 +9,16 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ModelScope
+import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.log.GLog
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-class DeviceManager(private val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
+class DeviceManager(private val dispatcher: CoroutineDispatcher = Dispatchers.IO): ContextService {
+
     private val adb = AndroidDebugBridgeClientFactory().build()
-    private val scope = ModelScope()
+    private val taskScope = ModelScope()
     private val deviceListLock = ReentrantReadWriteLock()
     private val deviceLock = ReentrantReadWriteLock()
     private val deviceListListeners = mutableListOf<DeviceListListener>()
@@ -26,16 +28,17 @@ class DeviceManager(private val dispatcher: CoroutineDispatcher = Dispatchers.IO
     fun startMonitor() {
         val deviceEventsChannel: ReceiveChannel<List<Device>> = adb.execute(
             request = AsyncDeviceMonitorRequest(),
-            scope = scope
+            scope = taskScope
         )
 
-        scope.launch(dispatcher) {
+        taskScope.launch(dispatcher) {
             deviceEventsChannel.consumeEach { dispatchDeviceListChange(it) }
         }
     }
 
     fun registerDeviceListener(listener: DeviceListListener) {
         deviceListLock.write { deviceListListeners.add(listener) }
+        diffDeviceListChange(currentDevices)
     }
 
     fun unregisterDeviceListener(listener: DeviceListListener) {
@@ -102,24 +105,6 @@ class DeviceManager(private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 
     fun getDevices(): List<Device> {
         return currentDevices
-    }
-
-    fun interface DeviceListListener {
-        fun onDeviceListUpdate(devices: List<Device>)
-    }
-
-    interface DeviceListener {
-        fun onDeviceStateChange(deviceOld: Device, deviceNew: Device) {
-            //
-        }
-
-        fun onDeviceDisconnect(device: Device) {
-            //
-        }
-
-        fun onDeviceConnect(device: Device) {
-            //
-        }
     }
 
     companion object {

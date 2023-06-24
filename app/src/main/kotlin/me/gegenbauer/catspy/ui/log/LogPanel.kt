@@ -2,7 +2,9 @@ package me.gegenbauer.catspy.ui.log
 
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
 import me.gegenbauer.catspy.configuration.UIConfManager
-import me.gegenbauer.catspy.context.*
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
@@ -38,7 +40,6 @@ abstract class LogPanel(
     protected val tableModel: LogTableModel,
     override val contexts: Contexts = Contexts.default
 ) : JPanel(), Context {
-    override val scope: ContextScope = ContextScope.COMPONENT
 
     val table = LogTable(tableModel)
     protected val ctrlMainPanel: WrapablePanel = WrapablePanel() withName "ctrlMainPanel"

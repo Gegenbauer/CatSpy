@@ -10,6 +10,9 @@ class LazyInitInstanceFetcher<T>(supplier: Supplier<T>) : InstanceFetcher<T> {
     }
 }
 
+inline val <T: ContextService> Class<out T>.defaultFetcher: InstanceFetcher<T>
+    get() = LazyInitInstanceFetcher { this.getDeclaredConstructor().newInstance() }
+
 class InstantInitInstanceFetcher<T>(private val instance: T) : InstanceFetcher<T> {
     override fun get(): T {
         return instance

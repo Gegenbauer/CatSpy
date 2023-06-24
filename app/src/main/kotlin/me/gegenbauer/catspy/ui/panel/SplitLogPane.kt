@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.ui.panel
 
-import me.gegenbauer.catspy.context.*
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.log.FilteredLogPanel
@@ -23,7 +24,6 @@ class SplitLogPane(
     filteredTableModel: LogTableModel,
     override val contexts: Contexts = Contexts.default
 ) : JSplitPane(), FocusListener, Context {
-    override val scope: ContextScope = ContextScope.COMPONENT
 
     var onFocusGained: (Boolean) -> Unit = {}
 

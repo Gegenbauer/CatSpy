@@ -1,5 +1,7 @@
 package me.gegenbauer.catspy.databinding.bind
 
-fun interface ValueUpdater<T> {
+interface ValueUpdater<T> {
     fun updateValue(newValue: T?)
+
+    fun forceUpdateValue(newValue: T?)
 }

@@ -50,8 +50,12 @@ open class ObservableProperty<T>(value: T? = null) : Observable<T>, ValueUpdater
 
     override fun updateValue(newValue: T?) {
         if (this.value == newValue) return
+        forceUpdateValue(newValue)
+    }
+
+    override fun forceUpdateValue(newValue: T?) {
         if (!filterStrategy(newValue)) {
-            BindingLog.d(ObservableComponentProperty.TAG, "[updateValue] ignored by filterStrategy")
+            BindingLog.d(ObservableComponentProperty.TAG, "[forceUpdateValue] ignored by filterStrategy")
             return
         }
         updateValueInternal(newValue)

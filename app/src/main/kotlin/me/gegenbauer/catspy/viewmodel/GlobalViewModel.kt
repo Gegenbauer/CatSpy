@@ -45,15 +45,8 @@ object GlobalViewModel {
                 UIConfManager.uiConf.highlightHistory.clear()
                 UIConfManager.uiConf.highlightHistory.addAll(it!!.toContentList())
             }
-            logCmdHistory.addObserver {
-                UIConfManager.uiConf.logCmdHistory.clear()
-                UIConfManager.uiConf.logCmdHistory.addAll(it!!.toContentList())
-            }
             rotation.addObserver {
                 UIConfManager.uiConf.rotation = it?.ordinal ?: Rotation.ROTATION_LEFT_RIGHT.ordinal
-            }
-            retryAdb.addObserver {
-                UIConfManager.uiConf.retryAdbEnabled = it ?: false
             }
             logLevel.addObserver {
                 UIConfManager.uiConf.logLevel = it?.logName ?: LogLevel.WARN.logName
@@ -72,6 +65,9 @@ object GlobalViewModel {
             }
             tidFilterEnabled.addObserver {
                 UIConfManager.uiConf.tidFilterEnabled = it ?: false
+            }
+            logLevelFilterEnabled.addObserver {
+                UIConfManager.uiConf.logLevelFilterEnabled = it ?: false
             }
             boldEnabled.addObserver {
                 UIConfManager.uiConf.boldEnabled = it ?: false

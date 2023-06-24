@@ -1,7 +1,5 @@
 package me.gegenbauer.catspy.ui.button
 
-import me.gegenbauer.catspy.utils.setHeight
-
 class TableBarButton(title:String) : GButton(title){
     var value = ""
 
@@ -19,7 +17,6 @@ class TableBarButton(title:String) : GButton(title){
 
     private fun configureHeight() {
         val fontMetrics = getFontMetrics(font)
-        setHeight(fontMetrics.height + 10)
     }
 
     companion object {

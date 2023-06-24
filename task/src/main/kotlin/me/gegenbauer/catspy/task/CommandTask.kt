@@ -11,7 +11,7 @@ import java.io.File
 import java.util.*
 
 // TODO 增加关于接受输出和处理输出的速度比较，避免出现数据积压然后遗漏的情况
-abstract class CommandTask(
+open class CommandTask(
     protected val commands: Array<String>,
     private val args: Array<String> = arrayOf(),
     private val envVars: Map<String, String> = mapOf(),

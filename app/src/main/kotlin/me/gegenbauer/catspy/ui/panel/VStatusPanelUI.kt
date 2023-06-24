@@ -1,7 +1,9 @@
 package me.gegenbauer.catspy.ui.panel
 
 import com.github.weisj.darklaf.ui.panel.DarkPanelUI
-import me.gegenbauer.catspy.context.*
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.ui.log.LogMainUI
 import me.gegenbauer.catspy.ui.log.LogTable
@@ -12,7 +14,6 @@ import javax.swing.JPanel
 import javax.swing.UIManager
 
 open class VStatusPanelUI(override val contexts: Contexts = Contexts.default) : DarkPanelUI(), Context {
-    override val scope: ContextScope = ContextScope.COMPONENT
 
     private var bookmarkColor = Color(0x000000)
     private var currentPositionColor = Color(0x000000)

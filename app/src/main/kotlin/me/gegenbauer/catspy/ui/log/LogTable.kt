@@ -1,8 +1,9 @@
 package me.gegenbauer.catspy.ui.log
 
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
-import me.gegenbauer.catspy.context.*
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.dialog.LogViewDialog
@@ -10,7 +11,6 @@ import me.gegenbauer.catspy.ui.log.LogTableModel.Companion.COLUMN_NUM
 import me.gegenbauer.catspy.utils.findFrameFromParent
 import me.gegenbauer.catspy.utils.isDoubleClick
 import java.awt.Dimension
-import java.awt.Graphics
 import java.awt.Rectangle
 import java.awt.event.*
 import javax.swing.*
@@ -20,8 +20,6 @@ class LogTable(
     val tableModel: LogTableModel,
     override val contexts: Contexts = Contexts.default
 ) : JTable(tableModel), Context {
-
-    override val scope: ContextScope = ContextScope.COMPONENT
 
     init {
         setShowGrid(false)
@@ -274,13 +272,6 @@ class LogTable(
             }
             super.keyPressed(event)
         }
-    }
-
-    override fun paint(g: Graphics?) {
-        val start = System.currentTimeMillis()
-        super.paint(g)
-        val end = System.currentTimeMillis()
-        GLog.d(TAG, "paint cost ${end - start}ms")
     }
 
     companion object {

@@ -2,12 +2,18 @@ package me.gegenbauer.catspy.ui
 
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
 import me.gegenbauer.catspy.configuration.UIConfManager
-import me.gegenbauer.catspy.context.*
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.context.GlobalContextManager
+import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
+import me.gegenbauer.catspy.ddmlib.device.DeviceManager
 import me.gegenbauer.catspy.ui.log.LogMainUI
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
+import me.gegenbauer.catspy.ui.script.ScriptMainUI
+import me.gegenbauer.catspy.ui.tab.OnTabChangeListener
 import me.gegenbauer.catspy.utils.loadIconWithRealSize
 import me.gegenbauer.catspy.viewmodel.GlobalViewModel
 import me.gegenbauer.catspy.viewmodel.MainViewModel
@@ -23,7 +29,6 @@ import kotlin.system.exitProcess
  *  TODO 将底部状态栏抽出，并增加进度条，显示某些任务进度
  */
 class MainUI(title: String, override val contexts: Contexts = Contexts.default) : JFrame(title), Context {
-    override val scope: ContextScope = ContextScope.FRAME
 
     //region menu
     private val helpMenu = HelpMenu()
@@ -36,6 +41,7 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
 
     private val tabbedPane = JTabbedPane()
     private val logMainUI = LogMainUI()
+    private val scriptMainUI = ScriptMainUI()
 
     init {
         configureWindow()
@@ -49,13 +55,20 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
         GlobalContextManager.register(this)
     }
 
+    private fun startServices() {
+        val deviceManager = ServiceManager.getContextService(DeviceManager::class.java)
+        deviceManager.startMonitor()
+    }
+
     private fun bindViewModel() {
         selectedProperty(settingsMenu.itemDebug) bindDual GlobalViewModel.debug
     }
 
     override fun configureContext(context: Context) {
+        startServices()
         super.configureContext(context)
         logMainUI.setContexts(contexts)
+        scriptMainUI.setContexts(contexts)
     }
 
     private fun registerEvents() {
@@ -64,6 +77,16 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
                 exit()
             }
         })
+        tabbedPane.addChangeListener { event ->
+            if (event.source is JTabbedPane) {
+                val pane = event.source as JTabbedPane
+                val index = pane.selectedIndex
+                val focusedTabs = pane.components.filterIndexed { i, _ -> i == index }
+                focusedTabs.forEach { (it as? OnTabChangeListener)?.onTabFocusChanged(true) }
+                val unfocusedTabs = pane.components.filterIndexed { i, _ -> i != index }
+                unfocusedTabs.forEach { (it as? OnTabChangeListener)?.onTabFocusChanged(false) }
+            }
+        }
     }
 
     private fun configureWindow() {
@@ -106,7 +129,8 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
 
         add(tabbedPane)
         tabbedPane.add("日志", logMainUI)
-
+        tabbedPane.add("脚本", scriptMainUI)
+        
         registerSearchStroke()
     }
 

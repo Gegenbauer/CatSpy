@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.ui.panel
 
 import me.gegenbauer.catspy.context.Context
-import me.gegenbauer.catspy.context.ContextScope
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.ui.log.LogTable
@@ -16,7 +15,6 @@ import javax.swing.plaf.ComponentUI
 
 
 class VStatusPanel(override val contexts: Contexts = Contexts.default) : JPanel(), Context {
-    override val scope: ContextScope = ContextScope.COMPONENT
 
     init {
         preferredSize = Dimension(VIEW_RECT_WIDTH, VIEW_RECT_HEIGHT)

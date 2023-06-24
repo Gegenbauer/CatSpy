@@ -3,12 +3,17 @@ package me.gegenbauer.catspy.ui.log
 import com.github.weisj.darklaf.iconset.AllIcons
 import com.github.weisj.darklaf.settings.ThemeSettings
 import com.github.weisj.darklaf.theme.Theme
+import com.github.weisj.darklaf.theme.event.ThemeChangeEvent
+import com.malinskiy.adam.request.device.Device
+import info.clearthought.layout.TableLayout
+import info.clearthought.layout.TableLayoutConstants.FILL
+import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.command.LogCmdManager
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.context.*
 import me.gegenbauer.catspy.data.model.log.FilterItem
@@ -19,15 +24,17 @@ import me.gegenbauer.catspy.data.repo.log.*
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.PROPERTY_TEXT
+import me.gegenbauer.catspy.ddmlib.device.DeviceListListener
+import me.gegenbauer.catspy.ddmlib.device.DeviceManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.manager.BookmarkManager
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
-import me.gegenbauer.catspy.task.*
-import me.gegenbauer.catspy.ui.ILogCmdManager
+import me.gegenbauer.catspy.task.PeriodicTask
+import me.gegenbauer.catspy.task.TaskListener
+import me.gegenbauer.catspy.task.TaskManager
 import me.gegenbauer.catspy.ui.button.*
 import me.gegenbauer.catspy.ui.combobox.*
-import me.gegenbauer.catspy.ui.container.WrapablePanel
 import me.gegenbauer.catspy.ui.dialog.GoToDialog
 import me.gegenbauer.catspy.ui.dialog.LogTableDialog
 import me.gegenbauer.catspy.ui.icon.DayNightIcon
@@ -35,6 +42,7 @@ import me.gegenbauer.catspy.ui.menu.FileOpenPopupMenu
 import me.gegenbauer.catspy.ui.panel.SplitLogPane
 import me.gegenbauer.catspy.ui.panel.next
 import me.gegenbauer.catspy.ui.state.EmptyStatePanel
+import me.gegenbauer.catspy.ui.tab.OnTabChangeListener
 import me.gegenbauer.catspy.utils.*
 import me.gegenbauer.catspy.viewmodel.MainViewModel
 import java.awt.*
@@ -52,9 +60,7 @@ import javax.swing.event.PopupMenuListener
 import javax.swing.text.JTextComponent
 
 class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), Context, TaskListener,
-    LogObservable.Observer<LogcatLogItem>,
-    ILogCmdManager, Disposable {
-    override val scope: ContextScope = ContextScope.FRAME
+    LogObservable.Observer<LogcatLogItem>, Disposable, OnTabChangeListener {
 
     //region scoped service
     private val bookmarkManager = ServiceManager.getContextService(this, BookmarkManager::class.java)
@@ -62,7 +68,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     //region task
     private val taskManager = TaskManager()
-    private val getDeviceTask = GetDeviceTask().apply { addListener(this@LogMainUI) }
     private val updateLogUITask = PeriodicTask(500, "updateLogUITask")
     //endregion
 
@@ -74,70 +79,37 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     //region filterPanel
     private val filterPanel = JPanel()
-
-    //region filterLeftPanel
-    private val filterLeftPanel = JPanel() withName "filterLeftPanel"
-
     //region logPanel
     private val logPanel = JPanel()
 
-    //region showLogPanel
-    private val showLogPanel = JPanel()
-
-    private val showLogTogglePanel = JPanel(GridLayout(1, 1))
     val showLogToggle = ColorToggleButton(STRINGS.ui.log, STRINGS.toolTip.logToggle)
-
     val showLogCombo = filterComboBox(tooltip = STRINGS.toolTip.logCombo) withName STRINGS.ui.log
-    //endregion
-
-    //region itemFilterPanel
     // TODO 布局需要优化
-    private val itemFilterPanel = JPanel(GridBagLayout())
-
-    private val showTagPanel = JPanel()
-    private val showTagTogglePanel = JPanel(GridLayout(1, 1))
     val showTagToggle = ColorToggleButton(STRINGS.ui.tag, STRINGS.toolTip.tagToggle)
     val showTagCombo = filterComboBox(tooltip = STRINGS.toolTip.tagCombo) withName STRINGS.ui.tag
 
-    private val showPidPanel = JPanel()
-    private val showPidTogglePanel = JPanel(GridLayout(1, 1))
     val showPidToggle = ColorToggleButton(STRINGS.ui.pid, STRINGS.toolTip.pidToggle)
     val showPidCombo = filterComboBox(tooltip = STRINGS.toolTip.pidCombo) withName STRINGS.ui.pid
 
-    private val showTidPanel = JPanel()
-    private val showTidTogglePanel = JPanel(GridLayout(1, 1))
     val showTidToggle = ColorToggleButton(STRINGS.ui.tid, STRINGS.toolTip.tidToggle)
     val showTidCombo = filterComboBox(tooltip = STRINGS.toolTip.tidCombo) withName STRINGS.ui.tid
 
-    private val logLevelPanel = JPanel()
-    private val logLevelTogglePanel = JPanel(GridLayout(1, 1))
     val logLevelToggle = ColorToggleButton(STRINGS.ui.logLevel)
     val logLevelCombo = readOnlyComboBox() withName STRINGS.ui.logLevel
 
-    private val boldLogPanel = JPanel()
-    private val boldLogTogglePanel = JPanel(GridLayout(1, 1))
     val boldLogToggle = ColorToggleButton(STRINGS.ui.bold, STRINGS.toolTip.boldToggle)
     val boldLogCombo = filterComboBox(tooltip = STRINGS.toolTip.boldCombo)
 
-    private val matchCaseTogglePanel = JPanel(GridLayout(1, 1))
     val matchCaseToggle = ColorToggleButton("Aa", STRINGS.toolTip.caseToggle)
-    //endregion
-    //endregion
     //endregion
 
     //region toolBarPanel
     private val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
 
     //region logToolBar
-    private val logToolBar = WrapablePanel() withName "logToolBar"
+    private val logToolBar = JPanel(FlowLayout(FlowLayout.LEFT)) withName "logToolBar"
 
     val startBtn = StatefulButton(loadThemedIcon("start.svg"), STRINGS.ui.start, STRINGS.toolTip.startBtn)
-    val retryAdbToggle = StatefulToggleButton(
-        loadIcon("retry_off.png"),
-        DayNightIcon(loadIcon("retry_on.png"), loadIcon("retry_on_dark.png")),
-        STRINGS.ui.retryAdb,
-        tooltip = STRINGS.toolTip.retryAdbToggle
-    )
     val pauseToggle = StatefulToggleButton(
         loadIcon("pause_off.png"),
         DayNightIcon(loadIcon("pause_on.png"), loadIcon("pause_on_dark.png")),
@@ -146,14 +118,14 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     )
     val stopBtn = StatefulButton(loadIcon("stop.png"), STRINGS.ui.stop, STRINGS.toolTip.stopBtn)
     val saveBtn = StatefulButton(loadIcon("save.svg"), STRINGS.ui.save, STRINGS.toolTip.saveBtn)
-    val logCmdCombo = darkComboBox(STRINGS.toolTip.logCmdCombo)
     val deviceCombo = darkComboBox(STRINGS.toolTip.devicesCombo)
     private val deviceStatus = JLabel("None", JLabel.LEFT) // TODO 整理设备连接状态相关的代码
     val adbConnectBtn = StatefulButton(loadIcon("connect.png"), STRINGS.ui.connect, STRINGS.toolTip.connectBtn)
     val adbDisconnectBtn =
         StatefulButton(loadIcon("disconnect.png"), STRINGS.ui.disconnect, STRINGS.toolTip.disconnectBtn)
     val adbRefreshBtn = StatefulButton(loadIcon("refresh.png"), STRINGS.ui.refresh, STRINGS.toolTip.refreshBtn)
-    val rotateLogPanelBtn = StatefulButton(loadThemedIcon("rotate.svg"), STRINGS.ui.rotation, STRINGS.toolTip.rotationBtn)
+    val rotateLogPanelBtn =
+        StatefulButton(loadThemedIcon("rotate.svg"), STRINGS.ui.rotation, STRINGS.toolTip.rotationBtn)
     val clearViewsBtn = StatefulButton(loadIcon("clear.png"), STRINGS.ui.clearViews, STRINGS.toolTip.clearBtn)
     //endregion
     //endregion
@@ -179,7 +151,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     private val statusMethod = JLabel("")
     private val statusTF = StatusTextField(STRINGS.ui.none) applyTooltip STRINGS.toolTip.savedFileTf
-
     //endregion
 
     //region menu
@@ -214,7 +185,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     private val logPanelMouseListener = LogPanelMouseListener()
     private val keyHandler = KeyHandler()
     private val actionHandler = ActionHandler()
-    private val popupMenuHandler = PopupMenuHandler()
     private val mouseHandler = MouseHandler()
     private val statusChangeListener = StatusChangeListener()
     //endregion
@@ -230,10 +200,16 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
             splitLogPane.fullLogPanel.customFont = value
         }
 
+    private val themeChangeListener: (ThemeChangeEvent) -> Unit = {
+        registerComboBoxEditorEvent()
+    }
+
+    private val devicesChangeListener = DeviceListListener {
+        refreshDevices(it)
+    }
+
     init {
         GlobalContextManager.register(this)
-
-        refreshDevices()
 
         logProvider.addObserver(fullLogcatRepository)
         logProvider.addObserver(filteredLogcatRepository)
@@ -245,6 +221,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         observeViewModelValue()
 
         MainViewModel.bind(this)
+
+        ThemeManager.registerThemeUpdateListener(themeChangeListener)
     }
 
     override fun configureContext(context: Context) {
@@ -252,6 +230,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         filteredTableModel.setContexts(contexts)
         fullTableModel.setContexts(contexts)
         filePopupMenu.setContexts(contexts)
+
+        ServiceManager.getContextService(DeviceManager::class.java).registerDeviceListener(devicesChangeListener)
     }
 
     private fun observeViewModelValue() {
@@ -268,22 +248,13 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         MainViewModel.searchMatchCase.addObserver { filteredTableModel.searchMatchCase = it == true }
     }
 
-    private fun refreshDevices() {
-        taskManager.exec(getDeviceTask)
-    }
-
-    override fun onFinalResult(task: Task, data: Any) {
-        super.onFinalResult(task, data)
-        if (task is GetDeviceTask) {
-            MainViewModel.connectedDevices.updateValue((data as ArrayList<String>).toHistoryItemList())
-            MainViewModel.currentDevice.updateValue(data.firstOrNull())
-        }
+    private fun refreshDevices(devices: List<Device>) {
+        MainViewModel.connectedDevices.updateValue((devices.map { it.serial }).toHistoryItemList())
+        MainViewModel.currentDevice.updateValue(devices.firstOrNull()?.serial)
     }
 
     // TODO 关闭 tab 时调用
     private fun saveConfigOnDestroy() {
-        UIConfManager.uiConf.adbDevice = LogCmdManager.targetDevice
-        UIConfManager.uiConf.adbLogCommand = logCmdCombo.editor.item.toString()
         UIConfManager.uiConf.logFontSize = customFont.size
         UIConfManager.uiConf.logFontName = customFont.name
         UIConfManager.uiConf.logFontStyle = customFont.style
@@ -292,87 +263,40 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     private fun createUI() {
         boldLogCombo.enabledTfTooltip = false
-        showLogTogglePanel.add(showLogToggle)
-        showTagTogglePanel.add(showTagToggle)
-        showPidTogglePanel.add(showPidToggle)
-        showTidTogglePanel.add(showTidToggle)
-        logLevelTogglePanel.add(logLevelToggle)
-        boldLogTogglePanel.add(boldLogToggle)
 
         deviceStatus.isEnabled = false
         deviceCombo.setWidth(150)
-        logCmdCombo.setWidth(200)
 
-        matchCaseTogglePanel.add(matchCaseToggle)
-
-        showLogPanel.layout = BorderLayout()
-        showLogPanel.add(showLogTogglePanel, BorderLayout.WEST)
-        showLogPanel.add(showLogCombo, BorderLayout.CENTER)
-
-        showTagPanel.layout = BorderLayout()
-        showTagPanel.add(showTagTogglePanel, BorderLayout.WEST)
-        showTagPanel.add(showTagCombo, BorderLayout.CENTER)
-
-        showPidPanel.layout = BorderLayout()
-        showPidPanel.add(showPidTogglePanel, BorderLayout.WEST)
-        showPidPanel.add(showPidCombo, BorderLayout.CENTER)
-
-        showTidPanel.layout = BorderLayout()
-        showTidPanel.add(showTidTogglePanel, BorderLayout.WEST)
-        showTidPanel.add(showTidCombo, BorderLayout.CENTER)
-
-        logLevelPanel.layout = BorderLayout()
-        logLevelPanel.add(logLevelTogglePanel, BorderLayout.WEST)
-        logLevelPanel.add(logLevelCombo, BorderLayout.CENTER)
-
-        boldLogPanel.layout = BorderLayout()
-        boldLogPanel.add(boldLogTogglePanel, BorderLayout.WEST)
-        boldLogPanel.add(boldLogCombo, BorderLayout.CENTER)
-
-        deviceCombo.isEditable = false
-        deviceStatus.border = BorderFactory.createEmptyBorder(3, 0, 3, 0)
         deviceStatus.horizontalAlignment = JLabel.CENTER
 
-        val averageConstraint = GridBagConstraints()
-        averageConstraint.fill = GridBagConstraints.HORIZONTAL
-        averageConstraint.weightx = 2.0
-        itemFilterPanel.add(showTagPanel, averageConstraint)
-        averageConstraint.weightx = 0.8
-        itemFilterPanel.add(showPidPanel, averageConstraint)
-        averageConstraint.weightx = 0.8
-        itemFilterPanel.add(showTidPanel, averageConstraint)
-        averageConstraint.weightx = 0.8
-        itemFilterPanel.add(logLevelPanel, averageConstraint)
-        averageConstraint.weightx = 1.2
-        itemFilterPanel.add(boldLogPanel, averageConstraint)
-        averageConstraint.weightx = 0.0
-        itemFilterPanel.add(matchCaseTogglePanel, averageConstraint)
-
-        logPanel.layout = GridBagLayout()
+        val p = PREFERRED
+        logPanel.layout = TableLayout(
+            doubleArrayOf(p, FILL, p, 0.15, p, 0.15, p, 0.15, p, 0.10, p, 0.15, p),
+            doubleArrayOf(p)
+        )
         logPanel.border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
-        val constraintShowLogPanel = GridBagConstraints()
-        constraintShowLogPanel.fill = GridBagConstraints.HORIZONTAL
-        constraintShowLogPanel.weightx = 1.0
-        logPanel.add(showLogPanel, constraintShowLogPanel)
-        val constraintItemFilterPanel = GridBagConstraints()
-        constraintItemFilterPanel.fill = GridBagConstraints.HORIZONTAL
-        constraintItemFilterPanel.weightx = 2.0
-        logPanel.add(itemFilterPanel, constraintItemFilterPanel)
-
-        filterLeftPanel.layout = BorderLayout()
-        filterLeftPanel.add(logPanel, BorderLayout.NORTH)
+        logPanel.add(showLogToggle, "0, 0")
+        logPanel.add(showLogCombo, "1, 0")
+        logPanel.add(showTagToggle, "2, 0")
+        logPanel.add(showTagCombo, "3, 0")
+        logPanel.add(showPidToggle, "4, 0")
+        logPanel.add(showPidCombo, "5, 0")
+        logPanel.add(showTidToggle, "6, 0")
+        logPanel.add(showTidCombo, "7, 0")
+        logPanel.add(logLevelToggle, "8, 0")
+        logPanel.add(logLevelCombo, "9, 0")
+        logPanel.add(boldLogToggle, "10, 0")
+        logPanel.add(boldLogCombo, "11, 0")
+        logPanel.add(matchCaseToggle, "12, 0")
 
         filterPanel.layout = BorderLayout()
-        filterPanel.add(filterLeftPanel, BorderLayout.CENTER)
+        filterPanel.add(logPanel, BorderLayout.CENTER)
 
         logToolBar.add(startBtn)
-        logToolBar.add(retryAdbToggle)
         logToolBar.addVSeparator2()
         logToolBar.add(pauseToggle)
         logToolBar.add(stopBtn)
         logToolBar.add(saveBtn)
-        logToolBar.addVSeparator2()
-        logToolBar.add(logCmdCombo)
         logToolBar.addVSeparator2()
         logToolBar.add(deviceCombo)
         logToolBar.add(deviceStatus)
@@ -406,14 +330,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
         statusBar.add(statusMethod, BorderLayout.WEST)
         statusBar.add(statusTF, BorderLayout.CENTER)
-
-        updateLogCmdCombo()
-
-        val targetDevice = UIConfManager.uiConf.adbDevice
-        targetDevice.takeIf { it.isNotEmpty() }?.let {
-            deviceCombo.addItem(targetDevice)
-            deviceCombo.selectedIndex = 0
-        }
 
         deviceStatus.text = STRINGS.ui.connected
         setDeviceComboColor(true)
@@ -489,8 +405,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         clearViewsBtn.addMouseListener(mouseHandler)
         saveBtn.addActionListener(actionHandler)
         saveBtn.addMouseListener(mouseHandler)
-        showLogCombo.addPopupMenuListener(popupMenuHandler)
-        logCmdCombo.addPopupMenuListener(popupMenuHandler)
         adbConnectBtn.addActionListener(actionHandler)
         adbRefreshBtn.addActionListener(actionHandler)
         adbDisconnectBtn.addActionListener(actionHandler)
@@ -523,8 +437,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         showPidCombo.editorComponent.addMouseListener(mouseHandler)
         showTidCombo.editorComponent.addKeyListener(keyHandler)
         showTidCombo.editorComponent.addMouseListener(mouseHandler)
-        logCmdCombo.editorComponent.addKeyListener(keyHandler)
-        logCmdCombo.editorComponent.addMouseListener(mouseHandler)
         deviceCombo.editorComponent.addKeyListener(keyHandler)
         deviceCombo.editorComponent.addMouseListener(mouseHandler)
         searchPanel.registerComboBoxEditorEvent()
@@ -605,11 +517,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     }
 
     fun startAdbScan() {
-        if (LogCmdManager.getType() == LogCmdManager.TYPE_CMD) {
-            statusMethod.text = " ${STRINGS.ui.cmd} "
-        } else {
-            statusMethod.text = " ${STRINGS.ui.adb} "
-        }
+        statusMethod.text = " ${STRINGS.ui.adb} "
         updateLogFilter()
 
         if (updateLogUITask.isRunning().not()) {
@@ -623,11 +531,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     }
 
     fun stopAll() {
-        if (LogCmdManager.getType() == LogCmdManager.TYPE_CMD) {
-            statusMethod.text = " ${STRINGS.ui.cmd} ${STRINGS.ui.stop} "
-        } else {
-            statusMethod.text = " ${STRINGS.ui.adb} ${STRINGS.ui.stop} "
-        }
+        statusMethod.text = " ${STRINGS.ui.adb} ${STRINGS.ui.stop} "
 
         if (!logProvider.isCollecting()) {
             GLog.d(TAG, "stopAdbScan : not adb scanning mode")
@@ -636,16 +540,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
         logProvider.stopCollectLog()
         taskManager.cancelAll()
-    }
-
-    fun isRestartAdbLogcat(): Boolean {
-        return MainViewModel.retryAdb.value ?: false
-    }
-
-    // TODO Restart adb
-    fun restartAdbLogcat() {
-        GLog.d(TAG, "[restartAdbLogcat]")
-        LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
     }
 
     private fun startFileFollow(filePath: String) {
@@ -663,7 +557,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
                 adbDisconnectBtn -> {
                     stopAll()
-                    LogCmdManager.disconnect()
+                    // disconnect
                 }
 
                 startBtn -> {
@@ -685,7 +579,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
                 }
 
                 adbRefreshBtn -> {
-                    refreshDevices()
+                    //refreshDevices()
                 }
 
                 saveBtn -> {
@@ -702,13 +596,11 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     private fun connect() {
         stopAll()
-        LogCmdManager.targetDevice = deviceCombo.selectedItem!!.toString()
-        LogCmdManager.connect()
+        // TODO connect
     }
 
     private fun stopScan() {
         stopAll()
-        LogCmdManager.stop()
     }
 
     private fun clearViews() {
@@ -960,30 +852,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         }
     }
 
-    override fun updateLogCmdCombo() {
-        logCmdCombo.toolTipText = "\"${LogCmdManager.logCmd}\"\n\n${STRINGS.toolTip.logCmdCombo}"
-
-        if (LogCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
-            if (Theme.isDark(ThemeSettings.getInstance().theme)) {
-                logCmdCombo.editorComponent.foreground = Color(0x7070C0)
-            } else {
-                logCmdCombo.editorComponent.foreground = Color.BLUE
-            }
-        } else {
-            if (Theme.isDark(ThemeSettings.getInstance().theme)) {
-                logCmdCombo.editorComponent.foreground = Color(0xC07070)
-            } else {
-                logCmdCombo.editorComponent.foreground = Color.RED
-            }
-        }
-    }
-
     private inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(event: KeyEvent) {
-            if (KeyEvent.VK_ENTER != event.keyCode && event.source == logCmdCombo.editorComponent) {
-                updateLogCmdCombo()
-            }
-
             if (KeyEvent.VK_ENTER == event.keyCode && event.isControlDown) {
                 when (event.source) {
                     in listOf(
@@ -996,19 +866,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
                     ) -> {
                         updateComboBox()
                         updateLogFilter()
-                    }
-
-                    logCmdCombo.editorComponent -> {
-                        if (LogCmdManager.logCmd == logCmdCombo.editor.item.toString()) {
-                            reconnectAdb()
-                        } else {
-                            resetComboItem(
-                                MainViewModel.logCmdHistory,
-                                MainViewModel.logCmdCurrentContent.value ?: ""
-                            )
-                            LogCmdManager.logCmd = logCmdCombo.editor.item.toString()
-                            updateLogCmdCombo()
-                        }
                     }
 
                     deviceCombo.editorComponent -> {
@@ -1046,36 +903,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     private fun updateSearchFilter() {
         filteredTableModel.searchFilterItem = searchPanel.searchCombo.filterItem
-    }
-
-    private inner class PopupMenuHandler : PopupMenuListener {
-        private var isCanceled = false
-        override fun popupMenuWillBecomeInvisible(event: PopupMenuEvent) {
-            if (isCanceled) {
-                isCanceled = false
-                return
-            }
-            when (event.source) {
-                logCmdCombo -> {
-                    if (logCmdCombo.selectedIndex < 0) {
-                        return
-                    }
-                    val combo = logCmdCombo
-                    resetComboItem(MainViewModel.logCmdHistory, MainViewModel.logCmdCurrentContent.value ?: "")
-                    val item = combo.selectedItem!!.toString()
-                    LogCmdManager.logCmd = item
-                    updateLogCmdCombo()
-                }
-            }
-        }
-
-        override fun popupMenuCanceled(event: PopupMenuEvent) {
-            isCanceled = true
-        }
-
-        override fun popupMenuWillBecomeVisible(event: PopupMenuEvent) {
-            isCanceled = false
-        }
     }
 
     fun resetComboItem(viewModelProperty: ObservableViewModelProperty<List<HistoryItem<String>>>, item: String) {
@@ -1362,11 +1189,14 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         ServiceManager.dispose(this)
         logProvider.stopCollectLog()
         logProvider.destroy()
-        LogCmdManager.stop()
         taskManager.cancelAll()
     }
 
+    override fun onTabFocusChanged(focused: Boolean) {
+        taskManager.updatePauseState(!focused)
+    }
+
     companion object {
-        private const val TAG = "MainUI"
+        private const val TAG = "LogMainUI"
     }
 }

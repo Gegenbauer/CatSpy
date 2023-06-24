@@ -57,7 +57,7 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
         val newEditor = if (enableHighlight) {
             HighlighterEditor()
         } else {
-            BasicComboBoxEditor()
+            BasicComboBoxEditor.UIResource()
         }
         super.setUI(CustomEditorDarkComboBoxUI(newEditor.apply {
             if (getEditor() != null) {
@@ -171,7 +171,6 @@ fun filterComboBox(enableHighlight: Boolean = true, tooltip: String? = null): Fi
     val comboBox = FilterComboBox(enableHighlight, tooltip)
     comboBox.isEditable = true
     comboBox.addTooltipUpdateListener()
-    comboBox.preferredSize = Dimension(Int.MAX_VALUE, 30)
     return comboBox
 }
 

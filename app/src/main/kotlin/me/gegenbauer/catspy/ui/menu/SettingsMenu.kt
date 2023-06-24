@@ -8,10 +8,9 @@ import java.awt.Dialog
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.JCheckBoxMenuItem
-import javax.swing.JMenu
 import javax.swing.JMenuItem
 
-class SettingsMenu : JMenu() {
+class SettingsMenu : GMenu() {
     // TODO itemFilterIncremental has no sense
     val itemDebug = JCheckBoxMenuItem(STRINGS.ui.debug)
     private val itemThemeSettings = JMenuItem(STRINGS.ui.theme).apply {

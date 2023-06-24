@@ -9,10 +9,9 @@ import me.gegenbauer.catspy.utils.loadThemedIcon
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import javax.swing.JFrame
-import javax.swing.JMenu
 import javax.swing.JMenuItem
 
-class HelpMenu : JMenu() {
+class HelpMenu : GMenu() {
     private val itemHelp = JMenuItem(STRINGS.ui.help).apply {
         icon = loadThemedIcon("help.svg", Menu.MENU_ITEM_ICON_SIZE)
     }

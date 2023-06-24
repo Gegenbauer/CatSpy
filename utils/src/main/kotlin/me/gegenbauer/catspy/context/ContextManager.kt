@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.context
 
 interface ContextManager {
 
-    fun getContext(id: Int): Context?
+    fun getContext(id: Long): Context?
 
     fun register(context: Context)
 

@@ -18,14 +18,12 @@ package me.gegenbauer.catspy.ddmlib.logcat;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatTimestamp;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;

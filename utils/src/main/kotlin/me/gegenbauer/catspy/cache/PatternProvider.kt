@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.cache
 
 import me.gegenbauer.catspy.context.Context
-import me.gegenbauer.catspy.context.ContextScope
 import me.gegenbauer.catspy.context.ContextService
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.regex.Pattern
@@ -13,7 +12,6 @@ class PatternProvider(override val size: Int = DEFAULT_CACHE_SIZE) : Cacheable<P
     // index 0 is the oldest entry
     private val patternCache = linkedMapOf<PatternKey, Pattern>()
     private val lock = ReentrantReadWriteLock()
-    override val scope: ContextScope = ContextScope.PROCESS
 
     override fun clear() {
         lock.write { patternCache.clear() }

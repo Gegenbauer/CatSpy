@@ -4,13 +4,12 @@ import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.settings.SettingsConfiguration
 import com.github.weisj.darklaf.settings.ThemeSettings
 import com.github.weisj.darklaf.theme.Theme
-import com.github.weisj.darklaf.theme.event.ThemeChangeEvent
-import com.github.weisj.darklaf.theme.event.ThemeChangeListener
 import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.utils.currentPlatform
@@ -26,8 +25,8 @@ object ThemeManager {
     private val settingsConfiguration: SettingsConfiguration = loadThemeSettings()
     private val scope = ModelScope()
 
-    fun init() {
-        scope.launch {
+    suspend fun init() {
+        withContext(Dispatchers.APP_LAUNCH) {
             ensureThemeFile()
         }
     }
@@ -48,28 +47,28 @@ object ThemeManager {
         }
     }
 
-    fun registerThemeUpdateListener(listener: (ThemeChangeEvent) -> Unit) {
-        LafManager.addThemeChangeListener(object : ThemeChangeListener {
-            override fun themeChanged(e: ThemeChangeEvent) {
-                listener.invoke(e)
-            }
+    fun registerThemeUpdateListener(listener: GThemeChangeListener) {
+        LafManager.addThemeChangeListener(listener)
+    }
 
-            override fun themeInstalled(e: ThemeChangeEvent) {
-                listener.invoke(e)
-            }
-        })
+    fun unregisterThemeUpdateListener(listener: GThemeChangeListener) {
+        LafManager.removeThemeChangeListener(listener)
     }
 
     fun registerDefaultsAdjustmentTask(listener: (Theme, Properties) -> Unit) {
-        LafManager.registerDefaultsAdjustmentTask { t, u ->
-            listener(t, u)
-        }
+        LafManager.registerDefaultsAdjustmentTask(listener)
+    }
+
+    fun unregisterDefaultsAdjustmentTask(listener: (Theme, Properties) -> Unit) {
+        LafManager.removeDefaultsAdjustmentTask(listener)
     }
 
     fun registerInitTask(listener: (Theme, UIDefaults) -> Unit) {
-        LafManager.registerInitTask { t, u ->
-            listener(t, u)
-        }
+        LafManager.registerInitTask(listener)
+    }
+
+    fun unregisterInitTask(listener: (Theme, UIDefaults) -> Unit) {
+        LafManager.removeInitTask(listener)
     }
 
     suspend fun installTheme() {

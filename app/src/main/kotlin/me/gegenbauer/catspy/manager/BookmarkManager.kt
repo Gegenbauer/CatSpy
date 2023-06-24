@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.manager
 
 import me.gegenbauer.catspy.context.Context
-import me.gegenbauer.catspy.context.ContextScope
 import me.gegenbauer.catspy.context.ContextService
 
 fun interface BookmarkChangeListener {
@@ -9,8 +8,6 @@ fun interface BookmarkChangeListener {
 }
 
 class BookmarkManager: ContextService {
-
-    override val scope: ContextScope = ContextScope.FRAME
 
     private val bookmarks = HashSet<Int>()
     private val eventListeners = ArrayList<BookmarkChangeListener>()

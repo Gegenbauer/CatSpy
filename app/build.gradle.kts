@@ -32,6 +32,7 @@ dependencies {
     implementation(Weisj.groupName, Weisj.darklafVisualPadding.artifact, Weisj.darklafVisualPadding.version)
     implementation(Gson.groupName, Gson.gson.artifact, Gson.gson.version)
     implementation(Fifesoft.groupName, Fifesoft.autocomplete.artifact, Fifesoft.autocomplete.version)
+    implementation(TableLayout.groupName, TableLayout.tablelayout.artifact, TableLayout.tablelayout.version)
 
     testImplementation(kotlin("test"))
     testImplementation(Mockk.groupName, Mockk.mockk.artifact, Mockk.mockk.version)

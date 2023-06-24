@@ -1,26 +1,23 @@
 package me.gegenbauer.catspy.context
 
-import me.gegenbauer.catspy.cache.PatternProvider
 import java.util.concurrent.ConcurrentHashMap
 
-class ServiceProviderImpl(override val scope: ContextScope = ContextScope.PROCESS) : ServiceProvider, ContextService {
+/**
+ * ServiceProvider 本身也是一种 ContextService，不同 Context 下的 ServiceProvider 是不同的
+ * 可以通过 Context id 获取对应的 ServiceProvider，所以这里的 scope 没有实际意义
+ */
+class ServiceProviderImpl : ServiceProvider, ContextService {
     private val services = ConcurrentHashMap<Class<out ContextService>, InstanceFetcher<ContextService>>()
 
-    init {
-        register(PatternProvider::class.java, LazyInitInstanceFetcher { PatternProvider() })
-    }
-
-    override fun <T : ContextService> get(serviceType: Class<T>): T {
-        return services.getOrPut(serviceType) {
-            InstanceFetcher { serviceType.getDeclaredConstructor().newInstance() }
-        }.get() as T
+    override fun <T : ContextService> get(serviceClazz: Class<out T>): T {
+        return services.getOrPut(serviceClazz) { serviceClazz.defaultFetcher }.get() as T
     }
 
     override fun <T : ContextService> register(
-        serviceType: Class<T>,
+        serviceClazz: Class<out T>,
         serviceSupplier: InstanceFetcher<out ContextService>
     ) {
-        services[serviceType] = serviceSupplier as InstanceFetcher<ContextService>
+        services[serviceClazz] = serviceSupplier as InstanceFetcher<ContextService>
     }
 
     override fun onContextDestroyed(context: Context) {

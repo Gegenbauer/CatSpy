@@ -1,6 +1,8 @@
 package me.gegenbauer.catspy.ui.log
 
-import me.gegenbauer.catspy.context.*
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.data.model.log.FilterItem
 import me.gegenbauer.catspy.data.model.log.LogcatLogItem
 import me.gegenbauer.catspy.data.model.log.LogcatRealTimeFilter
@@ -28,7 +30,6 @@ class LogTableModel(
     private val logRepository: LogRepository,
     override val contexts: Contexts = Contexts.default
 ) : AbstractTableModel(), LogRepository.LogChangeListener, Context {
-    override val scope: ContextScope = ContextScope.COMPONENT
 
     private val eventListeners = ArrayList<LogTableModelListener>()
 

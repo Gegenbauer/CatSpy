@@ -6,12 +6,13 @@ plugins {
 
 dependencies {
     implementation("com.android.tools.ddms:ddmlib:26.1.3")
-    implementation(Adam.groupName, Adam.adam.artifact, Adam.adam.version)
+    api(Adam.groupName, Adam.adam.artifact, Adam.adam.version)
     implementation(Slf4j.groupName, Slf4j.simple.artifact, Slf4j.simple.version)
     compileOnly(projects.concurrency)
     compileOnly(kotlin("reflect"))
     compileOnly(projects.log)
     compileOnly(projects.task)
+    compileOnly(projects.utils)
     compileOnly(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
     testImplementation(projects.app)
     testImplementation(projects.concurrency)

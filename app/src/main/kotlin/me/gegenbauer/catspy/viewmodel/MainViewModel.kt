@@ -50,7 +50,7 @@ object MainViewModel {
     val tidFilterCurrentContent = ObservableViewModelProperty<String>()
     val tidFilterErrorMessage = ObservableViewModelProperty<String>()
 
-    val logLevelFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.tidFilterEnabled)
+    val logLevelFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.logLevelFilterEnabled)
     val logLevelFilterHistory = ObservableViewModelProperty(nameToLogLevel.toList().sortedBy { it.second.logLevel }.map { it.second.logName }.toHistoryItemList())
     val logLevelFilterSelectedIndex = ObservableViewModelProperty(0)
     val logLevelFilterCurrentContent = ObservableViewModelProperty(nameToLogLevel.keys.first())
@@ -69,11 +69,6 @@ object MainViewModel {
     val deviceSelectedIndex = ObservableViewModelProperty<Int>()
     val currentDevice = ObservableViewModelProperty<String>()
 
-    val logCmdHistory = ObservableViewModelProperty(UIConfManager.uiConf.logCmdHistory.toHistoryItemList())
-    val logCmdSelectedIndex = ObservableViewModelProperty<Int>()
-    val logCmdCurrentContent = ObservableViewModelProperty<String>()
-
-    val retryAdb = ObservableViewModelProperty(UIConfManager.uiConf.retryAdbEnabled)
     val pauseAll = ObservableViewModelProperty(false)
 
     val searchPanelVisible = ObservableViewModelProperty(false)
@@ -119,9 +114,7 @@ object MainViewModel {
 
             //region ADB
             bindNormalCombo(deviceCombo, deviceSelectedIndex, connectedDevices, currentDevice)
-            bindNormalCombo(logCmdCombo, logCmdSelectedIndex, logCmdHistory, logCmdCurrentContent)
 
-            selectedProperty(retryAdbToggle) bindDual retryAdb
             selectedProperty(pauseToggle) bindDual pauseAll
             //endregion
 
@@ -148,8 +141,7 @@ object MainViewModel {
 
             //region Style
             bindWithButtonDisplayMode(
-                startBtn, stopBtn, pauseToggle, saveBtn, clearViewsBtn, adbConnectBtn, adbRefreshBtn, adbDisconnectBtn,
-                retryAdbToggle, retryAdbToggle
+                startBtn, stopBtn, pauseToggle, saveBtn, clearViewsBtn, adbConnectBtn, adbRefreshBtn, adbDisconnectBtn
             )
             //endregion
 
@@ -170,7 +162,6 @@ object MainViewModel {
     ) {
         selectedProperty(toggle) bindDual enabledProperty
         enabledProperty(comboBox) bindDual enabledProperty
-        visibilityProperty(comboBox) bindDual enabledProperty
         listProperty(comboBox) bindDual listProperty
         selectedIndexProperty(comboBox) bindLeft selectedIndexProperty
         textProperty(comboBox.editorComponent) bindDual editorContentProperty

@@ -4,13 +4,16 @@ import com.github.weisj.darklaf.theme.Theme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.gegenbauer.catspy.cache.PatternProvider
 import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.configuration.toFont
 import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.componentName
+import me.gegenbauer.catspy.ddmlib.device.DeviceManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
@@ -49,21 +52,25 @@ class Application {
                     ThemeManager.init()
                     GlobalViewModel.init()
                     GLog.i(TAG, "[currentPlatform] $currentPlatform")
+                    registerGlobalService()
                 }
                 ThemeManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
                 ThemeManager.registerInitTask(::adjustBeforeThemeLoaded)
                 ThemeManager.installTheme()
                 val mainUI = MainUI(STRINGS.ui.app, Contexts())
                 mainUI.configureContext(mainUI)
-                ThemeManager.registerThemeUpdateListener { _ ->
-                    //mainUI.registerComboBoxEditorEvent()
-                }
                 ThemeManager.applyTempTheme()
+                mainUI.pack()
                 mainUI.isVisible = true
                 ThemeManager.registerDefaultThemeUpdateListener()
 
-                //addClickListenerForAllComponents(mainUI.components)
+                addClickListenerForAllComponents(mainUI.components)
             }
+        }
+
+        private fun registerGlobalService() {
+            ServiceManager.registerContextService(DeviceManager::class.java)
+            ServiceManager.registerContextService(PatternProvider::class.java)
         }
 
         private val themeAwareControllers = listOf(
