@@ -7,7 +7,7 @@ import me.gegenbauer.catspy.log.ILogger
  * Binding module print too much logs, only print logs when debugging it.
  */
 object BindingLog: ILogger by GLog {
-    private val bindingDebug = true
+    private val bindingDebug = false
 
     override fun v(tag: String, msg: String) {
         if (bindingDebug) {

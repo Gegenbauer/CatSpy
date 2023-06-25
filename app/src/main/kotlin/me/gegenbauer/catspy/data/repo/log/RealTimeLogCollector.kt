@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.data.repo.log
 
-import me.gegenbauer.catspy.task.LogcatTask
+import me.gegenbauer.catspy.ddmlib.logcat.LogcatTask
 import me.gegenbauer.catspy.task.Task
 import me.gegenbauer.catspy.task.TaskManager
 

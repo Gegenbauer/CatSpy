@@ -5,7 +5,7 @@ import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.ui.ColorScheme
 import java.awt.Color
 
-class LogcatLogItem(
+data class LogcatLogItem(
     val logLine: String,
     val num: Int = 0,
     val time: String = "",

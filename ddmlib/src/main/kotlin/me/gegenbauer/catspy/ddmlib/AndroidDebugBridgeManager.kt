@@ -7,13 +7,17 @@ import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.log.GLog
 
-object AndroidDebugBridgeManager : AndroidDebugBridge.IDebugBridgeChangeListener {
-    private const val TAG = "AndroidDebugBridgeManager"
+class AndroidDebugBridgeManager : AndroidDebugBridge.IDebugBridgeChangeListener {
     private val scope = ModelScope()
+
     fun init(adbPath: String) {
         AndroidDebugBridge.init(true, true, System.getenv())
         AndroidDebugBridge.addDebugBridgeChangeListener(this)
-        AndroidDebugBridge.createBridge()
+        AndroidDebugBridge.createBridge(adbPath, true)
+    }
+
+    fun connected(): Boolean {
+        return AndroidDebugBridge.getBridge()?.isConnected ?: false
     }
 
     override fun bridgeChanged(bridge: AndroidDebugBridge?) {
@@ -35,5 +39,9 @@ object AndroidDebugBridgeManager : AndroidDebugBridge.IDebugBridgeChangeListener
 
     fun getDeviceByName(deviceName: String): IDevice? {
         return getDevices().firstOrNull { it.name == deviceName }
+    }
+
+    companion object {
+        private const val TAG = "AndroidDebugBridgeManager"
     }
 }

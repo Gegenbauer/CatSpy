@@ -35,6 +35,8 @@ class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(
 
         cardContainer.addCard(focusedActivityCard)
         cardContainer.addCard(focusedActivityCard2)
+
+        //cardContainer.setAutomaticallyUpdate(true)
     }
 
     private fun updateCardContent() {

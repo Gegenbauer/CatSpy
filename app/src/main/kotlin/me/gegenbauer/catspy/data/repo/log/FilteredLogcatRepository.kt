@@ -76,7 +76,7 @@ class FilteredLogcatRepository(
         override suspend fun startInCoroutine() {
             setRunning(true)
             accessFullLogItems { fullLogItems ->
-                accessLogItems { logItems ->
+                accessLogItems(true) { logItems ->
                     logItems.clear()
                     fullLogItems.forEach {
                         if (!isRunning()) {

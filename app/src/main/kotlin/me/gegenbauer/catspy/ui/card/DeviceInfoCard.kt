@@ -4,5 +4,4 @@ import javax.swing.JPanel
 
 class DeviceInfoCard: JPanel() {
 
-
 }

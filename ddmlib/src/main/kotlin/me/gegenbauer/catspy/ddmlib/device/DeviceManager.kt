@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.ddmlib.device
 import com.malinskiy.adam.AndroidDebugBridgeClientFactory
 import com.malinskiy.adam.request.device.AsyncDeviceMonitorRequest
 import com.malinskiy.adam.request.device.Device
+import com.malinskiy.adam.request.device.DeviceState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -103,11 +104,11 @@ class DeviceManager(private val dispatcher: CoroutineDispatcher = Dispatchers.IO
         deviceLock.read { deviceListeners.forEach { it.onDeviceDisconnect(device) } }
     }
 
-    fun getDevices(): List<Device> {
-        return currentDevices
-    }
-
     companion object {
         private const val TAG = "DeviceManager"
     }
+}
+
+fun List<Device>.filterConnected(): List<Device> {
+    return this.filter { it.state == DeviceState.DEVICE }
 }
