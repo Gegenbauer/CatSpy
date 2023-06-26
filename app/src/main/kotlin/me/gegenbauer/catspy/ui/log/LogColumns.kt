@@ -215,7 +215,7 @@ private open class MessageLogCellRenderer : DefaultLogTableCellRenderer() {
     }
 }
 
-private abstract class DefaultLogTableCellRenderer: DefaultTableCellRenderer() {
+private abstract class DefaultLogTableCellRenderer : DefaultTableCellRenderer() {
     override fun getTableCellRendererComponent(
         table: JTable?,
         value: Any?,

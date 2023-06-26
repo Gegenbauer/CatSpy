@@ -8,6 +8,7 @@ import me.gegenbauer.catspy.context.GlobalContextManager
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
+import me.gegenbauer.catspy.ddmlib.AndroidDebugBridgeManager
 import me.gegenbauer.catspy.ddmlib.device.DeviceManager
 import me.gegenbauer.catspy.ui.log.LogMainUI
 import me.gegenbauer.catspy.ui.menu.HelpMenu
@@ -50,18 +51,21 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
 
         registerEvents()
 
-        bindViewModel()
+        bindGlobalViewModel()
 
         GlobalContextManager.register(this)
     }
 
     private fun startServices() {
+        val adbManager = ServiceManager.getContextService(AndroidDebugBridgeManager::class.java)
+        adbManager.init("adb")
         val deviceManager = ServiceManager.getContextService(DeviceManager::class.java)
-        deviceManager.startMonitor()
+        adbManager.addListener(deviceManager)
     }
 
-    private fun bindViewModel() {
-        selectedProperty(settingsMenu.itemDebug) bindDual GlobalViewModel.debug
+    private fun bindGlobalViewModel() {
+        selectedProperty(settingsMenu.globalDebug) bindDual GlobalViewModel.globalDebug
+        selectedProperty(settingsMenu.bindingDebug) bindDual GlobalViewModel.dataBindingDebug
     }
 
     override fun configureContext(context: Context) {

@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.manager
 
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
+import me.gegenbauer.catspy.log.GLog
 
 fun interface BookmarkChangeListener {
     fun bookmarkChanged()
@@ -28,16 +29,18 @@ class BookmarkManager: ContextService {
         }
     }
 
-    fun checkNewRow(rows: IntArray): Boolean {
+    fun checkNewRow(rows: List<Int>): Boolean {
         return rows.any { !bookmarks.contains(it) }
     }
 
     fun addBookmark(bookmark: Int) {
+        GLog.d(TAG, "[addBookmark] bookmark: $bookmark")
         bookmarks.add(bookmark)
         notifyChanged()
     }
 
     fun removeBookmark(bookmark: Int) {
+        GLog.d(TAG, "[removeBookmark] bookmark: $bookmark")
         bookmarks.remove(bookmark)
         notifyChanged()
     }
@@ -55,5 +58,9 @@ class BookmarkManager: ContextService {
 
     override fun onContextDestroyed(context: Context) {
         clear()
+    }
+
+    companion object {
+        private const val TAG = "BookmarkManager"
     }
 }

@@ -52,7 +52,7 @@ object GLog : ILogger {
         getLogger(tag).w("", msg)
     }
 
-    override fun w(tag: String, msg: String, tr: Throwable) {
+    override fun w(tag: String, msg: String, tr: Throwable?) {
         getLogger(tag).w("", msg, tr)
     }
 
@@ -60,7 +60,7 @@ object GLog : ILogger {
         getLogger(tag).e("", msg)
     }
 
-    override fun e(tag: String, msg: String, tr: Throwable) {
+    override fun e(tag: String, msg: String, tr: Throwable?) {
         getLogger(tag).e("", msg, tr)
     }
 

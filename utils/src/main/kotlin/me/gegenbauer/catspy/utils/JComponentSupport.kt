@@ -32,7 +32,7 @@ fun JComponent.withPropertyChangeListenerDisabled(propertyName: String, action: 
 @Suppress("UNCHECKED_CAST")
 var JComponent.propertyChangeListenerList: MutableMap<String, Array<EventListener>>?
     get() {
-        val changeSupportField = getFieldDeeply("changeSupport")
+        val changeSupportField = getFieldDeeply("vetoableChangeSupport")
         val changeListenerMapField = changeSupportField.get(this).getFieldDeeply("map")
         val changeListenerMap = changeListenerMapField.get(changeSupportField.get(this))
         val listenerMap = changeListenerMap.getFieldDeeply("map")

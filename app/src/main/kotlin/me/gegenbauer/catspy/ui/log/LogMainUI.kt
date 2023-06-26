@@ -118,7 +118,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     )
     val stopBtn = StatefulButton(loadIcon("stop.png"), STRINGS.ui.stop, STRINGS.toolTip.stopBtn)
     val saveBtn = StatefulButton(loadIcon("save.svg"), STRINGS.ui.save, STRINGS.toolTip.saveBtn)
-    val deviceCombo = darkComboBox(STRINGS.toolTip.devicesCombo)
+    val deviceCombo = readOnlyComboBox(STRINGS.toolTip.devicesCombo)
     private val deviceStatus = JLabel("None", JLabel.LEFT) // TODO 整理设备连接状态相关的代码
     val adbConnectBtn = StatefulButton(loadIcon("connect.png"), STRINGS.ui.connect, STRINGS.toolTip.connectBtn)
     val adbDisconnectBtn =
@@ -228,6 +228,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     override fun configureContext(context: Context) {
         super.configureContext(context)
         filteredTableModel.setContexts(contexts)
+        splitLogPane.setContexts(contexts)
         fullTableModel.setContexts(contexts)
         filePopupMenu.setContexts(contexts)
 

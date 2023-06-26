@@ -2,13 +2,15 @@ package me.gegenbauer.catspy.viewmodel
 
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.data.model.log.LogLevel
+import me.gegenbauer.catspy.databinding.BindingLog
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.ui.combobox.toContentList
 import me.gegenbauer.catspy.ui.panel.Rotation
 
 object GlobalViewModel {
-    val debug = ObservableViewModelProperty(UIConfManager.uiConf.debug)
+    val globalDebug = ObservableViewModelProperty(UIConfManager.uiConf.globalDebug)
+    val dataBindingDebug = ObservableViewModelProperty(UIConfManager.uiConf.dataBindingDebug)
     val versionCode = ObservableViewModelProperty(UIConfManager.uiConf.versionCode)
     val appHome = ObservableViewModelProperty(UIConfManager.uiConf.appHome)
 
@@ -17,9 +19,13 @@ object GlobalViewModel {
     }
 
     init {
-        debug.addObserver {
-            UIConfManager.uiConf.debug = it ?: false
+        globalDebug.addObserver {
+            UIConfManager.uiConf.globalDebug = it ?: false
             GLog.debug = it ?: false
+        }
+        dataBindingDebug.addObserver {
+            UIConfManager.uiConf.dataBindingDebug = it ?: false
+            BindingLog.bindingDebug = it ?: false
         }
         versionCode.addObserver { UIConfManager.uiConf.versionCode = it ?: 0 }
         appHome.addObserver { UIConfManager.uiConf.appHome = it ?: "" }

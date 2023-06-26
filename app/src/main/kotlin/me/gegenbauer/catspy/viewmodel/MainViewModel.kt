@@ -51,9 +51,10 @@ object MainViewModel {
     val tidFilterErrorMessage = ObservableViewModelProperty<String>()
 
     val logLevelFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.logLevelFilterEnabled)
-    val logLevelFilterHistory = ObservableViewModelProperty(nameToLogLevel.toList().sortedBy { it.second.logLevel }.map { it.second.logName }.toHistoryItemList())
-    val logLevelFilterSelectedIndex = ObservableViewModelProperty(0)
-    val logLevelFilterCurrentContent = ObservableViewModelProperty(nameToLogLevel.keys.first())
+    private val sortedLogLevels = nameToLogLevel.toList().sortedBy { it.second.logLevel }.map { it.second.logName }
+    val logLevelFilterHistory = ObservableViewModelProperty(sortedLogLevels.toHistoryItemList())
+    val logLevelFilterCurrentContent = ObservableViewModelProperty(UIConfManager.uiConf.logLevel)
+    val logLevelFilterSelectedIndex = ObservableViewModelProperty(sortedLogLevels.indexOf(UIConfManager.uiConf.logLevel))
 
     val boldEnabled = ObservableViewModelProperty(UIConfManager.uiConf.boldEnabled)
     val boldHistory = ObservableViewModelProperty(UIConfManager.uiConf.highlightHistory.toHistoryItemList())
@@ -146,7 +147,7 @@ object MainViewModel {
             //endregion
 
             logLevelFilterCurrentContent.addObserver {
-                logLevel.updateValue(nameToLogLevel[logLevelFilterCurrentContent.value] ?: LogLevel.VERBOSE)
+                logLevel.updateValue(nameToLogLevel[it] ?: LogLevel.VERBOSE)
             }
         }
     }
@@ -163,7 +164,7 @@ object MainViewModel {
         selectedProperty(toggle) bindDual enabledProperty
         enabledProperty(comboBox) bindDual enabledProperty
         listProperty(comboBox) bindDual listProperty
-        selectedIndexProperty(comboBox) bindLeft selectedIndexProperty
+        selectedIndexProperty(comboBox) bindDual selectedIndexProperty
         textProperty(comboBox.editorComponent) bindDual editorContentProperty
         customProperty(comboBox, "errorMsg", "") bindLeft errorMessageProperty
     }

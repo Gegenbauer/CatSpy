@@ -102,7 +102,7 @@ class LogTableModel(
     }
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
-        return logRepository.accessLogItems(false) {logItems ->
+        return logRepository.accessLogItems { logItems ->
             if (rowIndex >= 0 && logRepository.getLogCount() > rowIndex) {
                 val logItem = logItems[rowIndex]
                 return@accessLogItems when(columnIndex) {
@@ -142,7 +142,7 @@ class LogTableModel(
         val selectedRow = logRepository.selectedRow
         val mainUI = contexts.getContext(LogMainUI::class.java)
         mainUI ?: return
-        logRepository.accessLogItems(false) { logItems ->
+        logRepository.accessLogItems { logItems ->
             var startRow = 0
             var endRow = 0
 
@@ -185,7 +185,7 @@ class LogTableModel(
     }
 
     fun getItem(row: Int): LogcatLogItem {
-        return logRepository.accessLogItems(false) { logItems ->
+        return logRepository.accessLogItems { logItems ->
             logItems[row]
         }
     }

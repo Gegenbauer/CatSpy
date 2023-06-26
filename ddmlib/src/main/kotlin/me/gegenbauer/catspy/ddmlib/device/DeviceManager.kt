@@ -4,37 +4,35 @@ import com.malinskiy.adam.AndroidDebugBridgeClientFactory
 import com.malinskiy.adam.request.device.AsyncDeviceMonitorRequest
 import com.malinskiy.adam.request.device.Device
 import com.malinskiy.adam.request.device.DeviceState
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.context.ContextService
+import me.gegenbauer.catspy.ddmlib.AdbStateChangeListener
 import me.gegenbauer.catspy.log.GLog
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-class DeviceManager(private val dispatcher: CoroutineDispatcher = Dispatchers.IO): ContextService {
+class DeviceManager: ContextService, AdbStateChangeListener {
 
+    private val scope = ModelScope()
     private val adb = AndroidDebugBridgeClientFactory().build()
-    private val taskScope = ModelScope()
     private val deviceListLock = ReentrantReadWriteLock()
     private val deviceLock = ReentrantReadWriteLock()
     private val deviceListListeners = mutableListOf<DeviceListListener>()
     private val deviceListeners = mutableListOf<DeviceListener>()
     private val currentDevices = mutableListOf<Device>()
 
-    fun startMonitor() {
+    private suspend fun startMonitor() {
+        GLog.d(TAG, "[startMonitor]")
         val deviceEventsChannel: ReceiveChannel<List<Device>> = adb.execute(
             request = AsyncDeviceMonitorRequest(),
-            scope = taskScope
+            scope = scope
         )
 
-        taskScope.launch(dispatcher) {
-            deviceEventsChannel.consumeEach { dispatchDeviceListChange(it) }
-        }
+        deviceEventsChannel.consumeEach { dispatchDeviceListChange(it) }
     }
 
     fun registerDeviceListener(listener: DeviceListListener) {
@@ -55,6 +53,7 @@ class DeviceManager(private val dispatcher: CoroutineDispatcher = Dispatchers.IO
     }
 
     private fun dispatchDeviceListChange(devices: List<Device>) {
+        GLog.d(TAG, "[dispatchDeviceListChange] devices: $devices")
         diffDeviceListChange(devices)
         deviceListLock.read { deviceListListeners.forEach { it.onDeviceListUpdate(devices) } }
         currentDevices.clear()
@@ -102,6 +101,14 @@ class DeviceManager(private val dispatcher: CoroutineDispatcher = Dispatchers.IO
     private fun dispatchDeviceDisconnect(device: Device) {
         GLog.d(TAG, "[dispatchDeviceDisconnect] $device")
         deviceLock.read { deviceListeners.forEach { it.onDeviceDisconnect(device) } }
+    }
+
+    override fun onStateChange(connected: Boolean) {
+        if (connected) {
+            scope.launch { startMonitor() }.invokeOnCompletion {
+                GLog.e(TAG, "[startMonitor] failed", it)
+            }
+        }
     }
 
     companion object {

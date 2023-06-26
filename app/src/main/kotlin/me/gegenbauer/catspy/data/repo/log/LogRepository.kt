@@ -27,9 +27,9 @@ interface LogRepository : LogObservable.Observer<LogcatLogItem> {
 
     fun removeLogChangeListener(listener: LogChangeListener)
 
-    fun <R> accessCacheItems(write: Boolean, visitor: (MutableList<LogcatLogItem>) -> R): R
+    fun <R> accessCacheItems(visitor: (MutableList<LogcatLogItem>) -> R): R
 
-    fun <R> accessLogItems(write: Boolean, visitor: (MutableList<LogcatLogItem>) -> R): R
+    fun <R> accessLogItems(visitor: (MutableList<LogcatLogItem>) -> R): R
 
     fun getLogCount(): Int
 

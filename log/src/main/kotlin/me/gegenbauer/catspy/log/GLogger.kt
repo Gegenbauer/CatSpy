@@ -24,7 +24,7 @@ class GLogger(tag: String) : ILogger {
         logger.warning(msg)
     }
 
-    override fun w(tag: String, msg: String, tr: Throwable) {
+    override fun w(tag: String, msg: String, tr: Throwable?) {
         logger.warning(msg + '\n' + tr.stackTraceString)
     }
 
@@ -32,7 +32,7 @@ class GLogger(tag: String) : ILogger {
         logger.severe(msg)
     }
 
-    override fun e(tag: String, msg: String, tr: Throwable) {
+    override fun e(tag: String, msg: String, tr: Throwable?) {
         logger.severe(msg + '\n' + tr.stackTraceString)
     }
 

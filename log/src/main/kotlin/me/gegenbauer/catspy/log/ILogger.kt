@@ -19,9 +19,9 @@ interface ILogger {
 
     fun w(tag: String, msg: String)
 
-    fun w(tag: String, msg: String, tr: Throwable)
+    fun w(tag: String, msg: String, tr: Throwable?)
 
     fun e(tag: String, msg: String)
 
-    fun e(tag: String, msg: String, tr: Throwable)
+    fun e(tag: String, msg: String, tr: Throwable?)
 }

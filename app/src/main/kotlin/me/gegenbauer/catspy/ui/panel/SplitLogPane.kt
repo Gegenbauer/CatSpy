@@ -79,6 +79,12 @@ class SplitLogPane(
         SwingUtilities.updateComponentTreeUI(this)
     }
 
+    override fun configureContext(context: Context) {
+        super.configureContext(context)
+        filteredLogPanel.setContexts(contexts)
+        fullLogPanel.setContexts(contexts)
+    }
+
     fun resetWithCurrentRotation() {
         changeRotation(rotation)
     }

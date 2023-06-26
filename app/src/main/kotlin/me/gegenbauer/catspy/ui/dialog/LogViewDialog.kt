@@ -1,8 +1,9 @@
 package me.gegenbauer.catspy.ui.dialog
 
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.ui.MainUI
 import me.gegenbauer.catspy.ui.log.LogMainUI
 import me.gegenbauer.catspy.utils.Utils
 import me.gegenbauer.catspy.viewmodel.MainViewModel
@@ -11,11 +12,15 @@ import java.awt.event.*
 import javax.swing.*
 
 
-class LogViewDialog(parent: JFrame, log: String, caretPos: Int) : JDialog(parent, false) {
+class LogViewDialog(
+    parent: JFrame,
+    log: String,
+    caretPos: Int,
+    override val contexts: Contexts = Contexts.default
+) : JDialog(parent, false), Context {
 
     private val textArea = JTextArea()
     private val scrollPane = JScrollPane(textArea)
-    private val mainUI = parent as MainUI
     private val popupMenu = PopUpLogViewDialog()
 
     init {
@@ -23,9 +28,6 @@ class LogViewDialog(parent: JFrame, log: String, caretPos: Int) : JDialog(parent
         textArea.isEditable = false
         textArea.caret.isVisible = true
         textArea.lineWrap = true
-
-        val logMainUI = DarkUIUtil.getParentOfType(this, LogMainUI::class.java)
-        textArea.font = logMainUI.customFont
 
         textArea.addKeyListener(KeyHandler())
         textArea.addMouseListener(MouseHandler())
@@ -49,6 +51,13 @@ class LogViewDialog(parent: JFrame, log: String, caretPos: Int) : JDialog(parent
         pack()
 
         Utils.installKeyStrokeEscClosing(this)
+    }
+
+    override fun configureContext(context: Context) {
+        super.configureContext(context)
+        val logMainUI = contexts.getContext(LogMainUI::class.java)
+        logMainUI ?: return
+        textArea.font = logMainUI.customFont
     }
 
     internal inner class KeyHandler : KeyAdapter() {

@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    implementation("com.android.tools.ddms:ddmlib:26.1.3")
+    api(AndroidDdm.groupName, AndroidDdm.ddmlib.artifact, AndroidDdm.ddmlib.version)
     api(Adam.groupName, Adam.adam.artifact, Adam.adam.version)
     implementation(Slf4j.groupName, Slf4j.simple.artifact, Slf4j.simple.version)
     compileOnly(projects.concurrency)

@@ -4,7 +4,6 @@ import kotlinx.coroutines.Dispatchers
 import me.gegenbauer.catspy.concurrency.IgnoreFastCallbackScheduler
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.databinding.property.support.BasePropertyAdapter
-import me.gegenbauer.catspy.utils.withPropertyChangeListenerDisabled
 import java.beans.PropertyChangeListener
 import javax.swing.JSplitPane
 
@@ -27,9 +26,9 @@ class JSplitPaneDividerProperty(component: JSplitPane) :
 
     override fun updateValue(value: Int?) {
         value ?: return
-        component.withPropertyChangeListenerDisabled(JSplitPane.DIVIDER_LOCATION_PROPERTY) {
-            component.dividerLocation = value
-            component.lastDividerLocation = value
-        }
+        component.removePropertyChangeListener(propertyChangeListener)
+        component.dividerLocation = value
+        component.lastDividerLocation = value
+        component.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, propertyChangeListener)
     }
 }

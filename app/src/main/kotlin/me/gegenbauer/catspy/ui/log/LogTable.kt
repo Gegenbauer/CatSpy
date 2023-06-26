@@ -68,6 +68,11 @@ class LogTable(
         }
     }
 
+    override fun configureContext(context: Context) {
+        super.configureContext(context)
+        tableModel.configureContext(context)
+    }
+
     private fun updateRowHeight() {
         setRowHeight(getFontMetrics(font).height)
     }
@@ -131,7 +136,7 @@ class LogTable(
         return rows.joinToString("\n") { this.tableModel.getItem(it).logLine }
     }
 
-    private fun updateBookmark(rows: IntArray) {
+    private fun updateBookmark(rows: List<Int>) {
         val context = contexts.getContext(LogMainUI::class.java) ?: return
         val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
         if (bookmarkManager.checkNewRow(rows)) {
@@ -141,7 +146,7 @@ class LogTable(
         }
     }
 
-    private fun deleteBookmark(rows: IntArray) {
+    private fun deleteBookmark(rows: List<Int>) {
         val context = contexts.getContext(LogMainUI::class.java) ?: return
         val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
         rows.forEach(bookmarkManager::removeBookmark)
@@ -198,7 +203,7 @@ class LogTable(
                     }
 
                     bookmarkItem -> {
-                        updateBookmark(selectedRows)
+                        updateBookmark(selectedNums())
                     }
 
                     reconnectItem -> {
@@ -239,12 +244,21 @@ class LogTable(
             if (SwingUtilities.isLeftMouseButton(event) && event.isDoubleClick) {
                 // 双击第一列更新书签，双击第二列显示详细日志
                 if (columnAtPoint(event.point) == COLUMN_NUM) {
-                    updateBookmark(selectedRows)
+                    updateBookmark(selectedNums())
                 } else {
                     showSelected(selectedRows)
                 }
             }
             super.mouseClicked(event)
+        }
+    }
+
+    private fun selectedNums(): List<Int> {
+        val selectedRows = selectedRows
+        return if (selectedRows.isEmpty()) {
+            emptyList()
+        } else {
+            selectedRows.map { tableModel.getItem(it).num }
         }
     }
 
@@ -260,7 +274,7 @@ class LogTable(
         override fun keyPressed(event: KeyEvent) {
             when {
                 event.keyCode == KeyEvent.VK_B && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> updateBookmark(
-                    selectedRows
+                    selectedNums()
                 )
 
                 event.keyCode == KeyEvent.VK_PAGE_DOWN -> downPage()
@@ -268,7 +282,7 @@ class LogTable(
                 event.keyCode == KeyEvent.VK_DOWN -> downLine()
                 event.keyCode == KeyEvent.VK_UP -> upLine()
                 event.keyCode == KeyEvent.VK_ENTER -> showSelected(selectedRows)
-                event.keyCode == KeyEvent.VK_DELETE -> deleteBookmark(selectedRows)
+                event.keyCode == KeyEvent.VK_DELETE -> deleteBookmark(selectedNums())
             }
             super.keyPressed(event)
         }

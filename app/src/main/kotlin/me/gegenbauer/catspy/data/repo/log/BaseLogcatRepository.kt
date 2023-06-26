@@ -69,20 +69,12 @@ abstract class BaseLogcatRepository(
         clear()
     }
 
-    override fun <R> accessCacheItems(write: Boolean, visitor: (MutableList<LogcatLogItem>) -> R): R {
-       return if (write) {
-           cacheItemLock.write { visitor(cacheItems) }
-       } else {
-           cacheItemLock.read { visitor(cacheItems) }
-       }
+    override fun <R> accessCacheItems(visitor: (MutableList<LogcatLogItem>) -> R): R {
+        return cacheItemLock.write { visitor(cacheItems) }
     }
 
-    override fun <R> accessLogItems(write: Boolean, visitor: (MutableList<LogcatLogItem>) -> R): R {
-       return if (write) {
-           logItemLock.write { visitor(logItems) }
-       } else {
-           logItemLock.read { visitor(logItems) }
-       }
+    override fun <R> accessLogItems(visitor: (MutableList<LogcatLogItem>) -> R): R {
+        return logItemLock.write { visitor(logItems) }
     }
 
     override fun onRepeat(task: Task) {
@@ -93,8 +85,8 @@ abstract class BaseLogcatRepository(
     }
 
     protected open fun processCacheForUIUpdate() {
-        accessLogItems(true) { logItems ->
-            accessCacheItems(true) { cacheItems ->
+        accessLogItems { logItems ->
+            accessCacheItems { cacheItems ->
                 if (cacheItems.isEmpty()) return@accessCacheItems
                 val rowBeforeAdd = logItems.size
                 logItems.addAll(cacheItems.filter(::filterRule))
@@ -107,7 +99,7 @@ abstract class BaseLogcatRepository(
     abstract fun filterRule(item: LogcatLogItem): Boolean
 
     protected open fun addLogItem(logItem: LogcatLogItem) {
-        accessCacheItems(true) { it.add(logItem) }
+        accessCacheItems { it.add(logItem) }
     }
 
     protected fun notifyLogItemInsert(startRow: Int, endRow: Int) {
@@ -174,6 +166,6 @@ abstract class BaseLogcatRepository(
     }
 
     override fun getLogCount(): Int {
-        return accessLogItems(false) { logItems.size }
+        return accessLogItems { logItems.size }
     }
 }

@@ -68,6 +68,12 @@ object TableLayout {
     val tablelayout = Dependency(groupName, "TableLayout", "20050920")
 }
 
+object AndroidDdm {
+    val groupName = "com.android.tools.ddms"
+
+    val ddmlib = Dependency(groupName, "ddmlib", "26.1.3")
+}
+
 data class Dependency(
     val group: String,
     val artifact: String,

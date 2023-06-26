@@ -60,11 +60,10 @@ class Application {
                 val mainUI = MainUI(STRINGS.ui.app, Contexts())
                 mainUI.configureContext(mainUI)
                 ThemeManager.applyTempTheme()
-                mainUI.pack()
                 mainUI.isVisible = true
                 ThemeManager.registerDefaultThemeUpdateListener()
 
-                addClickListenerForAllComponents(mainUI.components)
+                //addClickListenerForAllComponents(mainUI.components)
             }
         }
 
