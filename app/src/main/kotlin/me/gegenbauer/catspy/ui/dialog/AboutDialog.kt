@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.ui.dialog
 
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.version
-import me.gegenbauer.catspy.ui.button.GButton
+import me.gegenbauer.catspy.common.ui.button.GButton
 import me.gegenbauer.catspy.utils.Utils
 import java.awt.BorderLayout
 import java.awt.event.ActionEvent
@@ -11,7 +11,7 @@ import javax.swing.*
 
 class AboutDialog(parent: JFrame) :JDialog(parent, STRINGS.ui.about, true), ActionListener {
     private var aboutLabel: JLabel
-    private var closeBtn : JButton = GButton(STRINGS.ui.close)
+    private var closeBtn = GButton(STRINGS.ui.close)
 
     init {
         closeBtn.addActionListener(this)

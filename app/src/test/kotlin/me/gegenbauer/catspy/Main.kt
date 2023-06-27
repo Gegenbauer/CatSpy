@@ -6,13 +6,13 @@ import com.github.weisj.darklaf.ui.button.DarkButtonUI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.gegenbauer.catspy.common.configuration.ThemeManager
+import me.gegenbauer.catspy.common.viewmodel.GlobalViewModel
 import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.utils.filesDir
-import me.gegenbauer.catspy.viewmodel.GlobalViewModel
 import java.awt.Dimension
 import javax.swing.JFrame
 import javax.swing.JLabel

@@ -14,25 +14,17 @@ repositories {
 }
 
 dependencies {
-    implementation(files("../libs/flatlaf-2.1.jar"))
-    implementation(files("../libs/swingx-1.6.1.jar"))
     implementation(kotlin("reflect"))
 
     implementation(compose.desktop.currentOs)
-    implementation(projects.log)
+    implementation(projects.ui)
+    implementation(projects.glog)
     implementation(projects.concurrency)
     implementation(projects.databinding)
     implementation(projects.task)
     implementation(projects.ddmlib)
     implementation(projects.filter)
     implementation(projects.utils)
-
-    implementation(FormDev.groupName, FormDev.flatLaf.artifact, FormDev.flatLaf.version)
-    implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
-    implementation(Weisj.groupName, Weisj.darklafVisualPadding.artifact, Weisj.darklafVisualPadding.version)
-    implementation(Gson.groupName, Gson.gson.artifact, Gson.gson.version)
-    implementation(Fifesoft.groupName, Fifesoft.autocomplete.artifact, Fifesoft.autocomplete.version)
-    implementation(TableLayout.groupName, TableLayout.tablelayout.artifact, TableLayout.tablelayout.version)
 
     testImplementation(kotlin("test"))
     testImplementation(Mockk.groupName, Mockk.mockk.artifact, Mockk.mockk.version)

@@ -5,11 +5,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.cache.PatternProvider
+import me.gegenbauer.catspy.common.configuration.ThemeManager
+import me.gegenbauer.catspy.common.support.ColorScheme
+import me.gegenbauer.catspy.common.support.VStatusPanelTheme
+import me.gegenbauer.catspy.common.viewmodel.GlobalViewModel
 import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.configuration.ThemeManager
-import me.gegenbauer.catspy.configuration.toFont
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.componentName
@@ -17,14 +19,10 @@ import me.gegenbauer.catspy.ddmlib.device.DeviceManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
-import me.gegenbauer.catspy.ui.ColorScheme
 import me.gegenbauer.catspy.ui.MainUI
-import me.gegenbauer.catspy.ui.VStatusPanelTheme
 import me.gegenbauer.catspy.utils.currentPlatform
 import me.gegenbauer.catspy.utils.filesDir
 import me.gegenbauer.catspy.utils.isInDebugMode
-import me.gegenbauer.catspy.viewmodel.GlobalViewModel
-import me.gegenbauer.catspy.viewmodel.MainViewModel
 import java.awt.Container
 import java.util.*
 import javax.swing.JComponent
@@ -83,7 +81,6 @@ class Application {
 
         private fun adjustAfterThemeLoaded(theme: Theme, properties: Properties) {
             themeAwareControllers.forEach { it.onThemeChanged(theme, properties) }
-            MainViewModel.logFont.updateValue(theme.toFont())
         }
 
         private fun addClickListenerForAllComponents(components: Array<java.awt.Component>) {

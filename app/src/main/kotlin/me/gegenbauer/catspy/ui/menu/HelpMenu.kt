@@ -1,7 +1,8 @@
 package me.gegenbauer.catspy.ui.menu
 
+import me.gegenbauer.catspy.common.support.Menu
+import me.gegenbauer.catspy.common.ui.menu.GMenu
 import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.ui.Menu
 import me.gegenbauer.catspy.ui.dialog.AboutDialog
 import me.gegenbauer.catspy.ui.dialog.HelpDialog
 import me.gegenbauer.catspy.utils.findFrameFromParent

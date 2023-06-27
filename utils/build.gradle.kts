@@ -6,7 +6,7 @@ plugins {
 
 dependencies {
     implementation(Gson.groupName, Gson.gson.artifact, Gson.gson.version)
-    compileOnly(projects.log)
+    compileOnly(projects.glog)
     compileOnly(kotlin("reflect"))
     compileOnly(projects.concurrency)
     compileOnly(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)

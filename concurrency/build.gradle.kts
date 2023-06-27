@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly(projects.log)
+    compileOnly(projects.glog)
     api(Kotlin.groupName, Kotlin.coroutineCore.artifact, Kotlin.coroutineCore.version)
     api(Kotlin.groupName, Kotlin.coroutineSwing.artifact, Kotlin.coroutineSwing.version)
 }

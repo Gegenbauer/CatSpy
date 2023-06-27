@@ -6,7 +6,7 @@ plugins {
 
 dependencies {
     implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
-    compileOnly(projects.log)
+    compileOnly(projects.glog)
     compileOnly(projects.utils)
     compileOnly(projects.databinding)
     compileOnly(kotlin("reflect"))

@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly(projects.log)
+    compileOnly(projects.glog)
     compileOnly(projects.concurrency)
 }
 

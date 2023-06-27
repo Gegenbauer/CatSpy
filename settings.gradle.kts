@@ -4,12 +4,16 @@ rootProject.name = "CatSpy"
 include(
     "app",
     "databinding",
-    "log",
+    "glog",
     "concurrency",
     "ddmlib",
     "task",
     "filter",
     "utils",
+    "ui",
+    "ui:log",
+    "ui:script",
+    "ui:common",
 )
 
 pluginManagement {

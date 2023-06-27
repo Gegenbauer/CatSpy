@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.ui.dialog
 
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.helpText
-import me.gegenbauer.catspy.ui.button.GButton
+import me.gegenbauer.catspy.common.ui.button.GButton
 import me.gegenbauer.catspy.utils.Utils
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -12,7 +12,7 @@ import javax.swing.*
 
 class HelpDialog(parent: JFrame) : JDialog(parent, STRINGS.ui.help, true), ActionListener {
     private var helpTextPane: JTextPane
-    private var closeBtn: JButton = GButton(STRINGS.ui.close)
+    private var closeBtn = GButton(STRINGS.ui.close)
 
     init {
         closeBtn.addActionListener(this)
