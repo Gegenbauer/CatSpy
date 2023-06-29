@@ -54,15 +54,14 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
     }
 
     private fun startServices() {
-        val adbManager = ServiceManager.getContextService(AndroidDebugBridgeManager::class.java)
-        adbManager.init("adb")
         val deviceManager = ServiceManager.getContextService(DeviceManager::class.java)
-        adbManager.addListener(deviceManager)
+        deviceManager.startMonitor()
     }
 
     private fun bindGlobalViewModel() {
         selectedProperty(settingsMenu.globalDebug) bindDual GlobalViewModel.globalDebug
         selectedProperty(settingsMenu.bindingDebug) bindDual GlobalViewModel.dataBindingDebug
+        selectedProperty(settingsMenu.taskDebug) bindDual GlobalViewModel.taskDebug
     }
 
     override fun configureContext(context: Context) {

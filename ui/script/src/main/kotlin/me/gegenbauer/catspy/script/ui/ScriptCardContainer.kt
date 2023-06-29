@@ -1,11 +1,14 @@
 package me.gegenbauer.catspy.script.ui
 
+import me.gegenbauer.catspy.common.configuration.ThemeManager
 import me.gegenbauer.catspy.common.ui.card.Card
+import me.gegenbauer.catspy.common.ui.card.RoundedCard
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.log.GLog
 import java.awt.GridLayout
 import java.awt.event.ComponentAdapter
 import java.util.*
+import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JPanel
 
@@ -27,6 +30,7 @@ class ScriptCardContainer : CardContainer {
                 }
             }
         })
+        container.border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
     }
 
     private fun createRowPanel(): JPanel = JPanel(GridLayout(0, span)).apply {
@@ -35,6 +39,9 @@ class ScriptCardContainer : CardContainer {
 
     override fun addCard(card: Card) {
         cards.add(card)
+        if (card is RoundedCard) {
+            ThemeManager.registerThemeUpdateListener(card)
+        }
         val rowPanel = if (cards.size % span == 1) {
             createRowPanel().apply {
                 container.add(this)
@@ -50,6 +57,9 @@ class ScriptCardContainer : CardContainer {
             GLog.w(TAG, "[removeCard] card has not been added: $card")
         }
         cards.remove(card)
+        if (card is RoundedCard) {
+            ThemeManager.unregisterThemeUpdateListener(card)
+        }
         val rowPanel = container.getComponent(cards.size / span) as JPanel
         rowPanel.remove(card.component)
         if (rowPanel.componentCount == 0) {

@@ -1,12 +1,12 @@
 package me.gegenbauer.catspy.task
 
 import kotlinx.coroutines.*
+import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ModelScope
-import me.gegenbauer.catspy.log.GLog
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
-abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.IO, override val name: String) : Task {
+abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.GIO, override val name: String) : Task {
     override val scope: CoroutineScope = object : ModelScope() {
         override val coroutineContext: CoroutineContext
             get() = dispatcher + Job()
@@ -16,7 +16,7 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
     private val running = AtomicBoolean(false)
 
     override fun start() {
-        GLog.d(name, "[start]")
+        TaskLog.d(name, "[start]")
         notifyStart()
         scope.launch { startInCoroutine() }
     }
@@ -26,7 +26,7 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
     }
 
     override fun pause() {
-        GLog.d(name, "[pause]")
+        TaskLog.d(name, "[pause]")
         notifyPause()
     }
 
@@ -39,7 +39,7 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
     }
 
     override fun resume() {
-        GLog.d(name, "[resume]")
+        TaskLog.d(name, "[resume]")
         notifyResume()
     }
 
@@ -92,7 +92,7 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
     }
 
     override fun cancel() {
-        GLog.d(name, "[cancel]")
+        TaskLog.d(name, "[cancel]")
         notifyCancel()
         scope.cancel()
     }

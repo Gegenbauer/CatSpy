@@ -21,8 +21,9 @@ class SettingsMenu : GMenu() {
         }
     }
     private val debugMenu = JMenu(STRINGS.ui.debug)
-    val bindingDebug = JCheckBoxMenuItem("DataBinding")
     val globalDebug = JCheckBoxMenuItem("Global")
+    val bindingDebug = JCheckBoxMenuItem("DataBinding")
+    val taskDebug = JCheckBoxMenuItem("Task")
 
     init {
         text = STRINGS.ui.setting
@@ -31,6 +32,7 @@ class SettingsMenu : GMenu() {
         addSeparator()
         debugMenu.add(globalDebug)
         debugMenu.add(bindingDebug)
+        debugMenu.add(taskDebug)
         add(debugMenu)
     }
 }

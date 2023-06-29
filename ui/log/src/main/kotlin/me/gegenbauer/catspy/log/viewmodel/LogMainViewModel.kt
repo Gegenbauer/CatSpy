@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.log.viewmodel
 
 import com.github.weisj.darklaf.theme.Theme
-import com.github.weisj.darklaf.theme.event.ThemeChangeEvent
 import me.gegenbauer.catspy.common.configuration.GThemeChangeListener
 import me.gegenbauer.catspy.common.configuration.Rotation
 import me.gegenbauer.catspy.common.configuration.UIConfManager
@@ -296,7 +295,7 @@ class LogMainViewModel : ContextService, GThemeChangeListener {
         }
     }
 
-    override fun onThemeChange(e: ThemeChangeEvent) {
-        logFont.updateValue(e.newTheme.toFont())
+    override fun onThemeChange(theme: Theme) {
+        logFont.updateValue(theme.toFont())
     }
 }

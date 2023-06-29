@@ -60,7 +60,7 @@ class AndroidDebugBridgeManager : AndroidDebugBridge.IDebugBridgeChangeListener,
             if (bridge.isConnected.not()) {
                 delay(5000)
                 GLog.e(TAG, "[bridgeChanged] not connected to adb server, restart")
-                bridge.restart()
+                //bridge.restart()
             } else {
                 GLog.d(TAG, "[bridgeChanged] connected to adb server")
             }

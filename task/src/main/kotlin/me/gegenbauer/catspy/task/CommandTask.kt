@@ -5,7 +5,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
-import me.gegenbauer.catspy.log.GLog
 import java.io.BufferedInputStream
 import java.io.File
 import java.util.*
@@ -37,7 +36,7 @@ open class CommandTask(
     @OptIn(ExperimentalCoroutinesApi::class)
     protected open fun execute(): Flow<String> {
         if (process?.isAlive == true) {
-            GLog.w(name, "[execute] , CommandExecutor is now executing!")
+            TaskLog.w(name, "[execute] , CommandExecutor is now executing!")
             return emptyFlow()
         }
         return runCatching {
@@ -55,18 +54,18 @@ open class CommandTask(
                 }
             }.buffer(8 * 1024 * 1024 * 50, BufferOverflow.DROP_OLDEST)
         }.onFailure {
-            GLog.e(name, "[execute]", it)
+            TaskLog.e(name, "[execute]", it)
             notifyError(it)
         }.getOrElse { emptyFlow() }
     }
 
     protected open fun onProcessStart() {
-        GLog.d(name, "[onProcessStart] $process")
+        TaskLog.d(name, "[onProcessStart] $process")
         setRunning(true)
     }
 
     protected open fun onProcessEnd() {
-        GLog.d(name, "[onProcessEnd] $process")
+        TaskLog.d(name, "[onProcessEnd] $process")
         setRunning(false)
         notifyStop()
     }
@@ -79,7 +78,7 @@ open class CommandTask(
                     send(it.nextLine())
                 }
             }
-            GLog.d(name, "[readOutput] $process normally exit")
+            TaskLog.d(name, "[readOutput] $process normally exit")
             close()
         }
     }
@@ -89,7 +88,7 @@ open class CommandTask(
         async {
             process.errorStream.readAllBytes().toString(Charsets.UTF_8).let {
                 if (it.isNotEmpty()) {
-                    GLog.e(name, "[readError] $process, $it")
+                    TaskLog.e(name, "[readError] $process, $it")
                     notifyError(IllegalStateException(it))
                 }
             }
@@ -98,7 +97,7 @@ open class CommandTask(
 
     override fun cancel() {
         super.cancel()
-        GLog.d(name, "[cancel] kill process $process")
+        TaskLog.d(name, "[cancel] kill process $process")
         process?.destroyForcibly()
     }
 

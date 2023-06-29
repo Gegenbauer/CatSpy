@@ -25,14 +25,20 @@ class DeviceManager: ContextService, AdbStateChangeListener {
     private val deviceListeners = mutableListOf<DeviceListener>()
     private val currentDevices = mutableListOf<Device>()
 
-    private suspend fun startMonitor() {
-        GLog.d(TAG, "[startMonitor]")
-        val deviceEventsChannel: ReceiveChannel<List<Device>> = adb.execute(
-            request = AsyncDeviceMonitorRequest(),
-            scope = scope
-        )
+    fun startMonitor() {
+        scope.launch {
+            GLog.d(TAG, "[startMonitor]")
+            val deviceEventsChannel: ReceiveChannel<List<Device>> = adb.execute(
+                request = AsyncDeviceMonitorRequest(),
+                scope = scope
+            )
 
-        deviceEventsChannel.consumeEach { dispatchDeviceListChange(it) }
+            deviceEventsChannel.consumeEach { dispatchDeviceListChange(it) }
+            GLog.d(TAG, "[startMonitor] end, restart")
+
+            delay(3000)
+            startMonitor()
+        }
     }
 
     fun registerDeviceListener(listener: DeviceListListener) {
@@ -109,6 +115,10 @@ class DeviceManager: ContextService, AdbStateChangeListener {
                 GLog.e(TAG, "[startMonitor] failed", it)
             }
         }
+    }
+
+    fun getDevices(): List<Device> {
+        return currentDevices
     }
 
     companion object {

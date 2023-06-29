@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.task
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.concurrency.GIO
 import java.io.File
 
 /**
@@ -10,7 +10,7 @@ import java.io.File
  */
 open class ReadFileTask(
     private val file: File,
-) : PausableTask(Dispatchers.IO, "ReadFileTask") {
+) : PausableTask(Dispatchers.GIO, "ReadFileTask") {
 
     private var accumulateSize = 0
 
@@ -20,7 +20,7 @@ open class ReadFileTask(
             notifyError(IllegalArgumentException("File ${file.absolutePath} does not exist"))
             return
         }
-        GLog.d(name, "[startInCoroutine] read file: ${file.absolutePath}")
+        TaskLog.d(name, "[startInCoroutine] read file: ${file.absolutePath}")
         // read file and calculate progress
         val totalSize = file.length()
         val reader = file.bufferedReader()
@@ -34,11 +34,11 @@ open class ReadFileTask(
                 notifyProgress(it)
                 accumulateSize += it.length
                 if (accumulateSize == BATCH_COUNT) {
-                    GLog.d(name, "[startInCoroutine] progress=${accumulateSize / totalSize.toFloat()}}")
+                    TaskLog.d(name, "[startInCoroutine] progress=${accumulateSize / totalSize.toFloat()}}")
                 }
             }
         }
-        GLog.d(name, "[startInCoroutine] progress=${accumulateSize / totalSize.toFloat()}}")
+        TaskLog.d(name, "[startInCoroutine] progress=${accumulateSize / totalSize.toFloat()}}")
     }
 
     companion object {

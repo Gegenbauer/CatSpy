@@ -13,6 +13,7 @@ data class UIConf(
     var appHome: String = filesDir, // 应用程序主目录, 用于存放配置文件, 以及日志等临时文件
     var globalDebug: Boolean = false,
     var dataBindingDebug: Boolean = false,
+    var taskDebug: Boolean = false,
     /** 应用配置 end **/
 
     /** 主窗口配置 start **/

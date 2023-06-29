@@ -83,6 +83,8 @@ val Dispatchers.UI by lazy { Dispatchers.Swing }
  */
 val Dispatchers.CPU by lazy { Dispatchers.Default }
 
+val Dispatchers.GIO by lazy { Dispatchers.IO }
+
 /**
  * 埋点的调度器，启动时阻塞
  */

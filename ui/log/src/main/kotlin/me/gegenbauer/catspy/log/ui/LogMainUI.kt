@@ -12,6 +12,7 @@ import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import me.gegenbauer.catspy.common.configuration.GThemeChangeListener
 import me.gegenbauer.catspy.common.configuration.ThemeManager
 import me.gegenbauer.catspy.common.configuration.UIConfManager
 import me.gegenbauer.catspy.common.log.FilterItem
@@ -241,7 +242,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
             splitLogPane.fullLogPanel.customFont = value
         }
 
-    private val themeChangeListener: (ThemeChangeEvent) -> Unit = {
+    private val themeChangeListener = GThemeChangeListener {
         registerComboBoxEditorEvent()
     }
 

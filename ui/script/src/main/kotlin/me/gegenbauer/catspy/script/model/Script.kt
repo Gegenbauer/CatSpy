@@ -8,21 +8,26 @@ data class Script(
     val type: ScriptType,
     val sourceCode: String,
     val description: String = "",
-)
+) {
+    fun getCommand(): String {
+        return "${type.prefix} $sourceCode"
+    }
+}
 
 data class ScriptType(
     val name: String,
     val category: ScriptCategory,
+    val prefix: String,
 ) {
     companion object {
-        val adb = ScriptType("adb", android)
+        val adb = ScriptType("adb", android, "adb shell")
     }
 }
 
 val scriptCategories = mutableListOf(
     android,
 )
-val scriptTypes = mutableListOf<ScriptType>(
+val scriptTypes = mutableListOf(
     adb
 )
 

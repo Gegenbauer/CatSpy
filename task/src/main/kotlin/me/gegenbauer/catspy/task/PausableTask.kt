@@ -3,13 +3,14 @@ package me.gegenbauer.catspy.task
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import me.gegenbauer.catspy.concurrency.CancellablePause
+import me.gegenbauer.catspy.concurrency.GIO
 
 /**
  * A task that can be paused and resumed.
  * @param dispatcher The dispatcher to run the task on. Note that can not pass in [Dispatchers.Main] because
  * it will cause the UI to freeze.
  */
-abstract class PausableTask(dispatcher: CoroutineDispatcher = Dispatchers.IO, name: String) :
+abstract class PausableTask(dispatcher: CoroutineDispatcher = Dispatchers.GIO, name: String) :
     BaseObservableTask(dispatcher, name) {
 
     protected val cancellablePause = CancellablePause(name)

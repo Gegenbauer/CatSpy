@@ -1,5 +1,7 @@
 package me.gegenbauer.catspy.common.ui.card
 
+import com.github.weisj.darklaf.theme.Theme
+import me.gegenbauer.catspy.common.configuration.GThemeChangeListener
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JPanel
@@ -9,10 +11,9 @@ import javax.swing.JPanel
  */
 open class RoundedCard @JvmOverloads constructor(
     private val radius: Int = 30,
-    private val background: Color = Color.WHITE,
     layout: LayoutManager = FlowLayout(),
     private val shadowSize: Int = 8
-) : JPanel(layout) {
+) : JPanel(layout), GThemeChangeListener {
     private val padding = shadowSize + 8
 
     init {
@@ -36,5 +37,13 @@ open class RoundedCard @JvmOverloads constructor(
 
         super.paintComponent(g)
         g2.dispose()
+    }
+
+    override fun onThemeChange(theme: Theme) {
+        if (Theme.isDark(theme)) {
+            background = Color(0x2B2B2B)
+        } else {
+            background = Color(0xFFFFFF)
+        }
     }
 }

@@ -4,6 +4,8 @@ import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.settings.SettingsConfiguration
 import com.github.weisj.darklaf.settings.ThemeSettings
 import com.github.weisj.darklaf.theme.Theme
+import com.github.weisj.darklaf.theme.event.ThemeChangeEvent
+import com.github.weisj.darklaf.theme.event.ThemeChangeListener
 import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
 import kotlinx.coroutines.Dispatchers
@@ -47,8 +49,9 @@ object ThemeManager {
         }
     }
 
-    fun registerThemeUpdateListener(listener: GThemeChangeListener) {
+    fun registerThemeUpdateListener(listener: ThemeChangeListener) {
         LafManager.addThemeChangeListener(listener)
+        listener.onEvent(ThemeChangeEvent(ThemeSettings.getInstance().theme, ThemeSettings.getInstance().theme))
     }
 
     fun unregisterThemeUpdateListener(listener: GThemeChangeListener) {

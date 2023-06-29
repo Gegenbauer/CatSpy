@@ -1,16 +1,17 @@
 package me.gegenbauer.catspy.common.configuration
 
+import com.github.weisj.darklaf.theme.Theme
 import com.github.weisj.darklaf.theme.event.ThemeChangeEvent
 import com.github.weisj.darklaf.theme.event.ThemeChangeListener
 
 fun interface GThemeChangeListener : ThemeChangeListener {
     override fun themeChanged(e: ThemeChangeEvent) {
-        onThemeChange(e)
+        onThemeChange(e.newTheme)
     }
 
     override fun themeInstalled(e: ThemeChangeEvent) {
-        onThemeChange(e)
+        onThemeChange(e.newTheme)
     }
 
-    fun onThemeChange(e: ThemeChangeEvent)
+    fun onThemeChange(theme: Theme)
 }

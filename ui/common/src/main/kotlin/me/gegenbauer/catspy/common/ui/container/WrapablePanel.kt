@@ -1,14 +1,15 @@
 package me.gegenbauer.catspy.common.ui.container
 
+import me.gegenbauer.catspy.common.configuration.GThemeChangeListener
 import me.gegenbauer.catspy.common.configuration.ThemeManager
 import javax.swing.JPanel
 
 class WrapablePanel : JPanel() {
     init {
         layout = WrapableLayout(HORIZONTAL_GAP, VERTICAL_GAP)
-        ThemeManager.registerThemeUpdateListener { _ ->
+        ThemeManager.registerThemeUpdateListener(GThemeChangeListener {
             (layout as WrapableLayout).resizeComponent(this)
-        }
+        })
     }
 
 
