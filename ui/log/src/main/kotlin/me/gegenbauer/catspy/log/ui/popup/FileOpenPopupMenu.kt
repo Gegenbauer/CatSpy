@@ -104,7 +104,7 @@ class FileOpenPopupMenu(override val contexts: Contexts = Contexts.default) : JP
         multiSelection: Boolean,
         onFilesSelected: (Array<File>) -> Unit
     ) {
-        val frame = DarkUIUtil.getParentOfType(JFrame::class.java, this)
+        val frame = DarkUIUtil.getParentOfType(JFrame::class.java, invoker)
         val chooser = JFileChooser(userHome)
         chooser.dialogTitle = STRINGS.ui.file + " " + title
         chooser.preferredSize = Dimension(

@@ -18,7 +18,7 @@ class CancellablePause(private val name: String = "") {
             return
         }
         return suspendCancellableCoroutine {
-            GLog.d("CancellablePause", "[$name] [pause]")
+            GLog.d(TAG, "[$name] [pause]")
             cancellableContinuation = it
             paused.set(true)
             timer = Timer()
@@ -55,5 +55,9 @@ class CancellablePause(private val name: String = "") {
 
     fun isPausing(): Boolean {
         return paused.get()
+    }
+
+    companion object {
+        private const val TAG = "CancellablePause"
     }
 }

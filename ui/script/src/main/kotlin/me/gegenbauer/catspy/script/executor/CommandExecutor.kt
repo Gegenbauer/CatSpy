@@ -34,6 +34,7 @@ class CommandExecutor(
     }
 
     override fun execute(device: Device): Flow<ShellCommandResult> = flow {
+        cachedOutput.clear()
         taskManager.exec(this@CommandExecutor)
         if (output.get() == null) {
             countDownLatch.await()

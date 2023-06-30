@@ -60,7 +60,7 @@ data class FilterItem(
             val positiveMatcher = this.positiveFilter.matcher(text)
             val matchedList = mutableListOf<Pair<Int, Int>>()
             while (positiveMatcher.find()) {
-                matchedList.add(Pair(positiveMatcher.start(), positiveMatcher.end()))
+                matchedList.add(Pair(positiveMatcher.start(), positiveMatcher.end() - 1))
             }
             return matchedList
         }

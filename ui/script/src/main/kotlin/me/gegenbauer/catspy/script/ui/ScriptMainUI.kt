@@ -32,7 +32,7 @@ class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(
     private val buildTimeScript = Script(
         "BuildTime",
         ScriptType.adb,
-        "getprop ro.build.date.utc"
+        "getprop ro.build.inside.id"
     )
     private val focusedActivityCard = ScriptCard(taskManager, ScriptUIItem(getFocusedActivityScript, focusedActivityParseRule))
     private val focusedActivityCard2 = ScriptCard(taskManager, ScriptUIItem(getFocusedActivityScript, focusedActivityParseRule2))
@@ -60,7 +60,7 @@ class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(
         cardContainer.addCard(focusedActivityCard2)
         cardContainer.addCard(deviceInfoCard)
 
-        cardContainer.setAutomaticallyUpdate(true)
+        //cardContainer.setAutomaticallyUpdate(true)
     }
 
     override fun configureContext(context: Context) {

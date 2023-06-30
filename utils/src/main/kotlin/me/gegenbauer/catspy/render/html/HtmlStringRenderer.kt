@@ -1,8 +1,11 @@
 package me.gegenbauer.catspy.render.html
 
 import me.gegenbauer.catspy.render.StringRenderer
+import me.gegenbauer.catspy.render.Tag
+import me.gegenbauer.catspy.render.TaggedStringBuilder
 import me.gegenbauer.catspy.utils.toHtml
 import java.awt.Color
+import java.util.*
 import kotlin.math.roundToInt
 
 /**
@@ -11,6 +14,10 @@ import kotlin.math.roundToInt
 class HtmlStringRenderer(override val raw: String) : StringRenderer {
     private val spans = mutableListOf<Span>()
 
+    /**
+     * @param start inclusive
+     * @param end inclusive
+     */
     override fun bold(start: Int, end: Int): StringRenderer {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.BOLD))
@@ -18,6 +25,10 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
         return this
     }
 
+    /**
+     * @param start inclusive
+     * @param end inclusive
+     */
     override fun italic(start: Int, end: Int): StringRenderer {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.ITALIC))
@@ -25,6 +36,10 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
         return this
     }
 
+    /**
+     * @param start inclusive
+     * @param end inclusive
+     */
     override fun strikethrough(start: Int, end: Int): StringRenderer {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.STRIKETHROUGH))
@@ -32,6 +47,10 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
         return this
     }
 
+    /**
+     * @param start inclusive
+     * @param end inclusive
+     */
     override fun highlight(start: Int, end: Int, color: Color): StringRenderer {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.HIGHLIGHT, color))
@@ -39,6 +58,10 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
         return this
     }
 
+    /**
+     * @param start inclusive
+     * @param end inclusive
+     */
     override fun foreground(start: Int, end: Int, color: Color): StringRenderer {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.FOREGROUND, color))
@@ -46,6 +69,10 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
         return this
     }
 
+    /**
+     * @param start inclusive
+     * @param end inclusive
+     */
     override fun underline(start: Int, end: Int): StringRenderer {
         if (checkIndex(start, end)) {
             spans.add(Span(start, end, SpanType.UNDERLINE))
@@ -58,74 +85,98 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
     }
 
     override fun render(): String {
-        if (raw.isEmpty()) {
-            return raw
-        }
-        if (spans.isEmpty()) {
+        if (raw.isEmpty() || spans.isEmpty()) {
             return raw
         }
 
-        val spanPoints = sortedSetOf<Int>()
-        spans.forEach {
-            spanPoints.add(it.start)
-            spanPoints.add(it.end)
+        val builder = TaggedStringBuilder(raw)
+        spans.add(Span(0, raw.length - 1, SpanType.NORMAL))
+        val splitIntervals = splitStringIntoIntervals(spans)
+        val splitSpans = getSplitSpans(splitIntervals)
+
+        val mergedSpans = mergeSpans(splitSpans)
+        val spansGroupByStart = mergedSpans.groupBy { it.start }.map { it.value }
+
+        builder.addTag(Tag.HTML)
+        spansGroupByStart.forEach {
+            val start = it.first().start
+            val end = it.first().end
+            val styledSpan = it.filter { span -> span.type != SpanType.NORMAL }
+            if (styledSpan.isEmpty()) {
+                builder.append(raw.substring(start, end + 1).formatted)
+            } else {
+                val css = styledSpan.joinToString("") { span -> span.css() }
+                builder.addTag(Tag.SPAN, "style=\"$css\"")
+                builder.append(raw.substring(start, end + 1).formatted)
+                builder.closeTag(Tag.SPAN)
+            }
         }
-        spanPoints.add(0)
-        spanPoints.add(raw.length - 1)
+        builder.closeTag()
+        return builder.build()
+    }
 
-        val singleCharSpans = spans.filter { it.start == it.end }
+    /**
+     * 将 span 按照 start 和 end 划分成不重叠的区间
+     * 需要处理区间存在交集的情况，如果存在交集，则需要划分成多个区间
+     * 例如：区间 [0, 10] 和 [5, 15]，则需要划分成 [0, 4], [5, 10], [11, 15]
+     * 例如：区间 [0, 0] 和 [0, 3]，则需要划分成 [0, 0], [1, 3]
+     */
+    private fun splitStringIntoIntervals(spans: List<Span>): List<IntRange> {
+        val points = mutableListOf<Pair<Int, Int>>()
+        for (span in spans) {
+            points.add(Pair(span.start, 1))
+            points.add(Pair(span.end + 1, -1))
+        }
+        points.sortBy { it.first }
 
+        var count = 0
+        var start = 0
+        val result = mutableListOf<IntRange>()
+        for ((point, delta) in points) {
+            if (count > 0 && point != start) {
+                result.add(start until point)
+            }
+            start = point
+            count += delta
+        }
+
+        return result
+    }
+
+    private fun getSplitSpans(splitIntervals: List<IntRange>): List<Span> {
         // 根据所有 start 和 end 重新划分 span
-        val subSpans = mutableListOf<Span>()
-        for (i in 0 until spanPoints.size) {
-            // 特殊情况 start == end
-            val subSingleCharSpans = singleCharSpans.filter { it.start == spanPoints.elementAt(i) }
-            if (subSingleCharSpans.isNotEmpty()) {
-                subSpans.addAll(subSingleCharSpans)
+        val splitSpans = mutableListOf<Span>()
+        for (i in splitIntervals.indices) {
+            val start = splitIntervals[i].first
+            val end = splitIntervals[i].last
+            val coveringSpans = spans.filter { start >= it.start && end <= it.end }
+            coveringSpans.forEach {
+                splitSpans.add(Span(start, end, it.type, it.color))
             }
-            if (i < spanPoints.size - 1) {
-                val start = spanPoints.elementAt(i)
-                val end = spanPoints.elementAt(i + 1)
-
-                val coveringSpans = spans.filter { start >= it.start && end <= it.end }
-                coveringSpans.forEach {
-                    subSpans.add(Span(start, end, it.type, it.color))
-                }
-                if (coveringSpans.isEmpty()) {
-                    subSpans.add(Span(start, end, SpanType.NORMAL))
-                }
+            if (coveringSpans.isEmpty()) {
+                splitSpans.add(Span(start, end, SpanType.NORMAL))
             }
         }
+        return splitSpans
+    }
 
+    private fun mergeSpans(spans: List<Span>): List<Span> {
         // 合并重叠 span
-        val overlappedSameTypeSpans = subSpans.groupBy { it.start.hashCode() + it.type.hashCode() }
-            .map { it.value }
+        val overlappedSameTypeSpans = spans.groupBy { it.start.hashCode() + it.type.hashCode() }.map { it.value }
 
         val mergedSpan = mutableListOf<Span>()
 
         overlappedSameTypeSpans.forEach {
             // color 不为空的，则计算 color 平均值
             // 否则只取一个
-            val color = if (it.first().color != null) {
-                averageColor(it.map { span -> span.color!! })
+            val color = if (it.first().isColorType()) {
+                averageColor(it.map { span -> span.color })
             } else {
                 it.first().color
             }
             mergedSpan.add(Span(it.first().start, it.first().end, it.first().type, color))
         }
-
-        val spansGroupByStart = mergedSpan.groupBy { it.start }.map { it.value }
-
-        val result = StringBuilder("<html>")
-        spansGroupByStart.forEach {
-            val start = it.first().start
-            val end = it.first().end
-            val css = it.joinToString("") { span -> span.css() }
-            result.append("<span style=\"$css\">${raw.substring(start, end + 1).formatted}</span>")
-        }
-        result.append("</html>")
-
-        return result.toString()
+        return mergedSpan
     }
 
     override fun clear(type: SpanType) {
@@ -146,7 +197,7 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
         val start: Int,
         val end: Int,
         val type: SpanType,
-        val color: Color? = null
+        val color: Color = Color.BLACK
     ) {
         fun css(): String = when (type) {
             SpanType.NORMAL -> ""
@@ -154,8 +205,8 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
             SpanType.ITALIC -> "font-style:italic;"
             SpanType.UNDERLINE -> "text-decoration:underline;"
             SpanType.STRIKETHROUGH -> "text-decoration:line-through;"
-            SpanType.HIGHLIGHT -> "background-color:${color!!.toHtml()};"
-            SpanType.FOREGROUND -> "color:${color!!.toHtml()};"
+            SpanType.HIGHLIGHT -> "background-color:${color.toHtml()};"
+            SpanType.FOREGROUND -> "color:${color.toHtml()};"
         }
     }
 
@@ -163,5 +214,7 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
         NORMAL, BOLD, ITALIC, UNDERLINE, STRIKETHROUGH, HIGHLIGHT, FOREGROUND
     }
 
-
+    private fun Span.isColorType(): Boolean {
+        return this.type == SpanType.HIGHLIGHT || this.type == SpanType.FOREGROUND
+    }
 }
