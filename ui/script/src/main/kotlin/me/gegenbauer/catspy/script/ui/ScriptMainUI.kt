@@ -7,7 +7,7 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.componentName
-import me.gegenbauer.catspy.ddmlib.device.DeviceManager
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.script.model.Script
 import me.gegenbauer.catspy.script.model.ScriptType
 import me.gegenbauer.catspy.script.parser.DirectRule
@@ -22,8 +22,6 @@ class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(
     private val cardContainer = ScriptCardContainer()
 
     private val focusedActivityParseRule = RegexRule("mCurrentFocus=Window\\{[0-9a-z]+ [0-9a-z]+ (.*)\\}", DirectRule())
-    private val focusedActivityParseRule2 =
-        RegexRule("mCurrentFocus=Window\\{[0-9a-z]+ [0-9a-z]+ (.*)\\}", DirectRule())
     private val getFocusedActivityScript = Script(
         "GetFocusedActivity",
         ScriptType.adb,
@@ -34,12 +32,41 @@ class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(
         ScriptType.adb,
         "getprop ro.build.inside.id"
     )
+    private val windowSize = Script(
+        "WindowSize",
+        ScriptType.adb,
+        "wm size"
+    )
+    private val windowDensity = Script(
+        "WindowDensity",
+        ScriptType.adb,
+        "wm density"
+    )
+    private val windowOrientation = Script(
+        "WindowOrientation",
+        ScriptType.adb,
+        "dumpsys input | grep 'SurfaceOrientation'"
+    )
+    private val windowState = Script(
+        "WindowState",
+        ScriptType.adb,
+        "dumpsys window | grep 'mCurrentFocus'"
+    )
+    private val windowResolution = Script(
+        "WindowResolution",
+        ScriptType.adb,
+        "dumpsys window | grep 'DisplayWidth'"
+    )
     private val focusedActivityCard = ScriptCard(taskManager, ScriptUIItem(getFocusedActivityScript, focusedActivityParseRule))
-    private val focusedActivityCard2 = ScriptCard(taskManager, ScriptUIItem(getFocusedActivityScript, focusedActivityParseRule2))
     private val deviceInfoCard = DeviceInfoCard(
         listOf(
             ScriptUIItem(getFocusedActivityScript, focusedActivityParseRule),
-            ScriptUIItem(buildTimeScript, DirectRule())
+            ScriptUIItem(windowSize),
+            ScriptUIItem(buildTimeScript),
+            ScriptUIItem(windowDensity),
+            ScriptUIItem(windowOrientation),
+            ScriptUIItem(windowState),
+            ScriptUIItem(windowResolution)
         ),
         taskManager
     )
@@ -48,7 +75,6 @@ class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(
         set(value) {
             field = value
             focusedActivityCard.device = value
-            focusedActivityCard2.device = value
         }
 
     init {
@@ -57,18 +83,16 @@ class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(
         add(cardContainer.container, BorderLayout.NORTH)
 
         cardContainer.addCard(focusedActivityCard)
-        cardContainer.addCard(focusedActivityCard2)
         cardContainer.addCard(deviceInfoCard)
 
-        //cardContainer.setAutomaticallyUpdate(true)
+        cardContainer.setAutomaticallyUpdate(true)
     }
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
         focusedActivityCard.setContexts(contexts)
-        focusedActivityCard2.setContexts(contexts)
         currentDevice =
-            ServiceManager.getContextService(DeviceManager::class.java).getDevices().firstOrNull() ?: currentDevice
+            ServiceManager.getContextService(AdamDeviceManager::class.java).getDevices().firstOrNull() ?: currentDevice
     }
 
     private fun updateCardContent() {

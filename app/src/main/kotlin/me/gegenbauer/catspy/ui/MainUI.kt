@@ -9,8 +9,7 @@ import me.gegenbauer.catspy.context.GlobalContextManager
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
-import me.gegenbauer.catspy.ddmlib.AndroidDebugBridgeManager
-import me.gegenbauer.catspy.ddmlib.device.DeviceManager
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.log.ui.LogMainUI
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
@@ -54,7 +53,7 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
     }
 
     private fun startServices() {
-        val deviceManager = ServiceManager.getContextService(DeviceManager::class.java)
+        val deviceManager = ServiceManager.getContextService(AdamDeviceManager::class.java)
         deviceManager.startMonitor()
     }
 

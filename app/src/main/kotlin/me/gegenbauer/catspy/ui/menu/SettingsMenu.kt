@@ -13,7 +13,6 @@ import javax.swing.JMenu
 import javax.swing.JMenuItem
 
 class SettingsMenu : GMenu() {
-    // TODO itemFilterIncremental has no sense
     private val itemThemeSettings = JMenuItem(STRINGS.ui.theme).apply {
         icon = loadDarklafThemedIcon("menu/themeSettings.svg", MENU_ITEM_ICON_SIZE)
         addActionListener { _: ActionEvent ->

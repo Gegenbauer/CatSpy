@@ -58,6 +58,6 @@ data class PatternKey(
     val matchCase: Boolean = false
 ) {
     fun getPatternFlag(): Int {
-        return if (matchCase) Pattern.CASE_INSENSITIVE else 0
+        return if (matchCase) 0 else Pattern.CASE_INSENSITIVE
     }
 }

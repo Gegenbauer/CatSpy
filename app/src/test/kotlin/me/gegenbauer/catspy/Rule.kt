@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy
 
-import me.gegenbauer.catspy.script.parse.DirectRule
-import me.gegenbauer.catspy.script.parse.RegexRule
+import me.gegenbauer.catspy.script.parser.DirectRule
+import me.gegenbauer.catspy.script.parser.RegexRule
 
 /**
  * 从下面这个字符串中提取出 com.google.android.apps.nexuslauncher/.NexusLauncherActivity

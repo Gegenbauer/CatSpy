@@ -14,7 +14,6 @@ class StatefulToggleButton(
     tooltip: String? = null
 ) : JToggleButton(originalText, originalIcon), StatefulActionComponent {
 
-    // TODO observe night mode change
     override var buttonDisplayMode: ButtonDisplayMode? =
         ButtonDisplayMode.ALL
         set(value) {

@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version Kotlin.version
     id("org.jetbrains.compose") version Compose.version
+    id("io.gitlab.arturbosch.detekt") version("1.21.0")
 }
 
 repositories {

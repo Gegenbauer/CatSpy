@@ -89,6 +89,6 @@ class ScriptCardContainer : CardContainer {
 
     companion object {
         private const val TAG = "ScriptCardContainer"
-        private const val CARD_WIDTH_THRESHOLD = 500
+        private const val CARD_WIDTH_THRESHOLD = 1200
     }
 }

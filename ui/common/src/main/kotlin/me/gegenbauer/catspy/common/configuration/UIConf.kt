@@ -5,7 +5,6 @@ import me.gegenbauer.catspy.utils.filesDir
 import java.awt.Font
 import java.awt.Frame
 
-// TODO 日志过滤器无法添加；
 data class UIConf(
     /** 应用配置 start **/
     var versionCode: Int = 10000,

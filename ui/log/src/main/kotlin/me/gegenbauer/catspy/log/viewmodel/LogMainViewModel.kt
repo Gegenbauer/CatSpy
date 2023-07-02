@@ -25,7 +25,6 @@ import me.gegenbauer.catspy.utils.getEnum
 import javax.swing.JComponent
 import javax.swing.JToggleButton
 
-// TODO 改为类
 class LogMainViewModel : ContextService, GThemeChangeListener {
 
     //region Toolbar
@@ -193,9 +192,7 @@ class LogMainViewModel : ContextService, GThemeChangeListener {
             //endregion
 
             //region Style
-            bindWithButtonDisplayMode(
-                startBtn, stopBtn, pauseToggle, saveBtn, clearViewsBtn, adbConnectBtn, adbRefreshBtn, adbDisconnectBtn
-            )
+            bindWithButtonDisplayMode(startBtn, stopBtn, pauseToggle, saveBtn, clearViewsBtn)
             //endregion
 
             logLevelFilterCurrentContent.addObserver {

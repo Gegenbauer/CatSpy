@@ -15,7 +15,7 @@ import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.componentName
-import me.gegenbauer.catspy.ddmlib.device.DeviceManager
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
@@ -66,7 +66,7 @@ class Application {
         }
 
         private fun registerGlobalService() {
-            ServiceManager.registerContextService(DeviceManager::class.java)
+            ServiceManager.registerContextService(AdamDeviceManager::class.java)
             ServiceManager.registerContextService(PatternProvider::class.java)
         }
 

@@ -3,7 +3,6 @@ package me.gegenbauer.catspy.log.ui
 import com.github.weisj.darklaf.iconset.AllIcons
 import com.github.weisj.darklaf.settings.ThemeSettings
 import com.github.weisj.darklaf.theme.Theme
-import com.github.weisj.darklaf.theme.event.ThemeChangeEvent
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import com.malinskiy.adam.request.device.Device
 import info.clearthought.layout.TableLayout
@@ -17,6 +16,7 @@ import me.gegenbauer.catspy.common.configuration.ThemeManager
 import me.gegenbauer.catspy.common.configuration.UIConfManager
 import me.gegenbauer.catspy.common.log.FilterItem
 import me.gegenbauer.catspy.common.log.LogLevel
+import me.gegenbauer.catspy.common.log.toFilterItem
 import me.gegenbauer.catspy.common.ui.button.*
 import me.gegenbauer.catspy.common.ui.combobox.*
 import me.gegenbauer.catspy.common.ui.icon.DayNightIcon
@@ -29,7 +29,7 @@ import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.PROPERTY_TEXT
 import me.gegenbauer.catspy.ddmlib.device.DeviceListListener
-import me.gegenbauer.catspy.ddmlib.device.DeviceManager
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.model.LogcatLogItem
@@ -90,7 +90,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     val showLogToggle =
         ColorToggleButton(STRINGS.ui.log, STRINGS.toolTip.logToggle)
     val showLogCombo = filterComboBox(tooltip = STRINGS.toolTip.logCombo) withName STRINGS.ui.log
-    // TODO 布局需要优化
+
     val showTagToggle =
         ColorToggleButton(STRINGS.ui.tag, STRINGS.toolTip.tagToggle)
     val showTagCombo = filterComboBox(tooltip = STRINGS.toolTip.tagCombo) withName STRINGS.ui.tag
@@ -141,23 +141,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         STRINGS.toolTip.saveBtn
     )
     val deviceCombo = readOnlyComboBox(STRINGS.toolTip.devicesCombo)
-    private val deviceStatus = JLabel("None", JLabel.LEFT) // TODO 整理设备连接状态相关的代码
-    val adbConnectBtn = StatefulButton(
-        loadIcon("connect.png"),
-        STRINGS.ui.connect,
-        STRINGS.toolTip.connectBtn
-    )
-    val adbDisconnectBtn =
-        StatefulButton(
-            loadIcon("disconnect.png"),
-            STRINGS.ui.disconnect,
-            STRINGS.toolTip.disconnectBtn
-        )
-    val adbRefreshBtn = StatefulButton(
-        loadIcon("refresh.png"),
-        STRINGS.ui.refresh,
-        STRINGS.toolTip.refreshBtn
-    )
     val rotateLogPanelBtn =
         StatefulButton(
             loadThemedIcon("rotate.svg"),
@@ -260,8 +243,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
         registerEvent()
 
-        observeViewModelValue()
 
+        observeViewModelValue()
         viewModel.bind(this)
         ThemeManager.registerThemeUpdateListener(viewModel)
 
@@ -275,7 +258,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         fullTableModel.setContexts(contexts)
         filePopupMenu.setContexts(contexts)
 
-        ServiceManager.getContextService(DeviceManager::class.java).registerDeviceListener(devicesChangeListener)
+        ServiceManager.getContextService(AdamDeviceManager::class.java).registerDevicesListener(devicesChangeListener)
         registerSearchStroke()
     }
 
@@ -309,10 +292,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     private fun createUI() {
         boldLogCombo.enabledTfTooltip = false
 
-        deviceStatus.isEnabled = false
         deviceCombo.setWidth(150)
-
-        deviceStatus.horizontalAlignment = JLabel.CENTER
 
         val p = PREFERRED
         logPanel.layout = TableLayout(
@@ -344,10 +324,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         logToolBar.add(saveBtn)
         logToolBar.addVSeparator2()
         logToolBar.add(deviceCombo)
-        logToolBar.add(deviceStatus)
-        logToolBar.add(adbConnectBtn)
-        logToolBar.add(adbDisconnectBtn)
-        logToolBar.add(adbRefreshBtn)
         logToolBar.addVSeparator2()
         logToolBar.add(rotateLogPanelBtn)
         logToolBar.addVSeparator2()
@@ -376,7 +352,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         statusBar.add(statusMethod, BorderLayout.WEST)
         statusBar.add(statusTF, BorderLayout.CENTER)
 
-        deviceStatus.text = STRINGS.ui.connected
         setDeviceComboColor(true)
 
         customFont = UIConfManager.uiConf.getLogFont()
@@ -450,9 +425,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         clearViewsBtn.addMouseListener(mouseHandler)
         saveBtn.addActionListener(actionHandler)
         saveBtn.addMouseListener(mouseHandler)
-        adbConnectBtn.addActionListener(actionHandler)
-        adbRefreshBtn.addActionListener(actionHandler)
-        adbDisconnectBtn.addActionListener(actionHandler)
         filterPanel.addMouseListener(mouseHandler)
         toolBarPanel.addMouseListener(mouseHandler)
         statusMethod.addPropertyChangeListener(statusChangeListener)
@@ -596,14 +568,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     private inner class ActionHandler : ActionListener {
         override fun actionPerformed(event: ActionEvent) {
             when (event.source) {
-                adbConnectBtn -> {
-                    connect()
-                }
-
-                adbDisconnectBtn -> {
-                    stopAll()
-                    // disconnect
-                }
 
                 startBtn -> {
                     startAdbScan()
@@ -621,10 +585,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
                 clearViewsBtn -> {
                     clearViews()
-                }
-
-                adbRefreshBtn -> {
-                    //refreshDevices()
                 }
 
                 saveBtn -> {
@@ -945,7 +905,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
             filteredLogcatRepository.logFilter = this
             fullLogcatRepository.logFilter = this
         }
-        filteredTableModel.highlightFilterItem = boldLogCombo.filterItem
+        filteredTableModel.highlightFilterItem =
+            boldLogCombo.filterItem.positiveFilter.pattern().toFilterItem(viewModel.filterMatchCaseEnabled.getValueNonNull())
     }
 
     private fun updateSearchFilter() {
