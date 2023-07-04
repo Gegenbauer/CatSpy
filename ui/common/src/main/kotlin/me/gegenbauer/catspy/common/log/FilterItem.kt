@@ -40,6 +40,16 @@ data class FilterItem(
             return this == emptyItem
         }
 
+        fun FilterItem.rebuild(matchCase: Boolean): FilterItem {
+            return FilterItem(
+                positiveFilter = ServiceManager.getContextService(PatternProvider::class.java)
+                    .get(this.positiveFilter.pattern().toPatternKey(matchCase)),
+                negativeFilter = ServiceManager.getContextService(PatternProvider::class.java)
+                    .get(this.negativeFilter.pattern().toPatternKey(matchCase)),
+                errorMessage = this.errorMessage
+            )
+        }
+
         fun Pattern.toString(): String {
             if (this == PatternProvider.emptyPattern) return STR_PATTERN_EMPTY
             return this.pattern()

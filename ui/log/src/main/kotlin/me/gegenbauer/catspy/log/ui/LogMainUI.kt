@@ -15,6 +15,8 @@ import me.gegenbauer.catspy.common.configuration.GThemeChangeListener
 import me.gegenbauer.catspy.common.configuration.ThemeManager
 import me.gegenbauer.catspy.common.configuration.UIConfManager
 import me.gegenbauer.catspy.common.log.FilterItem
+import me.gegenbauer.catspy.common.log.FilterItem.Companion.emptyItem
+import me.gegenbauer.catspy.common.log.FilterItem.Companion.rebuild
 import me.gegenbauer.catspy.common.log.LogLevel
 import me.gegenbauer.catspy.common.log.toFilterItem
 import me.gegenbauer.catspy.common.ui.button.*
@@ -273,7 +275,9 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         viewModel.pidFilterEnabled.addObserver { updateLogFilter() }
         viewModel.tidFilterEnabled.addObserver { updateLogFilter() }
         viewModel.logLevelFilterEnabled.addObserver { updateLogFilter() }
+        viewModel.boldEnabled.addObserver { updateLogFilter() }
         viewModel.searchMatchCase.addObserver { filteredTableModel.searchMatchCase = it == true }
+        viewModel.searchMatchCase.addObserver { updateLogFilter() }
     }
 
     private fun refreshDevices(devices: List<Device>) {
@@ -894,19 +898,22 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     }
 
     private fun updateLogFilter() {
-        LogcatRealTimeFilter(
-            if (viewModel.logFilterEnabled.getValueNonNull()) showLogCombo.filterItem else FilterItem.emptyItem,
-            if (viewModel.tagFilterEnabled.getValueNonNull()) showTagCombo.filterItem else FilterItem.emptyItem,
-            if (viewModel.pidFilterEnabled.getValueNonNull()) showPidCombo.filterItem else FilterItem.emptyItem,
-            if (viewModel.tidFilterEnabled.getValueNonNull()) showTidCombo.filterItem else FilterItem.emptyItem,
-            if (viewModel.logLevelFilterEnabled.getValueNonNull()) viewModel.logLevel.getValueNonNull() else LogLevel.VERBOSE,
-            viewModel.filterMatchCaseEnabled.getValueNonNull()
-        ).apply {
-            filteredLogcatRepository.logFilter = this
-            fullLogcatRepository.logFilter = this
+        viewModel.apply {
+            val matchCase = filterMatchCaseEnabled.getValueNonNull()
+            LogcatRealTimeFilter(
+                if (logFilterEnabled.getValueNonNull()) showLogCombo.filterItem.rebuild(matchCase) else emptyItem,
+                if (tagFilterEnabled.getValueNonNull()) showTagCombo.filterItem.rebuild(matchCase) else emptyItem,
+                if (pidFilterEnabled.getValueNonNull()) showPidCombo.filterItem.rebuild(matchCase) else emptyItem,
+                if (tidFilterEnabled.getValueNonNull()) showTidCombo.filterItem.rebuild(matchCase) else emptyItem,
+                if (logLevelFilterEnabled.getValueNonNull()) viewModel.logLevel.getValueNonNull() else LogLevel.VERBOSE,
+                viewModel.filterMatchCaseEnabled.getValueNonNull()
+            ).apply {
+                filteredLogcatRepository.logFilter = this
+                fullLogcatRepository.logFilter = this
+            }
+            filteredTableModel.highlightFilterItem =
+                if (boldEnabled.getValueNonNull()) boldLogCombo.filterItem.rebuild(matchCase) else emptyItem
         }
-        filteredTableModel.highlightFilterItem =
-            boldLogCombo.filterItem.positiveFilter.pattern().toFilterItem(viewModel.filterMatchCaseEnabled.getValueNonNull())
     }
 
     private fun updateSearchFilter() {
