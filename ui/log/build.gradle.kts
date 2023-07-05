@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     api(projects.ui.common)
+    implementation(Zip4J.groupName, Zip4J.zip4j.artifact, Zip4J.zip4j.version)
     compileOnly(kotlin("reflect"))
     compileOnly(projects.concurrency)
     compileOnly(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)

@@ -74,6 +74,12 @@ object AndroidDdm {
     val ddmlib = Dependency(groupName, "ddmlib", "26.1.3")
 }
 
+object Zip4J {
+    val groupName = "net.lingala.zip4j"
+
+    val zip4j = Dependency(groupName, "zip4j", "2.11.5")
+}
+
 data class Dependency(
     val group: String,
     val artifact: String,
