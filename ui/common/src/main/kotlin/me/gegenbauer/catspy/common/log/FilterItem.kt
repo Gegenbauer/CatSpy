@@ -14,7 +14,7 @@ data class FilterItem(
 ) {
 
     override fun hashCode(): Int {
-        return Objects.hash(positiveFilter.pattern(), negativeFilter.pattern())
+        return Objects.hash(positiveFilter, negativeFilter)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -22,7 +22,9 @@ data class FilterItem(
             return false
         }
         return this.positiveFilter.pattern() == other.positiveFilter.pattern() &&
-                this.negativeFilter.pattern() == other.negativeFilter.pattern()
+                this.negativeFilter.pattern() == other.negativeFilter.pattern() &&
+                this.positiveFilter.flags() == other.positiveFilter.flags() &&
+                this.negativeFilter.flags() == other.negativeFilter.flags()
     }
 
     override fun toString(): String {

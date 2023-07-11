@@ -58,10 +58,9 @@ class FileOpenPopupMenu(override val contexts: Contexts = Contexts.default) : JP
 
     init {
         add(itemFileOpen)
-        add(itemFileFollow)
-        add(itemFileOpenFiles)
-        add(itemFileAppendFiles)
-        addSeparator()
+        //add(itemFileFollow)
+        //add(itemFileOpenFiles)
+        //add(itemFileAppendFiles)
 
         itemFileOpen.addActionListener(actionHandler)
         itemFileFollow.addActionListener(actionHandler)

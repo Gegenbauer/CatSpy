@@ -15,11 +15,9 @@ import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.common.configuration.GThemeChangeListener
 import me.gegenbauer.catspy.common.configuration.ThemeManager
 import me.gegenbauer.catspy.common.configuration.UIConfManager
-import me.gegenbauer.catspy.common.log.FilterItem
 import me.gegenbauer.catspy.common.log.FilterItem.Companion.emptyItem
 import me.gegenbauer.catspy.common.log.FilterItem.Companion.rebuild
 import me.gegenbauer.catspy.common.log.LogLevel
-import me.gegenbauer.catspy.common.log.toFilterItem
 import me.gegenbauer.catspy.common.ui.button.*
 import me.gegenbauer.catspy.common.ui.combobox.*
 import me.gegenbauer.catspy.common.ui.icon.DayNightIcon
@@ -397,10 +395,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
                     deviceCombo.requestFocus()
                 }
 
-                event.keyCode == KeyEvent.VK_R && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> {
-                    reconnectAdb()
-                }
-
                 event.keyCode == KeyEvent.VK_G && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> {
                     val goToDialog = GoToDialog(findFrameFromParent())
                     goToDialog.setLocationRelativeTo(this@LogMainUI)
@@ -610,7 +604,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         // TODO connect
     }
 
-    private fun stopScan() {
+    fun stopScan() {
         stopAll()
     }
 
@@ -667,18 +661,15 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         private val selectAllItem: JMenuItem = JMenuItem("Select All")
         private val copyItem: JMenuItem = JMenuItem("Copy")
         private val pasteItem: JMenuItem = JMenuItem("Paste")
-        private val reconnectItem: JMenuItem = JMenuItem("Reconnect " + deviceCombo.selectedItem?.toString())
         private val actionHandler = ActionHandler()
 
         init {
             add(selectAllItem)
             add(copyItem)
             add(pasteItem)
-            add(reconnectItem)
             selectAllItem.addActionListener(actionHandler)
             copyItem.addActionListener(actionHandler)
             pasteItem.addActionListener(actionHandler)
-            reconnectItem.addActionListener(actionHandler)
         }
 
         inner class ActionHandler : ActionListener {
@@ -700,9 +691,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
                         editorCom.paste()
                     }
 
-                    reconnectItem -> {
-                        reconnectAdb()
-                    }
                 }
             }
         }
@@ -791,39 +779,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         }
     }
 
-
-    fun reconnectAdb() {
-        GLog.d(TAG, "Reconnect ADB")
-        stopScan()
-        Thread.sleep(200)
-
-        if (deviceCombo.selectedItem!!.toString().isNotBlank()) {
-            connect()
-            Thread.sleep(200)
-        }
-
-        Thread {
-            Thread.sleep(200)
-            clearViews()
-            Thread.sleep(200)
-            startAdbScan()
-        }.start()
-    }
-
-    fun startAdbLog() {
-        Thread {
-            startAdbScan()
-        }.start()
-    }
-
-    fun stopAdbLog() {
-        stopScan()
-    }
-
     fun clearAdbLog() {
-        Thread {
-            clearViews()
-        }.start()
+        clearViews()
     }
 
     fun getTextShowLogCombo(): String {
@@ -880,11 +837,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
                         updateComboBox()
                         updateLogFilter()
                     }
-
-                    deviceCombo.editorComponent -> {
-                        reconnectAdb()
-                    }
-
                 }
             }
             super.keyReleased(event)
@@ -944,29 +896,13 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         return
     }
 
-    private fun goToLine(line: Int) {
-        GLog.d(TAG, "Line : $line")
-        if (line < 0) {
-            return
-        }
-        var num = 0
-        for (idx in 0 until filteredTableModel.rowCount) {
-            num = filteredTableModel.getValueAt(idx, 0).toString().trim().toInt()
-            if (line <= num) {
-                splitLogPane.filteredLogPanel.goToRow(idx, 0)
-                break
-            }
-        }
+    private fun goToLine(lineNumber: Int) {
+        GLog.d(TAG, "[goToLine] $lineNumber")
 
-        if (line != num) {
-            for (idx in 0 until fullTableModel.rowCount) {
-                num = fullTableModel.getValueAt(idx, 0).toString().trim().toInt()
-                if (line <= num) {
-                    splitLogPane.fullLogPanel.goToRow(idx, 0)
-                    break
-                }
-            }
-        }
+        lineNumber.takeIf { it > 0 } ?: return
+
+        splitLogPane.filteredLogPanel.goToRow(filteredTableModel.getRowIndex(lineNumber), 0)
+        splitLogPane.fullLogPanel.goToRow(fullTableModel.getRowIndex(lineNumber), 0)
     }
 
     private inner class StatusTextField(text: String?) : JTextField(text) {

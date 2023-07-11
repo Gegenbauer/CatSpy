@@ -49,11 +49,7 @@ class LogTableModel(
     var searchMatchCase: Boolean = false
         set(value) {
             if (field != value) {
-                searchPatternCase = if (!value) {
-                    Pattern.CASE_INSENSITIVE
-                } else {
-                    0
-                }
+                searchPatternCase = Pattern.CASE_INSENSITIVE.takeIf { !value } ?: 0
             }
             field = value
         }
@@ -65,18 +61,14 @@ class LogTableModel(
         set(value) {
             field = value
             logRepository.bookmarkMode = value
-            if (value) {
-                fullMode = false
-            }
+            fullMode = value.not()
         }
 
     var fullMode = false
         set(value) {
             field = value
             logRepository.fullMode = value
-            if (value) {
-                bookmarkMode = false
-            }
+            bookmarkMode = value.not()
         }
 
     init {
@@ -89,9 +81,7 @@ class LogTableModel(
 
     override fun fireTableChanged(e: TableModelEvent) {
         super.fireTableChanged(e)
-        for (eventListener in eventListeners) {
-            eventListener.tableChanged(e)
-        }
+        eventListeners.forEach { it.tableChanged(e) }
     }
 
     override fun getRowCount(): Int {
@@ -106,7 +96,7 @@ class LogTableModel(
         return logRepository.accessLogItems { logItems ->
             if (rowIndex >= 0 && logRepository.getLogCount() > rowIndex) {
                 val logItem = logItems[rowIndex]
-                return@accessLogItems when(columnIndex) {
+                return@accessLogItems when (columnIndex) {
                     COLUMN_NUM -> logItem.num
                     COLUMN_TIME -> logItem.time
                     COLUMN_PID -> logItem.pid
@@ -218,6 +208,10 @@ class LogTableModel(
                 fireTableRowsDeleted(event.startRow, event.endRow)
             }
         }
+    }
+
+    fun getRowIndex(lineNumber: Int): Int {
+        return (0 until rowCount).map { it to getItem(it) }.firstOrNull { it.second.num >= lineNumber }?.first ?: 0
     }
 
     companion object {
