@@ -17,7 +17,6 @@ import me.gegenbauer.catspy.log.BookmarkChangeListener
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.ui.LogMainUI
-import me.gegenbauer.catspy.log.ui.popup.LogTablePopupMenu
 import me.gegenbauer.catspy.log.ui.table.LogTable
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModelListener
@@ -30,8 +29,6 @@ import java.awt.Insets
 import java.awt.Rectangle
 import java.awt.event.AdjustmentEvent
 import java.awt.event.AdjustmentListener
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
@@ -132,7 +129,6 @@ abstract class LogPanel(
 
         scrollPane.verticalScrollBar.addAdjustmentListener(adjustmentHandler)
         scrollPane.horizontalScrollBar.addAdjustmentListener(adjustmentHandler)
-        scrollPane.addMouseListener(MouseHandler())
 
         val ctrlPanel = JPanel()
         ctrlPanel.layout = BoxLayout(ctrlPanel, BoxLayout.Y_AXIS)
@@ -292,21 +288,6 @@ abstract class LogPanel(
                 tableModel.bookmarkMode = true
             }
             table.repaint()
-        }
-    }
-
-    internal inner class MouseHandler : MouseAdapter() {
-
-        private val popupMenu: JPopupMenu = LogTablePopupMenu()
-
-        override fun mouseReleased(event: MouseEvent) {
-            if (SwingUtilities.isRightMouseButton(event)) {
-                popupMenu.show(event.component, event.x, event.y)
-            } else {
-                popupMenu.isVisible = false
-            }
-
-            super.mouseReleased(event)
         }
     }
 

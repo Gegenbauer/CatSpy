@@ -156,7 +156,6 @@ class LogTable(
         var copyItem: JMenuItem = JMenuItem("Copy")
         var showEntireItem = JMenuItem("Show entire line")
         var bookmarkItem = JMenuItem("Bookmark")
-        var reconnectItem = JMenuItem("Reconnect adb")
         var startItem = JMenuItem("Start")
         var stopItem = JMenuItem("Stop")
         var clearItem = JMenuItem("Clear")
@@ -168,14 +167,12 @@ class LogTable(
             add(showEntireItem)
             add(bookmarkItem)
             addSeparator()
-            add(reconnectItem)
             add(startItem)
             add(stopItem)
             add(clearItem)
             copyItem.addActionListener(actionHandler)
             showEntireItem.addActionListener(actionHandler)
             bookmarkItem.addActionListener(actionHandler)
-            reconnectItem.addActionListener(actionHandler)
             startItem.addActionListener(actionHandler)
             stopItem.addActionListener(actionHandler)
             clearItem.addActionListener(actionHandler)
@@ -206,16 +203,12 @@ class LogTable(
                         updateBookmark(selectedNums())
                     }
 
-                    reconnectItem -> {
-                        logMainUI.reconnectAdb()
-                    }
-
                     startItem -> {
-                        logMainUI.startAdbLog()
+                        logMainUI.startAdbScan()
                     }
 
                     stopItem -> {
-                        logMainUI.stopAdbLog()
+                        logMainUI.stopScan()
                     }
 
                     clearItem -> {
@@ -231,8 +224,8 @@ class LogTable(
 
         override fun mouseReleased(event: MouseEvent) {
             if (SwingUtilities.isRightMouseButton(event)) {
-                popupMenu.updateUI()
                 popupMenu.show(event.component, event.x, event.y)
+                SwingUtilities.updateComponentTreeUI(popupMenu)
             } else {
                 popupMenu.isVisible = false
             }
