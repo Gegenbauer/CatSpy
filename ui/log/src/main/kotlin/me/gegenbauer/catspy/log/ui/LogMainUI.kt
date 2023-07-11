@@ -9,6 +9,7 @@ import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.common.configuration.GThemeChangeListener
@@ -76,6 +77,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     //region task
     private val taskManager = TaskManager()
     private val updateLogUITask = PeriodicTask(500, "updateLogUITask")
+    private val scope = MainScope()
     //endregion
 
     //region log data
@@ -898,21 +900,23 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     }
 
     private fun updateLogFilter() {
-        viewModel.apply {
-            val matchCase = filterMatchCaseEnabled.getValueNonNull()
-            LogcatRealTimeFilter(
-                if (logFilterEnabled.getValueNonNull()) showLogCombo.filterItem.rebuild(matchCase) else emptyItem,
-                if (tagFilterEnabled.getValueNonNull()) showTagCombo.filterItem.rebuild(matchCase) else emptyItem,
-                if (pidFilterEnabled.getValueNonNull()) showPidCombo.filterItem.rebuild(matchCase) else emptyItem,
-                if (tidFilterEnabled.getValueNonNull()) showTidCombo.filterItem.rebuild(matchCase) else emptyItem,
-                if (logLevelFilterEnabled.getValueNonNull()) viewModel.logLevel.getValueNonNull() else LogLevel.VERBOSE,
-                viewModel.filterMatchCaseEnabled.getValueNonNull()
-            ).apply {
-                filteredLogcatRepository.logFilter = this
-                fullLogcatRepository.logFilter = this
+        scope.launch {
+            viewModel.apply {
+                val matchCase = filterMatchCaseEnabled.getValueNonNull()
+                LogcatRealTimeFilter(
+                    if (logFilterEnabled.getValueNonNull()) showLogCombo.filterItem.rebuild(matchCase) else emptyItem,
+                    if (tagFilterEnabled.getValueNonNull()) showTagCombo.filterItem.rebuild(matchCase) else emptyItem,
+                    if (pidFilterEnabled.getValueNonNull()) showPidCombo.filterItem.rebuild(matchCase) else emptyItem,
+                    if (tidFilterEnabled.getValueNonNull()) showTidCombo.filterItem.rebuild(matchCase) else emptyItem,
+                    if (logLevelFilterEnabled.getValueNonNull()) viewModel.logLevel.getValueNonNull() else LogLevel.VERBOSE,
+                    viewModel.filterMatchCaseEnabled.getValueNonNull()
+                ).apply {
+                    filteredLogcatRepository.logFilter = this
+                    fullLogcatRepository.logFilter = this
+                }
+                filteredTableModel.highlightFilterItem =
+                    if (boldEnabled.getValueNonNull()) boldLogCombo.filterItem.rebuild(matchCase) else emptyItem
             }
-            filteredTableModel.highlightFilterItem =
-                if (boldEnabled.getValueNonNull()) boldLogCombo.filterItem.rebuild(matchCase) else emptyItem
         }
     }
 

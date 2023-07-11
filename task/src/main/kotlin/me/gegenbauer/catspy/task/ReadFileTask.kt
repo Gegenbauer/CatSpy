@@ -38,6 +38,7 @@ open class ReadFileTask(
                 }
             }
         }
+        notifyFinalResult()
         TaskLog.d(name, "[startInCoroutine] progress=${accumulateSize / totalSize.toFloat()}}")
     }
 

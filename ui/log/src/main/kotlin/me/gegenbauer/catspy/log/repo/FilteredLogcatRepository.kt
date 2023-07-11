@@ -29,15 +29,17 @@ class FilteredLogcatRepository(
     }
 
     override fun onFilterUpdate() {
-        if (fullLogItems.isEmpty()) {
-            return
+        accessFullLogItems {
+            if (it.isEmpty()) {
+                return@accessFullLogItems
+            }
+            GLog.d(TAG, "[onFilterUpdate]")
+            updatingFilter.set(true)
+            cancelFilterUpdate()
+            taskManager.exec(UpdateFilterTask().apply {
+                updateFilterTask = this
+            })
         }
-        GLog.d(TAG, "[onFilterUpdate]")
-        updatingFilter.set(true)
-        cancelFilterUpdate()
-        taskManager.exec(UpdateFilterTask().apply {
-            updateFilterTask = this
-        })
     }
 
     override fun addLogItem(logItem: LogcatLogItem) {

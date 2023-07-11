@@ -57,7 +57,7 @@ compose.desktop {
             packageName = appName
             packageVersion = version
             group = "me.gegenbauer"
-            jvmArgs += "-Xmx300m"
+            jvmArgs += "--add-exports=java.desktop/sun.awt=ALL-UNNAMED"
 
             val iconsRoot = project.file("src/main/resources/appicon/")
 

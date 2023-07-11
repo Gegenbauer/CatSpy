@@ -4,6 +4,7 @@ import com.malinskiy.adam.AndroidDebugBridgeClientFactory
 import com.malinskiy.adam.request.device.AsyncDeviceMonitorRequest
 import com.malinskiy.adam.request.device.Device
 import com.malinskiy.adam.request.device.DeviceState
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
@@ -12,6 +13,7 @@ import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.log.GLog
+import java.net.ConnectException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -30,23 +32,35 @@ class AdamDeviceManager : ContextService, DeviceManager {
     override val isAdbServerRunning: Boolean
         get() = adbServerRunning.get()
 
+    private var receiveChannel: ReceiveChannel<*>? = null
+
+    private val monitorExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        if (throwable is ConnectException) {
+            scope.launch {
+                receiveChannel?.cancel()
+                adbServerRunning.set(false)
+                GLog.d(TAG, "[startMonitor] end, restart")
+
+                delay(3000)
+                startMonitor()
+            }
+        }
+    }
+
     override fun startMonitor() {
-        scope.launch {
+        scope.launch(monitorExceptionHandler) {
             GLog.d(TAG, "[startMonitor]")
             val deviceEventsChannel: ReceiveChannel<List<Device>> = adb.execute(
                 request = AsyncDeviceMonitorRequest(),
                 scope = scope
             )
 
+            receiveChannel = deviceEventsChannel
+
             deviceEventsChannel.consumeEach {
                 adbServerRunning.set(true)
                 dispatchDeviceListChange(it)
             }
-            adbServerRunning.set(false)
-            GLog.d(TAG, "[startMonitor] end, restart")
-
-            delay(3000)
-            startMonitor()
         }
     }
 

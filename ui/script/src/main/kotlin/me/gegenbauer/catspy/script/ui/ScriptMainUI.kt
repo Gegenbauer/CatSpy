@@ -85,7 +85,7 @@ class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(
         cardContainer.addCard(focusedActivityCard)
         cardContainer.addCard(deviceInfoCard)
 
-        cardContainer.setAutomaticallyUpdate(true)
+        //cardContainer.setAutomaticallyUpdate(true)
     }
 
     override fun configureContext(context: Context) {
