@@ -26,9 +26,9 @@ class SplitLogPane(
 
     var onFocusGained: (Boolean) -> Unit = {}
 
-    val fullLogPanel = FullLogPanel(fullTableModel)
+    val fullLogPanel = FullLogPanel(fullTableModel, this)
     val filteredLogPanel = FilteredLogPanel(filteredTableModel, this, fullLogPanel)
-    var rotation: Rotation = Rotation.ROTATION_LEFT_RIGHT
+    private var rotation: Rotation = Rotation.ROTATION_LEFT_RIGHT
         set(value) {
             field = value
             changeRotation(value)
@@ -90,106 +90,66 @@ class SplitLogPane(
 
     internal inner class TableTransferHandler : TransferHandler() {
         override fun canImport(info: TransferSupport): Boolean {
-            if (info.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                return true
-            }
-
-            return info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
+            return info.isDataFlavorSupported(DataFlavor.stringFlavor) || info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
         }
 
         override fun importData(info: TransferSupport): Boolean {
             GLog.d(TAG, "[importData] info = $info")
-            if (!info.isDrop) {
-                return false
-            }
+            info.takeIf { it.isDrop } ?: return false
 
             val fileList: MutableList<File> = mutableListOf()
 
             if (info.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                val data: String
-                try {
-                    data = info.transferable.getTransferData(DataFlavor.stringFlavor) as String
-                    val splitData = data.split("\n")
-
-                    for (item in splitData) {
-                        if (item.isNotEmpty()) {
-                            GLog.d(TAG, "importData item = $item")
-                            fileList.add(File(URI(item.trim())))
-                        }
-                    }
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                    return false
+                runCatching {
+                    val data = info.transferable.getTransferData(DataFlavor.stringFlavor) as? String
+                    data?.split("\n")
+                        ?.filter { it.isNotEmpty() }
+                        ?.map { File(URI(it.trim())) }
+                        ?.let { fileList.addAll(it) }
+                }.onFailure {
+                    GLog.e(TAG, "[importData]", it)
                 }
             }
 
-            if (fileList.size == 0 && info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                val listFile: Any
-                try {
-                    listFile = info.transferable.getTransferData(DataFlavor.javaFileListFlavor)
-                    if (listFile is List<*>) {
-                        val iterator = listFile.iterator()
-                        while (iterator.hasNext()) {
-                            fileList.add(iterator.next() as File)
-                        }
-                    }
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                    return false
+            if (fileList.isNotEmpty() && info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                runCatching {
+                    val data = info.transferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<*>
+                    data?.mapNotNull { it as? File }?.forEach { fileList.add(it) }
+                }.onFailure {
+                    GLog.e(TAG, "[importData]", it)
                 }
             }
 
-            if (fileList.size > 0) {
-                val os = currentPlatform
-                GLog.d(TAG, "os = $os, drop = ${info.dropAction}, source drop = ${info.sourceDropActions}, user drop = ${info.userDropAction}")
+            fileList.takeIf { it.isNotEmpty() } ?: return false
+            val os = currentPlatform
+            GLog.d(TAG, "os:$os, drop:${info.dropAction},sourceDrop:${info.sourceDropActions},userDrop:${info.userDropAction}")
 
-                val options = arrayOf<Any>(
-                    STRINGS.ui.append,
-                    STRINGS.ui.open,
-                    STRINGS.ui.cancel
-                )
-                val value = JOptionPane.showOptionDialog(
-                    this@SplitLogPane, STRINGS.ui.msgSelectOpenMode,
-                    "",
-                    JOptionPane.YES_NO_CANCEL_OPTION,
-                    JOptionPane.PLAIN_MESSAGE,
-                    null,
-                    options,
-                    options[0]
-                )
+            val logMainUI = contexts.getContext(LogMainUI::class.java)
+            logMainUI ?: return false
 
-                val logMainUI = contexts.getContext(LogMainUI::class.java)
-                logMainUI ?: return false
-                when (value) {
-                    0 -> {
-                        for (file in fileList) {
-                            logMainUI.openFile(file.absolutePath, true)
-                        }
-                    }
-
-                    1 -> {
-                        var isFirst = true
-                        for (file in fileList) {
-                            if (isFirst) {
-                                logMainUI.openFile(file.absolutePath, false)
-                                isFirst = false
-                            } else {
-                                logMainUI.openFile(file.absolutePath, true)
-                            }
-                        }
-                    }
-
-                    else -> {
-                        GLog.d(TAG, "select cancel")
-                    }
-                }
-            }
+            val options = listOf<Pair<String, (List<File>) -> Unit>>(
+                STRINGS.ui.append to { files -> files.forEach { logMainUI.openFile(it.absolutePath, true) } },
+                STRINGS.ui.open to {
+                    it.forEachIndexed { index, file -> logMainUI.openFile(file.absolutePath, index == it.indices.first) }
+                },
+                STRINGS.ui.cancel to { GLog.d(TAG, "select cancel") }
+            )
+            val value = JOptionPane.showOptionDialog(
+                this@SplitLogPane, STRINGS.ui.msgSelectOpenMode,
+                "",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                options.map { it.first }.toTypedArray(),
+                STRINGS.ui.append
+            )
+            options[value].second.invoke(fileList)
             return true
         }
     }
 
     override fun focusGained(e: FocusEvent) {
-        onFocusGained.invoke(e.source == filteredLogPanel)
+        onFocusGained.invoke(e.source == filteredLogPanel.table)
     }
 
     override fun focusLost(e: FocusEvent) {

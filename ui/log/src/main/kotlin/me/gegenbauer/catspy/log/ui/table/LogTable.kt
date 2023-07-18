@@ -61,8 +61,7 @@ class LogTable(
         visibleLeft += THRESHOLD
         visibleRight -= THRESHOLD
         val isCellVisible = (leftX < visibleRight // otherwise cell is hidden on the right
-                && rightX > visibleLeft // otherwise cell is hidden on the left
-                )
+                && rightX > visibleLeft) // otherwise cell is hidden on the left
         if (!isCellVisible) {
             scrollRectToVisible(cellRect)
         }
@@ -81,14 +80,12 @@ class LogTable(
         val toRect = visibleRect
         toRect.y = (selectedRow + 3) * rowHeight
         scrollRectToVisible(toRect)
-        return
     }
 
     private fun upPage() {
         val toRect = visibleRect
         toRect.y = (selectedRow - 3) * rowHeight - toRect.height
         scrollRectToVisible(toRect)
-        return
     }
 
     private fun downLine() {
@@ -98,7 +95,6 @@ class LogTable(
             toRect.y += rowHeight
         }
         scrollRectToVisible(toRect)
-        return
     }
 
     private fun upLine() {
@@ -108,7 +104,6 @@ class LogTable(
             toRect.y -= rowHeight
         }
         scrollRectToVisible(toRect)
-        return
     }
 
     private fun showSelected(rows: IntArray) {

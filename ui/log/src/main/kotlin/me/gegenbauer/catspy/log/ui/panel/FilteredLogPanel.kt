@@ -2,38 +2,49 @@ package me.gegenbauer.catspy.log.ui.panel
 
 import me.gegenbauer.catspy.common.ui.button.ColorToggleButton
 import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.databinding.bind.Bindings
+import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.utils.applyTooltip
 import java.awt.Insets
-import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
 import java.awt.event.FocusListener
 import javax.swing.event.ListSelectionEvent
 
 class FilteredLogPanel(
     tableModel: LogTableModel,
-    private val focusHandler: FocusListener,
+    focusHandler: FocusListener,
     private val basePanel: LogPanel,
     contexts: Contexts = Contexts.default
-) : LogPanel(tableModel, contexts) {
+) : LogPanel(tableModel, focusHandler, contexts) {
 
     private val bookmarksBtn = ColorToggleButton(STRINGS.ui.bookmarks) applyTooltip STRINGS.toolTip.viewBookmarksToggle
     private val fullBtn = ColorToggleButton(STRINGS.ui.full) applyTooltip STRINGS.toolTip.viewFullToggle
-    private val actionHandler = ActionHandler()
 
     init {
         bookmarksBtn.margin = Insets(0, 3, 0, 3)
-        bookmarksBtn.addActionListener(actionHandler)
         fullBtn.margin = Insets(0, 3, 0, 3)
-        fullBtn.addActionListener(actionHandler)
 
         createUI()
+
+        observeViewModelProperty()
+
+        bind(viewModel)
     }
 
-    override fun createUI() {
-        super.createUI()
-        table.addFocusListener(focusHandler)
+    private fun observeViewModelProperty() {
+        viewModel.fullMode.addObserver {
+            if (it == true) {
+                viewModel.bookmarkMode.updateValue(false)
+            }
+            tableModel.logRepository.onFilterUpdate()
+        }
+        viewModel.bookmarkMode.addObserver {
+            if (it == true) {
+                viewModel.fullMode.updateValue(false)
+            }
+            tableModel.logRepository.onFilterUpdate()
+        }
     }
 
     override fun updateTableBar() {
@@ -41,6 +52,14 @@ class FilteredLogPanel(
         ctrlMainPanel.add(fullBtn)
         ctrlMainPanel.add(bookmarksBtn)
         ctrlMainPanel.updateUI()
+    }
+
+    override fun bind(viewModel: LogPanelViewModel) {
+        super.bind(viewModel)
+        viewModel.apply {
+            Bindings.bind(selectedProperty(fullBtn), fullMode)
+            Bindings.bind(selectedProperty(bookmarksBtn), bookmarkMode)
+        }
     }
 
     override fun onListSelectionChanged(event: ListSelectionEvent) {
@@ -59,30 +78,6 @@ class FilteredLogPanel(
 
             if (table.selectedRow == table.rowCount - 1) {
                 setGoToLast(true)
-            }
-        }
-    }
-
-    private inner class ActionHandler : ActionListener {
-        override fun actionPerformed(event: ActionEvent) {
-            when (event.source) {
-                bookmarksBtn -> {
-                    val selected = bookmarksBtn.model.isSelected
-                    if (selected) {
-                        fullBtn.model.isSelected = false
-                    }
-                    tableModel.bookmarkMode = selected
-                    table.repaint()
-                }
-
-                fullBtn -> {
-                    val selected = fullBtn.model.isSelected
-                    if (selected) {
-                        bookmarksBtn.model.isSelected = false
-                    }
-                    tableModel.fullMode = selected
-                    table.repaint()
-                }
             }
         }
     }

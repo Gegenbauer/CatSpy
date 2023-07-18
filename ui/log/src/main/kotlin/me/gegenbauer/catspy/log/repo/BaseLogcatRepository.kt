@@ -19,19 +19,8 @@ abstract class BaseLogcatRepository(
 ) : LogRepository, TaskListener {
 
     override var fullMode: Boolean = false
-        set(value) {
-            if (field != value) {
-                onFilterUpdate()
-            }
-            field = value
-        }
     override var bookmarkMode: Boolean = false
-        set(value) {
-            if (field != value) {
-                onFilterUpdate()
-            }
-            field = value
-        }
+
     override var logFilter: LogFilter<LogcatLogItem> = LogcatRealTimeFilter.emptyRealTimeFilter
         set(value) {
             if (field != value) {
@@ -150,9 +139,12 @@ abstract class BaseLogcatRepository(
     }
 
     override fun clear() {
-        cacheItemLock.write {
-            logItems.clear()
-            notifyLogItemRemove(0, Int.MAX_VALUE)
+        accessCacheItems { cacheItems ->
+            cacheItems.clear()
+            accessLogItems { logItems ->
+                logItems.clear()
+                notifyLogItemRemove(0, Int.MAX_VALUE)
+            }
         }
     }
 
@@ -165,6 +157,6 @@ abstract class BaseLogcatRepository(
     }
 
     override fun getLogCount(): Int {
-        return accessLogItems { logItems.size }
+        return accessLogItems { it.size }
     }
 }

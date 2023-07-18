@@ -86,6 +86,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     //region filterPanel
     private val filterPanel = JPanel()
+
     //region logPanel
     private val logPanel = JPanel()
 
@@ -176,12 +177,11 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     //region statusBar
     private val statusBar = JPanel(BorderLayout())
 
-    private val statusMethod = JLabel("")
+    private val statusMethod = JLabel()
     private val statusTF = StatusTextField(STRINGS.ui.none) applyTooltip STRINGS.toolTip.savedFileTf
     //endregion
 
     //region menu
-    // TODO file open
     private val filePopupMenu = FileOpenPopupMenu().apply {
         onFileSelected = { file ->
             openFile(file.absolutePath, false)
@@ -189,22 +189,12 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         onFileFollowSelected = { file ->
             startFileFollow(file.absolutePath)
         }
-        onFileListSelected = { files ->
-            var isFirst = true
-            for (file in files) {
-                if (isFirst) {
-                    openFile(file.absolutePath, false)
-                    isFirst = false
-                } else {
-                    openFile(file.absolutePath, true)
-                }
+        onFileListSelected = {
+            it.forEachIndexed { index, file ->
+                openFile(file.absolutePath, index == it.indices.first)
             }
         }
-        onFilesAppendSelected = { files ->
-            for (file in files) {
-                openFile(file.absolutePath, true)
-            }
-        }
+        onFilesAppendSelected = { it.forEach { openFile(it.absolutePath, true) } }
     }
     //endregion
 
@@ -245,7 +235,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
         registerEvent()
 
-
         observeViewModelValue()
         viewModel.bind(this)
         ThemeManager.registerThemeUpdateListener(viewModel)
@@ -255,9 +244,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        filteredTableModel.setContexts(contexts)
         splitLogPane.setContexts(contexts)
-        fullTableModel.setContexts(contexts)
         filePopupMenu.setContexts(contexts)
 
         ServiceManager.getContextService(AdamDeviceManager::class.java).registerDevicesListener(devicesChangeListener)
@@ -286,7 +273,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     }
 
     // TODO 关闭 tab 时调用
-    private fun saveConfigOnDestroy() {
+    private fun saveConfiguration() {
         UIConfManager.uiConf.logFontSize = customFont.size
         UIConfManager.uiConf.logFontName = customFont.name
         UIConfManager.uiConf.logFontStyle = customFont.style
@@ -434,10 +421,11 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
             splitLogWithEmptyStatePanel.contentVisible = (event.source as LogTableModel).rowCount > 0
         }
         splitLogPane.fullLogPanel.table.selectionModel.addListSelectionListener {
-            fullLogcatRepository.selectedRow = it.firstIndex
+            fullLogcatRepository.selectedRow = splitLogPane.fullLogPanel.table.selectedRow.takeIf { it >= 0 } ?: -1
         }
         splitLogPane.filteredLogPanel.table.selectionModel.addListSelectionListener {
-            filteredLogcatRepository.selectedRow = it.firstIndex
+            filteredLogcatRepository.selectedRow =
+                splitLogPane.filteredLogPanel.table.selectedRow.takeIf { it >= 0 } ?: -1
         }
         logProvider.addObserver(this)
     }
@@ -541,6 +529,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
             taskManager.exec(updateLogUITask)
         }
         logProvider.stopCollectLog()
+        logProvider.clear()
         logProvider.startCollectLog(RealTimeLogCollector(taskManager, viewModel.currentDevice.value ?: ""))
         viewModel.pauseAll.updateValue(false)
 
@@ -874,6 +863,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     private fun updateSearchFilter() {
         filteredTableModel.searchFilterItem = searchPanel.searchCombo.filterItem
+        fullTableModel.searchFilterItem = searchPanel.searchCombo.filterItem
     }
 
     fun resetComboItem(viewModelProperty: ObservableViewModelProperty<List<HistoryItem<String>>>, item: String) {
@@ -1060,11 +1050,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
                         searchCombo.editorComponent -> {
                             resetComboItem(viewModel.searchHistory, viewModel.searchCurrentContent.value ?: "")
                             updateSearchFilter()
-                            if (KeyEvent.SHIFT_DOWN_MASK == event.modifiersEx) {
-                                moveToPrev()
-                            } else {
-                                moveToNext()
-                            }
+                            this@SearchPanel::moveToPrev.takeIf { KeyEvent.SHIFT_DOWN_MASK == event.modifiersEx }
+                                ?.invoke() ?: this@SearchPanel::moveToNext.invoke()
                         }
                     }
                 }
@@ -1081,9 +1068,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
                 }
                 when (event.source) {
                     searchCombo -> {
-                        if (searchCombo.selectedIndex < 0) {
-                            return
-                        }
+                        searchCombo.selectedIndex.takeIf { it > 0 } ?: return
                         resetComboItem(viewModel.searchHistory, viewModel.searchCurrentContent.value ?: "")
                     }
                 }
@@ -1145,6 +1130,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         logProvider.stopCollectLog()
         logProvider.destroy()
         taskManager.cancelAll()
+        saveConfiguration()
     }
 
     override fun onTabFocusChanged(focused: Boolean) {
@@ -1176,9 +1162,9 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         actionMapKey = javaClass.name + ":SEARCH_MOVE_PREV"
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
-//                if (searchPanel.isVisible) {
-//                    searchPanel.moveToPrev()
-//                }
+                if (searchPanel.isVisible) {
+                    searchPanel.moveToPrev()
+                }
             }
         }
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
@@ -1188,9 +1174,9 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         actionMapKey = javaClass.name + ":SEARCH_MOVE_NEXT"
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
-//                if (searchPanel.isVisible) {
-//                    searchPanel.moveToNext()
-//                }
+                if (searchPanel.isVisible) {
+                    searchPanel.moveToNext()
+                }
             }
         }
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)

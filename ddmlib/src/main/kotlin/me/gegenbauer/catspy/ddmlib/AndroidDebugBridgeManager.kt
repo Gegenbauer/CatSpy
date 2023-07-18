@@ -51,7 +51,7 @@ class AndroidDebugBridgeManager : AndroidDebugBridge.IDebugBridgeChangeListener,
     }
 
     private fun dispatchStateChange() {
-        listeners.forEach { it.onStateChange(connected()) }
+        listeners.toList().forEach { it.onStateChange(connected()) }
     }
 
     override fun bridgeChanged(bridge: AndroidDebugBridge?) {

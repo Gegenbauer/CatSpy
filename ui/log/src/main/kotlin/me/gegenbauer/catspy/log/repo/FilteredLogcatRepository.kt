@@ -44,7 +44,7 @@ class FilteredLogcatRepository(
 
     override fun addLogItem(logItem: LogcatLogItem) {
         super.addLogItem(logItem)
-        fullLogLock.write { fullLogItems.add(logItem) }
+        accessFullLogItems { it.add(logItem) }
     }
 
     override fun cancelFilterUpdate() {
@@ -68,6 +68,11 @@ class FilteredLogcatRepository(
             logFilter.filter(item) -> true
             else -> false
         }
+    }
+
+    override fun clear() {
+        super.clear()
+        accessFullLogItems { fullLogItems.clear() }
     }
 
     private fun <R> accessFullLogItems(visitor: (MutableList<LogcatLogItem>) -> R): R {

@@ -39,7 +39,7 @@ class AdamDeviceManager : ContextService, DeviceManager {
             scope.launch {
                 receiveChannel?.cancel()
                 adbServerRunning.set(false)
-                GLog.d(TAG, "[startMonitor] end, restart")
+                GLog.v(TAG, "[startMonitor] end, restart")
 
                 delay(3000)
                 startMonitor()

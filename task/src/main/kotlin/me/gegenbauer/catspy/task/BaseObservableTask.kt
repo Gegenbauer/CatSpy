@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.task
 import kotlinx.coroutines.*
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ModelScope
+import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
@@ -12,7 +13,7 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
             get() = dispatcher + Job()
     }
 
-    private val listeners = mutableSetOf<TaskListener>()
+    private val listeners = Collections.synchronizedCollection(mutableSetOf<TaskListener>())
     private val running = AtomicBoolean(false)
 
     override fun start() {
@@ -52,39 +53,39 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
     }
 
     protected fun notifyStart() {
-        listeners.forEach { it.onStart(this) }
+        listeners.toList().forEach { it.onStart(this) }
     }
 
     protected fun notifyPause() {
-        listeners.forEach { it.onPause(this) }
+        listeners.toList().forEach { it.onPause(this) }
     }
 
     protected fun notifyResume() {
-        listeners.forEach { it.onResume(this) }
+        listeners.toList().forEach { it.onResume(this) }
     }
 
     protected fun notifyStop() {
-        listeners.forEach { it.onStop(this) }
+        listeners.toList().forEach { it.onStop(this) }
     }
 
     protected fun notifyCancel() {
-        listeners.forEach { it.onCancel(this) }
+        listeners.toList().forEach { it.onCancel(this) }
     }
 
     protected fun notifyProgress(data: Any = Any()) {
-        listeners.forEach { it.onProgress(this, data) }
+        listeners.toList().forEach { it.onProgress(this, data) }
     }
 
     protected fun notifyRepeat() {
-        listeners.forEach { it.onRepeat(this) }
+        listeners.toList().forEach { it.onRepeat(this) }
     }
 
     protected fun notifyFinalResult(data: Any = emptyResult) {
-        listeners.forEach { it.onFinalResult(this, data) }
+        listeners.toList().forEach { it.onFinalResult(this, data) }
     }
 
     protected fun notifyError(t: Throwable) {
-        listeners.forEach { it.onError(this, t) }
+        listeners.toList().forEach { it.onError(this, t) }
     }
 
     override fun isRunning(): Boolean {

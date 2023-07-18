@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.log.ui.table
 
 import me.gegenbauer.catspy.common.log.FilterItem
+import me.gegenbauer.catspy.common.log.FilterItem.Companion.isEmpty
 import me.gegenbauer.catspy.common.log.flag
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
@@ -12,13 +13,11 @@ import me.gegenbauer.catspy.log.model.LogcatRealTimeFilter
 import me.gegenbauer.catspy.log.repo.FullLogcatRepository
 import me.gegenbauer.catspy.log.repo.LogRepository
 import me.gegenbauer.catspy.log.ui.LogMainUI
+import me.gegenbauer.catspy.log.ui.panel.LogPanel
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import java.util.regex.Pattern
 import javax.swing.event.TableModelEvent
 import javax.swing.table.AbstractTableModel
-
-
-// TODO refactor
 
 fun interface LogTableModelListener {
     fun tableChanged(event: TableModelEvent)
@@ -28,51 +27,48 @@ fun interface LogTableModelListener {
  * TODO 整理任务停止和启动的逻辑
  */
 class LogTableModel(
-    private val logRepository: LogRepository,
+    internal val logRepository: LogRepository,
     override val contexts: Contexts = Contexts.default
 ) : AbstractTableModel(), LogRepository.LogChangeListener, Context {
-
-    private val eventListeners = ArrayList<LogTableModelListener>()
-
     var selectionChanged = false
-
     var highlightFilterItem: FilterItem = FilterItem.emptyItem
         set(value) {
-            if (field != value) {
-                field = value
-                fireTableDataChanged()
-            }
+            field = value.takeIf { it != field }?.also { fireTableDataChanged() } ?: value
         }
     var searchFilterItem: FilterItem = FilterItem.emptyItem
 
-    private var searchPatternCase = Pattern.CASE_INSENSITIVE
     var searchMatchCase: Boolean = false
         set(value) {
-            if (field != value) {
-                searchPatternCase = Pattern.CASE_INSENSITIVE.takeIf { !value } ?: 0
-            }
+            searchPatternCase = Pattern.CASE_INSENSITIVE.takeIf { !value } ?: 0
             field = value
         }
 
-    var boldTag = false
-    var boldPid = false
-    var boldTid = false
-    var bookmarkMode = false
-        set(value) {
-            field = value
-            logRepository.bookmarkMode = value
-            fullMode = value.not()
-        }
+    val boldTag: Boolean
+        get() = getViewModel()?.boldTag?.value ?: false
+    val boldPid: Boolean
+        get() = getViewModel()?.boldPid?.value ?: false
+    val boldTid: Boolean
+        get() = getViewModel()?.boldTid?.value ?: false
 
-    var fullMode = false
-        set(value) {
-            field = value
-            logRepository.fullMode = value
-            bookmarkMode = value.not()
-        }
+    private var searchPatternCase = Pattern.CASE_INSENSITIVE
+    private val eventListeners = ArrayList<LogTableModelListener>()
 
     init {
         logRepository.addLogChangeListener(this)
+    }
+
+    override fun configureContext(context: Context) {
+        super.configureContext(context)
+        getViewModel()?.bookmarkMode?.addObserver {
+            logRepository.bookmarkMode = it ?: false
+        }
+        getViewModel()?.fullMode?.addObserver {
+            logRepository.fullMode = it ?: false
+        }
+    }
+
+    private fun getViewModel(): LogPanel.LogPanelViewModel? {
+        return contexts.getContext(LogPanel::class.java)?.viewModel
     }
 
     fun addLogTableModelListener(eventListener: LogTableModelListener) {
@@ -124,54 +120,36 @@ class LogTableModel(
         moveToSearch(false)
     }
 
-    private infix fun Int.toward(to: Int): IntProgression {
-        val step = if (this > to) -1 else 1
-        return IntProgression.fromClosedRange(this, to, step)
-    }
-
     private fun moveToSearch(isNext: Boolean) {
+        if (searchFilterItem.isEmpty()) return
+
         val selectedRow = logRepository.selectedRow
         val mainUI = contexts.getContext(LogMainUI::class.java)
         mainUI ?: return
-        logRepository.accessLogItems { logItems ->
-            var startRow = 0
-            var endRow = 0
 
-            if (isNext) {
-                startRow = selectedRow + 1
-                endRow = logItems.count() - 1
-                if (startRow >= endRow) {
-                    mainUI.showSearchResultTooltip(isNext, "\"$searchFilterItem\" ${STRINGS.ui.notFound}")
-                    return@accessLogItems
-                }
-            } else {
-                startRow = selectedRow - 1
-                endRow = 0
+        val targetRow = selectedRow.run { if (isNext) this + 1 else this - 1 }
+        val shouldReturn = targetRow.run { if (isNext) this >= rowCount - 1 else this < 0 }
 
-                if (startRow < endRow) {
-                    mainUI.showSearchResultTooltip(isNext, "\"$searchFilterItem\" ${STRINGS.ui.notFound}")
-                    return@accessLogItems
-                }
-            }
+        if (shouldReturn) {
+            mainUI.showSearchResultTooltip(isNext, "\"$searchFilterItem\" ${STRINGS.ui.notFound}")
+            return
+        }
 
-            var idxFound = -1
-            for (idx in startRow toward endRow) {
-                val item = logItems[idx]
-                if (searchFilterItem.positiveFilter.matcher(item.logLine).find()) {
-                    idxFound = idx
-                    break
-                }
-            }
+        val idxFound = if (isNext) {
+            (targetRow until rowCount).firstOrNull {
+                searchFilterItem.positiveFilter.matcher(getItem(it).logLine).find()
+            } ?: -1
+        } else {
+            (targetRow downTo 0).firstOrNull {
+                searchFilterItem.positiveFilter.matcher(getItem(it).logLine).find()
+            } ?: -1
+        }
 
-            if (idxFound >= 0) {
-                if (logRepository is FullLogcatRepository) {
-                    mainUI.splitLogPane.filteredLogPanel.goToRow(idxFound, 0)
-                } else {
-                    mainUI.splitLogPane.fullLogPanel.goToRow(idxFound, 0)
-                }
-            } else {
-                mainUI.showSearchResultTooltip(isNext, "\"$searchFilterItem\" ${STRINGS.ui.notFound}")
-            }
+        if (idxFound >= 0) {
+            val logPanel = if (logRepository is FullLogcatRepository) mainUI.splitLogPane.fullLogPanel else mainUI.splitLogPane.filteredLogPanel
+            logPanel.goToRow(idxFound, 0)
+        } else {
+            mainUI.showSearchResultTooltip(isNext, "\"$searchFilterItem\" ${STRINGS.ui.notFound}")
         }
     }
 
