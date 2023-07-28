@@ -19,7 +19,7 @@ import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.bind.bindLeft
 import me.gegenbauer.catspy.databinding.bind.bindRight
 import me.gegenbauer.catspy.databinding.property.support.*
-import me.gegenbauer.catspy.log.ui.LogMainUI
+import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.utils.editorComponent
 import me.gegenbauer.catspy.utils.getEnum
 import javax.swing.JComponent
@@ -98,112 +98,17 @@ class LogMainViewModel : ContextService, GThemeChangeListener {
     val splitPanelDividerLocation = ObservableViewModelProperty(UIConfManager.uiConf.dividerLocation)
     //endregion
 
+    //region status bar
+    val status = ObservableViewModelProperty("")
+    val filePath = ObservableViewModelProperty(STRINGS.ui.none)
+    //endregion
+
     //region Style
     val buttonDisplayMode = ObservableViewModelProperty(ButtonDisplayMode.ALL) // TODO save configuration of this
     val logFont = ObservableViewModelProperty(UIConfManager.uiConf.getLogFont())
     //endregion
 
-    fun bind(mainUI: LogMainUI) {
-        mainUI.apply {
-            //region Toolbar
-            //region Filter
-            bindLogFilter(
-                showLogCombo,
-                showLogToggle,
-                logFilterSelectedIndex,
-                logFilterHistory,
-                logFilterEnabled,
-                logFilterCurrentContent,
-                logFilterErrorMessage
-            )
-            bindLogFilter(
-                showTagCombo,
-                showTagToggle,
-                tagFilterSelectedIndex,
-                tagFilterHistory,
-                tagFilterEnabled,
-                tagFilterCurrentContent,
-                tagFilterErrorMessage
-            )
-            bindLogFilter(
-                showPidCombo,
-                showPidToggle,
-                pidFilterSelectedIndex,
-                pidFilterHistory,
-                pidFilterEnabled,
-                pidFilterCurrentContent,
-                pidFilterErrorMessage
-            )
-            bindLogFilter(
-                showTidCombo,
-                showTidToggle,
-                tidFilterSelectedIndex,
-                tidFilterHistory,
-                tidFilterEnabled,
-                tidFilterCurrentContent,
-                tidFilterErrorMessage
-            )
-            bindLogFilter(
-                logLevelCombo,
-                logLevelToggle,
-                logLevelFilterSelectedIndex,
-                logLevelFilterHistory,
-                logLevelFilterEnabled,
-                logLevelFilterCurrentContent
-            )
-            bindLogFilter(
-                boldLogCombo,
-                boldLogToggle,
-                boldSelectedIndex,
-                boldHistory,
-                boldEnabled,
-                boldCurrentContent,
-                boldErrorMessage
-            )
-
-            selectedProperty(matchCaseToggle) bindDual filterMatchCaseEnabled
-            //endregion
-
-            //region ADB
-            bindNormalCombo(deviceCombo, deviceSelectedIndex, connectedDevices, currentDevice)
-
-            selectedProperty(pauseToggle) bindDual pauseAll
-            //endregion
-
-            //region Menu
-            customProperty(splitLogPane, "rotation", Rotation.ROTATION_LEFT_RIGHT) bindDual rotation
-            //endregion
-
-            //endregion
-
-            //region SearchBar
-            listProperty(searchPanel.searchCombo) bindDual searchHistory
-            selectedIndexProperty(searchPanel.searchCombo) bindLeft searchSelectedIndex
-            textProperty(searchPanel.searchCombo.editorComponent) bindDual searchCurrentContent
-            customProperty(searchPanel.searchCombo, "errorMsg", "") bindDual searchErrorMessage
-
-            visibilityProperty(searchPanel) bindDual searchPanelVisible
-
-            selectedProperty(searchPanel.searchMatchCaseToggle) bindDual searchMatchCase
-            //endregion
-
-            //region LogPanel
-            dividerProperty(splitLogPane) bindDual splitPanelDividerLocation
-            //endregion
-
-            //region Style
-            bindWithButtonDisplayMode(startBtn, stopBtn, pauseToggle, saveBtn, clearViewsBtn)
-            //endregion
-
-            logLevelFilterCurrentContent.addObserver {
-                logLevel.updateValue(nameToLogLevel[it] ?: LogLevel.VERBOSE)
-            }
-
-            syncGlobalConfWithMainViewModel()
-        }
-    }
-
-    private fun bindLogFilter(
+    fun bindLogFilter(
         comboBox: HistoryComboBox<String>,
         toggle: JToggleButton,
         selectedIndexProperty: ObservableViewModelProperty<Int>,
@@ -220,7 +125,7 @@ class LogMainViewModel : ContextService, GThemeChangeListener {
         customProperty(comboBox, "errorMsg", "") bindLeft errorMessageProperty
     }
 
-    private fun bindNormalCombo(
+    fun bindNormalCombo(
         comboBox: HistoryComboBox<String>,
         selectedIndexProperty: ObservableViewModelProperty<Int>,
         listProperty: ObservableViewModelProperty<List<HistoryItem<String>>>,
@@ -231,11 +136,11 @@ class LogMainViewModel : ContextService, GThemeChangeListener {
         textProperty(comboBox.editorComponent) bindDual editorContentProperty
     }
 
-    private fun bindWithButtonDisplayMode(vararg component: JComponent) {
+    fun bindWithButtonDisplayMode(vararg component: JComponent) {
         component.forEach { customProperty(it, "buttonDisplayMode", ButtonDisplayMode.ALL) bindRight buttonDisplayMode }
     }
 
-    private fun syncGlobalConfWithMainViewModel() {
+    fun syncGlobalConfWithMainViewModel() {
         searchHistory.addObserver {
             UIConfManager.uiConf.searchHistory.clear()
             UIConfManager.uiConf.searchHistory.addAll(it!!.toContentList())

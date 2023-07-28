@@ -1,36 +1,35 @@
 package me.gegenbauer.catspy.log.ui
 
 import com.github.weisj.darklaf.iconset.AllIcons
-import com.github.weisj.darklaf.settings.ThemeSettings
-import com.github.weisj.darklaf.theme.Theme
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import com.malinskiy.adam.request.device.Device
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.common.configuration.GThemeChangeListener
+import me.gegenbauer.catspy.common.configuration.Rotation
 import me.gegenbauer.catspy.common.configuration.ThemeManager
 import me.gegenbauer.catspy.common.configuration.UIConfManager
 import me.gegenbauer.catspy.common.log.FilterItem.Companion.emptyItem
 import me.gegenbauer.catspy.common.log.FilterItem.Companion.rebuild
 import me.gegenbauer.catspy.common.log.LogLevel
+import me.gegenbauer.catspy.common.log.nameToLogLevel
 import me.gegenbauer.catspy.common.ui.button.*
 import me.gegenbauer.catspy.common.ui.combobox.*
 import me.gegenbauer.catspy.common.ui.icon.DayNightIcon
 import me.gegenbauer.catspy.common.ui.state.EmptyStatePanel
 import me.gegenbauer.catspy.common.ui.tab.OnTabChangeListener
-import me.gegenbauer.catspy.concurrency.AppScope
-import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.context.*
+import me.gegenbauer.catspy.context.Disposable
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.catspy.databinding.bind.bindDual
+import me.gegenbauer.catspy.databinding.bind.bindLeft
 import me.gegenbauer.catspy.databinding.bind.withName
-import me.gegenbauer.catspy.databinding.property.support.PROPERTY_TEXT
-import me.gegenbauer.catspy.ddmlib.device.DeviceListListener
+import me.gegenbauer.catspy.databinding.property.support.*
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
+import me.gegenbauer.catspy.ddmlib.device.DeviceListListener
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.model.LogcatLogItem
@@ -54,12 +53,9 @@ import java.awt.*
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
 import java.awt.event.*
-import java.beans.PropertyChangeEvent
-import java.beans.PropertyChangeListener
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.swing.*
-import javax.swing.event.DocumentEvent
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 import javax.swing.text.JTextComponent
@@ -90,30 +86,30 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     //region logPanel
     private val logPanel = JPanel()
 
-    val showLogToggle =
+    private val showLogToggle =
         ColorToggleButton(STRINGS.ui.log, STRINGS.toolTip.logToggle)
-    val showLogCombo = filterComboBox(tooltip = STRINGS.toolTip.logCombo) withName STRINGS.ui.log
+    private val showLogCombo = filterComboBox(tooltip = STRINGS.toolTip.logCombo) withName STRINGS.ui.log
 
-    val showTagToggle =
+    private val showTagToggle =
         ColorToggleButton(STRINGS.ui.tag, STRINGS.toolTip.tagToggle)
-    val showTagCombo = filterComboBox(tooltip = STRINGS.toolTip.tagCombo) withName STRINGS.ui.tag
+    private val showTagCombo = filterComboBox(tooltip = STRINGS.toolTip.tagCombo) withName STRINGS.ui.tag
 
-    val showPidToggle =
+    private val showPidToggle =
         ColorToggleButton(STRINGS.ui.pid, STRINGS.toolTip.pidToggle)
-    val showPidCombo = filterComboBox(tooltip = STRINGS.toolTip.pidCombo) withName STRINGS.ui.pid
+    private val showPidCombo = filterComboBox(tooltip = STRINGS.toolTip.pidCombo) withName STRINGS.ui.pid
 
-    val showTidToggle =
+    private val showTidToggle =
         ColorToggleButton(STRINGS.ui.tid, STRINGS.toolTip.tidToggle)
-    val showTidCombo = filterComboBox(tooltip = STRINGS.toolTip.tidCombo) withName STRINGS.ui.tid
+    private val showTidCombo = filterComboBox(tooltip = STRINGS.toolTip.tidCombo) withName STRINGS.ui.tid
 
-    val logLevelToggle = ColorToggleButton(STRINGS.ui.logLevel)
-    val logLevelCombo = readOnlyComboBox() withName STRINGS.ui.logLevel
+    private val logLevelToggle = ColorToggleButton(STRINGS.ui.logLevel)
+    private val logLevelCombo = readOnlyComboBox() withName STRINGS.ui.logLevel
 
-    val boldLogToggle =
+    private val boldLogToggle =
         ColorToggleButton(STRINGS.ui.bold, STRINGS.toolTip.boldToggle)
-    val boldLogCombo = filterComboBox(tooltip = STRINGS.toolTip.boldCombo)
+    private val boldLogCombo = filterComboBox(tooltip = STRINGS.toolTip.boldCombo)
 
-    val matchCaseToggle = ColorToggleButton("Aa", STRINGS.toolTip.caseToggle)
+    private val matchCaseToggle = ColorToggleButton("Aa", STRINGS.toolTip.caseToggle)
     //endregion
 
     //region toolBarPanel
@@ -122,35 +118,35 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     //region logToolBar
     private val logToolBar = JPanel(FlowLayout(FlowLayout.LEFT)) withName "logToolBar"
 
-    val startBtn = StatefulButton(
+    private val startBtn = StatefulButton(
         loadThemedIcon("start.svg"),
         STRINGS.ui.start,
         STRINGS.toolTip.startBtn
     )
-    val pauseToggle = StatefulToggleButton(
+    private val pauseToggle = StatefulToggleButton(
         loadIcon("pause_off.png"),
         DayNightIcon(loadIcon("pause_on.png"), loadIcon("pause_on_dark.png")),
         STRINGS.ui.pause,
         tooltip = STRINGS.toolTip.pauseBtn
     )
-    val stopBtn = StatefulButton(
+    private val stopBtn = StatefulButton(
         loadIcon("stop.png"),
         STRINGS.ui.stop,
         STRINGS.toolTip.stopBtn
     )
-    val saveBtn = StatefulButton(
+    private val saveBtn = StatefulButton(
         loadIcon("save.svg"),
         STRINGS.ui.save,
         STRINGS.toolTip.saveBtn
     )
-    val deviceCombo = readOnlyComboBox(STRINGS.toolTip.devicesCombo)
-    val rotateLogPanelBtn =
+    private val deviceCombo = readOnlyComboBox(STRINGS.toolTip.devicesCombo)
+    private val rotateLogPanelBtn =
         StatefulButton(
             loadThemedIcon("rotate.svg"),
             STRINGS.ui.rotation,
             STRINGS.toolTip.rotationBtn
         )
-    val clearViewsBtn = StatefulButton(
+    private val clearViewsBtn = StatefulButton(
         loadIcon("clear.png"),
         STRINGS.ui.clearViews,
         STRINGS.toolTip.clearBtn
@@ -159,15 +155,15 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     //endregion
 
     //region searchPanel
-    internal val searchPanel by lazy { SearchPanel() }
+    private val searchPanel by lazy { SearchPanel() }
     //endregion
     //endregion
 
     //region splitLogPane
     private val splitLogWithEmptyStatePanel = EmptyStatePanel()
     private val fullTableModel = LogTableModel(fullLogcatRepository)
-    val filteredTableModel = LogTableModel(filteredLogcatRepository)
-    val splitLogPane = SplitLogPane(fullTableModel, filteredTableModel).apply {
+    private val filteredTableModel = LogTableModel(filteredLogcatRepository)
+    internal val splitLogPane = SplitLogPane(fullTableModel, filteredTableModel).apply {
         onFocusGained = {
             searchPanel.setTargetView(it)
         }
@@ -178,7 +174,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     private val statusBar = JPanel(BorderLayout())
 
     private val statusMethod = JLabel()
-    private val statusTF = StatusTextField(STRINGS.ui.none) applyTooltip STRINGS.toolTip.savedFileTf
+    private val logFilePath = StatusTextField(STRINGS.ui.none) applyTooltip STRINGS.toolTip.savedFileTf
     //endregion
 
     //region menu
@@ -203,7 +199,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     private val keyHandler = KeyHandler()
     private val actionHandler = ActionHandler()
     private val mouseHandler = MouseHandler()
-    private val statusChangeListener = StatusChangeListener()
     //endregion
 
     var customFont: Font = Font(
@@ -236,10 +231,115 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         registerEvent()
 
         observeViewModelValue()
-        viewModel.bind(this)
+        bindViewModel(viewModel)
         ThemeManager.registerThemeUpdateListener(viewModel)
 
         ThemeManager.registerThemeUpdateListener(themeChangeListener)
+    }
+
+    private fun bindViewModel(viewModel: LogMainViewModel) {
+        viewModel.apply {
+            //region Toolbar
+            //region Filter
+            bindLogFilter(
+                showLogCombo,
+                showLogToggle,
+                logFilterSelectedIndex,
+                logFilterHistory,
+                logFilterEnabled,
+                logFilterCurrentContent,
+                logFilterErrorMessage
+            )
+            bindLogFilter(
+                showTagCombo,
+                showTagToggle,
+                tagFilterSelectedIndex,
+                tagFilterHistory,
+                tagFilterEnabled,
+                tagFilterCurrentContent,
+                tagFilterErrorMessage
+            )
+            bindLogFilter(
+                showPidCombo,
+                showPidToggle,
+                pidFilterSelectedIndex,
+                pidFilterHistory,
+                pidFilterEnabled,
+                pidFilterCurrentContent,
+                pidFilterErrorMessage
+            )
+            bindLogFilter(
+                showTidCombo,
+                showTidToggle,
+                tidFilterSelectedIndex,
+                tidFilterHistory,
+                tidFilterEnabled,
+                tidFilterCurrentContent,
+                tidFilterErrorMessage
+            )
+            bindLogFilter(
+                logLevelCombo,
+                logLevelToggle,
+                logLevelFilterSelectedIndex,
+                logLevelFilterHistory,
+                logLevelFilterEnabled,
+                logLevelFilterCurrentContent
+            )
+            bindLogFilter(
+                boldLogCombo,
+                boldLogToggle,
+                boldSelectedIndex,
+                boldHistory,
+                boldEnabled,
+                boldCurrentContent,
+                boldErrorMessage
+            )
+
+            selectedProperty(matchCaseToggle) bindDual filterMatchCaseEnabled
+            //endregion
+
+            //region ADB
+            bindNormalCombo(deviceCombo, deviceSelectedIndex, connectedDevices, currentDevice)
+
+            selectedProperty(pauseToggle) bindDual pauseAll
+            //endregion
+
+            //region Menu
+            customProperty(splitLogPane, "rotation", Rotation.ROTATION_LEFT_RIGHT) bindDual rotation
+            //endregion
+
+            //endregion
+
+            //region SearchBar
+            listProperty(searchPanel.searchCombo) bindDual searchHistory
+            selectedIndexProperty(searchPanel.searchCombo) bindLeft searchSelectedIndex
+            textProperty(searchPanel.searchCombo.editorComponent) bindDual searchCurrentContent
+            customProperty(searchPanel.searchCombo, "errorMsg", "") bindDual searchErrorMessage
+
+            visibilityProperty(searchPanel) bindDual searchPanelVisible
+
+            selectedProperty(searchPanel.searchMatchCaseToggle) bindDual searchMatchCase
+            //endregion
+
+            //region LogPanel
+            dividerProperty(splitLogPane) bindDual splitPanelDividerLocation
+            //endregion
+
+            //region status bar
+            textProperty(statusMethod) bindDual status
+            textProperty(logFilePath) bindDual filePath
+            //endregion
+
+            //region Style
+            bindWithButtonDisplayMode(startBtn, stopBtn, pauseToggle, saveBtn, clearViewsBtn)
+            //endregion
+
+            logLevelFilterCurrentContent.addObserver {
+                logLevel.updateValue(nameToLogLevel[it] ?: LogLevel.VERBOSE)
+            }
+
+            syncGlobalConfWithMainViewModel()
+        }
     }
 
     override fun configureContext(context: Context) {
@@ -252,19 +352,22 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     }
 
     private fun observeViewModelValue() {
-        viewModel.pauseAll.addObserver {
-            taskManager.updatePauseState(it == true)
+        viewModel.apply {
+            pauseAll.addObserver {
+                taskManager.updatePauseState(it == true)
+            }
+            filterMatchCaseEnabled.addObserver { updateLogFilter() }
+            logLevel.addObserver { updateLogFilter() }
+            logFilterEnabled.addObserver { updateLogFilter() }
+            tagFilterEnabled.addObserver { updateLogFilter() }
+            pidFilterEnabled.addObserver { updateLogFilter() }
+            tidFilterEnabled.addObserver { updateLogFilter() }
+            logLevelFilterEnabled.addObserver { updateLogFilter() }
+            boldEnabled.addObserver { updateLogFilter() }
+            searchMatchCase.addObserver { filteredTableModel.searchMatchCase = it == true }
+            searchMatchCase.addObserver { updateLogFilter() }
+            filePath.addObserver { updateTitleBar(status.value?.trim() ?: "") }
         }
-        viewModel.filterMatchCaseEnabled.addObserver { updateLogFilter() }
-        viewModel.logLevel.addObserver { updateLogFilter() }
-        viewModel.logFilterEnabled.addObserver { updateLogFilter() }
-        viewModel.tagFilterEnabled.addObserver { updateLogFilter() }
-        viewModel.pidFilterEnabled.addObserver { updateLogFilter() }
-        viewModel.tidFilterEnabled.addObserver { updateLogFilter() }
-        viewModel.logLevelFilterEnabled.addObserver { updateLogFilter() }
-        viewModel.boldEnabled.addObserver { updateLogFilter() }
-        viewModel.searchMatchCase.addObserver { filteredTableModel.searchMatchCase = it == true }
-        viewModel.searchMatchCase.addObserver { updateLogFilter() }
     }
 
     private fun refreshDevices(devices: List<Device>) {
@@ -272,7 +375,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         viewModel.currentDevice.updateValue(devices.firstOrNull()?.serial)
     }
 
-    // TODO 关闭 tab 时调用
     private fun saveConfiguration() {
         UIConfManager.uiConf.logFontSize = customFont.size
         UIConfManager.uiConf.logFontName = customFont.name
@@ -337,13 +439,11 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         statusBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         statusMethod.isOpaque = true
         statusMethod.background = Color.DARK_GRAY
-        statusTF.isEditable = false
-        statusTF.border = BorderFactory.createEmptyBorder()
+        logFilePath.isEditable = false
+        logFilePath.border = BorderFactory.createEmptyBorder()
 
         statusBar.add(statusMethod, BorderLayout.WEST)
-        statusBar.add(statusTF, BorderLayout.CENTER)
-
-        setDeviceComboColor(true)
+        statusBar.add(logFilePath, BorderLayout.CENTER)
 
         customFont = UIConfManager.uiConf.getLogFont()
         GLog.d(TAG, "[createUI] log font: $customFont")
@@ -414,8 +514,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         saveBtn.addMouseListener(mouseHandler)
         filterPanel.addMouseListener(mouseHandler)
         toolBarPanel.addMouseListener(mouseHandler)
-        statusMethod.addPropertyChangeListener(statusChangeListener)
-        statusTF.document.addDocumentListener(statusChangeListener)
 
         fullTableModel.addLogTableModelListener { event ->
             splitLogWithEmptyStatePanel.contentVisible = (event.source as LogTableModel).rowCount > 0
@@ -430,8 +528,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         logProvider.addObserver(this)
     }
 
-    // TODO register after ui change
-    fun registerComboBoxEditorEvent() {
+    private fun registerComboBoxEditorEvent() {
         showLogCombo.editorComponent.addKeyListener(keyHandler)
         showLogCombo.editorComponent.addMouseListener(mouseHandler)
         boldLogCombo.editorComponent.addKeyListener(keyHandler)
@@ -447,24 +544,11 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         searchPanel.registerComboBoxEditorEvent()
     }
 
-    inner class StatusChangeListener : PropertyChangeListener, DefaultDocumentListener() {
-        private var method = ""
-        override fun propertyChange(evt: PropertyChangeEvent) {
-            if (evt.source == statusMethod && evt.propertyName == PROPERTY_TEXT) {
-                method = evt.newValue.toString().trim()
-            }
-        }
-
-        override fun insertUpdate(e: DocumentEvent) {
-            updateTitleBar(method)
-        }
-    }
-
-    // TODO update title
     private fun updateTitleBar(statusMethod: String) {
-        val title = when (statusMethod) {
+        val frame = DarkUIUtil.getParentOfType(JFrame::class.java, this)
+        frame?.title = when (statusMethod) {
             STRINGS.ui.open, STRINGS.ui.follow, "${STRINGS.ui.follow} ${STRINGS.ui.stop}" -> {
-                val path: Path = Paths.get(statusTF.text)
+                val path: Path = Paths.get(logFilePath.text)
                 path.fileName.toString()
             }
 
@@ -478,8 +562,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         }
     }
 
-    // TODO detach log 逻辑梳理
-    fun detachLogPanel(logPanel: FullLogPanel) {
+    private fun detachLogPanel(logPanel: FullLogPanel) {
         if (logPanel.parent == splitLogPane) {
             logPanel.isWindowedMode = true
             splitLogPane.remove(logPanel)
@@ -495,14 +578,14 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         logTableDialog.isVisible = true
     }
 
-    fun attachLogPanel(logPanel: FullLogPanel) {
+    private fun attachLogPanel(logPanel: FullLogPanel) {
         logPanel.isWindowedMode = false
         splitLogPane.resetWithCurrentRotation()
     }
 
     fun openFile(path: String, isAppend: Boolean) {
         GLog.d(TAG, "[openFile] Opening: $path, $isAppend")
-        statusMethod.text = " ${STRINGS.ui.open} "
+        viewModel.status.updateValue(" ${STRINGS.ui.open} ")
         logProvider.clear()
         updateLogFilter()
 
@@ -513,16 +596,14 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         logProvider.startCollectLog(FileLogCollector(taskManager, path))
 
         if (isAppend) {
-            statusTF.text += "| $path"
+            viewModel.filePath.updateValue(viewModel.filePath.value + path)
         } else {
-            statusTF.text = path
+            viewModel.filePath.updateValue( path)
         }
-
-        return
     }
 
     fun startAdbScan() {
-        statusMethod.text = " ${STRINGS.ui.adb} "
+        viewModel.status.updateValue(" ${STRINGS.ui.adb} ")
         updateLogFilter()
 
         if (updateLogUITask.isRunning().not()) {
@@ -533,11 +614,11 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         logProvider.startCollectLog(RealTimeLogCollector(taskManager, viewModel.currentDevice.value ?: ""))
         viewModel.pauseAll.updateValue(false)
 
-        statusTF.text = logProvider.logTempFile?.absolutePath ?: ""
+        viewModel.filePath.updateValue(logProvider.logTempFile?.absolutePath ?: "")
     }
 
-    fun stopAll() {
-        statusMethod.text = " ${STRINGS.ui.adb} ${STRINGS.ui.stop} "
+    private fun stopAll() {
+        viewModel.status.updateValue(" ${STRINGS.ui.adb} ${STRINGS.ui.stop} ")
 
         if (!logProvider.isCollecting()) {
             GLog.d(TAG, "stopAdbScan : not adb scanning mode")
@@ -549,9 +630,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     }
 
     private fun startFileFollow(filePath: String) {
-        statusTF.text = filePath
-        statusMethod.text = " ${STRINGS.ui.follow} "
-        // TODO file follow
+        viewModel.filePath.updateValue(filePath)
+        viewModel.status.updateValue(" ${STRINGS.ui.follow} ")
     }
 
     private inner class ActionHandler : ActionListener {
@@ -586,11 +666,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
                 }
             }
         }
-    }
-
-    private fun connect() {
-        stopAll()
-        // TODO connect
     }
 
     fun stopScan() {
@@ -786,29 +861,6 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     fun applyShowLogCombo() {
         resetComboItem(viewModel.logFilterHistory, viewModel.logFilterCurrentContent.value ?: "")
-    }
-
-    fun applyShowLogComboEditor() {
-        val editorCom = showLogCombo.editorComponent
-        val text = editorCom.text
-        setTextShowLogCombo(text)
-        applyShowLogCombo()
-    }
-
-    private fun setDeviceComboColor(isConnected: Boolean) {
-        if (isConnected) {
-            if (Theme.isDark(ThemeSettings.getInstance().theme)) {
-                deviceCombo.editorComponent.foreground = Color(0x7070C0)
-            } else {
-                deviceCombo.editorComponent.foreground = Color.BLUE
-            }
-        } else {
-            if (Theme.isDark(ThemeSettings.getInstance().theme)) {
-                deviceCombo.editorComponent.foreground = Color(0xC07070)
-            } else {
-                deviceCombo.editorComponent.foreground = Color.RED
-            }
-        }
     }
 
     private inner class KeyHandler : KeyAdapter() {
@@ -1110,13 +1162,11 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
                 .mouseMoved(MouseEvent(targetPanel, 0, 0, 0, targetPanel.width / 3, 0, 0, false))
         }
 
-        AppScope.launch(Dispatchers.UI) {
-            delay(1000)
-            targetPanel.toolTipText = ""
-        }
+        targetPanel.toolTipText = ""
     }
 
     override fun onError(error: Throwable) {
+        GLog.e(TAG, "[onError]", error)
         JOptionPane.showMessageDialog(
             this,
             error,

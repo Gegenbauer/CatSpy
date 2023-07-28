@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.script.model.Script
 import me.gegenbauer.catspy.task.CommandTask
 import me.gegenbauer.catspy.task.TaskManager
@@ -16,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference
 class CommandExecutor(
     private val taskManager: TaskManager,
     override val script: Script,
-    override val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    override val dispatcher: CoroutineDispatcher = Dispatchers.GIO
 ) : CommandTask(script.getCommand().toCommand()), ScriptExecutor {
     private val countDownLatch = CountDownLatch(1)
     private val cachedOutput = StringBuilder()

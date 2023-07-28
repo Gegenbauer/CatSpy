@@ -1,31 +1,28 @@
 package me.gegenbauer.catspy.ui
 
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
+import kotlinx.coroutines.MainScope
 import me.gegenbauer.catspy.common.configuration.UIConfManager
 import me.gegenbauer.catspy.common.ui.tab.OnTabChangeListener
-import me.gegenbauer.catspy.context.Context
-import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.context.GlobalContextManager
-import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.common.viewmodel.GlobalViewModel
+import me.gegenbauer.catspy.context.*
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.log.ui.LogMainUI
+import me.gegenbauer.catspy.script.ui.ScriptMainUI
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
-import me.gegenbauer.catspy.script.ui.ScriptMainUI
 import me.gegenbauer.catspy.utils.loadIconWithRealSize
-import me.gegenbauer.catspy.common.viewmodel.GlobalViewModel
 import java.awt.BorderLayout
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
-import javax.swing.*
-import kotlin.system.exitProcess
+import javax.swing.JFrame
+import javax.swing.JMenuBar
+import javax.swing.JTabbedPane
 
 /**
  *  TODO 将底部状态栏抽出，并增加进度条，显示某些任务进度
  */
-class MainUI(title: String, override val contexts: Contexts = Contexts.default) : JFrame(title), Context {
+class MainUI(title: String, override val contexts: Contexts = Contexts.default) : JFrame(title), Context, Disposable {
 
     //region menu
     private val helpMenu = HelpMenu()
@@ -71,11 +68,6 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
     }
 
     private fun registerEvents() {
-        addWindowListener(object : WindowAdapter() {
-            override fun windowClosing(e: WindowEvent) {
-                exit()
-            }
-        })
         tabbedPane.addChangeListener { event ->
             if (event.source is JTabbedPane) {
                 val pane = event.source as JTabbedPane
@@ -90,7 +82,6 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
 
     private fun configureWindow() {
         iconImage = loadIconWithRealSize<DerivableImageIcon>("logo.png").image
-        defaultCloseOperation = EXIT_ON_CLOSE
 
         UIConfManager.uiConf.run {
             extendedState = if (frameX == 0 || frameY == 0 || frameWidth == 0 || frameHeight == 0) {
@@ -106,11 +97,11 @@ class MainUI(title: String, override val contexts: Contexts = Contexts.default) 
             }
         }
     }
-
-    private fun exit() {
+    override fun dispose() {
         ServiceManager.dispose(this)
+        logMainUI.dispose()
+        scriptMainUI.dispose()
         saveConfigOnDestroy()
-        exitProcess(0)
     }
 
     private fun saveConfigOnDestroy() {

@@ -11,6 +11,7 @@ import me.gegenbauer.catspy.common.support.VStatusPanelTheme
 import me.gegenbauer.catspy.common.viewmodel.GlobalViewModel
 import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
+import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -62,6 +63,17 @@ class Application {
                 ThemeManager.registerDefaultThemeUpdateListener()
 
                 //addClickListenerForAllComponents(mainUI.components)
+                mainUI.addWindowListener(object : java.awt.event.WindowAdapter() {
+                    override fun windowClosing(e: java.awt.event.WindowEvent?) {
+                        GLog.i(TAG, "[windowClosing]")
+                        AppScope.launch(Dispatchers.GIO) {
+                            GLog.i(TAG, "[windowClosing] handle dispose start")
+                            mainUI.dispose()
+                            GLog.i(TAG, "[windowClosing] handle dispose end")
+                            System.exit(0)
+                        }
+                    }
+                })
             }
         }
 

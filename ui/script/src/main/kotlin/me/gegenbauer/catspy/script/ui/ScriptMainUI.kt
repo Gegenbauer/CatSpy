@@ -5,6 +5,7 @@ import com.malinskiy.adam.request.device.DeviceState
 import me.gegenbauer.catspy.common.ui.tab.OnTabChangeListener
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.context.Disposable
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
@@ -16,7 +17,7 @@ import me.gegenbauer.catspy.task.TaskManager
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), Context, OnTabChangeListener {
+class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), Context, OnTabChangeListener, Disposable {
 
     private val taskManager = TaskManager()
     private val cardContainer = ScriptCardContainer()
@@ -93,6 +94,10 @@ class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(
         focusedActivityCard.setContexts(contexts)
         currentDevice =
             ServiceManager.getContextService(AdamDeviceManager::class.java).getDevices().firstOrNull() ?: currentDevice
+    }
+
+    override fun dispose() {
+
     }
 
     private fun updateCardContent() {
