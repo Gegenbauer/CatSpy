@@ -29,6 +29,7 @@ abstract class BaseLogcatRepository(
             field = value
         }
     override var selectedRow: Int = 0
+    override val isFiltering: Boolean = false
 
     private val logItems = ArrayList<LogcatLogItem>(10000)
     private val cacheItems = ArrayList<LogcatLogItem>(10000)

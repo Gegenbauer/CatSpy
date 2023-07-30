@@ -69,7 +69,7 @@ class LogTable(
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        tableModel.configureContext(context)
+        tableModel.setContexts(contexts)
     }
 
     private fun updateRowHeight() {

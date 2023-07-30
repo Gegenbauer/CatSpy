@@ -13,6 +13,8 @@ interface LogRepository : LogObservable.Observer<LogcatLogItem> {
 
     var selectedRow: Int
 
+    val isFiltering: Boolean
+
     fun onItemInsertFromInit(logItem: LogcatLogItem)
 
     fun onItemInsertFromFilterUpdate(logItem: LogcatLogItem)

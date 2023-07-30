@@ -19,7 +19,7 @@ import me.gegenbauer.catspy.common.log.nameToLogLevel
 import me.gegenbauer.catspy.common.ui.button.*
 import me.gegenbauer.catspy.common.ui.combobox.*
 import me.gegenbauer.catspy.common.ui.icon.DayNightIcon
-import me.gegenbauer.catspy.common.ui.state.EmptyStatePanel
+import me.gegenbauer.catspy.common.ui.state.StatefulPanel
 import me.gegenbauer.catspy.common.ui.tab.OnTabChangeListener
 import me.gegenbauer.catspy.context.*
 import me.gegenbauer.catspy.context.Disposable
@@ -35,6 +35,7 @@ import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.model.LogcatLogItem
 import me.gegenbauer.catspy.log.model.LogcatRealTimeFilter
 import me.gegenbauer.catspy.log.repo.*
+import me.gegenbauer.catspy.log.task.LogTaskManager
 import me.gegenbauer.catspy.log.ui.dialog.GoToDialog
 import me.gegenbauer.catspy.log.ui.dialog.LogTableDialog
 import me.gegenbauer.catspy.log.ui.panel.FullLogPanel
@@ -47,7 +48,6 @@ import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.task.PeriodicTask
 import me.gegenbauer.catspy.task.TaskListener
-import me.gegenbauer.catspy.task.TaskManager
 import me.gegenbauer.catspy.utils.*
 import java.awt.*
 import java.awt.datatransfer.Clipboard
@@ -69,7 +69,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     //endregion
 
     //region task
-    private val taskManager = TaskManager()
+    private val taskManager = ServiceManager.getContextService(this, LogTaskManager::class.java)
     private val updateLogUITask = PeriodicTask(500, "updateLogUITask")
     private val scope = MainScope()
     //endregion
@@ -160,7 +160,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     //endregion
 
     //region splitLogPane
-    private val splitLogWithEmptyStatePanel = EmptyStatePanel()
+    private val splitLogWithStatefulPanel = StatefulPanel()
     private val fullTableModel = LogTableModel(fullLogcatRepository)
     private val filteredTableModel = LogTableModel(filteredLogcatRepository)
     internal val splitLogPane = SplitLogPane(fullTableModel, filteredTableModel).apply {
@@ -454,14 +454,14 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         filteredTableModel.searchMatchCase = UIConfManager.uiConf.searchMatchCaseEnabled
         fullTableModel.searchMatchCase = UIConfManager.uiConf.searchMatchCaseEnabled
 
-        splitLogWithEmptyStatePanel.setContent(splitLogPane)
-        splitLogWithEmptyStatePanel.action = {
+        splitLogWithStatefulPanel.setContent(splitLogPane)
+        splitLogWithStatefulPanel.action = {
             SwingUtilities.updateComponentTreeUI(filePopupMenu)
             filePopupMenu.show(it, it.width / 2, it.height / 2)
         }
 
         add(filterPanel, BorderLayout.NORTH)
-        add(splitLogWithEmptyStatePanel, BorderLayout.CENTER)
+        add(splitLogWithStatefulPanel, BorderLayout.CENTER)
         add(statusBar, BorderLayout.SOUTH)
     }
 
@@ -516,7 +516,14 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         toolBarPanel.addMouseListener(mouseHandler)
 
         fullTableModel.addLogTableModelListener { event ->
-            splitLogWithEmptyStatePanel.contentVisible = (event.source as LogTableModel).rowCount > 0
+            splitLogWithStatefulPanel.state = if ((event.source as LogTableModel).rowCount > 0) {
+                StatefulPanel.State.NORMAL
+            } else {
+                StatefulPanel.State.EMPTY
+            }
+        }
+        filteredTableModel.state.addObserver {
+            splitLogPane.filterStatefulPanel.state = it ?: StatefulPanel.State.NONE
         }
         splitLogPane.fullLogPanel.table.selectionModel.addListSelectionListener {
             fullLogcatRepository.selectedRow = splitLogPane.fullLogPanel.table.selectedRow.takeIf { it >= 0 } ?: -1
@@ -598,7 +605,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         if (isAppend) {
             viewModel.filePath.updateValue(viewModel.filePath.value + path)
         } else {
-            viewModel.filePath.updateValue( path)
+            viewModel.filePath.updateValue(path)
         }
     }
 

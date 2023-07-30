@@ -18,6 +18,10 @@ class FilteredLogcatRepository(
     updateUITask: PeriodicTask,
     private val bookmarkManager: BookmarkManager,
 ) : BaseLogcatRepository(updateUITask) {
+
+    override val isFiltering: Boolean
+        get() = updatingFilter.get()
+
     // a copy of all log items used when filter is updated
     private val fullLogItems = mutableListOf<LogcatLogItem>()
     private val fullLogLock = ReentrantReadWriteLock()
@@ -97,6 +101,7 @@ class FilteredLogcatRepository(
                     scope.launch(Dispatchers.UI) {
                         notifyLogDataSetChange()
                         updatingFilter.set(false)
+                        notifyFinalResult()
                     }
                 }
             }

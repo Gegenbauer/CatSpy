@@ -3,18 +3,24 @@ package me.gegenbauer.catspy.log.ui.table
 import me.gegenbauer.catspy.common.log.FilterItem
 import me.gegenbauer.catspy.common.log.FilterItem.Companion.isEmpty
 import me.gegenbauer.catspy.common.log.flag
+import me.gegenbauer.catspy.common.ui.state.StatefulPanel
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.model.LogcatLogItem
 import me.gegenbauer.catspy.log.model.LogcatRealTimeFilter
+import me.gegenbauer.catspy.log.repo.FilteredLogcatRepository
 import me.gegenbauer.catspy.log.repo.FullLogcatRepository
 import me.gegenbauer.catspy.log.repo.LogRepository
+import me.gegenbauer.catspy.log.task.LogTaskManager
 import me.gegenbauer.catspy.log.ui.LogMainUI
 import me.gegenbauer.catspy.log.ui.panel.LogPanel
 import me.gegenbauer.catspy.resource.strings.STRINGS
+import me.gegenbauer.catspy.task.Task
+import me.gegenbauer.catspy.task.TaskListener
 import java.util.regex.Pattern
 import javax.swing.event.TableModelEvent
 import javax.swing.table.AbstractTableModel
@@ -29,7 +35,7 @@ fun interface LogTableModelListener {
 class LogTableModel(
     internal val logRepository: LogRepository,
     override val contexts: Contexts = Contexts.default
-) : AbstractTableModel(), LogRepository.LogChangeListener, Context {
+) : AbstractTableModel(), LogRepository.LogChangeListener, Context, TaskListener {
     var selectionChanged = false
     var highlightFilterItem: FilterItem = FilterItem.emptyItem
         set(value) {
@@ -50,12 +56,13 @@ class LogTableModel(
     val boldTid: Boolean
         get() = getViewModel()?.boldTid?.value ?: false
 
+    val isFiltering: Boolean
+        get() = logRepository.isFiltering
+
+    val state = ObservableViewModelProperty(StatefulPanel.State.NORMAL)
+
     private var searchPatternCase = Pattern.CASE_INSENSITIVE
     private val eventListeners = ArrayList<LogTableModelListener>()
-
-    init {
-        logRepository.addLogChangeListener(this)
-    }
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
@@ -64,6 +71,36 @@ class LogTableModel(
         }
         getViewModel()?.fullMode?.addObserver {
             logRepository.fullMode = it ?: false
+        }
+        logRepository.addLogChangeListener(this)
+        val logMainUI = contexts.getContext(LogMainUI::class.java)
+        logMainUI?.let {
+            val taskManager = ServiceManager.getContextService(logMainUI, LogTaskManager::class.java)
+            taskManager.addListener(this)
+        }
+    }
+
+    override fun onStart(task: Task) {
+        if (task is FilteredLogcatRepository.UpdateFilterTask) {
+            state.updateValue(StatefulPanel.State.LOADING)
+        }
+    }
+
+    override fun onCancel(task: Task) {
+        if (task is FilteredLogcatRepository.UpdateFilterTask) {
+            state.updateValue(StatefulPanel.State.NORMAL)
+        }
+    }
+
+    override fun onError(task: Task, t: Throwable) {
+        if (task is FilteredLogcatRepository.UpdateFilterTask) {
+            state.updateValue(StatefulPanel.State.NORMAL)
+        }
+    }
+
+    override fun onFinalResult(task: Task, data: Any) {
+        if (task is FilteredLogcatRepository.UpdateFilterTask) {
+            state.updateValue(StatefulPanel.State.NORMAL)
         }
     }
 
@@ -146,7 +183,8 @@ class LogTableModel(
         }
 
         if (idxFound >= 0) {
-            val logPanel = if (logRepository is FullLogcatRepository) mainUI.splitLogPane.fullLogPanel else mainUI.splitLogPane.filteredLogPanel
+            val logPanel =
+                if (logRepository is FullLogcatRepository) mainUI.splitLogPane.fullLogPanel else mainUI.splitLogPane.filteredLogPanel
             logPanel.goToRow(idxFound, 0)
         } else {
             mainUI.showSearchResultTooltip(isNext, "\"$searchFilterItem\" ${STRINGS.ui.notFound}")

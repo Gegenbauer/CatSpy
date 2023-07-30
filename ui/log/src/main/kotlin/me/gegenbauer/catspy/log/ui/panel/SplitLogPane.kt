@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.log.ui.panel
 
 import me.gegenbauer.catspy.common.configuration.Rotation
+import me.gegenbauer.catspy.common.ui.state.StatefulPanel
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.log.GLog
@@ -28,6 +29,7 @@ class SplitLogPane(
 
     val fullLogPanel = FullLogPanel(fullTableModel, this)
     val filteredLogPanel = FilteredLogPanel(filteredTableModel, this, fullLogPanel)
+    val filterStatefulPanel = StatefulPanel()
     private var rotation: Rotation = Rotation.ROTATION_LEFT_RIGHT
         set(value) {
             field = value
@@ -37,41 +39,45 @@ class SplitLogPane(
     init {
         continuousLayout = false
         orientation = HORIZONTAL_SPLIT
+
+        filterStatefulPanel.setContent(filteredLogPanel)
+        filterStatefulPanel.state = StatefulPanel.State.NORMAL
+
         add(fullLogPanel, LEFT)
-        add(filteredLogPanel, RIGHT)
+        add(filterStatefulPanel, RIGHT)
 
         transferHandler = TableTransferHandler()
     }
 
     private fun changeRotation(rotation: Rotation) {
-        remove(filteredLogPanel)
+        remove(filterStatefulPanel)
         remove(fullLogPanel)
         when (rotation) {
             Rotation.ROTATION_LEFT_RIGHT -> {
                 setOrientation(HORIZONTAL_SPLIT)
                 add(fullLogPanel, LEFT)
-                add(filteredLogPanel, RIGHT)
+                add(filterStatefulPanel, RIGHT)
                 resizeWeight = SPLIT_WEIGHT
             }
 
             Rotation.ROTATION_TOP_BOTTOM -> {
                 setOrientation(VERTICAL_SPLIT)
                 add(fullLogPanel, TOP)
-                add(filteredLogPanel, BOTTOM)
+                add(filterStatefulPanel, BOTTOM)
                 resizeWeight = SPLIT_WEIGHT
             }
 
             Rotation.ROTATION_RIGHT_LEFT -> {
                 setOrientation(HORIZONTAL_SPLIT)
                 add(fullLogPanel, RIGHT)
-                add(filteredLogPanel, LEFT)
+                add(filterStatefulPanel, LEFT)
                 resizeWeight = 1 - SPLIT_WEIGHT
             }
 
             Rotation.ROTATION_BOTTOM_TOP -> {
                 setOrientation(VERTICAL_SPLIT)
                 add(fullLogPanel, BOTTOM)
-                add(filteredLogPanel, TOP)
+                add(filterStatefulPanel, TOP)
                 resizeWeight = 1 - SPLIT_WEIGHT
             }
         }
