@@ -1,10 +1,7 @@
 package me.gegenbauer.catspy.log.viewmodel
 
 import com.github.weisj.darklaf.theme.Theme
-import me.gegenbauer.catspy.common.configuration.GThemeChangeListener
-import me.gegenbauer.catspy.common.configuration.Rotation
-import me.gegenbauer.catspy.common.configuration.UIConfManager
-import me.gegenbauer.catspy.common.configuration.toFont
+import me.gegenbauer.catspy.common.configuration.*
 import me.gegenbauer.catspy.common.log.LogLevel
 import me.gegenbauer.catspy.common.log.getLevelFromName
 import me.gegenbauer.catspy.common.log.nameToLogLevel
@@ -198,6 +195,8 @@ class LogMainViewModel : ContextService, GThemeChangeListener {
     }
 
     override fun onThemeChange(theme: Theme) {
-        logFont.updateValue(theme.toFont())
+        logFont.value?.let {
+            logFont.updateValue(it.newFont(theme, DEFAULT_LOG_FONT_SIZE))
+        }
     }
 }

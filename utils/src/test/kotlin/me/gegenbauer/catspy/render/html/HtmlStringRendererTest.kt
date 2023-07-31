@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.render.html
 
 import org.junit.jupiter.api.Test
-import java.awt.Color
 import kotlin.test.assertEquals
 
 class HtmlStringRendererTest {

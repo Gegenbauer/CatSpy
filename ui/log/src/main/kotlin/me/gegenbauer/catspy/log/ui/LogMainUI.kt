@@ -367,6 +367,11 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
             searchMatchCase.addObserver { filteredTableModel.searchMatchCase = it == true }
             searchMatchCase.addObserver { updateLogFilter() }
             filePath.addObserver { updateTitleBar(status.value?.trim() ?: "") }
+            logFont.addObserver {
+                it ?: return@addObserver
+                splitLogPane.filteredLogPanel.table.font = it
+                splitLogPane.fullLogPanel.table.font = it
+            }
         }
     }
 

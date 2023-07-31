@@ -8,6 +8,7 @@ import me.gegenbauer.catspy.utils.toArgb
 import java.awt.Font
 
 const val DEFAULT_FONT_SIZE = 14
+const val DEFAULT_LOG_FONT_SIZE = 13
 const val DEFAULT_FONT_STYLE = 0
 const val DEFAULT_FONT_FAMILY = "Dialog"
 const val DEFAULT_FONT_SCALE_PERCENTAGE = 100
@@ -57,6 +58,13 @@ fun GTheme.fontPrototype(): FontPrototype? {
 
 fun Theme.toFont(): Font {
     return Font(fontPrototype.family(), 0, (DEFAULT_FONT_SIZE.toFloat() * fontSizeRule.percentage / 100).toInt())
+}
+
+fun Font.newFont(theme: Theme, baseFontSize: Int): Font {
+    return Font(
+        theme.fontPrototype.family(), 0, (baseFontSize.toDouble() *
+                theme.fontSizeRule.percentage / 100).toInt()
+    )
 }
 
 fun Font.newFont(size: Int = getSize(), family: String = getFamily(), style: Int = getStyle()): Font {
