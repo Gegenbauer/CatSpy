@@ -19,7 +19,7 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableColumn
 
 
-private val columnIndex = object : Column {
+internal val columnIndex = object : Column {
     override val name: String = "index"
     override val maxCharCount: Int = 7
     override val index: Int = 0
@@ -154,7 +154,7 @@ private class SimpleLogCellRenderer : DefaultLogTableCellRenderer() {
     }
 
     override fun render(table: LogTable, label: JLabel, row: Int, col: Int, content: String) {
-        foreground = table.tableModel.getItem(row).fgColor
+        foreground = table.tableModel.getItemInCurrentPage(row).fgColor
     }
 }
 
@@ -166,7 +166,7 @@ private abstract class BoldLogCellRenderer : DefaultLogTableCellRenderer() {
     }
 
     override fun render(table: LogTable, label: JLabel, row: Int, col: Int, content: String) {
-        foreground = table.tableModel.getItem(row).fgColor
+        foreground = table.tableModel.getItemInCurrentPage(row).fgColor
         if (shouldBold(table)) {
             val renderer = HtmlStringRenderer(content)
             renderer.foreground(0, renderer.raw.length - 1, getBoldColor())
@@ -192,7 +192,7 @@ private open class MessageLogCellRenderer : DefaultLogTableCellRenderer() {
 
     protected open fun getRenderedContent(logTable: LogTable, row: Int, content: String): String {
         val renderer = HtmlStringRenderer(content)
-        val logItem = logTable.tableModel.getItem(row)
+        val logItem = logTable.tableModel.getItemInCurrentPage(row)
         val foreground = logItem.fgColor
         renderer.foreground(0, content.length - 1, foreground)
         logTable.tableModel.searchFilterItem.getMatchedList(content).forEach {
@@ -229,7 +229,7 @@ private abstract class DefaultLogTableCellRenderer : DefaultTableCellRenderer() 
         val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
         label.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
         val content = value as? String ?: ""
-        val logItem = logTable.tableModel.getItem(row)
+        val logItem = logTable.tableModel.getItemInCurrentPage(row)
         background = logTable.getColumnBackground(logItem.num, row)
         render(table, label, row, col, content)
         return label

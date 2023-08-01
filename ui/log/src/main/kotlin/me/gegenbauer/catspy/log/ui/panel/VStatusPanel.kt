@@ -17,6 +17,7 @@ import javax.swing.plaf.ComponentUI
 class VStatusPanel(override val contexts: Contexts = Contexts.default) : JPanel(), Context {
 
     init {
+        minimumSize = Dimension(0, 0)
         preferredSize = Dimension(VIEW_RECT_WIDTH, VIEW_RECT_HEIGHT)
         border = BorderFactory.createLineBorder(Color.DARK_GRAY)
         addMouseListener(MouseHandler())

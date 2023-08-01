@@ -13,7 +13,6 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.io.File
-import java.net.URI
 import javax.swing.JOptionPane
 import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
@@ -96,7 +95,7 @@ class SplitLogPane(
 
     internal inner class TableTransferHandler : TransferHandler() {
         override fun canImport(info: TransferSupport): Boolean {
-            return info.isDataFlavorSupported(DataFlavor.stringFlavor) || info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
+            return info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
         }
 
         override fun importData(info: TransferSupport): Boolean {
@@ -104,18 +103,6 @@ class SplitLogPane(
             info.takeIf { it.isDrop } ?: return false
 
             val fileList: MutableList<File> = mutableListOf()
-
-            if (info.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                runCatching {
-                    val data = info.transferable.getTransferData(DataFlavor.stringFlavor) as? String
-                    data?.split("\n")
-                        ?.filter { it.isNotEmpty() }
-                        ?.map { File(URI(it.trim())) }
-                        ?.let { fileList.addAll(it) }
-                }.onFailure {
-                    GLog.e(TAG, "[importData]", it)
-                }
-            }
 
             if (fileList.isNotEmpty() && info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
                 runCatching {

@@ -42,9 +42,9 @@ class FullLogPanel(
         ctrlMainPanel.updateUI()
     }
 
-    override fun onListSelectionChanged(event: ListSelectionEvent) {
-        super.onListSelectionChanged(event)
-        if (table.selectedRow == table.rowCount - 1) {
+    override fun valueChanged(event: ListSelectionEvent) {
+        super.valueChanged(event)
+        if (table.isLastRowSelected()) {
             setGoToLast(true)
         }
     }

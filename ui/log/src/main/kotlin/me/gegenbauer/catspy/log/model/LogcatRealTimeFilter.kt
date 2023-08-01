@@ -1,16 +1,12 @@
 package me.gegenbauer.catspy.log.model
 
 import me.gegenbauer.catspy.cache.PatternProvider
-import me.gegenbauer.catspy.cache.PatternProvider.Companion.toPatternKey
 import me.gegenbauer.catspy.common.log.FilterItem
 import me.gegenbauer.catspy.common.log.LogLevel
 import me.gegenbauer.catspy.common.log.toFilterItem
-import me.gegenbauer.catspy.context.ServiceManager
-import java.lang.StringBuilder
-import java.util.*
 import java.util.regex.Pattern
 
-class LogcatRealTimeFilter(
+data class LogcatRealTimeFilter(
     val filterLog: FilterItem,
     val filterTag: FilterItem,
     val filterPid: FilterItem,
@@ -65,27 +61,6 @@ class LogcatRealTimeFilter(
     private fun matchHidePattern(pattern: Pattern, text: String): Boolean {
         if (pattern == PatternProvider.emptyPattern) return true
         return pattern.matcher(text).find().not()
-    }
-
-    override fun hashCode(): Int {
-        return Objects.hash(filterLog, filterTag, filterPid, filterTid, filterLevel, matchCase)
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (other !is LogcatRealTimeFilter) {
-            return false
-        }
-        return filterLog == other.filterLog &&
-                filterTag == other.filterTag &&
-                filterPid == other.filterPid &&
-                filterTid == other.filterTid &&
-                filterLevel == other.filterLevel &&
-                matchCase == other.matchCase
-    }
-
-    override fun toString(): String {
-        return "LogcatRealTimeFilter(filterLog=$filterLog, filterTag=$filterTag, filterPid=$filterPid, " +
-                "filterTid=$filterTid, filterLevel=$filterLevel, matchCase=$matchCase)"
     }
 
     companion object {

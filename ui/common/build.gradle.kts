@@ -29,6 +29,7 @@ dependencies {
     compileOnly(projects.task)
     compileOnly(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
     testImplementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
+    testImplementation(kotlin("test"))
 }
 
 tasks.withType<KotlinCompile> {

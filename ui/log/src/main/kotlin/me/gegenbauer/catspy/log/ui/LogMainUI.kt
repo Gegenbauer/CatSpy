@@ -474,13 +474,13 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher { event ->
             when {
                 event.keyCode == KeyEvent.VK_PAGE_DOWN && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> {
-                    splitLogPane.filteredLogPanel.goToLast()
-                    splitLogPane.fullLogPanel.goToLast()
+                    splitLogPane.filteredLogPanel.moveToLastRow()
+                    splitLogPane.fullLogPanel.moveToLastRow()
                 }
 
                 event.keyCode == KeyEvent.VK_PAGE_UP && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> {
-                    splitLogPane.filteredLogPanel.goToFirst()
-                    splitLogPane.fullLogPanel.goToFirst()
+                    splitLogPane.filteredLogPanel.moveToFirstRow()
+                    splitLogPane.fullLogPanel.moveToFirstRow()
                 }
 
                 event.keyCode == KeyEvent.VK_L && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> {
@@ -955,8 +955,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
         lineNumber.takeIf { it > 0 } ?: return
 
-        splitLogPane.filteredLogPanel.goToRow(filteredTableModel.getRowIndex(lineNumber), 0)
-        splitLogPane.fullLogPanel.goToRow(fullTableModel.getRowIndex(lineNumber), 0)
+        splitLogPane.filteredLogPanel.goToLineIndex(filteredTableModel.getRowIndex(lineNumber))
+        splitLogPane.fullLogPanel.goToLineIndex(fullTableModel.getRowIndex(lineNumber))
     }
 
     private inner class StatusTextField(text: String?) : JTextField(text) {
@@ -1075,17 +1075,17 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
         fun moveToNext() {
             if (isInternalTargetView) {
-                filteredTableModel.moveToNextSearch()
+                filteredTableModel.moveToNextSearchResult()
             } else {
-                fullTableModel.moveToNextSearch()
+                fullTableModel.moveToNextSearchResult()
             }
         }
 
         fun moveToPrev() {
             if (isInternalTargetView) {
-                filteredTableModel.moveToPrevSearch()
+                filteredTableModel.moveToPreviousSearchResult()
             } else {
-                fullTableModel.moveToPrevSearch()
+                fullTableModel.moveToPreviousSearchResult()
             }
         }
 

@@ -6,6 +6,7 @@ import me.gegenbauer.catspy.common.support.ColorScheme
 import me.gegenbauer.catspy.common.ui.button.ColorToggleButton
 import me.gegenbauer.catspy.common.ui.button.StatefulToggleButton
 import me.gegenbauer.catspy.common.ui.container.WrapablePanel
+import me.gegenbauer.catspy.common.ui.table.PageNavigationPanel
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -15,15 +16,18 @@ import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.log.BookmarkChangeListener
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.ui.LogMainUI
 import me.gegenbauer.catspy.log.ui.table.LogTable
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModelListener
+import me.gegenbauer.catspy.common.ui.table.RowNavigation
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.utils.applyTooltip
 import me.gegenbauer.catspy.utils.loadIcon
-import java.awt.*
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.awt.Font
+import java.awt.Insets
 import java.awt.event.AdjustmentEvent
 import java.awt.event.AdjustmentListener
 import java.awt.event.FocusListener
@@ -36,14 +40,13 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.event.TableModelEvent
 
 
-// TODO refactor
 abstract class LogPanel(
-    protected val tableModel: LogTableModel,
+    val tableModel: LogTableModel,
     private val focusChangeListener: FocusListener,
-    override val contexts: Contexts = Contexts.default
-) : JPanel(), Context {
+    override val contexts: Contexts = Contexts.default,
+    val table: LogTable = LogTable(tableModel)
+) : JPanel(), Context, ListSelectionListener, RowNavigation by table {
 
-    val table = LogTable(tableModel)
     val viewModel = LogPanelViewModel()
     protected val ctrlMainPanel: WrapablePanel = WrapablePanel() withName "ctrlMainPanel"
 
@@ -57,8 +60,8 @@ abstract class LogPanel(
 
     private val scrollPane = JScrollPane(table)
     private val vStatusPanel = VStatusPanel()
+    private val pageNavigationPanel = PageNavigationPanel(tableModel)
     private val adjustmentHandler = AdjustmentHandler()
-    private val listSelectionHandler = ListSelectionHandler()
     private val tableModelHandler = TableModelHandler()
     private val bookmarkHandler = BookmarkHandler()
 
@@ -66,6 +69,7 @@ abstract class LogPanel(
 
     init {
         layout = BorderLayout()
+        scrollPane.minimumSize = Dimension(0, 0)
         Insets(2, 3, 1, 3).apply {
             firstCb.margin = this
             lastCb.margin = this
@@ -79,8 +83,8 @@ abstract class LogPanel(
     }
 
     private fun observeViewModelProperty() {
-        viewModel.goToLast.addObserver { if (it == true) goToLast() }
-        viewModel.goToFirst.addObserver { if (it == true) goToFirst() }
+        viewModel.goToLast.addObserver { if (it == true) moveToLastRow() }
+        viewModel.goToFirst.addObserver { if (it == true) moveToFirstRow() }
         viewModel.boldPid.addObserver {
             table.repaint()
         }
@@ -116,7 +120,6 @@ abstract class LogPanel(
         super.configureContext(context)
         table.setContexts(contexts)
         vStatusPanel.setContexts(contexts)
-        tableModel.setContexts(contexts)
 
         contexts.getContext(LogMainUI::class.java)?.apply {
             val bookmarkManager = ServiceManager.getContextService(this, BookmarkManager::class.java)
@@ -128,7 +131,7 @@ abstract class LogPanel(
         table.addFocusListener(focusChangeListener)
         tableModel.addLogTableModelListener(tableModelHandler)
         table.columnSelectionAllowed = true
-        table.selectionModel.addListSelectionListener(listSelectionHandler)
+        table.listSelectionHandler = this
         scrollPane.verticalScrollBar.unitIncrement = 20
 
         scrollPane.verticalScrollBar.addAdjustmentListener(adjustmentHandler)
@@ -140,6 +143,7 @@ abstract class LogPanel(
         add(ctrlPanel, BorderLayout.NORTH)
         add(vStatusPanel, BorderLayout.WEST)
         add(scrollPane, BorderLayout.CENTER)
+        add(pageNavigationPanel, BorderLayout.SOUTH)
     }
 
     open fun updateTableBar() {
@@ -169,31 +173,8 @@ abstract class LogPanel(
         super.repaint()
     }
 
-    fun goToRow(idx: Int, column: Int) {
-        if (idx < 0 || idx >= table.rowCount) {
-            GLog.d(TAG, "[goToRow] invalid idx")
-            return
-        }
-        // clear section 会触发 onListSelectionChanged，而 onListSelectionChanged 中会重新设置 goToLast or goToFirst 导致循环调用
-        table.selectionModel.removeListSelectionListener(listSelectionHandler)
-        table.clearSelection()
-        table.selectionModel.addListSelectionListener(listSelectionHandler)
-
-        table.setRowSelectionInterval(idx, idx)
-        val viewRect: Rectangle
-        if (column < 0) {
-            viewRect = table.getCellRect(idx, 0, true)
-            viewRect.x = table.visibleRect.x
-        } else {
-            viewRect = table.getCellRect(idx, column, true)
-        }
-        table.scrollRectToVisible(viewRect)
-    }
-
-    fun goToRowByNum(num: Int, column: Int) {
-        val firstNum = table.getValueAt(0, 0).toString().trim().toInt()
-        val idx = (num - firstNum).coerceAtLeast(0)
-        goToRow(idx, column)
+    fun goToLineIndex(logNum: Int) {
+        table.moveToRow(logNum)
     }
 
     fun setGoToLast(value: Boolean) {
@@ -204,81 +185,61 @@ abstract class LogPanel(
         viewModel.goToFirst.updateValue(value)
     }
 
-    fun getGoToLast(): Boolean {
-        return viewModel.goToLast.getValueNonNull()
-    }
-
-    fun goToFirst() {
+    override fun moveToFirstRow() {
+        table.moveToFirstRow()
         setGoToLast(false)
-        goToRow(0, -1)
-        updateTableUI()
-        return
     }
 
-    fun goToLast() {
+    override fun moveToLastRow() {
+        table.moveToLastRow()
         setGoToFirst(false)
-        if (table.rowCount > 0) {
-            goToRow(table.rowCount - 1, -1)
-            updateTableUI()
-        }
-    }
-
-    fun updateTableUI() {
-        table.updateUI()
     }
 
     internal inner class AdjustmentHandler : AdjustmentListener {
         override fun adjustmentValueChanged(event: AdjustmentEvent) {
             val currentPosition = event.value
             val isScrollingDown = currentPosition - lastPosition > 0
+            val isScrollingUp = currentPosition - lastPosition < 0
             takeIf { currentPosition != lastPosition } ?: return
             lastPosition = currentPosition
 
             val scrollBar = event.adjustable as JScrollBar
             val extent = scrollBar.model.extent
             val maximum = scrollBar.model.maximum
+            val minimum = scrollBar.model.minimum
             false.takeUnless { isScrollingDown }?.let {
                 setGoToLast(false)
-                return
+            }
+            false.takeUnless { isScrollingUp }?.let {
+                setGoToFirst(false)
             }
 
             val valueIsAtMaximum = (event.value + extent) >= maximum
-            true.takeIf { valueIsAtMaximum }?.let { setGoToLast(true) }
+            val valueIsAtMinimum = event.value <= minimum
+            true.takeIf { valueIsAtMaximum }?.let { 
+                if (tableModel.currentPage == tableModel.pageCount - 1) {
+                    setGoToLast(true)
+                }
+            }
+            true.takeIf { valueIsAtMinimum }?.let { 
+                if (tableModel.currentPage == 0) {
+                    setGoToFirst(true)
+                }
+            }
             vStatusPanel.repaint()
         }
     }
 
     internal inner class TableModelHandler : LogTableModelListener {
 
-        override fun tableChanged(event: TableModelEvent) {
+        override fun onLogDataChanged(event: TableModelEvent) {
             if ((event.source as LogTableModel).rowCount == 0) {
                 lastPosition = -1
-            } else {
-                tableChangedInternal(event)
             }
         }
-
-        private fun tableChangedInternal(event: TableModelEvent) {
-            updateTableUI()
-            onTableContentChanged(event)
-        }
     }
 
-    protected fun onTableContentChanged(event: TableModelEvent) {
-        if (getGoToLast() && table.rowCount > 0) {
-            val viewRect = table.getCellRect(table.rowCount - 1, 0, true)
-            viewRect.x = table.visibleRect.x
-            table.scrollRectToVisible(viewRect)
-        }
-    }
-
-    internal inner class ListSelectionHandler : ListSelectionListener {
-        override fun valueChanged(event: ListSelectionEvent) {
-            onListSelectionChanged(event)
-        }
-    }
-
-    protected open fun onListSelectionChanged(event: ListSelectionEvent) {
+    override fun valueChanged(event: ListSelectionEvent) {
         // Empty implementation
     }
 

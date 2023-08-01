@@ -54,6 +54,12 @@ class LogcatTask(private val device: String) : CommandTask(
     override fun onProcessEnd() {
         super.onProcessEnd()
         GLog.d(name, "[onProcessEnd] total line count = ${lineCount.get()}")
-        tempFileStream.flush()
+        runCatching {
+            tempFileStream.use {
+                it.flush()
+            }
+        }.onFailure {
+            GLog.e(name, "[onProcessEnd]", it)
+        }
     }
 }

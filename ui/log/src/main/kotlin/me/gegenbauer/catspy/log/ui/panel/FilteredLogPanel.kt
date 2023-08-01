@@ -62,21 +62,14 @@ class FilteredLogPanel(
         }
     }
 
-    override fun onListSelectionChanged(event: ListSelectionEvent) {
-        super.onListSelectionChanged(event)
-        val value = tableModel.getValueAt(table.selectedRow, 0)
-        val selectedRow = value.toString().trim().toInt()
+    override fun valueChanged(event: ListSelectionEvent) {
+        super.valueChanged(event)
+        val selectedLogNum = tableModel.getValueAt(table.selectedRow, 0).toString().trim().toInt()
+        val baseSelectedLogNum = basePanel.tableModel.getValueAt(basePanel.table.selectedRow, 0).toString().trim().toInt()
+        if (selectedLogNum != baseSelectedLogNum) {
+            basePanel.goToLineIndex(selectedLogNum)
 
-        val baseValue = basePanel.table.tableModel.getValueAt(basePanel.table.selectedRow, 0)
-        val baseSelectedRow = baseValue.toString().trim().toInt()
-
-        if (selectedRow != baseSelectedRow) {
-            setGoToLast(false)
-            basePanel.setGoToLast(false)
-            basePanel.goToRowByNum(selectedRow, -1)
-            tableModel.selectionChanged = true
-
-            if (table.selectedRow == table.rowCount - 1) {
+            if (table.isLastRowSelected()) {
                 setGoToLast(true)
             }
         }
