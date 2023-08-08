@@ -8,7 +8,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.context.ContextService
-import me.gegenbauer.catspy.log.GLog
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -25,7 +24,7 @@ class AndroidDebugBridgeManager : AndroidDebugBridge.IDebugBridgeChangeListener,
             AndroidDebugBridge.addDeviceChangeListener(this)
             AndroidDebugBridge.createBridge(adbPath, true)
         }.onFailure {
-            GLog.e(TAG, "[init] failed to init adb", it)
+            DdmLog.e(TAG, "[init] failed to init adb", it)
         }
     }
 
@@ -59,10 +58,10 @@ class AndroidDebugBridgeManager : AndroidDebugBridge.IDebugBridgeChangeListener,
         scope.launch {
             if (bridge.isConnected.not()) {
                 delay(5000)
-                GLog.e(TAG, "[bridgeChanged] not connected to adb server, restart")
+                DdmLog.e(TAG, "[bridgeChanged] not connected to adb server, restart")
                 //bridge.restart()
             } else {
-                GLog.d(TAG, "[bridgeChanged] connected to adb server")
+                DdmLog.d(TAG, "[bridgeChanged] connected to adb server")
             }
             dispatchStateChange()
         }
@@ -77,14 +76,14 @@ class AndroidDebugBridgeManager : AndroidDebugBridge.IDebugBridgeChangeListener,
     }
 
     private fun updateConnectState() {
-        GLog.d(TAG, "[updateConnectState] connected: ${connected()}")
+        DdmLog.d(TAG, "[updateConnectState] connected: ${connected()}")
         if (currentConnectState.get() != connected()) {
             dispatchStateChange()
             currentConnectState.set(connected())
             if (connected().not()) {
                 scope.launch {
                     delay(2000)
-                    GLog.e(TAG, "[updateConnectState] not connected to adb server, restart")
+                    DdmLog.e(TAG, "[updateConnectState] not connected to adb server, restart")
                     AndroidDebugBridge.getBridge()?.restart()
                 }
             }

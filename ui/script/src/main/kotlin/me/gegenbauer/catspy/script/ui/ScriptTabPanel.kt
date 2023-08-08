@@ -2,10 +2,9 @@ package me.gegenbauer.catspy.script.ui
 
 import com.malinskiy.adam.request.device.Device
 import com.malinskiy.adam.request.device.DeviceState
-import me.gegenbauer.catspy.common.ui.tab.OnTabChangeListener
+import me.gegenbauer.catspy.common.ui.tab.TabPanel
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.context.Disposable
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
@@ -15,9 +14,11 @@ import me.gegenbauer.catspy.script.parser.DirectRule
 import me.gegenbauer.catspy.script.parser.RegexRule
 import me.gegenbauer.catspy.task.TaskManager
 import java.awt.BorderLayout
+import javax.swing.Icon
+import javax.swing.JComponent
 import javax.swing.JPanel
 
-class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), Context, OnTabChangeListener, Disposable {
+class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
 
     private val taskManager = TaskManager()
     private val cardContainer = ScriptCardContainer()
@@ -96,16 +97,33 @@ class ScriptMainUI(override val contexts: Contexts = Contexts.default) : JPanel(
             ServiceManager.getContextService(AdamDeviceManager::class.java).getDevices().firstOrNull() ?: currentDevice
     }
 
+    override val tabName: String
+        get() = "Script"
+    override val tabIcon: Icon?
+        get() = null
+    override val tabTooltip: String?
+        get() = null
+    override val tabMnemonic: Char
+        get() = ' '
+
+    override fun onTabSelected() {
+        taskManager.updatePauseState(false)
+    }
+
+    override fun onTabUnselected() {
+        taskManager.updatePauseState(true)
+    }
+
     override fun dispose() {
 
     }
 
-    private fun updateCardContent() {
-        focusedActivityCard.updateContent()
+    override fun getTabContent(): JComponent {
+        return this
     }
 
-    override fun onTabFocusChanged(focused: Boolean) {
-        taskManager.updatePauseState(!focused)
+    private fun updateCardContent() {
+        focusedActivityCard.updateContent()
     }
 
 

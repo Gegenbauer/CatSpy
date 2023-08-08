@@ -5,7 +5,7 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.ui.LogMainUI
+import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTable
 import java.awt.Color
 import java.awt.Graphics
@@ -40,7 +40,7 @@ open class VStatusPanelUI(override val contexts: Contexts = Contexts.default) : 
         g.color = bookmarkColor
         for (row in 0 until logTable.rowCount) {
             val num = logTable.getValueAt(row, 0).toString().trim().toInt()
-            contexts.getContext(LogMainUI::class.java)?.apply {
+            contexts.getContext(LogTabPanel::class.java)?.apply {
                 val bookmarkManager = ServiceManager.getContextService(this, BookmarkManager::class.java)
                 if (bookmarkManager.isBookmark(num)) {
                     g.fillRect(0, row * c.height / logTable.rowCount, c.width, 1)

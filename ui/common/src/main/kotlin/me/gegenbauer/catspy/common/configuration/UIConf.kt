@@ -13,6 +13,7 @@ data class UIConf(
     var globalDebug: Boolean = false,
     var dataBindingDebug: Boolean = false,
     var taskDebug: Boolean = false,
+    var ddmDebug: Boolean = false,
     /** 应用配置 end **/
 
     /** 主窗口配置 start **/

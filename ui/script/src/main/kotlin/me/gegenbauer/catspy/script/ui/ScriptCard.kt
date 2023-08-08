@@ -15,7 +15,7 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.script.executor.CommandExecutor
-import me.gegenbauer.catspy.script.ui.ScriptMainUI.Companion.defaultDevice
+import me.gegenbauer.catspy.script.ui.ScriptTabPanel.Companion.defaultDevice
 import me.gegenbauer.catspy.task.PeriodicTask
 import me.gegenbauer.catspy.task.TaskManager
 import java.awt.GridLayout
@@ -63,8 +63,8 @@ class ScriptCard(
     }
 
     private suspend fun updateContentInternal() {
-        val scriptMainUI = contexts.getContext(ScriptMainUI::class.java)
-        scriptMainUI ?: return
+        val scriptTabPanel = contexts.getContext(ScriptTabPanel::class.java)
+        scriptTabPanel ?: return
         val response = executor.execute(device)
         response.collect {
             val parsedOutput = scriptUIItem.parseRule.parse(it.output)

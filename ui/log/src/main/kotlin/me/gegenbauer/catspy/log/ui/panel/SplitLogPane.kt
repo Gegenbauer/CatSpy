@@ -5,7 +5,7 @@ import me.gegenbauer.catspy.common.ui.state.StatefulPanel
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.log.ui.LogMainUI
+import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.utils.currentPlatform
@@ -104,7 +104,7 @@ class SplitLogPane(
 
             val fileList: MutableList<File> = mutableListOf()
 
-            if (fileList.isNotEmpty() && info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+            if (info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
                 runCatching {
                     val data = info.transferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<*>
                     data?.mapNotNull { it as? File }?.forEach { fileList.add(it) }
@@ -117,7 +117,7 @@ class SplitLogPane(
             val os = currentPlatform
             GLog.d(TAG, "os:$os, drop:${info.dropAction},sourceDrop:${info.sourceDropActions},userDrop:${info.userDropAction}")
 
-            val logMainUI = contexts.getContext(LogMainUI::class.java)
+            val logMainUI = contexts.getContext(LogTabPanel::class.java)
             logMainUI ?: return false
 
             val options = listOf<Pair<String, (List<File>) -> Unit>>(

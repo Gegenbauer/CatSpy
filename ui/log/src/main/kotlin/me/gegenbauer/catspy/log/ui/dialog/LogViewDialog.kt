@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.log.ui.dialog
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.log.ui.LogMainUI
+import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.utils.Utils
 import java.awt.Dimension
@@ -54,7 +54,7 @@ class LogViewDialog(
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        val logMainUI = contexts.getContext(LogMainUI::class.java)
+        val logMainUI = contexts.getContext(LogTabPanel::class.java)
         logMainUI ?: return
         textArea.font = logMainUI.customFont
     }
@@ -110,23 +110,23 @@ class LogViewDialog(
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
-                val logMainUI = DarkUIUtil.getParentOfType(this@LogViewDialog, LogMainUI::class.java)
-                val viewModel = logMainUI.viewModel
+                val logTabPanel = DarkUIUtil.getParentOfType(this@LogViewDialog, LogTabPanel::class.java)
+                val viewModel = logTabPanel.viewModel
                 when (event.source) {
                     includeItem -> {
                         if (textArea.selectedText.isNullOrEmpty()) return
-                        var text = logMainUI.getTextShowLogCombo()
+                        var text = logTabPanel.getTextShowLogCombo()
                         text += "|" + textArea.selectedText
-                        logMainUI.setTextShowLogCombo(text)
-                        logMainUI.applyShowLogCombo()
+                        logTabPanel.setTextShowLogCombo(text)
+                        logTabPanel.applyShowLogCombo()
                     }
 
                     excludeItem -> {
                         if (textArea.selectedText.isNullOrEmpty()) return
-                        var text = logMainUI.getTextShowLogCombo()
+                        var text = logTabPanel.getTextShowLogCombo()
                         text += "|-" + textArea.selectedText
-                        logMainUI.setTextShowLogCombo(text)
-                        logMainUI.applyShowLogCombo()
+                        logTabPanel.setTextShowLogCombo(text)
+                        logTabPanel.applyShowLogCombo()
                     }
 
                     searchAddItem -> {

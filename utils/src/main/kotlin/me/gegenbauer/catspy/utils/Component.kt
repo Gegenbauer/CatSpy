@@ -27,3 +27,6 @@ inline val MouseEvent.isDoubleClick: Boolean
 
 inline val MouseEvent.isSingleClick: Boolean
     get() = clickCount == 1
+
+inline val MouseEvent.isLeftClick: Boolean
+    get() = button == MouseEvent.BUTTON1

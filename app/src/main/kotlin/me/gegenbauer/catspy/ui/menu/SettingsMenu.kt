@@ -23,6 +23,7 @@ class SettingsMenu : GMenu() {
     val globalDebug = JCheckBoxMenuItem("Global")
     val bindingDebug = JCheckBoxMenuItem("DataBinding")
     val taskDebug = JCheckBoxMenuItem("Task")
+    val ddmDebug = JCheckBoxMenuItem("Ddm")
 
     init {
         text = STRINGS.ui.setting
@@ -32,6 +33,7 @@ class SettingsMenu : GMenu() {
         debugMenu.add(globalDebug)
         debugMenu.add(bindingDebug)
         debugMenu.add(taskDebug)
+        debugMenu.add(ddmDebug)
         add(debugMenu)
     }
 }

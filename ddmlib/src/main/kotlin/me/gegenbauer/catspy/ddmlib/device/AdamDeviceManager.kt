@@ -12,7 +12,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.context.ContextService
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.ddmlib.DdmLog
 import java.net.ConnectException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -39,7 +39,7 @@ class AdamDeviceManager : ContextService, DeviceManager {
             scope.launch {
                 receiveChannel?.cancel()
                 adbServerRunning.set(false)
-                GLog.v(TAG, "[startMonitor] end, restart")
+                DdmLog.v(TAG, "[startMonitor] end, restart")
 
                 delay(3000)
                 startMonitor()
@@ -49,7 +49,7 @@ class AdamDeviceManager : ContextService, DeviceManager {
 
     override fun startMonitor() {
         scope.launch(monitorExceptionHandler) {
-            GLog.d(TAG, "[startMonitor]")
+            DdmLog.d(TAG, "[startMonitor]")
             val deviceEventsChannel: ReceiveChannel<List<Device>> = adb.execute(
                 request = AsyncDeviceMonitorRequest(),
                 scope = scope
@@ -90,7 +90,7 @@ class AdamDeviceManager : ContextService, DeviceManager {
     }
 
     private fun dispatchDeviceListChange(devices: List<Device>) {
-        GLog.d(TAG, "[dispatchDeviceListChange] devices: $devices")
+        DdmLog.d(TAG, "[dispatchDeviceListChange] devices: $devices")
         diffDeviceListChange(devices)
         deviceListLock.read { deviceListListeners.forEach { it.onDeviceListUpdate(devices) } }
         currentDevices.clear()
@@ -126,17 +126,17 @@ class AdamDeviceManager : ContextService, DeviceManager {
     }
 
     private fun dispatchDeviceStateChange(deviceOld: Device, deviceNew: Device) {
-        GLog.d(TAG, "[dispatchDeviceStateChange] $deviceOld -> $deviceNew")
+        DdmLog.d(TAG, "[dispatchDeviceStateChange] $deviceOld -> $deviceNew")
         deviceLock.read { deviceListeners.forEach { it.onDeviceStateChange(deviceOld, deviceNew) } }
     }
 
     private fun dispatchDeviceConnect(device: Device) {
-        GLog.d(TAG, "[dispatchDeviceConnect] $device")
+        DdmLog.d(TAG, "[dispatchDeviceConnect] $device")
         deviceLock.read { deviceListeners.forEach { it.onDeviceConnect(device) } }
     }
 
     private fun dispatchDeviceDisconnect(device: Device) {
-        GLog.d(TAG, "[dispatchDeviceDisconnect] $device")
+        DdmLog.d(TAG, "[dispatchDeviceDisconnect] $device")
         deviceLock.read { deviceListeners.forEach { it.onDeviceDisconnect(device) } }
     }
 

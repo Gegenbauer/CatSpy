@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.log.ui.panel
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import me.gegenbauer.catspy.common.ui.button.TableBarButton
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.log.ui.LogMainUI
+import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.utils.applyTooltip
@@ -51,7 +51,7 @@ class FullLogPanel(
 
     private inner class ActionHandler : ActionListener {
         override fun actionPerformed(event: ActionEvent) {
-            val mainUI = DarkUIUtil.getParentOfType(this@FullLogPanel, LogMainUI::class.java)
+            val mainUI = DarkUIUtil.getParentOfType(this@FullLogPanel, LogTabPanel::class.java)
             when (event.source) {
                 windowedModeBtn -> {
                     mainUI.windowedModeLogPanel(this@FullLogPanel)

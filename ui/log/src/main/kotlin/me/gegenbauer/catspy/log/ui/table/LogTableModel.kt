@@ -18,7 +18,7 @@ import me.gegenbauer.catspy.log.model.LogcatRealTimeFilter
 import me.gegenbauer.catspy.log.repo.FilteredLogcatRepository
 import me.gegenbauer.catspy.log.repo.LogRepository
 import me.gegenbauer.catspy.log.task.LogTaskManager
-import me.gegenbauer.catspy.log.ui.LogMainUI
+import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.panel.LogPanel
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.task.Task
@@ -71,7 +71,7 @@ class LogTableModel(
             logRepository.fullMode = it ?: false
         }
         logRepository.addLogChangeListener(this)
-        val logMainUI = contexts.getContext(LogMainUI::class.java)
+        val logMainUI = contexts.getContext(LogTabPanel::class.java)
         logMainUI?.let {
             val taskManager = ServiceManager.getContextService(logMainUI, LogTaskManager::class.java)
             taskManager.addListener(this)
@@ -159,7 +159,7 @@ class LogTableModel(
         if (searchFilterItem.isEmpty()) return
 
         val selectedRow = logRepository.selectedRow
-        val mainUI = contexts.getContext(LogMainUI::class.java)
+        val mainUI = contexts.getContext(LogTabPanel::class.java)
         mainUI ?: return
         val table = contexts.getContext(LogTable::class.java)
         table ?: return
@@ -206,7 +206,7 @@ class LogTableModel(
     }
 
     override fun onLogChanged(event: LogRepository.LogChangeEvent) {
-        val mainUI = contexts.getContext(LogMainUI::class.java)
+        val mainUI = contexts.getContext(LogTabPanel::class.java)
         mainUI ?: return
 
         recalculatePage() // 在表格 UI 更新之前重新计算页数信息，因为 UI 更新需要用到页数信息

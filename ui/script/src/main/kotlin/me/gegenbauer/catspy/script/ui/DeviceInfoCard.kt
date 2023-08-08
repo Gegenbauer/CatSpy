@@ -22,7 +22,7 @@ class DeviceInfoCard(
     private val taskManager: TaskManager
 ) : JPanel(), Card {
     private val scope = ModelScope()
-    private var device = ScriptMainUI.defaultDevice
+    private var device = ScriptTabPanel.defaultDevice
     private var period: Long = 1000L
     private val periodUpdateTask = PeriodicTask(period, "UpdateCard", ::updateContent, Dispatchers.GIO)
 

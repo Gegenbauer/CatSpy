@@ -16,7 +16,7 @@ import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.log.BookmarkChangeListener
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.ui.LogMainUI
+import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTable
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModelListener
@@ -121,7 +121,7 @@ abstract class LogPanel(
         table.setContexts(contexts)
         vStatusPanel.setContexts(contexts)
 
-        contexts.getContext(LogMainUI::class.java)?.apply {
+        contexts.getContext(LogTabPanel::class.java)?.apply {
             val bookmarkManager = ServiceManager.getContextService(this, BookmarkManager::class.java)
             bookmarkManager.addBookmarkEventListener(bookmarkHandler)
         }

@@ -20,7 +20,7 @@ import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
-import me.gegenbauer.catspy.ui.MainUI
+import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.utils.currentPlatform
 import me.gegenbauer.catspy.utils.filesDir
 import me.gegenbauer.catspy.utils.isInDebugMode
@@ -56,19 +56,19 @@ class Application {
                 ThemeManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
                 ThemeManager.registerInitTask(::adjustBeforeThemeLoaded)
                 ThemeManager.installTheme()
-                val mainUI = MainUI(STRINGS.ui.app, Contexts())
-                mainUI.configureContext(mainUI)
+                val mainFrame = MainFrame(STRINGS.ui.app, Contexts())
+                mainFrame.configureContext(mainFrame)
                 ThemeManager.applyTempTheme()
-                mainUI.isVisible = true
+                mainFrame.isVisible = true
                 ThemeManager.registerDefaultThemeUpdateListener()
 
-                //addClickListenerForAllComponents(mainUI.components)
-                mainUI.addWindowListener(object : java.awt.event.WindowAdapter() {
+                addClickListenerForAllComponents(mainFrame.components)
+                mainFrame.addWindowListener(object : java.awt.event.WindowAdapter() {
                     override fun windowClosing(e: java.awt.event.WindowEvent?) {
                         GLog.i(TAG, "[windowClosing]")
                         AppScope.launch(Dispatchers.GIO) {
                             GLog.i(TAG, "[windowClosing] handle dispose start")
-                            mainUI.dispose()
+                            mainFrame.dispose()
                             GLog.i(TAG, "[windowClosing] handle dispose end")
                             System.exit(0)
                         }

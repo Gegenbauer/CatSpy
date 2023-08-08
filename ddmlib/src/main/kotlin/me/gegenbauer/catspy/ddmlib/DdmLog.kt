@@ -1,28 +1,25 @@
-package me.gegenbauer.catspy.databinding
+package me.gegenbauer.catspy.ddmlib
 
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.ILogger
 
-/**
- * Binding module print too much logs, only print logs when debugging it.
- */
-object BindingLog: ILogger by GLog {
-    var bindingDebug = false
+object DdmLog : ILogger by GLog {
+    var ddmDebug = false
 
     override fun v(tag: String, msg: String) {
-        if (bindingDebug) {
+        if (ddmDebug) {
             GLog.v(tag, msg)
         }
     }
 
     override fun d(tag: String, msg: String) {
-        if (bindingDebug) {
+        if (ddmDebug) {
             GLog.d(tag, msg)
         }
     }
 
     override fun i(tag: String, msg: String) {
-        if (bindingDebug) {
+        if (ddmDebug) {
             GLog.i(tag, msg)
         }
     }

@@ -7,7 +7,7 @@ import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.log.ui.LogMainUI
+import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.dialog.LogViewDialog
 import me.gegenbauer.catspy.log.ui.table.LogTableModel.Companion.COLUMN_NUM
 import me.gegenbauer.catspy.utils.findFrameFromParent
@@ -185,7 +185,7 @@ class LogTable(
     }
 
     private fun updateBookmark(rows: List<Int>) {
-        val context = contexts.getContext(LogMainUI::class.java) ?: return
+        val context = contexts.getContext(LogTabPanel::class.java) ?: return
         val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
         if (bookmarkManager.checkNewRow(rows)) {
             rows.forEach(bookmarkManager::addBookmark)
@@ -195,7 +195,7 @@ class LogTable(
     }
 
     private fun deleteBookmark(rows: List<Int>) {
-        val context = contexts.getContext(LogMainUI::class.java) ?: return
+        val context = contexts.getContext(LogTabPanel::class.java) ?: return
         val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
         rows.forEach(bookmarkManager::removeBookmark)
     }
@@ -228,7 +228,7 @@ class LogTable(
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
-                val logMainUI = DarkUIUtil.getParentOfType(this@LogTable, LogMainUI::class.java)
+                val logTabPanel = DarkUIUtil.getParentOfType(this@LogTable, LogTabPanel::class.java)
                 when (event.source) {
                     copyItem -> {
                         this@LogTable.processKeyEvent(
@@ -252,15 +252,15 @@ class LogTable(
                     }
 
                     startItem -> {
-                        logMainUI.startAdbScan()
+                        logTabPanel.startAdbScan()
                     }
 
                     stopItem -> {
-                        logMainUI.stopScan()
+                        logTabPanel.stopScan()
                     }
 
                     clearItem -> {
-                        logMainUI.clearAdbLog()
+                        logTabPanel.clearAdbLog()
                     }
                 }
             }

@@ -20,9 +20,11 @@ import me.gegenbauer.catspy.common.ui.button.*
 import me.gegenbauer.catspy.common.ui.combobox.*
 import me.gegenbauer.catspy.common.ui.icon.DayNightIcon
 import me.gegenbauer.catspy.common.ui.state.StatefulPanel
-import me.gegenbauer.catspy.common.ui.tab.OnTabChangeListener
-import me.gegenbauer.catspy.context.*
-import me.gegenbauer.catspy.context.Disposable
+import me.gegenbauer.catspy.common.ui.tab.TabPanel
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.context.GlobalContextManager
+import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.bind.bindLeft
@@ -60,8 +62,8 @@ import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 import javax.swing.text.JTextComponent
 
-class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), Context, TaskListener,
-    LogObservable.Observer<LogcatLogItem>, Disposable, OnTabChangeListener {
+class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel(), TaskListener,
+    LogObservable.Observer<LogcatLogItem>, TabPanel {
 
     //region scoped service
     val viewModel = ServiceManager.getContextService(this, LogMainViewModel::class.java)
@@ -489,7 +491,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
                 event.keyCode == KeyEvent.VK_G && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> {
                     val goToDialog = GoToDialog(findFrameFromParent())
-                    goToDialog.setLocationRelativeTo(this@LogMainUI)
+                    goToDialog.setLocationRelativeTo(this@LogTabPanel)
                     goToDialog.isVisible = true
                     if (goToDialog.line != -1) {
                         GLog.d(TAG, "[KeyEventDispatcher] Cancel Goto Line ${goToDialog.line}")
@@ -724,7 +726,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
             private inner class ActionHandler : ActionListener {
                 override fun actionPerformed(event: ActionEvent) {
                     val anchor = invoker as JComponent
-                    val logMainUI = DarkUIUtil.getParentOfType(LogMainUI::class.java, anchor)
+                    val logMainUI = DarkUIUtil.getParentOfType(LogTabPanel::class.java, anchor)
                     logMainUI.viewModel.buttonDisplayMode.updateValue(
                         (event.source as JComponent).getClientProperty("ButtonDisplayMode") as ButtonDisplayMode
                     )
@@ -982,7 +984,7 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
     }
 
     inner class SearchPanel : JPanel() {
-        val closeBtn: JButton = GButton("X") applyTooltip STRINGS.toolTip.searchCloseBtn
+        val closeBtn = GButton("X") applyTooltip STRINGS.toolTip.searchCloseBtn
         val searchCombo: FilterComboBox = filterComboBox() applyTooltip STRINGS.toolTip.searchCombo
         val searchMatchCaseToggle: ColorToggleButton =
             ColorToggleButton("Aa") applyTooltip STRINGS.toolTip.searchCaseToggle
@@ -993,10 +995,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         } else {
             JLabel("${STRINGS.ui.full} ${STRINGS.ui.log}")
         } applyTooltip STRINGS.toolTip.searchTargetLabel
-        private val upBtn: JButton =
-            GButton(AllIcons.Arrow.Thick.Up.get()) applyTooltip STRINGS.toolTip.searchPrevBtn //△ ▲ ▽ ▼
-        private val downBtn: JButton =
-            GButton(AllIcons.Arrow.Thick.Down.get()) applyTooltip STRINGS.toolTip.searchNextBtn
+        private val upBtn = GButton(AllIcons.Arrow.Thick.Up.get()) applyTooltip STRINGS.toolTip.searchPrevBtn //△ ▲ ▽ ▼
+        private val downBtn = GButton(AllIcons.Arrow.Thick.Down.get()) applyTooltip STRINGS.toolTip.searchNextBtn
         private val contentPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
         private val statusPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 5, 2))
 
@@ -1187,6 +1187,23 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         )
     }
 
+    override val tabName: String
+        get() = "Log"
+    override val tabIcon: Icon?
+        get() = null
+    override val tabTooltip: String?
+        get() = null
+    override val tabMnemonic: Char
+        get() = ' '
+
+    override fun onTabSelected() {
+        taskManager.updatePauseState(false)
+    }
+
+    override fun onTabUnselected() {
+        taskManager.updatePauseState(true)
+    }
+
     override fun dispose() {
         ServiceManager.dispose(this)
         logProvider.stopCollectLog()
@@ -1195,8 +1212,8 @@ class LogMainUI(override val contexts: Contexts = Contexts.default) : JPanel(), 
         saveConfiguration()
     }
 
-    override fun onTabFocusChanged(focused: Boolean) {
-        taskManager.updatePauseState(!focused)
+    override fun getTabContent(): JComponent {
+        return this
     }
 
     private fun registerSearchStroke() {
