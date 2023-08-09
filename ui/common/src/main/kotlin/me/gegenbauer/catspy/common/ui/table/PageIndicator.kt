@@ -6,7 +6,7 @@ import java.awt.Insets
 import java.awt.event.ActionEvent
 import javax.swing.*
 
-class PageNavigationPanel<T>(
+class PageIndicator<T>(
    private val pageable: Pageable<T>
 ) : JPanel(), Pageable<T> by pageable {
 
@@ -26,7 +26,7 @@ class PageNavigationPanel<T>(
     private fun refreshPageNavigationButtons(pageCount: Int = 0, currentPage: Int = 0) {
         removeAll()
 
-        if (pageCount == 0) return
+        if (pageCount <= 1) return
 
         val buttonGroup = ButtonGroup()
         if (pageCount > DEFAULT_MAX_PAGE_BUTTON_COUNT) {  // 0, ..., k, k+1, k+2, k+3, k+4, ..., n - 1

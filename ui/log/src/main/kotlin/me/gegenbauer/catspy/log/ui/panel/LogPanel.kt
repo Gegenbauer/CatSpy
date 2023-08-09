@@ -6,7 +6,7 @@ import me.gegenbauer.catspy.common.support.ColorScheme
 import me.gegenbauer.catspy.common.ui.button.ColorToggleButton
 import me.gegenbauer.catspy.common.ui.button.StatefulToggleButton
 import me.gegenbauer.catspy.common.ui.container.WrapablePanel
-import me.gegenbauer.catspy.common.ui.table.PageNavigationPanel
+import me.gegenbauer.catspy.common.ui.table.PageIndicator
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -60,7 +60,7 @@ abstract class LogPanel(
 
     private val scrollPane = JScrollPane(table)
     private val vStatusPanel = VStatusPanel()
-    private val pageNavigationPanel = PageNavigationPanel(tableModel)
+    private val pageNavigationPanel = PageIndicator(tableModel)
     private val adjustmentHandler = AdjustmentHandler()
     private val tableModelHandler = TableModelHandler()
     private val bookmarkHandler = BookmarkHandler()

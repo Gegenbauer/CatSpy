@@ -11,7 +11,9 @@ import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.utils.DefaultDocumentListener
 import me.gegenbauer.catspy.utils.applyTooltip
+import java.awt.event.KeyListener
 import java.awt.event.MouseEvent
+import java.awt.event.MouseListener
 import javax.swing.JComponent
 import javax.swing.ToolTipManager
 import javax.swing.event.DocumentEvent
@@ -24,6 +26,18 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
     HistoryComboBox<String>() {
 
     var filterItem: FilterItem = FilterItem.emptyItem
+    var keyListener: KeyListener? = null
+        set(value) {
+            field = value
+            editorComponent.removeKeyListener(field)
+            editorComponent.addKeyListener(field)
+        }
+    var mouseListener: MouseListener? = null
+        set(value) {
+            field = value
+            editorComponent.removeMouseListener(field)
+            editorComponent.addMouseListener(field)
+        }
     private val editorComponent: JTextComponent // create new instance when theme changed(setUI invoked)
         get() = getEditor().editorComponent as JTextComponent
 
@@ -64,6 +78,8 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
             }
             configureEditorComponent(newEditor.editorComponent as JTextComponent)
             setEditor(newEditor)
+            editorComponent.addKeyListener(keyListener)
+            editorComponent.addMouseListener(mouseListener)
         }))
     }
 

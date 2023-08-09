@@ -85,7 +85,6 @@ class LogTable(
             GLog.d(TAG, "[goToRow] invalid idx")
             return
         }
-        GLog.d(TAG, "[moveToRow] go to row $row")
         val lastSelectedRow = selectedRow
         // clear section 会触发 onListSelectionChanged，而 onListSelectionChanged 中会重新设置 goToLast or goToFirst 导致循环调用
         selectionModel.removeListSelectionListener(listSelectionHandler)

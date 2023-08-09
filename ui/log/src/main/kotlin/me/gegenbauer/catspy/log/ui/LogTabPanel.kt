@@ -215,10 +215,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             splitLogPane.fullLogPanel.customFont = value
         }
 
-    private val themeChangeListener = GThemeChangeListener {
-        registerComboBoxEditorEvent()
-    }
-
     private val devicesChangeListener = DeviceListListener {
         refreshDevices(it)
     }
@@ -236,8 +232,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         observeViewModelValue()
         bindViewModel(viewModel)
         ThemeManager.registerThemeUpdateListener(viewModel)
-
-        ThemeManager.registerThemeUpdateListener(themeChangeListener)
     }
 
     private fun bindViewModel(viewModel: LogMainViewModel) {
@@ -544,18 +538,19 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     }
 
     private fun registerComboBoxEditorEvent() {
-        showLogCombo.editorComponent.addKeyListener(keyHandler)
-        showLogCombo.editorComponent.addMouseListener(mouseHandler)
-        boldLogCombo.editorComponent.addKeyListener(keyHandler)
-        boldLogCombo.editorComponent.addMouseListener(mouseHandler)
-        showTagCombo.editorComponent.addKeyListener(keyHandler)
-        showTagCombo.editorComponent.addMouseListener(mouseHandler)
-        showPidCombo.editorComponent.addKeyListener(keyHandler)
-        showPidCombo.editorComponent.addMouseListener(mouseHandler)
-        showTidCombo.editorComponent.addKeyListener(keyHandler)
-        showTidCombo.editorComponent.addMouseListener(mouseHandler)
-        deviceCombo.editorComponent.addKeyListener(keyHandler)
-        deviceCombo.editorComponent.addMouseListener(mouseHandler)
+        showLogCombo.keyListener = keyHandler
+        showLogCombo.keyListener = keyHandler
+        boldLogCombo.keyListener = keyHandler
+        showTagCombo.keyListener = keyHandler
+        showPidCombo.keyListener = keyHandler
+        showTidCombo.keyListener = keyHandler
+        deviceCombo.keyListener = keyHandler
+        showLogCombo.mouseListener = mouseHandler
+        boldLogCombo.mouseListener = mouseHandler
+        showTagCombo.mouseListener = mouseHandler
+        showPidCombo.mouseListener = mouseHandler
+        showTidCombo.mouseListener = mouseHandler
+        deviceCombo.mouseListener = mouseHandler
         searchPanel.registerComboBoxEditorEvent()
     }
 
@@ -985,7 +980,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     }
 
     inner class SearchPanel : JPanel() {
-        val closeBtn = GButton("X") applyTooltip STRINGS.toolTip.searchCloseBtn
+        val closeBtn = GButton(loadDarklafThemedIcon("navigation/close.svg")) applyTooltip STRINGS.toolTip.searchCloseBtn
         val searchCombo: FilterComboBox = filterComboBox() applyTooltip STRINGS.toolTip.searchCombo
         val searchMatchCaseToggle: ColorToggleButton =
             ColorToggleButton("Aa") applyTooltip STRINGS.toolTip.searchCaseToggle
@@ -1053,7 +1048,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         }
 
         fun registerComboBoxEditorEvent() {
-            searchCombo.editorComponent.addKeyListener(searchKeyHandler)
+            searchCombo.keyListener = searchKeyHandler
         }
 
         override fun setVisible(aFlag: Boolean) {
@@ -1206,6 +1201,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     override fun dispose() {
         ServiceManager.dispose(this)
+        ThemeManager.unregisterThemeUpdateListener(viewModel)
         logProvider.destroy()
         clearViews()
         taskManager.cancelAll()
