@@ -1,11 +1,10 @@
 package me.gegenbauer.catspy.ui.panel
 
 import me.gegenbauer.catspy.common.ui.button.GButton
+import me.gegenbauer.catspy.common.ui.icon.iconTabHome
 import me.gegenbauer.catspy.common.ui.tab.TabPanel
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.databinding.bind.componentName
-import me.gegenbauer.catspy.log.ui.LogTabPanel
-import me.gegenbauer.catspy.script.ui.ScriptTabPanel
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.menu.TabSelectorPopupMenu
 import me.gegenbauer.catspy.ui.supportedTabs
@@ -17,8 +16,7 @@ import javax.swing.SwingUtilities
 class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
     override val tabName: String
         get() = "Home"
-    override val tabIcon: Icon?
-        get() = null
+    override val tabIcon: Icon = iconTabHome
     override val tabTooltip: String?
         get() = null
     override val tabMnemonic: Char

@@ -28,6 +28,8 @@ class LogcatLogProvider: LogProvider<LogcatLogItem> {
     }
 
     override fun destroy() {
+        stopCollectLog()
+        clear()
         collector?.destroy()
     }
 

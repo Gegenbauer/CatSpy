@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.script.ui
 
 import com.malinskiy.adam.request.device.Device
 import com.malinskiy.adam.request.device.DeviceState
+import me.gegenbauer.catspy.common.ui.icon.iconTabScript
 import me.gegenbauer.catspy.common.ui.tab.TabPanel
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
@@ -99,8 +100,7 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
 
     override val tabName: String
         get() = "Script"
-    override val tabIcon: Icon?
-        get() = null
+    override val tabIcon: Icon = iconTabScript
     override val tabTooltip: String?
         get() = null
     override val tabMnemonic: Char

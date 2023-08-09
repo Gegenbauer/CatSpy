@@ -19,6 +19,7 @@ import me.gegenbauer.catspy.common.log.nameToLogLevel
 import me.gegenbauer.catspy.common.ui.button.*
 import me.gegenbauer.catspy.common.ui.combobox.*
 import me.gegenbauer.catspy.common.ui.icon.DayNightIcon
+import me.gegenbauer.catspy.common.ui.icon.iconTabFileLog
 import me.gegenbauer.catspy.common.ui.state.StatefulPanel
 import me.gegenbauer.catspy.common.ui.tab.TabPanel
 import me.gegenbauer.catspy.context.Context
@@ -1189,8 +1190,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     override val tabName: String
         get() = "Log"
-    override val tabIcon: Icon?
-        get() = null
+    override val tabIcon: Icon = iconTabFileLog
     override val tabTooltip: String?
         get() = null
     override val tabMnemonic: Char
@@ -1206,8 +1206,8 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     override fun dispose() {
         ServiceManager.dispose(this)
-        logProvider.stopCollectLog()
         logProvider.destroy()
+        clearViews()
         taskManager.cancelAll()
         saveConfiguration()
     }

@@ -4,7 +4,7 @@ import com.github.weisj.darklaf.ui.tabbedpane.DarkTabbedPaneUI
 import me.gegenbauer.catspy.utils.isDoubleClick
 import me.gegenbauer.catspy.utils.isLeftClick
 import me.gegenbauer.catspy.utils.isSingleClick
-import me.gegenbauer.catspy.utils.loadIcon
+import me.gegenbauer.catspy.utils.loadDarklafThemedIcon
 import java.awt.*
 import java.awt.event.*
 import javax.swing.*
@@ -85,10 +85,6 @@ class ClosableTabHeader(
 
             override fun mouseEntered(e: MouseEvent?) {
                 setTabHovered(true)
-            }
-
-            override fun mouseExited(e: MouseEvent?) {
-                setTabHovered(false)
             }
         })
 
@@ -174,9 +170,9 @@ class ClosableTabHeader(
     }
 
     companion object {
-        private const val CLOSE_BUTTON_SIZE = 14
+        private const val CLOSE_BUTTON_SIZE = 20
         private const val CLOSE_BUTTON_PADDING_LEFT = 4
-        private val closeIconNormal: Icon = loadIcon("close_tab_normal.svg")
-        private val closeIconHover: Icon = loadIcon("close_tab_hover.svg")
+        private val closeIconNormal: Icon by lazy { loadDarklafThemedIcon("navigation/close.svg") }
+        private val closeIconHover: Icon by lazy { loadDarklafThemedIcon("navigation/closeHovered.svg") }
     }
 }
