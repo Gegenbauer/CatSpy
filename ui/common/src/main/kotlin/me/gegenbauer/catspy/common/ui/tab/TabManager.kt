@@ -20,7 +20,7 @@ interface TabManager: Disposable, Context {
 
     fun getSelectedTab(): TabPanel
 
-    override fun dispose() {
-        getAllTabs().forEach { it.dispose() }
+    override fun onDestroy() {
+        getAllTabs().forEach { it.onDestroy() }
     }
 }

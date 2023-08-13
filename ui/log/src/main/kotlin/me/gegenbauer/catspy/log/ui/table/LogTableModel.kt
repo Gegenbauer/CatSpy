@@ -23,7 +23,7 @@ import me.gegenbauer.catspy.log.ui.panel.LogPanel
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.task.Task
 import me.gegenbauer.catspy.task.TaskListener
-import java.util.Collections
+import java.util.*
 import javax.swing.event.TableModelEvent
 import javax.swing.table.AbstractTableModel
 
@@ -40,9 +40,12 @@ class LogTableModel(
 ) : AbstractTableModel(), LogRepository.LogChangeListener, Context, TaskListener, Searchable, Pageable<LogcatLogItem> {
     var highlightFilterItem: FilterItem = FilterItem.emptyItem
         set(value) {
-            field = value.takeIf { it != field }?.also { contexts.getContext(LogTable::class.java)?.updateUI() } ?: value
+            field = value.takeIf { it != field }?.also { contexts.getContext(LogTable::class.java)?.repaint() } ?: value
         }
     override var searchFilterItem: FilterItem = FilterItem.emptyItem
+        set(value) {
+            field = value.takeIf { it != field }?.also { contexts.getContext(LogTable::class.java)?.repaint() } ?: value
+        }
 
     override var searchMatchCase: Boolean = false
 
@@ -195,12 +198,6 @@ class LogTableModel(
         }
     }
 
-    fun getItemAcrossPage(row: Int): LogcatLogItem {
-        return logRepository.accessLogItems {
-            it[row]
-        }
-    }
-
     fun getLogFilter(): LogcatRealTimeFilter {
         return (logRepository.logFilter as LogcatRealTimeFilter)
     }
@@ -247,7 +244,6 @@ class LogTableModel(
     }
 
     override fun <R> accessPageData(page: Int, action: (List<LogcatLogItem>) -> R): R {
-        assert(page in 0 until pageCount)
         val start = page * pageSize
         val end = minOf((page + 1) * pageSize, logRepository.getLogCount())
         return logRepository.accessLogItems { logItems ->

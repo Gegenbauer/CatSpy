@@ -11,7 +11,6 @@ import me.gegenbauer.catspy.common.ui.card.RoundedCard
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.script.executor.CommandExecutor
@@ -25,7 +24,7 @@ class ScriptCard(
     private val taskManager: TaskManager,
     private val scriptUIItem: ScriptUIItem,
     override val contexts: Contexts = Contexts.default
-) : RoundedCard(), Card, Context {
+) : RoundedCard(), Card {
     override val id: Int = 1 // TODO generate id
     override val component: RoundedCard = this
 
@@ -88,6 +87,10 @@ class ScriptCard(
 
     override fun resumeAutomaticallyUpdate() {
         periodUpdateTask.resume()
+    }
+
+    override fun onDestroy() {
+        ThemeManager.unregisterThemeUpdateListener(this)
     }
 
     override fun setPeriod(period: Long) {

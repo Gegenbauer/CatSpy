@@ -1,13 +1,14 @@
 package me.gegenbauer.catspy.ui.panel
 
 import me.gegenbauer.catspy.common.ui.button.GButton
-import me.gegenbauer.catspy.common.ui.icon.iconTabHome
 import me.gegenbauer.catspy.common.ui.tab.TabPanel
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.databinding.bind.componentName
+import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.menu.TabSelectorPopupMenu
 import me.gegenbauer.catspy.ui.supportedTabs
+import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
 import java.awt.GridBagLayout
 import javax.swing.Icon
 import javax.swing.JPanel
@@ -16,7 +17,7 @@ import javax.swing.SwingUtilities
 class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
     override val tabName: String
         get() = "Home"
-    override val tabIcon: Icon = iconTabHome
+    override val tabIcon: Icon = GIcons.Tab.Home.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
     override val tabTooltip: String?
         get() = null
     override val tabMnemonic: Char
@@ -51,7 +52,7 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     }
 
-    override fun dispose() {
+    override fun onDestroy() {
 
     }
 

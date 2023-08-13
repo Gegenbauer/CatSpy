@@ -1,0 +1,14 @@
+<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+
+    <defs id="colors">
+        <linearGradient id="menuIconEnabled"
+                        fallback="Label.foreground">
+            <stop offset="0" stop-color="#AFB1B3"/>
+            <stop offset="1" stop-color="#AFB1B3"/>
+        </linearGradient>
+    </defs>
+
+    <path id="primary"
+          d="M17.91,15.14a1,1,0,0,0-.91-.58H15v-11a1,1,0,0,0-1-1H10a1,1,0,0,0-1,1v11H7a1,1,0,0,0-.91.58,1,1,0,0,0,.14,1.06l4.23,5.08a2,2,0,0,0,3.08,0l4.23-5.08A1,1,0,0,0,17.91,15.14Z"
+          fill="url(#menuIconEnabled)"/>
+</svg>

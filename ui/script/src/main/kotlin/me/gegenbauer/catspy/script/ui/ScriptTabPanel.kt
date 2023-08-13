@@ -2,18 +2,19 @@ package me.gegenbauer.catspy.script.ui
 
 import com.malinskiy.adam.request.device.Device
 import com.malinskiy.adam.request.device.DeviceState
-import me.gegenbauer.catspy.common.ui.icon.iconTabScript
 import me.gegenbauer.catspy.common.ui.tab.TabPanel
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
+import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.script.model.Script
 import me.gegenbauer.catspy.script.model.ScriptType
 import me.gegenbauer.catspy.script.parser.DirectRule
 import me.gegenbauer.catspy.script.parser.RegexRule
 import me.gegenbauer.catspy.task.TaskManager
+import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
 import java.awt.BorderLayout
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -88,7 +89,7 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
         cardContainer.addCard(focusedActivityCard)
         cardContainer.addCard(deviceInfoCard)
 
-        //cardContainer.setAutomaticallyUpdate(true)
+        cardContainer.setAutomaticallyUpdate(true)
     }
 
     override fun configureContext(context: Context) {
@@ -100,7 +101,7 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
 
     override val tabName: String
         get() = "Script"
-    override val tabIcon: Icon = iconTabScript
+    override val tabIcon: Icon = GIcons.Tab.Script.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
     override val tabTooltip: String?
         get() = null
     override val tabMnemonic: Char
@@ -114,8 +115,9 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
         taskManager.updatePauseState(true)
     }
 
-    override fun dispose() {
-
+    override fun onDestroy() {
+        cardContainer.onDestroy()
+        taskManager.cancelAll()
     }
 
     override fun getTabContent(): JComponent {

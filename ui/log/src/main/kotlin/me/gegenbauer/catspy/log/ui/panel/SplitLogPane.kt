@@ -141,6 +141,12 @@ class SplitLogPane(
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        filteredLogPanel.onDestroy()
+        fullLogPanel.onDestroy()
+    }
+
     override fun focusGained(e: FocusEvent) {
         onFocusGained.invoke(e.source == filteredLogPanel.table)
     }
@@ -156,7 +162,7 @@ class SplitLogPane(
 
 }
 
-fun Rotation.next(): Rotation {
+fun Rotation.nextRotation(): Rotation {
     return when (this) {
         Rotation.ROTATION_LEFT_RIGHT -> {
             Rotation.ROTATION_TOP_BOTTOM

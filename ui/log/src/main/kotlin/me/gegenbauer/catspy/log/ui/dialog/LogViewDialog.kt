@@ -69,7 +69,7 @@ class LogViewDialog(
         override fun keyReleased(event: KeyEvent) {
             if (event.keyCode == KeyEvent.VK_ENTER && pressedKeyCode == KeyEvent.VK_ENTER) {
                 textArea.copy()
-                dispose()
+                onDestroy()
             }
         }
     }
@@ -78,7 +78,7 @@ class LogViewDialog(
         override fun focusLost(event: FocusEvent) {
             super.focusLost(event)
             if (!popupMenu.isVisible) {
-                dispose()
+                onDestroy()
             }
         }
     }
@@ -146,7 +146,7 @@ class LogViewDialog(
                     }
 
                     closeItem -> {
-                        dispose()
+                        onDestroy()
                     }
                 }
             }
@@ -156,7 +156,7 @@ class LogViewDialog(
             override fun focusLost(event: FocusEvent) {
                 super.focusLost(event)
                 if (!this@LogViewDialog.hasFocus()) {
-                    dispose()
+                    onDestroy()
                 }
             }
         }

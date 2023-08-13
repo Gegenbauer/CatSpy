@@ -35,11 +35,11 @@ fun createIconAccessor(propertyFile: File, packageName : String, className: Stri
     fun createAccessor(prop: Property): String =
         """
         public static Icon ${prop.name ?: "get"}() {
-            return IconSet.iconLoader().getIcon("${prop.path}", true);
+            return IconsKt.loadIcon("${prop.path}");
         }
 
         public static Icon ${prop.name ?: "get"}(final int width, final int height) {
-            return IconSet.iconLoader().getIcon("${prop.path}", width, height, true);
+            return IconsKt.loadIcon("${prop.path}", width, height);
         }
         """.trimIndent()
 
@@ -50,6 +50,7 @@ fun createIconAccessor(propertyFile: File, packageName : String, className: Stri
         val subNodes = node.nodes.entries.asSequence().sortedBy { it.key }.joinToString(separator = "\n\n") {
             createAccessorClass(it.key, it.value)
         }.replace("\n", "\n    ")
+
         return """
             |@javax.annotation.Generated(value = {"GenerateIconAccessor"})
             |public ${if (topLevel) "" else "static "}final class ${name.capitalize()} {
@@ -62,7 +63,7 @@ fun createIconAccessor(propertyFile: File, packageName : String, className: Stri
     return """
         |package $packageName;
         |
-        |import javax.swing.Icon;
+        |import javax.swing.*;
         |
         |${createAccessorClass(className, root, topLevel = true)}
         """.trimMargin()

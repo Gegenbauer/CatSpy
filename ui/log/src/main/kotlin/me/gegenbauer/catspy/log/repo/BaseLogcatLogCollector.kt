@@ -67,7 +67,7 @@ abstract class BaseLogcatLogCollector(
     }
 
     override fun isCollecting(): Boolean {
-        return collectorTask.isRunning()
+        return collectorTask.isRunning
     }
 
     override fun getLogFile(): File? {

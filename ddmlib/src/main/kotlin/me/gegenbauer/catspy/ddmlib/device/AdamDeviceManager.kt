@@ -70,7 +70,7 @@ class AdamDeviceManager : ContextService, DeviceManager {
 
     override fun registerDevicesListener(listener: DeviceListListener) {
         deviceListLock.write { deviceListListeners.add(listener) }
-        diffDeviceListChange(currentDevices)
+        dispatchDeviceListChange(currentDevices)
     }
 
     override fun unregisterDevicesListener(listener: DeviceListListener) {

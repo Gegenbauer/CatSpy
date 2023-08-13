@@ -36,6 +36,7 @@ class TabManagerPane(override val contexts: Contexts) : TabManager, JTabbedPane(
         }
 
         tabLayoutPolicy = SCROLL_TAB_LAYOUT
+        tabPlacement = LEFT
         putClientProperty(DarkTabbedPaneUI.KEY_DND, true)
         putClientProperty(DarkTabbedPaneUI.KEY_SHOW_NEW_TAB_BUTTON, true)
         putClientProperty("TabbedPane.tabsOpaque", false)
@@ -77,7 +78,7 @@ class TabManagerPane(override val contexts: Contexts) : TabManager, JTabbedPane(
 
     override fun removeTab(tabPanel: TabPanel) {
         remove(tabPanel.getTabContent())
-        tabPanel.dispose()
+        tabPanel.onDestroy()
     }
 
     override fun getTab(index: Int): TabPanel {
@@ -96,10 +97,10 @@ class TabManagerPane(override val contexts: Contexts) : TabManager, JTabbedPane(
         return getTab(getSelectedTabIndex())
     }
 
-    override fun dispose() {
-        super.dispose()
+    override fun onDestroy() {
+        super.onDestroy()
         scope.cancel()
-        getAllTabs().forEach { it.dispose() }
+        getAllTabs().forEach { it.onDestroy() }
     }
 
     companion object {

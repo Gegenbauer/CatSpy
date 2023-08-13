@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.context
 /**
  * A context is a collection of services that can be used by the application.
  */
-interface Context {
+interface Context: Disposable {
     val contexts: Contexts
 
     fun getId(): Long {
@@ -19,6 +19,8 @@ interface Context {
     fun configureContext(context: Context) {
         contexts.putContext(context)
     }
+
+    override fun onDestroy() {}
 
     companion object {
         val process = object : Context {

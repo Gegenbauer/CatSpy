@@ -18,6 +18,7 @@ object Weisj {
     val darklafCore = Dependency(groupName, "darklaf-core", "3.0.2")
     val darklafVisualPadding = Dependency(groupName, "swing-extensions-visual-padding", "0.1.3")
     val darklafExtensitionKotlin = Dependency(groupName, "darklaf-extension-kotlin", "0.3.4")
+    val darklafPropertyLoader = Dependency(groupName, "darklaf-property-loader", "3.0.2")
 }
 
 object Gson {
@@ -72,6 +73,12 @@ object AndroidDdm {
     val groupName = "com.android.tools.ddms"
 
     val ddmlib = Dependency(groupName, "ddmlib", "26.1.3")
+}
+
+object JavaXAnno {
+    val groupName = "javax.annotation"
+
+    val annotationApi = Dependency(groupName, "javax.annotation-api", "1.3.2")
 }
 
 data class Dependency(

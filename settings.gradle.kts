@@ -14,6 +14,7 @@ include(
     "ui:log",
     "ui:script",
     "ui:common",
+    "iconset"
 )
 
 pluginManagement {

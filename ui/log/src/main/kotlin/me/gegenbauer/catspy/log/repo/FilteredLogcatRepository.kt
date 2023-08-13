@@ -90,7 +90,7 @@ class FilteredLogcatRepository(
                 accessLogItems { logItems ->
                     logItems.clear()
                     fullLogItems.forEach {
-                        if (!isRunning()) {
+                        if (!isRunning) {
                             GLog.d(TAG, "[UpdateFilterTask] cancelled")
                             return@forEach
                         }

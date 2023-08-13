@@ -16,7 +16,7 @@ class AboutDialog(parent: JFrame) :JDialog(parent, STRINGS.ui.about, true), Acti
     init {
         closeBtn.addActionListener(this)
 
-        aboutLabel = JLabel("<html><center><h1>CatSpy ${STRINGS.ui.version}</h1><br>865815634@qq.com</center></html>")
+        aboutLabel = JLabel("<html><center><h1>CatSpy ${STRINGS.ui.version}</h1><br>https://github.com/Gegenbauer/CatSpy</center></html>")
 
         val aboutPanel = JPanel()
         aboutPanel.add(aboutLabel)

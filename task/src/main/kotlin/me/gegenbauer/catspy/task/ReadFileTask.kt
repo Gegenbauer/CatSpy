@@ -20,13 +20,14 @@ open class ReadFileTask(
             notifyError(IllegalArgumentException("File ${file.absolutePath} does not exist"))
             return
         }
+        setRunning(true)
         TaskLog.d(name, "[startInCoroutine] read file: ${file.absolutePath}")
         // read file and calculate progress
         val totalSize = file.length()
         val reader = file.bufferedReader()
         var line: String?
         while (reader.readLine().also { line = it } != null) {
-            if (!scope.isActive) {
+            if (isCanceled) {
                 break
             }
             line?.let {
@@ -39,6 +40,8 @@ open class ReadFileTask(
             }
         }
         notifyFinalResult()
+        setRunning(false)
+        notifyStop()
         TaskLog.d(name, "[startInCoroutine] progress=${accumulateSize / totalSize.toFloat()}}")
     }
 

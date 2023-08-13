@@ -1,5 +1,8 @@
 package me.gegenbauer.catspy.common.ui.button
 
+import me.gegenbauer.catspy.common.support.BORDER_TYPE_BORDERLESS
+import me.gegenbauer.catspy.common.support.BORDER_TYPE_NONE
+import me.gegenbauer.catspy.common.support.PROPERTY_KEY_BUTTON_VARIANT
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.utils.setHeight
 import javax.swing.Icon
@@ -34,12 +37,16 @@ class StatefulButton(
                 icon = originalIcon
             }
         }
+
+        putClientProperty(
+            PROPERTY_KEY_BUTTON_VARIANT,
+            if (mode == ButtonDisplayMode.ICON) BORDER_TYPE_BORDERLESS else BORDER_TYPE_NONE
+        )
     }
 
     init {
         componentName = originalText ?: ""
         toolTipText = tooltip
-        isRolloverEnabled = true
 
         configureHeight()
     }

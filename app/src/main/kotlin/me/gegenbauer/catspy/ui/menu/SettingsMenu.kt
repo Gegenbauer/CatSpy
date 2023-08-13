@@ -3,8 +3,8 @@ package me.gegenbauer.catspy.ui.menu
 import com.github.weisj.darklaf.settings.ThemeSettings
 import me.gegenbauer.catspy.common.support.Menu.MENU_ITEM_ICON_SIZE
 import me.gegenbauer.catspy.common.ui.menu.GMenu
+import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.utils.loadDarklafThemedIcon
 import java.awt.Dialog
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
@@ -14,12 +14,14 @@ import javax.swing.JMenuItem
 
 class SettingsMenu : GMenu() {
     private val itemThemeSettings = JMenuItem(STRINGS.ui.theme).apply {
-        icon = loadDarklafThemedIcon("menu/themeSettings.svg", MENU_ITEM_ICON_SIZE)
+        icon = GIcons.Menu.Settings.get(MENU_ITEM_ICON_SIZE, MENU_ITEM_ICON_SIZE)
         addActionListener { _: ActionEvent ->
             ThemeSettings.showSettingsDialog(this, Dialog.ModalityType.APPLICATION_MODAL)
         }
     }
-    private val debugMenu = JMenu(STRINGS.ui.debug)
+    private val debugMenu = JMenu(STRINGS.ui.debug).apply {
+        icon = GIcons.Menu.Debug.get(MENU_ITEM_ICON_SIZE, MENU_ITEM_ICON_SIZE)
+    }
     val globalDebug = JCheckBoxMenuItem("Global")
     val bindingDebug = JCheckBoxMenuItem("DataBinding")
     val taskDebug = JCheckBoxMenuItem("Task")

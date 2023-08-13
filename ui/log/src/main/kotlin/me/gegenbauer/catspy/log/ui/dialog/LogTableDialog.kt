@@ -1,10 +1,10 @@
 package me.gegenbauer.catspy.log.ui.dialog
 
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
+import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.ui.panel.FullLogPanel
 import me.gegenbauer.catspy.utils.Utils
-import me.gegenbauer.catspy.utils.loadIcon
 import java.awt.BorderLayout
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -21,7 +21,7 @@ class LogTableDialog(
     private var frameHeight = 720
 
     init {
-        val img = loadIcon<DerivableImageIcon>("logo.png")
+        val img = GIcons.Logo.get() as DerivableImageIcon
         iconImage = img.image
 
         defaultCloseOperation = DISPOSE_ON_CLOSE

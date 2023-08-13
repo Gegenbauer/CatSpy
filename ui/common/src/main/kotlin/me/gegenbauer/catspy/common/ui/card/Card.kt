@@ -1,8 +1,9 @@
 package me.gegenbauer.catspy.common.ui.card
 
+import me.gegenbauer.catspy.context.Context
 import javax.swing.JComponent
 
-interface Card {
+interface Card: Context {
     val id: Int
 
     val component: JComponent

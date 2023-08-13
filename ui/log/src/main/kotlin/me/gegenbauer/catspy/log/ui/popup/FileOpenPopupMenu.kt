@@ -4,8 +4,8 @@ import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import me.gegenbauer.catspy.common.support.Menu
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.utils.loadThemedIcon
 import me.gegenbauer.catspy.utils.userHome
 import java.awt.Dimension
 import java.awt.event.ActionListener
@@ -19,34 +19,13 @@ import javax.swing.filechooser.FileNameExtensionFilter
 class FileOpenPopupMenu(override val contexts: Contexts = Contexts.default) : JPopupMenu(), Context {
 
     private val itemFileOpen = JMenuItem(STRINGS.ui.open).apply {
-        icon = loadThemedIcon("file.svg", Menu.MENU_ITEM_ICON_SIZE)
-    }
-    private val itemFileFollow = JMenuItem(STRINGS.ui.follow).apply {
-        icon = loadThemedIcon("append_file.svg", Menu.MENU_ITEM_ICON_SIZE)
-    }
-    private val itemFileOpenFiles = JMenuItem(STRINGS.ui.openFiles).apply {
-        icon = loadThemedIcon("files.svg", Menu.MENU_ITEM_ICON_SIZE)
-    }
-    private val itemFileAppendFiles = JMenuItem(STRINGS.ui.appendFiles).apply {
-        icon = loadThemedIcon("append_files.svg", Menu.MENU_ITEM_ICON_SIZE)
+        icon = GIcons.Files.File.get(Menu.MENU_ITEM_ICON_SIZE, Menu.MENU_ITEM_ICON_SIZE)
     }
 
     private val actionHandler = ActionListener {
         when (it.source) {
             itemFileOpen -> {
                 onClickFileOpen()
-            }
-
-            itemFileFollow -> {
-                onClickFileFollow()
-            }
-
-            itemFileOpenFiles -> {
-                onClickFileOpenFiles()
-            }
-
-            itemFileAppendFiles -> {
-                onClickFileAppendFiles()
             }
         }
     }
@@ -58,31 +37,13 @@ class FileOpenPopupMenu(override val contexts: Contexts = Contexts.default) : JP
 
     init {
         add(itemFileOpen)
-        add(itemFileFollow)
-        //add(itemFileOpenFiles)
-        //add(itemFileAppendFiles)
 
         itemFileOpen.addActionListener(actionHandler)
-        itemFileFollow.addActionListener(actionHandler)
-        itemFileOpenFiles.addActionListener(actionHandler)
-        itemFileAppendFiles.addActionListener(actionHandler)
     }
 
     fun onClickFileOpen() {
         chooseSingleFile(STRINGS.ui.open) {
             it?.let(onFileSelected)
-        }
-    }
-
-    private fun onClickFileFollow() {
-        chooseSingleFile(STRINGS.ui.follow) {
-            it?.let(onFileFollowSelected)
-        }
-    }
-
-    private fun onClickFileAppendFiles() {
-        chooseMultiFiles(STRINGS.ui.appendFiles, true) {
-            onFilesAppendSelected(it)
         }
     }
 

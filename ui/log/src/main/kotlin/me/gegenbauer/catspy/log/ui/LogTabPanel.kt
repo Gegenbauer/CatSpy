@@ -8,7 +8,6 @@ import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.common.configuration.GThemeChangeListener
 import me.gegenbauer.catspy.common.configuration.Rotation
 import me.gegenbauer.catspy.common.configuration.ThemeManager
 import me.gegenbauer.catspy.common.configuration.UIConfManager
@@ -16,10 +15,10 @@ import me.gegenbauer.catspy.common.log.FilterItem.Companion.emptyItem
 import me.gegenbauer.catspy.common.log.FilterItem.Companion.rebuild
 import me.gegenbauer.catspy.common.log.LogLevel
 import me.gegenbauer.catspy.common.log.nameToLogLevel
-import me.gegenbauer.catspy.common.ui.button.*
+import me.gegenbauer.catspy.common.ui.button.ColorToggleButton
+import me.gegenbauer.catspy.common.ui.button.GButton
+import me.gegenbauer.catspy.common.ui.button.IconBarButton
 import me.gegenbauer.catspy.common.ui.combobox.*
-import me.gegenbauer.catspy.common.ui.icon.DayNightIcon
-import me.gegenbauer.catspy.common.ui.icon.iconTabFileLog
 import me.gegenbauer.catspy.common.ui.state.StatefulPanel
 import me.gegenbauer.catspy.common.ui.tab.TabPanel
 import me.gegenbauer.catspy.context.Context
@@ -33,23 +32,26 @@ import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.*
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.ddmlib.device.DeviceListListener
+import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.model.LogcatLogItem
 import me.gegenbauer.catspy.log.model.LogcatRealTimeFilter
 import me.gegenbauer.catspy.log.repo.*
+import me.gegenbauer.catspy.log.task.LogTask
 import me.gegenbauer.catspy.log.task.LogTaskManager
 import me.gegenbauer.catspy.log.ui.dialog.GoToDialog
 import me.gegenbauer.catspy.log.ui.dialog.LogTableDialog
 import me.gegenbauer.catspy.log.ui.panel.FullLogPanel
 import me.gegenbauer.catspy.log.ui.panel.SplitLogPane
-import me.gegenbauer.catspy.log.ui.panel.next
+import me.gegenbauer.catspy.log.ui.panel.nextRotation
 import me.gegenbauer.catspy.log.ui.popup.FileOpenPopupMenu
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.log.viewmodel.LogMainViewModel
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
 import me.gegenbauer.catspy.task.PeriodicTask
+import me.gegenbauer.catspy.task.Task
 import me.gegenbauer.catspy.task.TaskListener
 import me.gegenbauer.catspy.utils.*
 import java.awt.*
@@ -89,71 +91,39 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     //region logPanel
     private val logPanel = JPanel()
 
-    private val showLogToggle =
-        ColorToggleButton(STRINGS.ui.log, STRINGS.toolTip.logToggle)
+    private val showLogToggle = ColorToggleButton(STRINGS.ui.log, STRINGS.toolTip.logToggle)
     private val showLogCombo = filterComboBox(tooltip = STRINGS.toolTip.logCombo) withName STRINGS.ui.log
 
-    private val showTagToggle =
-        ColorToggleButton(STRINGS.ui.tag, STRINGS.toolTip.tagToggle)
+    private val showTagToggle = ColorToggleButton(STRINGS.ui.tag, STRINGS.toolTip.tagToggle)
     private val showTagCombo = filterComboBox(tooltip = STRINGS.toolTip.tagCombo) withName STRINGS.ui.tag
 
-    private val showPidToggle =
-        ColorToggleButton(STRINGS.ui.pid, STRINGS.toolTip.pidToggle)
+    private val showPidToggle = ColorToggleButton(STRINGS.ui.pid, STRINGS.toolTip.pidToggle)
     private val showPidCombo = filterComboBox(tooltip = STRINGS.toolTip.pidCombo) withName STRINGS.ui.pid
 
-    private val showTidToggle =
-        ColorToggleButton(STRINGS.ui.tid, STRINGS.toolTip.tidToggle)
+    private val showTidToggle = ColorToggleButton(STRINGS.ui.tid, STRINGS.toolTip.tidToggle)
     private val showTidCombo = filterComboBox(tooltip = STRINGS.toolTip.tidCombo) withName STRINGS.ui.tid
 
     private val logLevelToggle = ColorToggleButton(STRINGS.ui.logLevel)
     private val logLevelCombo = readOnlyComboBox() withName STRINGS.ui.logLevel
 
-    private val boldLogToggle =
-        ColorToggleButton(STRINGS.ui.bold, STRINGS.toolTip.boldToggle)
+    private val boldLogToggle = ColorToggleButton(STRINGS.ui.bold, STRINGS.toolTip.boldToggle)
     private val boldLogCombo = filterComboBox(tooltip = STRINGS.toolTip.boldCombo)
 
     private val matchCaseToggle = ColorToggleButton("Aa", STRINGS.toolTip.caseToggle)
     //endregion
 
     //region toolBarPanel
-    private val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+    private val toolBarPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 0, 0))
 
     //region logToolBar
     private val logToolBar = JPanel(FlowLayout(FlowLayout.LEFT)) withName "logToolBar"
 
-    private val startBtn = StatefulButton(
-        loadThemedIcon("start.svg"),
-        STRINGS.ui.start,
-        STRINGS.toolTip.startBtn
-    )
-    private val pauseToggle = StatefulToggleButton(
-        loadIcon("pause_off.png"),
-        DayNightIcon(loadIcon("pause_on.png"), loadIcon("pause_on_dark.png")),
-        STRINGS.ui.pause,
-        tooltip = STRINGS.toolTip.pauseBtn
-    )
-    private val stopBtn = StatefulButton(
-        loadIcon("stop.png"),
-        STRINGS.ui.stop,
-        STRINGS.toolTip.stopBtn
-    )
-    private val saveBtn = StatefulButton(
-        loadIcon("save.svg"),
-        STRINGS.ui.save,
-        STRINGS.toolTip.saveBtn
-    )
+    private val startBtn = IconBarButton(GIcons.Action.Start.get(), STRINGS.toolTip.startBtn)
+    private val stopBtn = IconBarButton(GIcons.Action.Stop.get(), STRINGS.toolTip.stopBtn)
+    private val saveBtn = IconBarButton(GIcons.Action.Save.get(), STRINGS.toolTip.saveBtn)
     private val deviceCombo = readOnlyComboBox(STRINGS.toolTip.devicesCombo)
-    private val rotateLogPanelBtn =
-        StatefulButton(
-            loadThemedIcon("rotate.svg"),
-            STRINGS.ui.rotation,
-            STRINGS.toolTip.rotationBtn
-        )
-    private val clearViewsBtn = StatefulButton(
-        loadIcon("clear.png"),
-        STRINGS.ui.clearViews,
-        STRINGS.toolTip.clearBtn
-    )
+    private val rotateLogPanelBtn = IconBarButton(GIcons.Action.Rotate.get(), STRINGS.toolTip.rotationBtn)
+    private val clearViewsBtn = IconBarButton(GIcons.Action.Clear.get(), STRINGS.toolTip.clearBtn)
     //endregion
     //endregion
 
@@ -198,7 +168,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     //endregion
 
     //region events
-    private val logPanelMouseListener = LogPanelMouseListener()
     private val keyHandler = KeyHandler()
     private val actionHandler = ActionHandler()
     private val mouseHandler = MouseHandler()
@@ -213,6 +182,12 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             field = value
             splitLogPane.filteredLogPanel.customFont = value
             splitLogPane.fullLogPanel.customFont = value
+        }
+
+    private var state: TaskState? = null
+        set(value) {
+            if (field != value) value?.updateUI()
+            field = value
         }
 
     private val devicesChangeListener = DeviceListListener {
@@ -297,8 +272,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
             //region ADB
             bindNormalCombo(deviceCombo, deviceSelectedIndex, connectedDevices, currentDevice)
-
-            selectedProperty(pauseToggle) bindDual pauseAll
             //endregion
 
             //region Menu
@@ -325,10 +298,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             //region status bar
             textProperty(statusMethod) bindDual status
             textProperty(logFilePath) bindDual filePath
-            //endregion
-
-            //region Style
-            bindWithButtonDisplayMode(startBtn, stopBtn, pauseToggle, saveBtn, clearViewsBtn)
             //endregion
 
             logLevelFilterCurrentContent.addObserver {
@@ -413,9 +382,8 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         filterPanel.add(logPanel, BorderLayout.CENTER)
 
         logToolBar.add(startBtn)
-        logToolBar.addVSeparator2()
-        logToolBar.add(pauseToggle)
         logToolBar.add(stopBtn)
+        logToolBar.addVSeparator2()
         logToolBar.add(saveBtn)
         logToolBar.addVSeparator2()
         logToolBar.add(deviceCombo)
@@ -423,10 +391,10 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         logToolBar.add(rotateLogPanelBtn)
         logToolBar.addVSeparator2()
         logToolBar.add(clearViewsBtn)
+        state = TaskIdle(this)
 
-        toolBarPanel.layout = BorderLayout()
         toolBarPanel.border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
-        toolBarPanel.add(logToolBar, BorderLayout.CENTER)
+        toolBarPanel.add(logToolBar)
 
         filterPanel.add(toolBarPanel, BorderLayout.NORTH)
         filterPanel.add(searchPanel, BorderLayout.SOUTH)
@@ -503,7 +471,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         // fix bug: event registered for editor in ComboBox will be removed when ComboBoxUI changed
         registerComboBoxEditorEvent()
 
-        logToolBar.addMouseListener(logPanelMouseListener)
         logToolBar.addMouseListener(mouseHandler)
         startBtn.addActionListener(actionHandler)
         startBtn.addMouseListener(mouseHandler)
@@ -535,6 +502,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
                 splitLogPane.filteredLogPanel.table.selectedRow.takeIf { it >= 0 } ?: -1
         }
         logProvider.addObserver(this)
+        taskManager.addListener(this)
     }
 
     private fun registerComboBoxEditorEvent() {
@@ -599,9 +567,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         logProvider.clear()
         updateLogFilter()
 
-        if (updateLogUITask.isRunning().not()) {
-            taskManager.exec(updateLogUITask)
-        }
+        updateLogUITask.start()
         logProvider.stopCollectLog()
         logProvider.startCollectLog(FileLogCollector(taskManager, path))
 
@@ -616,7 +582,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         viewModel.status.updateValue(" ${STRINGS.ui.adb} ")
         updateLogFilter()
 
-        if (updateLogUITask.isRunning().not()) {
+        if (updateLogUITask.isRunning.not()) {
             taskManager.exec(updateLogUITask)
         }
         logProvider.stopCollectLog()
@@ -649,7 +615,13 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             when (event.source) {
 
                 startBtn -> {
-                    startAdbScan()
+                    if (state is TaskIdle) {
+                        startAdbScan()
+                    } else if (state is TaskStarted) {
+                        viewModel.pauseAll.updateValue(true)
+                    } else if (state is TaskPaused) {
+                        viewModel.pauseAll.updateValue(false)
+                    }
                 }
 
                 stopBtn -> {
@@ -658,7 +630,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
                 rotateLogPanelBtn -> {
                     viewModel.rotation.value?.let {
-                        viewModel.rotation.updateValue(it.next())
+                        viewModel.rotation.updateValue(it.nextRotation())
                     }
                 }
 
@@ -686,49 +658,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         filteredLogcatRepository.clear()
         fullLogcatRepository.clear()
         repaint()
-    }
-
-    private class LogPanelMouseListener : MouseAdapter() {
-        private val popupMenu: JPopupMenu = ButtonDisplayModeSelectMenu()
-
-        override fun mouseReleased(e: MouseEvent) {
-            if (SwingUtilities.isRightMouseButton(e)) {
-                // Update UI with current theme
-                SwingUtilities.updateComponentTreeUI(popupMenu)
-                popupMenu.show(e.component, e.x, e.y)
-            } else {
-                popupMenu.isVisible = false
-            }
-        }
-
-        class ButtonDisplayModeSelectMenu : JPopupMenu() {
-            private val itemIconText: JMenuItem =
-                JMenuItem("IconText").apply { putClientProperty("ButtonDisplayMode", ButtonDisplayMode.ALL) }
-            private val itemIcon: JMenuItem =
-                JMenuItem("Icon").apply { putClientProperty("ButtonDisplayMode", ButtonDisplayMode.ICON) }
-            private val itemText: JMenuItem =
-                JMenuItem("Text").apply { putClientProperty("ButtonDisplayMode", ButtonDisplayMode.TEXT) }
-            private val actionHandler = ActionHandler()
-
-            init {
-                add(itemIconText)
-                add(itemIcon)
-                add(itemText)
-                itemIconText.addActionListener(actionHandler)
-                itemIcon.addActionListener(actionHandler)
-                itemText.addActionListener(actionHandler)
-            }
-
-            private inner class ActionHandler : ActionListener {
-                override fun actionPerformed(event: ActionEvent) {
-                    val anchor = invoker as JComponent
-                    val logMainUI = DarkUIUtil.getParentOfType(LogTabPanel::class.java, anchor)
-                    logMainUI.viewModel.buttonDisplayMode.updateValue(
-                        (event.source as JComponent).getClientProperty("ButtonDisplayMode") as ButtonDisplayMode
-                    )
-                }
-            }
-        }
     }
 
     private inner class PopUpCombobox(private val combo: HistoryComboBox<String>) : JPopupMenu() {
@@ -773,10 +702,10 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     private inner class PopUpFilterCombobox(private val combo: FilterComboBox) : JPopupMenu() {
         private val selectAllItem = JMenuItem("Select All")
         private val copyItem = JMenuItem("Copy").apply {
-            icon = loadDarklafThemedIcon("menu/copy.svg")
+            icon = AllIcons.Action.Copy.get()
         }
         private val pasteItem = JMenuItem("Paste").apply {
-            icon = loadDarklafThemedIcon("menu/paste.svg")
+            icon = AllIcons.Action.Paste.get()
         }
         private val actionHandler = ActionHandler()
 
@@ -928,7 +857,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         fullTableModel.searchFilterItem = searchPanel.searchCombo.filterItem
     }
 
-    fun resetComboItem(viewModelProperty: ObservableViewModelProperty<List<HistoryItem<String>>>, item: String) {
+    private fun resetComboItem(viewModelProperty: ObservableViewModelProperty<List<HistoryItem<String>>>, item: String) {
         if (item.isBlank()) return
         val list = viewModelProperty.value
         list ?: return
@@ -980,7 +909,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     }
 
     inner class SearchPanel : JPanel() {
-        val closeBtn = GButton(loadDarklafThemedIcon("navigation/close.svg")) applyTooltip STRINGS.toolTip.searchCloseBtn
+        val closeBtn = IconBarButton(AllIcons.Navigation.Close.get()) applyTooltip STRINGS.toolTip.searchCloseBtn
         val searchCombo: FilterComboBox = filterComboBox() applyTooltip STRINGS.toolTip.searchCombo
         val searchMatchCaseToggle: ColorToggleButton =
             ColorToggleButton("Aa") applyTooltip STRINGS.toolTip.searchCaseToggle
@@ -991,8 +920,8 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         } else {
             JLabel("${STRINGS.ui.full} ${STRINGS.ui.log}")
         } applyTooltip STRINGS.toolTip.searchTargetLabel
-        private val upBtn = GButton(AllIcons.Arrow.Thick.Up.get()) applyTooltip STRINGS.toolTip.searchPrevBtn //△ ▲ ▽ ▼
-        private val downBtn = GButton(AllIcons.Arrow.Thick.Down.get()) applyTooltip STRINGS.toolTip.searchNextBtn
+        private val upBtn = IconBarButton(GIcons.Action.Up.get()) applyTooltip STRINGS.toolTip.searchPrevBtn //△ ▲ ▽ ▼
+        private val downBtn = IconBarButton(GIcons.Action.Down.get()) applyTooltip STRINGS.toolTip.searchNextBtn
         private val contentPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
         private val statusPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 5, 2))
 
@@ -1008,22 +937,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         private fun configureUI() {
             searchCombo.enabledTfTooltip = false
             searchCombo.isEditable = true
-
-            searchMatchCaseToggle.margin = Insets(0, 0, 0, 0)
-            searchMatchCaseToggle.background = background
-            searchMatchCaseToggle.border = BorderFactory.createEmptyBorder()
-
-            upBtn.margin = Insets(0, 7, 0, 7)
-            upBtn.background = background
-            upBtn.border = BorderFactory.createEmptyBorder()
-
-            downBtn.margin = Insets(0, 7, 0, 7)
-            downBtn.background = background
-            downBtn.border = BorderFactory.createEmptyBorder()
-
-            closeBtn.margin = Insets(0, 0, 0, 0)
-            closeBtn.background = background
-            closeBtn.border = BorderFactory.createEmptyBorder()
 
             contentPanel.add(searchCombo)
             contentPanel.add(searchMatchCaseToggle)
@@ -1097,7 +1010,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
                     }
 
                     closeBtn -> {
-                        contentPanel.isVisible = false
+                        viewModel.searchPanelVisible.updateValue(false)
                     }
                 }
             }
@@ -1183,9 +1096,37 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         )
     }
 
+    override fun onStart(task: Task) {
+        super.onStart(task)
+        if (task is LogTask) {
+            state = TaskStarted(this)
+        }
+    }
+
+    override fun onStop(task: Task) {
+        super.onStop(task)
+        if (!taskManager.isAnyTaskRunning { it is LogTask }) {
+            state = TaskIdle(this)
+        }
+    }
+
+    override fun onPause(task: Task) {
+        super.onPause(task)
+        if (taskManager.isPaused()) {
+            state = TaskPaused(this)
+        }
+    }
+
+    override fun onResume(task: Task) {
+        super.onResume(task)
+        if (taskManager.isPaused().not()) {
+            state = TaskStarted(this)
+        }
+    }
+
     override val tabName: String
         get() = "Log"
-    override val tabIcon: Icon = iconTabFileLog
+    override val tabIcon: Icon = GIcons.Tab.FileLog.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
     override val tabTooltip: String?
         get() = null
     override val tabMnemonic: Char
@@ -1199,13 +1140,14 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         taskManager.updatePauseState(true)
     }
 
-    override fun dispose() {
+    override fun onDestroy() {
         ServiceManager.dispose(this)
         ThemeManager.unregisterThemeUpdateListener(viewModel)
         logProvider.destroy()
         clearViews()
         taskManager.cancelAll()
         saveConfiguration()
+        splitLogPane.onDestroy()
     }
 
     override fun getTabContent(): JComponent {
@@ -1256,6 +1198,37 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         }
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
         rootPane.actionMap.put(actionMapKey, action)
+    }
+
+    private abstract class TaskState(protected val ui: LogTabPanel) {
+        abstract fun updateUI()
+    }
+
+    private class TaskStarted(ui: LogTabPanel) : TaskState(ui) {
+        override fun updateUI() {
+            ui.startBtn.icon = GIcons.Action.Pause.get()
+            ui.startBtn.toolTipText = STRINGS.toolTip.pauseBtn
+            ui.stopBtn.isEnabled = true
+            ui.stopBtn.icon = GIcons.Action.Stop.get()
+        }
+    }
+
+    private class TaskIdle(ui: LogTabPanel) : TaskState(ui) {
+        override fun updateUI() {
+            ui.startBtn.icon = GIcons.Action.Start.get()
+            ui.startBtn.toolTipText = STRINGS.toolTip.startBtn
+            ui.stopBtn.isEnabled = false
+            ui.stopBtn.icon = GIcons.Action.Stop.disabled()
+        }
+    }
+
+    private class TaskPaused(ui: LogTabPanel) : TaskState(ui) {
+        override fun updateUI() {
+            ui.startBtn.icon = GIcons.Action.Start.get()
+            ui.startBtn.toolTipText = STRINGS.toolTip.startBtn
+            ui.stopBtn.isVisible = true
+            ui.stopBtn.icon = GIcons.Action.Stop.get()
+        }
     }
 
     companion object {

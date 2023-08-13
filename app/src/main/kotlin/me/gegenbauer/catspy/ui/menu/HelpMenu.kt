@@ -2,11 +2,11 @@ package me.gegenbauer.catspy.ui.menu
 
 import me.gegenbauer.catspy.common.support.Menu
 import me.gegenbauer.catspy.common.ui.menu.GMenu
+import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.ui.dialog.AboutDialog
 import me.gegenbauer.catspy.ui.dialog.HelpDialog
 import me.gegenbauer.catspy.utils.findFrameFromParent
-import me.gegenbauer.catspy.utils.loadThemedIcon
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import javax.swing.JFrame
@@ -14,9 +14,11 @@ import javax.swing.JMenuItem
 
 class HelpMenu : GMenu() {
     private val itemHelp = JMenuItem(STRINGS.ui.help).apply {
-        icon = loadThemedIcon("help.svg", Menu.MENU_ITEM_ICON_SIZE)
+        icon = GIcons.Menu.Help.get(Menu.MENU_ITEM_ICON_SIZE, Menu.MENU_ITEM_ICON_SIZE)
     }
-    private val itemAbout = JMenuItem(STRINGS.ui.about)
+    private val itemAbout = JMenuItem(STRINGS.ui.about).apply {
+        icon = GIcons.Menu.About.get(14, 14)
+    }
     private val actionHandler = ActionListener {
         when (it.source) {
             itemHelp -> openHelpDialog()

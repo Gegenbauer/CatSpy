@@ -1,7 +1,8 @@
 package me.gegenbauer.catspy.common.ui.button
 
+import me.gegenbauer.catspy.common.support.setBorderless
 import me.gegenbauer.catspy.databinding.bind.componentName
-import me.gegenbauer.catspy.utils.loadIcon
+import me.gegenbauer.catspy.iconset.GIcons
 import javax.swing.JToggleButton
 
 
@@ -11,11 +12,13 @@ class ColorToggleButton(
 ) : JToggleButton(title) {
 
     init {
-        icon = loadIcon("toggle_off.png")
-        selectedIcon = loadIcon("toggle_on.png")
+        icon = GIcons.State.ToggleOff.get()
+        selectedIcon = GIcons.State.ToggleOn.get()
         componentName = title
+        isContentAreaFilled = false
         toolTipText = tooltip
         isRolloverEnabled = true
+        setBorderless()
     }
 }
 

@@ -1,10 +1,8 @@
 package me.gegenbauer.catspy.common.ui.combobox.highlight
 
-import me.gegenbauer.catspy.common.support.ColorScheme
 import me.gegenbauer.catspy.common.support.FilterComboBoxTheme.fontBackgroundInclude
+import me.gegenbauer.catspy.common.support.LogColorScheme
 import me.gegenbauer.catspy.common.ui.combobox.HistoryItem
-import org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter
-import java.awt.Color
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
@@ -24,10 +22,6 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
     private var isHighlightEnabled = true
     private val customHighlighters = arrayListOf<Any>()
     private val textEditor = editorComponent as JTextComponent
-    private val errorHighlightPainter = SquiggleUnderlineHighlightPainter(Color.RED)
-    private val excludeHighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleExclude)
-    private val includeHighlightPainter = DefaultHighlighter.DefaultHighlightPainter(fontBackgroundInclude)
-    private val operatorHighlightPainter = DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleSeparator)
 
     override fun setItem(item: Any?) {
         if (item is String || item is HistoryItem<*>) {
@@ -99,9 +93,9 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
         val painterInclude: Highlighter.HighlightPainter =
             DefaultHighlighter.DefaultHighlightPainter(fontBackgroundInclude)
         val painterExclude: Highlighter.HighlightPainter =
-            DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleExclude)
+            DefaultHighlighter.DefaultHighlightPainter(LogColorScheme.filterStyleExclude)
         val painterSeparator: Highlighter.HighlightPainter =
-            DefaultHighlighter.DefaultHighlightPainter(ColorScheme.filterStyleSeparator)
+            DefaultHighlighter.DefaultHighlightPainter(LogColorScheme.filterStyleSeparator)
         val text = textEditor.text
         val separator = "|"
         try {

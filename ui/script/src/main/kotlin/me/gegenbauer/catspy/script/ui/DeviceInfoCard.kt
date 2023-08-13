@@ -10,6 +10,7 @@ import me.gegenbauer.catspy.common.ui.card.Card
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.script.executor.CommandExecutor
 import me.gegenbauer.catspy.task.PeriodicTask
 import me.gegenbauer.catspy.task.TaskManager
@@ -19,7 +20,8 @@ import javax.swing.JPanel
 
 class DeviceInfoCard(
     private val scriptUIItems: List<ScriptUIItem>,
-    private val taskManager: TaskManager
+    private val taskManager: TaskManager,
+    override val contexts: Contexts = Contexts.default
 ) : JPanel(), Card {
     private val scope = ModelScope()
     private var device = ScriptTabPanel.defaultDevice

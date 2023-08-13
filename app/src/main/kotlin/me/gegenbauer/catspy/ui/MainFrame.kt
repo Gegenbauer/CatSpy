@@ -12,11 +12,13 @@ import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
+import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
 import me.gegenbauer.catspy.ui.panel.TabManagerPane
-import me.gegenbauer.catspy.utils.loadIconWithRealSize
 import java.awt.BorderLayout
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import javax.swing.JFrame
 import javax.swing.JMenuBar
 import javax.swing.JTabbedPane
@@ -73,7 +75,7 @@ class MainFrame(
     override fun configureContext(context: Context) {
         startServices()
         super.configureContext(context)
-        tabbedPane.getAllTabs().forEach {it.setContexts(contexts)}
+        tabbedPane.getAllTabs().forEach { it.setContexts(contexts) }
     }
 
     private fun registerEvents() {
@@ -87,10 +89,15 @@ class MainFrame(
                 unfocusedTabs.forEach { (it as? OnTabChangeListener)?.onTabFocusChanged(false) }
             }
         }
+        addWindowFocusListener(object : WindowAdapter() {
+            override fun windowLostFocus(e: WindowEvent) {
+                getWindows().filter { it.type == Type.POPUP }.forEach { it.dispose() }
+            }
+        })
     }
 
     private fun configureWindow() {
-        iconImage = loadIconWithRealSize<DerivableImageIcon>("logo.png").image
+        iconImage = (GIcons.Logo.get(200, 200) as DerivableImageIcon).image
 
         UIConfManager.uiConf.run {
             extendedState = if (frameX == 0 || frameY == 0 || frameWidth == 0 || frameHeight == 0) {
@@ -107,9 +114,9 @@ class MainFrame(
         }
     }
 
-    override fun dispose() {
-        super<TabManager>.dispose()
-        tabbedPane.dispose()
+    override fun onDestroy() {
+        super.onDestroy()
+        tabbedPane.onDestroy()
         ServiceManager.dispose(this)
         saveConfigOnDestroy()
     }

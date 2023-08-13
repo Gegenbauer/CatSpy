@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.log.repo
 
+import me.gegenbauer.catspy.log.task.LogTask
 import me.gegenbauer.catspy.task.ReadFileTask
 import me.gegenbauer.catspy.task.Task
 import me.gegenbauer.catspy.task.TaskManager
@@ -14,11 +15,12 @@ class FileLogCollector(
         val file = File(this)
         logTempFile = file
         checkFile(file)
-        ReadFileTask(file)
+        LocalFileLogReadTask(file)
     }
 
     private fun checkFile(file: File) {
         require(file.exists()) { notifyError(IllegalArgumentException("File ${file.absolutePath} does not exist")) }
     }
 
+    class LocalFileLogReadTask(file: File) : ReadFileTask(file), LogTask
 }

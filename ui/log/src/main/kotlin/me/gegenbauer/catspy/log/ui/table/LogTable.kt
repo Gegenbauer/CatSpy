@@ -175,12 +175,12 @@ class LogTable(
     }
 
     private fun getRowsContent(rows: List<Int>): String {
-        return rows.joinToString("\n") { this.tableModel.getItemAcrossPage(it).logLine }
+        return rows.joinToString("\n") { this.tableModel.getItemInCurrentPage(it).logLine }
     }
 
     //TODO add render effect for this
     private fun getRowsContent(rows: IntArray): String {
-        return rows.joinToString("\n") { this.tableModel.getItemAcrossPage(it).logLine }
+        return rows.joinToString("\n") { this.tableModel.getItemInCurrentPage(it).logLine }
     }
 
     private fun updateBookmark(rows: List<Int>) {

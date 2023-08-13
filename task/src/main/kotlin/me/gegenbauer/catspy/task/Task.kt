@@ -7,6 +7,10 @@ interface Task {
 
     val scope: CoroutineScope
 
+    val isCanceled: Boolean
+
+    val isRunning: Boolean
+
     fun start()
 
     fun pause()
@@ -14,8 +18,6 @@ interface Task {
     fun resume()
 
     fun cancel()
-
-    fun isRunning(): Boolean
 
     fun addListener(taskListener: TaskListener)
 

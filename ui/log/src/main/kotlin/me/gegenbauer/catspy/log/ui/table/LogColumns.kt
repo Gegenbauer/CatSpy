@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.log.ui.table
 
 import me.gegenbauer.catspy.common.log.FilterItem.Companion.getMatchedList
-import me.gegenbauer.catspy.common.support.ColorScheme
+import me.gegenbauer.catspy.common.support.LogColorScheme
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.model.LogcatLogItem.Companion.fgColor
@@ -32,8 +32,8 @@ internal val columnIndex = object : Column {
             }
 
             override fun render(table: LogTable, label: JLabel, row: Int, col: Int, content: String) {
-                label.border = LineNumBorder(ColorScheme.numLogSeparatorBG, 1)
-                foreground = ColorScheme.lineNumFG
+                label.border = LineNumBorder(LogColorScheme.numLogSeparatorBG, 1)
+                foreground = LogColorScheme.lineNumFG
             }
         }
     }
@@ -61,7 +61,7 @@ private val columnPid = object : Column {
             }
 
             override fun getBoldColor(): Color {
-                return ColorScheme.pidFG
+                return LogColorScheme.pidFG
             }
         }
     }
@@ -79,7 +79,7 @@ private val columnTid = object : Column {
             }
 
             override fun getBoldColor(): Color {
-                return ColorScheme.tidFG
+                return LogColorScheme.tidFG
             }
         }
     }
@@ -107,7 +107,7 @@ private val columnTag = object : Column {
             }
 
             override fun getBoldColor(): Color {
-                return ColorScheme.tagFG
+                return LogColorScheme.tagFG
             }
         }
     }
@@ -196,16 +196,16 @@ private open class MessageLogCellRenderer : DefaultLogTableCellRenderer() {
         val foreground = logItem.fgColor
         renderer.foreground(0, content.length - 1, foreground)
         logTable.tableModel.searchFilterItem.getMatchedList(content).forEach {
-            renderer.highlight(it.first, it.second, ColorScheme.searchBG)
-            renderer.foreground(it.first, it.second, ColorScheme.searchFG)
+            renderer.highlight(it.first, it.second, LogColorScheme.searchBG)
+            renderer.foreground(it.first, it.second, LogColorScheme.searchFG)
         }
         logTable.tableModel.highlightFilterItem.getMatchedList(content).forEach {
-            renderer.highlight(it.first, it.second, ColorScheme.highlightBG)
-            renderer.foreground(it.first, it.second, ColorScheme.highlightFG)
+            renderer.highlight(it.first, it.second, LogColorScheme.highlightBG)
+            renderer.foreground(it.first, it.second, LogColorScheme.highlightFG)
         }
         logTable.tableModel.getLogFilter().filterLog.getMatchedList(content).forEach {
-            renderer.highlight(it.first, it.second, ColorScheme.filteredBGs[0])
-            renderer.foreground(it.first, it.second, ColorScheme.filteredFGs[0])
+            renderer.highlight(it.first, it.second, LogColorScheme.filteredBGs[0])
+            renderer.foreground(it.first, it.second, LogColorScheme.filteredFGs[0])
         }
         addRenderItem(logTable, row, renderer)
         return renderer.render()
@@ -264,18 +264,18 @@ private class LineNumBorder(val color: Color, private val thickness: Int) : Abst
 }
 
 private fun LogTable.getColumnBackground(num: Int, row: Int): Color {
-    val context = contexts.getContext(LogTabPanel::class.java) ?: return ColorScheme.logBG
+    val context = contexts.getContext(LogTabPanel::class.java) ?: return LogColorScheme.logBG
     val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
     return if (bookmarkManager.isBookmark(num)) {
         if (isRowSelected(row)) {
-            ColorScheme.bookmarkSelectedBG
+            LogColorScheme.bookmarkSelectedBG
         } else {
-            ColorScheme.bookmarkBG
+            LogColorScheme.bookmarkBG
         }
     } else if (isRowSelected(row)) {
-        ColorScheme.selectedBG
+        LogColorScheme.selectedBG
     } else {
-        ColorScheme.logBG
+        LogColorScheme.logBG
     }
 }
 

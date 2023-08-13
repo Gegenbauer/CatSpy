@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.log.model
 
 import me.gegenbauer.catspy.common.log.LogLevel
 import me.gegenbauer.catspy.common.log.getLevelFromFlag
-import me.gegenbauer.catspy.common.support.ColorScheme
+import me.gegenbauer.catspy.common.support.LogColorScheme
 import me.gegenbauer.catspy.resource.strings.STRINGS
 import me.gegenbauer.catspy.resource.strings.app
 import java.awt.Color
@@ -93,31 +93,31 @@ data class LogcatLogItem(
         inline val LogcatLogItem.fgColor: Color
             get() = when (level) {
                 LogLevel.VERBOSE -> {
-                    ColorScheme.logLevelVerbose
+                    LogColorScheme.logLevelVerbose
                 }
 
                 LogLevel.DEBUG -> {
-                    ColorScheme.logLevelDebug
+                    LogColorScheme.logLevelDebug
                 }
 
                 LogLevel.INFO -> {
-                    ColorScheme.logLevelInfo
+                    LogColorScheme.logLevelInfo
                 }
 
                 LogLevel.WARN -> {
-                    ColorScheme.logLevelWarning
+                    LogColorScheme.logLevelWarning
                 }
 
                 LogLevel.ERROR -> {
-                    ColorScheme.logLevelError
+                    LogColorScheme.logLevelError
                 }
 
                 LogLevel.FATAL -> {
-                    ColorScheme.logLevelFatal
+                    LogColorScheme.logLevelFatal
                 }
 
                 else -> {
-                    ColorScheme.logLevelNone
+                    LogColorScheme.logLevelNone
                 }
             }
     }

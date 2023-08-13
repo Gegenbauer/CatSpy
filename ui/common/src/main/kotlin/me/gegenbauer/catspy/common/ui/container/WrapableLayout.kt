@@ -34,12 +34,10 @@ class WrapableLayout(hGap: Int = 0, vGap: Int = 0, align: Int = LEFT) : FlowLayo
             if (target.components.isNullOrEmpty()) {
                 return
             }
-            // TODO bug font adjustment will cause bottom border overflow
+            val targetHeight = target.components.maxOf { it.height + it.location.y }
             target.apply {
-                val lastComponent = components.last()
-                val maxY = lastComponent.location.y + lastComponent.height
-                if (maxY != location.y + height) {
-                    preferredSize = Dimension(width, maxY)
+                if (targetHeight != location.y + height) {
+                    preferredSize = Dimension(width, targetHeight)
                     updateUI()
                 }
             }

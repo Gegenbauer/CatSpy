@@ -20,6 +20,11 @@ class PeriodicTask(
             addPausePoint()
             task()
             notifyRepeat()
+            if (isCanceled) {
+                setRunning(false)
+                notifyStop()
+                return
+            }
         }
         setRunning(false)
     }

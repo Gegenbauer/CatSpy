@@ -1,10 +1,10 @@
 package me.gegenbauer.catspy.common.ui.button
 
+import com.github.weisj.darklaf.iconset.AllIcons
 import com.github.weisj.darklaf.ui.tabbedpane.DarkTabbedPaneUI
 import me.gegenbauer.catspy.utils.isDoubleClick
 import me.gegenbauer.catspy.utils.isLeftClick
 import me.gegenbauer.catspy.utils.isSingleClick
-import me.gegenbauer.catspy.utils.loadDarklafThemedIcon
 import java.awt.*
 import java.awt.event.*
 import javax.swing.*
@@ -21,7 +21,7 @@ class ClosableTabHeader(
     var onCloseClicked: (() -> Unit)? = null
 
     private val title = JLabel(tabName, icon, SwingConstants.LEFT)
-    private val closeButton = JButton(closeIconNormal)
+    private val closeButton = IconBarButton(closeIconNormal)
     private val editor = JTextField()
     private var titleLen = 0
     private var editorMinDimen: Dimension = Dimension(0, 0)
@@ -39,9 +39,8 @@ class ClosableTabHeader(
         name = "Tab.header"
         closeButton.name = "Tab.close"
         closeButton.toolTipText = "Close Tab"
-        closeButton.isBorderPainted = false
-        closeButton.isOpaque = false
-        closeButton.background = Color(0, 0, 0, 0)
+        closeButton.isRolloverEnabled = false
+        closeButton.isContentAreaFilled = false
         val d = Dimension(CLOSE_BUTTON_SIZE, CLOSE_BUTTON_SIZE)
         closeButton.preferredSize = d
         title.border = null
@@ -172,7 +171,7 @@ class ClosableTabHeader(
     companion object {
         private const val CLOSE_BUTTON_SIZE = 20
         private const val CLOSE_BUTTON_PADDING_LEFT = 4
-        private val closeIconNormal: Icon by lazy { loadDarklafThemedIcon("navigation/close.svg") }
-        private val closeIconHover: Icon by lazy { loadDarklafThemedIcon("navigation/closeHovered.svg") }
+        private val closeIconNormal: Icon by lazy { AllIcons.Navigation.Close.get() }
+        private val closeIconHover: Icon by lazy { AllIcons.Navigation.Close.hovered() }
     }
 }

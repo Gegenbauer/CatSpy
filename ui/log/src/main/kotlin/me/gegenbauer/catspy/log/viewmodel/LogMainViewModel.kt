@@ -101,7 +101,6 @@ class LogMainViewModel : ContextService, GThemeChangeListener {
     //endregion
 
     //region Style
-    val buttonDisplayMode = ObservableViewModelProperty(ButtonDisplayMode.ALL) // TODO save configuration of this
     val logFont = ObservableViewModelProperty(UIConfManager.uiConf.getLogFont())
     //endregion
 
@@ -131,10 +130,6 @@ class LogMainViewModel : ContextService, GThemeChangeListener {
         listProperty(comboBox) bindDual listProperty
         selectedIndexProperty(comboBox) bindLeft selectedIndexProperty
         textProperty(comboBox.editorComponent) bindDual editorContentProperty
-    }
-
-    fun bindWithButtonDisplayMode(vararg component: JComponent) {
-        component.forEach { customProperty(it, "buttonDisplayMode", ButtonDisplayMode.ALL) bindRight buttonDisplayMode }
     }
 
     fun syncGlobalConfWithMainViewModel() {

@@ -1,14 +1,14 @@
 package me.gegenbauer.catspy.script.ui
 
 import me.gegenbauer.catspy.common.ui.button.IconBarButton
-import me.gegenbauer.catspy.utils.loadThemedIcon
+import me.gegenbauer.catspy.iconset.GIcons
 import java.awt.FlowLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.JPanel
 
 class ScriptActionBar: JPanel(), ActionListener {
-    private val edit = IconBarButton(loadThemedIcon("edit.svg", 20))
+    private val edit = IconBarButton(GIcons.Action.Edit.get(20, 20))
     private var editAction: (() -> Unit) = {}
 
     init {

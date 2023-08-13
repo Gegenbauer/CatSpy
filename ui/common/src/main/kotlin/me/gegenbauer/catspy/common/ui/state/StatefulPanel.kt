@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.common.ui.state
 
 import me.gegenbauer.catspy.common.support.EmptyStatePanelTheme
-import me.gegenbauer.catspy.common.ui.button.GButton
+import me.gegenbauer.catspy.common.ui.button.IconBarButton
+import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.utils.loadIcon
 import java.awt.CardLayout
 import java.awt.Dimension
 import java.awt.GridBagLayout
@@ -24,7 +24,7 @@ class StatefulPanel : JPanel() {
     private val emptyContainerLayout = CardLayout()
     private var content: JComponent = JPanel()
 
-    private val emptyImage = GButton(loadIcon("empty_state.svg", w = 60, h = 60)).apply {
+    private val emptyImage = IconBarButton(GIcons.State.Empty.get(60, 60)).apply {
         preferredSize = Dimension(120, 120)
         background = EmptyStatePanelTheme.iconBackground
         isBorderPainted = false

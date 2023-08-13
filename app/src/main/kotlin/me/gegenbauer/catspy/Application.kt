@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.cache.PatternProvider
 import me.gegenbauer.catspy.common.configuration.ThemeManager
-import me.gegenbauer.catspy.common.support.ColorScheme
+import me.gegenbauer.catspy.common.support.LogColorScheme
 import me.gegenbauer.catspy.common.support.VStatusPanelTheme
 import me.gegenbauer.catspy.common.viewmodel.GlobalViewModel
 import me.gegenbauer.catspy.concurrency.APP_LAUNCH
@@ -68,7 +68,7 @@ class Application {
                         GLog.i(TAG, "[windowClosing]")
                         AppScope.launch(Dispatchers.GIO) {
                             GLog.i(TAG, "[windowClosing] handle dispose start")
-                            mainFrame.dispose()
+                            mainFrame.onDestroy()
                             GLog.i(TAG, "[windowClosing] handle dispose end")
                             System.exit(0)
                         }
@@ -84,7 +84,7 @@ class Application {
 
         private val themeAwareControllers = listOf(
             VStatusPanelTheme,
-            ColorScheme,
+            LogColorScheme,
         )
 
         private fun adjustBeforeThemeLoaded(theme: Theme, defaults: UIDefaults) {

@@ -35,8 +35,24 @@ open class TaskManager : TaskListener {
     }
 
     fun updatePauseState(paused: Boolean) {
-        taskList.forEach { updateTaskPauseState(it, paused) }
         this.paused = paused
+        taskList.forEach { updateTaskPauseState(it, paused) }
+    }
+
+    fun isIdle(): Boolean {
+        return taskList.all { it.isRunning.not() }
+    }
+
+    fun isPaused(): Boolean {
+        return paused
+    }
+
+    fun isRunning(): Boolean {
+        return taskList.any { it.isRunning }
+    }
+
+    fun isAnyTaskRunning(taskMatcher: (Task) -> Boolean): Boolean {
+        return taskList.filter(taskMatcher).any { it.isRunning }
     }
 
     private fun updateTaskPauseState(task: Task, paused: Boolean) {

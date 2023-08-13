@@ -3,6 +3,10 @@ package me.gegenbauer.catspy.common.support
 import java.awt.BorderLayout
 import javax.swing.*
 
+const val PROPERTY_KEY_BUTTON_VARIANT = "JButton.variant"
+const val BORDER_TYPE_BORDERLESS = "borderless"
+const val BORDER_TYPE_NONE = "none"
+
 fun addHSeparator(target: JPanel, title: String) {
     val titleHtml = title.replace(" ", "&nbsp;")
     val separator = JSeparator(SwingConstants.HORIZONTAL)
@@ -14,4 +18,8 @@ fun addHSeparator(target: JPanel, title: String) {
     panel.add(label, BorderLayout.WEST)
     panel.add(separatePanel, BorderLayout.CENTER)
     target.add(panel)
+}
+
+fun JComponent.setBorderless() {
+    putClientProperty(PROPERTY_KEY_BUTTON_VARIANT, BORDER_TYPE_BORDERLESS)
 }

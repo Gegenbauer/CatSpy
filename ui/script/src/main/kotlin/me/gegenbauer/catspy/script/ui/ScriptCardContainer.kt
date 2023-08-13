@@ -3,6 +3,8 @@ package me.gegenbauer.catspy.script.ui
 import me.gegenbauer.catspy.common.configuration.ThemeManager
 import me.gegenbauer.catspy.common.ui.card.Card
 import me.gegenbauer.catspy.common.ui.card.RoundedCard
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.log.GLog
 import java.awt.GridLayout
@@ -12,7 +14,7 @@ import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JPanel
 
-class ScriptCardContainer : CardContainer {
+class ScriptCardContainer(override val contexts: Contexts = Contexts.default) : CardContainer, Context {
     override val container: JPanel = JPanel().apply {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
         componentName = "ScriptCardContainer"
@@ -85,6 +87,15 @@ class ScriptCardContainer : CardContainer {
 
     override fun resumeAutomaticallyUpdate() {
         cards.forEach(Card::resumeAutomaticallyUpdate)
+    }
+
+    override fun configureContext(context: Context) {
+        super.configureContext(context)
+        cards.forEach { it.setContexts(contexts) }
+    }
+
+    override fun onDestroy() {
+        cards.forEach(Card::onDestroy)
     }
 
     companion object {

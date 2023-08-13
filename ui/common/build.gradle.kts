@@ -14,6 +14,7 @@ dependencies {
     api(projects.task)
     api(projects.glog)
     api(projects.ddmlib)
+    api(projects.iconset)
 
     api(Gson.groupName, Gson.gson.artifact, Gson.gson.version)
     api(FormDev.groupName, FormDev.flatLaf.artifact, FormDev.flatLaf.version)

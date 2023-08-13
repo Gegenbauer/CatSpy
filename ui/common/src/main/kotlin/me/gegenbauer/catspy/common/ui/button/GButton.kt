@@ -7,6 +7,10 @@ open class GButton(text: String? = null, icon: Icon? = null): JButton(text, icon
 
     constructor(icon: Icon?): this(null, icon)
 
+    constructor(icon: Icon? = null, tooltip: String? = null): this(null, icon) {
+        toolTipText = tooltip
+    }
+
     init {
         isRolloverEnabled = true
     }

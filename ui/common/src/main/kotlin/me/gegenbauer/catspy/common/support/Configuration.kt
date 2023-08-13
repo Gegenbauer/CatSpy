@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.common.support
 
 import com.github.weisj.darklaf.theme.Theme
-import me.gegenbauer.catspy.utils.loadIcon
+import me.gegenbauer.catspy.iconset.GIcons
 import java.awt.Color
 import java.util.*
 import javax.swing.Icon
@@ -11,8 +11,8 @@ import javax.swing.plaf.ColorUIResource
 private val properties = UIManager.getDefaults()
 
 object ToggleButtonTheme {
-    val defaultIconUnselected: Icon = loadIcon("toggle_off.png")
-    val defaultIconSelected: Icon = loadIcon("toggle_on.png")
+    val defaultIconUnselected: Icon = GIcons.State.ToggleOff.get()
+    val defaultIconSelected: Icon = GIcons.State.ToggleOn.get()
 }
 
 object FilterComboBoxTheme {
@@ -47,7 +47,7 @@ object VStatusPanelTheme: ThemeAware {
     }
 }
 
-object ColorScheme: ThemeAware {
+object LogColorScheme: ThemeAware {
     private val DEFAULT_COLOR = Color(0x000000)
     data class ColorItem(val order: Int, val name: String, val color: Color)
 
@@ -289,7 +289,7 @@ object ColorScheme: ThemeAware {
 }
 
 object Menu {
-    const val MENU_ITEM_ICON_SIZE = 20
+    const val MENU_ITEM_ICON_SIZE = 16
 }
 
 fun interface ThemeAware {

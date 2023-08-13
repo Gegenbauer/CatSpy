@@ -27,6 +27,8 @@ object ThemeManager {
     private val settingsConfiguration: SettingsConfiguration = loadThemeSettings()
     private val scope = ModelScope()
 
+    var currentTheme: Theme = settingsConfiguration.theme
+
     suspend fun init() {
         withContext(Dispatchers.APP_LAUNCH) {
             ensureThemeFile()
@@ -43,6 +45,7 @@ object ThemeManager {
     fun registerDefaultThemeUpdateListener() {
         LafManager.registerDefaultsAdjustmentTask { t: Theme, _: Properties ->
             updateTheme(t)
+            currentTheme = t
             scope.launch {
                 saveThemeSettings()
             }
@@ -138,3 +141,6 @@ object ThemeManager {
         settingsConfiguration.isThemeFollowsSystem = ThemeSettings.getInstance().isThemeFollowsSystem
     }
 }
+
+inline val Theme.isDark: Boolean
+    get() = Theme.isDark(this)

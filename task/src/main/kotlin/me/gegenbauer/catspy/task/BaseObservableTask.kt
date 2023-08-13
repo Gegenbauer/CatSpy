@@ -13,11 +13,19 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
             get() = dispatcher + Job()
     }
 
+    override val isRunning: Boolean
+        get() = _isRunning.get()
+
+    override val isCanceled: Boolean
+        get() = _isCanceled.get()
+
     private val listeners = Collections.synchronizedCollection(mutableSetOf<TaskListener>())
-    private val running = AtomicBoolean(false)
+    private val _isRunning = AtomicBoolean(false)
+    private val _isCanceled = AtomicBoolean(false)
 
     override fun start() {
         TaskLog.d(name, "[start]")
+        _isCanceled.set(false)
         notifyStart()
         scope.launch { startInCoroutine() }
     }
@@ -36,7 +44,7 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
     }
 
     protected fun setRunning(running: Boolean) {
-        this.running.set(running)
+        this._isRunning.set(running)
     }
 
     override fun resume() {
@@ -88,14 +96,11 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
         listeners.toList().forEach { it.onError(this, t) }
     }
 
-    override fun isRunning(): Boolean {
-        return running.get()
-    }
-
     override fun cancel() {
         TaskLog.d(name, "[cancel]")
         notifyCancel()
         scope.cancel()
+        _isCanceled.set(true)
     }
 
     companion object {
