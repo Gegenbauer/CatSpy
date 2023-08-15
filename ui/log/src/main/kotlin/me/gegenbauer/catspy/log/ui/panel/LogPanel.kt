@@ -1,15 +1,13 @@
 package me.gegenbauer.catspy.log.ui.panel
 
-import me.gegenbauer.catspy.common.configuration.GThemeChangeListener
-import me.gegenbauer.catspy.common.configuration.ThemeManager
 import me.gegenbauer.catspy.common.configuration.UIConfManager
-import me.gegenbauer.catspy.common.configuration.isDark
 import me.gegenbauer.catspy.common.support.LogColorScheme
 import me.gegenbauer.catspy.common.ui.button.ColorToggleButton
 import me.gegenbauer.catspy.common.ui.button.IconBarButton
 import me.gegenbauer.catspy.common.ui.container.WrapablePanel
 import me.gegenbauer.catspy.common.ui.icon.DayNightIcon
 import me.gegenbauer.catspy.common.ui.table.PageIndicator
+import me.gegenbauer.catspy.common.ui.table.PageMetadata
 import me.gegenbauer.catspy.common.ui.table.RowNavigation
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
@@ -21,6 +19,7 @@ import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.BookmarkChangeListener
 import me.gegenbauer.catspy.log.BookmarkManager
+import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTable
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
@@ -76,12 +75,7 @@ abstract class LogPanel(
     private val bookmarkHandler = BookmarkHandler()
 
     private var lastPosition = -1
-
-    private val themeChangeListener = GThemeChangeListener {
-        scrollToEndIcon.isDarkMode = it.isDark
-        scrollToEndSelectedIcon.isDarkMode = it.isDark
-        scrollToEndBtn.repaint()
-    }
+    private var lastPageMetaData: PageMetadata = PageMetadata()
 
     init {
         registerEvent()
@@ -98,7 +92,6 @@ abstract class LogPanel(
         scrollToEndBtn.addActionListener {
             scrollToEndBtn.isSelected = !scrollToEndBtn.isSelected
         }
-        ThemeManager.registerThemeUpdateListener(themeChangeListener)
     }
 
     private fun observeViewModelProperty() {
@@ -115,6 +108,16 @@ abstract class LogPanel(
             if (it == true) {
                 moveToLastRow()
             }
+        }
+        tableModel.pageMetaData.addObserver {
+            it ?: return@addObserver
+            if (lastPageMetaData.isIndicatorDataEquals(it)) {
+                return@addObserver
+            }
+            if (lastPageMetaData.isPageChanged(it)) {
+                viewModel.scrollToEnd.updateValue(false)
+            }
+            lastPageMetaData = it
         }
     }
 
@@ -227,6 +230,12 @@ abstract class LogPanel(
     internal inner class AdjustmentHandler : AdjustmentListener {
         override fun adjustmentValueChanged(event: AdjustmentEvent) {
             val currentPosition = event.value
+            GLog.d(TAG, "[adjustmentValueChanged] lastPosition = $lastPosition, currentPosition = $currentPosition")
+            if (lastPosition < 0) {
+                lastPosition = currentPosition
+                return
+            }
+
             val isScrollingDown = currentPosition - lastPosition > 0
             takeIf { currentPosition != lastPosition } ?: return
             lastPosition = currentPosition
@@ -251,9 +260,7 @@ abstract class LogPanel(
     internal inner class TableModelHandler : LogTableModelListener {
 
         override fun onLogDataChanged(event: TableModelEvent) {
-            if ((event.source as LogTableModel).rowCount == 0) {
-                lastPosition = -1
-            }
+            lastPosition = -1
 
             if (viewModel.scrollToEnd.value == true) {
                 moveToLastRow()
@@ -273,7 +280,6 @@ abstract class LogPanel(
     }
 
     override fun onDestroy() {
-        ThemeManager.unregisterThemeUpdateListener(themeChangeListener)
         ctrlMainPanel.onDestroy()
     }
 

@@ -16,7 +16,7 @@ class PageIndicatorTest {
     fun `should return empty page navigation panel when page count is 0`() {
         val pageable = PageableTestImpl()
         val pageNavigationPanel = PageIndicator(pageable)
-        pageable.observablePageMetaData.updateValue(PageMetadata(0, 0, 0, 0))
+        pageable.pageMetaData.updateValue(PageMetadata(0, 0, 0, 0))
         assertEquals(0, pageNavigationPanel.componentCount)
     }
 
@@ -24,7 +24,7 @@ class PageIndicatorTest {
     fun `should return page navigation panel with correct page buttons when page count is 1`() {
         val pageable = PageableTestImpl()
         val pageNavigationPanel = PageIndicator(pageable)
-        pageable.observablePageMetaData.updateValue(PageMetadata(0, 1, 0, 0))
+        pageable.pageMetaData.updateValue(PageMetadata(0, 1, 0, 0))
         val ellipses = pageNavigationPanel.components.filterIsInstance<JLabel>()
         val pageButtons = pageNavigationPanel.components.filterIsInstance<JToggleButton>()
         assertTrue(ellipses.isEmpty())
@@ -36,7 +36,7 @@ class PageIndicatorTest {
     fun `should return panel with page buttons count equals to page count when page count is less than max button count`() {
         val pageable = PageableTestImpl()
         val pageNavigationPanel = PageIndicator(pageable)
-        pageable.observablePageMetaData.updateValue(PageMetadata(0, 7, 0, 0))
+        pageable.pageMetaData.updateValue(PageMetadata(0, 7, 0, 0))
         val ellipses = pageNavigationPanel.components.filterIsInstance<JLabel>()
         val pageButtons = pageNavigationPanel.components.filterIsInstance<JToggleButton>()
         assertTrue(ellipses.isEmpty())
@@ -48,7 +48,7 @@ class PageIndicatorTest {
     fun `should return page navigation panel with correct page buttons when page count is 16 and current page is 2`() {
         val pageable = PageableTestImpl()
         val pageNavigationPanel = PageIndicator(pageable)
-        pageable.observablePageMetaData.updateValue(PageMetadata(2, 16, 0, 0))
+        pageable.pageMetaData.updateValue(PageMetadata(2, 16, 0, 0))
         val ellipses = pageNavigationPanel.components.filterIsInstance<JLabel>()
         val pageButtons = pageNavigationPanel.components.filterIsInstance<JToggleButton>()
         assertEquals(1, ellipses.size)
@@ -63,7 +63,7 @@ class PageIndicatorTest {
     fun `should return page navigation panel with correct page buttons when page count is 16 and current page is 15`() {
         val pageable = PageableTestImpl()
         val pageIndicator = PageIndicator(pageable)
-        pageable.observablePageMetaData.updateValue(PageMetadata(15, 16, 0, 0))
+        pageable.pageMetaData.updateValue(PageMetadata(15, 16, 0, 0))
         val ellipses = pageIndicator.components.filterIsInstance<JLabel>()
         val pageButtons = pageIndicator.components.filterIsInstance<JToggleButton>()
         assertEquals(1, ellipses.size)
@@ -78,7 +78,7 @@ class PageIndicatorTest {
     fun `should return page navigation panel with correct page buttons when page count is 16 and current page is 7`() {
         val pageable = PageableTestImpl()
         val pageIndicator = PageIndicator(pageable)
-        pageable.observablePageMetaData.updateValue(PageMetadata(7, 16, 0, 0))
+        pageable.pageMetaData.updateValue(PageMetadata(7, 16, 0, 0))
         val ellipses = pageIndicator.components.filterIsInstance<JLabel>()
         val pageButtons = pageIndicator.components.filterIsInstance<JToggleButton>()
         assertEquals(2, ellipses.size)
@@ -91,7 +91,7 @@ class PageIndicatorTest {
     }
 
     class PageableTestImpl : Pageable<String> {
-        override val observablePageMetaData: ObservableViewModelProperty<PageMetadata> = ObservableViewModelProperty()
+        override val pageMetaData: ObservableViewModelProperty<PageMetadata> = ObservableViewModelProperty()
 
         override fun nextPage() {}
 

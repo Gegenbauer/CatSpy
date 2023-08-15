@@ -7,15 +7,24 @@ import java.awt.event.ActionEvent
 import javax.swing.*
 
 class PageIndicator<T>(
-   private val pageable: Pageable<T>
+    private val pageable: Pageable<T>
 ) : JPanel(), Pageable<T> by pageable {
+
+    private var lastPageMetaData: PageMetadata = PageMetadata()
 
     init {
         minimumSize = Dimension(0, 0)
         refreshPageNavigationButtons()
-        pageable.observablePageMetaData.addObserver { pageMetaData ->
+        pageable.pageMetaData.addObserver { pageMetaData ->
             pageMetaData ?: return@addObserver
+
+            if (lastPageMetaData.isIndicatorDataEquals(pageMetaData)) {
+                return@addObserver
+            }
+
             refreshPageNavigationButtons(pageMetaData.pageCount, pageMetaData.currentPage)
+
+            lastPageMetaData = pageMetaData
         }
     }
 
@@ -60,7 +69,7 @@ class PageIndicator<T>(
     private fun addEllipsesComponentOrButton(ellipsesCount: Int, buttonGroup: ButtonGroup, index: Int, currentPage: Int) {
         if (ellipsesCount > 1) {
             add(createEllipsesComponent())
-        } else  {
+        } else {
             addPageButtonRange(buttonGroup, index, index + 1, currentPage)
         }
     }

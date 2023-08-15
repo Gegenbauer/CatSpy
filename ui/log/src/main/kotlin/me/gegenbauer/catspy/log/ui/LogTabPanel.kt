@@ -16,7 +16,6 @@ import me.gegenbauer.catspy.common.log.FilterItem.Companion.rebuild
 import me.gegenbauer.catspy.common.log.LogLevel
 import me.gegenbauer.catspy.common.log.nameToLogLevel
 import me.gegenbauer.catspy.common.ui.button.ColorToggleButton
-import me.gegenbauer.catspy.common.ui.button.GButton
 import me.gegenbauer.catspy.common.ui.button.IconBarButton
 import me.gegenbauer.catspy.common.ui.combobox.*
 import me.gegenbauer.catspy.common.ui.state.StatefulPanel

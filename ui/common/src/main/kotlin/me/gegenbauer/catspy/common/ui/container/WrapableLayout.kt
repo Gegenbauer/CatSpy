@@ -1,10 +1,13 @@
 package me.gegenbauer.catspy.common.ui.container
 
+import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.FlowLayout
+import java.awt.Insets
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import javax.swing.AbstractButton
 import javax.swing.JPanel
 
 class WrapableLayout(hGap: Int = 0, vGap: Int = 0, align: Int = LEFT) : FlowLayout(align, hGap, vGap) {
@@ -34,7 +37,7 @@ class WrapableLayout(hGap: Int = 0, vGap: Int = 0, align: Int = LEFT) : FlowLayo
             if (target.components.isNullOrEmpty()) {
                 return
             }
-            val targetHeight = target.components.maxOf { it.height + it.location.y }
+            val targetHeight = target.components.maxOf { it.height + it.location.y + it.verticalMargin }
             target.apply {
                 if (targetHeight != location.y + height) {
                     preferredSize = Dimension(width, targetHeight)
@@ -44,3 +47,8 @@ class WrapableLayout(hGap: Int = 0, vGap: Int = 0, align: Int = LEFT) : FlowLayo
         }
     }
 }
+
+private val Component.verticalMargin: Int
+    get() = ((this as? AbstractButton)?.margin ?: Insets(0, 0, 0, 0)).run {
+        top + bottom
+    }

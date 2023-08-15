@@ -49,7 +49,7 @@ class LogTableModel(
 
     override var searchMatchCase: Boolean = false
 
-    override val observablePageMetaData: ObservableViewModelProperty<PageMetadata> = ObservableViewModelProperty()
+    override val pageMetaData: ObservableViewModelProperty<PageMetadata> = ObservableViewModelProperty()
 
     override val pageSize: Int
         get() = DEFAULT_PAGE_SIZE
@@ -236,7 +236,7 @@ class LogTableModel(
         val currentPage = minOf(currentPage, pageCount - 1).coerceAtLeast(0)
         val dataSize = logRepository.getLogCount()
 
-        observablePageMetaData.updateValue(PageMetadata(currentPage, pageCount, pageSize, dataSize))
+        pageMetaData.updateValue(PageMetadata(currentPage, pageCount, pageSize, dataSize))
     }
 
     fun getRowIndex(lineNumber: Int): Int {
@@ -258,30 +258,30 @@ class LogTableModel(
 
     override fun nextPage() {
         if (currentPage >= pageCount - 1) return
-        observablePageMetaData.updateValue(PageMetadata(currentPage + 1, pageCount, pageSize, dataSize))
+        pageMetaData.updateValue(PageMetadata(currentPage + 1, pageCount, pageSize, dataSize))
         fireTableDataChanged()
     }
 
     override fun previousPage() {
         if (currentPage <= 0) return
-        observablePageMetaData.updateValue(PageMetadata(currentPage - 1, pageCount, pageSize, dataSize))
+        pageMetaData.updateValue(PageMetadata(currentPage - 1, pageCount, pageSize, dataSize))
         fireTableDataChanged()
     }
 
     override fun firstPage() {
-        observablePageMetaData.updateValue(PageMetadata(0, pageCount, pageSize, dataSize))
+        pageMetaData.updateValue(PageMetadata(0, pageCount, pageSize, dataSize))
         fireTableDataChanged()
     }
 
     override fun lastPage() {
-        observablePageMetaData.updateValue(PageMetadata(pageCount - 1, pageCount, pageSize, dataSize))
+        pageMetaData.updateValue(PageMetadata(pageCount - 1, pageCount, pageSize, dataSize))
         fireTableDataChanged()
     }
 
     override fun gotoPage(page: Int) {
         if (page < 0 || page >= pageCount) return
         if (currentPage != page) {
-            observablePageMetaData.updateValue(PageMetadata(page, pageCount, pageSize, dataSize))
+            pageMetaData.updateValue(PageMetadata(page, pageCount, pageSize, dataSize))
             fireTableDataChanged()
         }
     }
