@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.concurrency
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.glog.GLog
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 

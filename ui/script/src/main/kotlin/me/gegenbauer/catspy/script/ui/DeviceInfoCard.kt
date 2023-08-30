@@ -6,7 +6,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.withContext
-import me.gegenbauer.catspy.common.ui.card.Card
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
@@ -14,6 +13,7 @@ import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.script.executor.CommandExecutor
 import me.gegenbauer.catspy.task.PeriodicTask
 import me.gegenbauer.catspy.task.TaskManager
+import me.gegenbauer.catspy.view.card.Card
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel

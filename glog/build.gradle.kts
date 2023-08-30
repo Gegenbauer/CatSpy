@@ -5,9 +5,5 @@ plugins {
 }
 
 dependencies {
-    compileOnly(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
-}
-
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
+    implementation(projects.file)
 }

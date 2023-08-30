@@ -7,12 +7,21 @@ plugins {
 }
 
 dependencies {
-    api(projects.ui.common)
-    compileOnly(kotlin("reflect"))
-    compileOnly(projects.concurrency)
-    compileOnly(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
-    testImplementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
-    testImplementation(kotlin("test"))
+    implementation(projects.ui.configuration)
+    implementation(projects.ui.utils)
+    implementation(projects.ui.view)
+    implementation(projects.resources)
+    implementation(projects.ddmlib)
+    implementation(projects.glog)
+    implementation(projects.task)
+    implementation(projects.file)
+    implementation(projects.concurrency)
+    implementation(projects.context)
+    implementation(projects.cache)
+    implementation(projects.platform)
+    implementation(projects.javaext)
+    implementation(projects.ui.render)
+    implementation(projects.ui.databinding)
 }
 
 tasks.withType<KotlinCompile> {
@@ -20,8 +29,4 @@ tasks.withType<KotlinCompile> {
         jvmTarget = "11"
         freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
     }
-}
-
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
 }

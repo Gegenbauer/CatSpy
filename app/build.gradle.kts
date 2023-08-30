@@ -1,6 +1,5 @@
 import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version Kotlin.version
@@ -15,31 +14,24 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("reflect"))
-
     implementation(compose.desktop.currentOs)
     implementation(projects.ui)
     implementation(projects.glog)
+    implementation(projects.platform)
     implementation(projects.concurrency)
-    implementation(projects.databinding)
     implementation(projects.task)
     implementation(projects.ddmlib)
-    implementation(projects.filter)
-    implementation(projects.utils)
+    implementation(projects.cache)
+    implementation(projects.context)
+    implementation(projects.resources)
 
     testImplementation(kotlin("test"))
+    testImplementation(projects.ui)
     testImplementation(Mockk.groupName, Mockk.mockk.artifact, Mockk.mockk.version)
 }
 
 tasks.test {
     useJUnitPlatform()
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "11"
-        freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
-    }
 }
 
 val version = "1.0.0"

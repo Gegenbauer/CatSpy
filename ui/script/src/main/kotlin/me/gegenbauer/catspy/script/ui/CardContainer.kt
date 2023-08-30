@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.script.ui
 
-import me.gegenbauer.catspy.common.ui.card.Card
+import me.gegenbauer.catspy.view.card.Card
 import javax.swing.JPanel
 
 interface CardContainer {

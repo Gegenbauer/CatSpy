@@ -1,28 +1,29 @@
 package me.gegenbauer.catspy.log.ui.table
 
-import me.gegenbauer.catspy.common.log.FilterItem
-import me.gegenbauer.catspy.common.log.FilterItem.Companion.isEmpty
-import me.gegenbauer.catspy.common.log.flag
-import me.gegenbauer.catspy.common.ui.state.StatefulPanel
-import me.gegenbauer.catspy.common.ui.table.PageMetadata
-import me.gegenbauer.catspy.common.ui.table.Pageable
-import me.gegenbauer.catspy.common.ui.table.Searchable
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.log.flag
 import me.gegenbauer.catspy.log.model.LogcatLogItem
 import me.gegenbauer.catspy.log.model.LogcatRealTimeFilter
 import me.gegenbauer.catspy.log.repo.FilteredLogcatRepository
+import me.gegenbauer.catspy.log.repo.FullLogcatRepository
 import me.gegenbauer.catspy.log.repo.LogRepository
 import me.gegenbauer.catspy.log.task.LogTaskManager
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.panel.LogPanel
-import me.gegenbauer.catspy.resource.strings.STRINGS
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.task.Task
 import me.gegenbauer.catspy.task.TaskListener
+import me.gegenbauer.catspy.view.filter.FilterItem
+import me.gegenbauer.catspy.view.filter.FilterItem.Companion.isEmpty
+import me.gegenbauer.catspy.view.state.StatefulPanel
+import me.gegenbauer.catspy.view.table.PageMetadata
+import me.gegenbauer.catspy.view.table.Pageable
+import me.gegenbauer.catspy.view.table.Searchable
 import java.util.*
 import javax.swing.event.TableModelEvent
 import javax.swing.table.AbstractTableModel
@@ -31,14 +32,12 @@ fun interface LogTableModelListener {
     fun onLogDataChanged(event: TableModelEvent)
 }
 
-/**
- * TODO 整理任务停止和启动的逻辑
- */
 class LogTableModel(
     internal val logRepository: LogRepository,
     override val contexts: Contexts = Contexts.default
-) : AbstractTableModel(), LogRepository.LogChangeListener, Context, TaskListener, Searchable, Pageable<LogcatLogItem> {
-    var highlightFilterItem: FilterItem = FilterItem.emptyItem
+) : AbstractTableModel(), LogRepository.LogChangeListener, Context, TaskListener,
+    Searchable, Pageable<LogcatLogItem>, ILogTableModel {
+    override var highlightFilterItem: FilterItem = FilterItem.emptyItem
         set(value) {
             field = value.takeIf { it != field }?.also { contexts.getContext(LogTable::class.java)?.repaint() } ?: value
         }
@@ -54,11 +53,11 @@ class LogTableModel(
     override val pageSize: Int
         get() = DEFAULT_PAGE_SIZE
 
-    val boldTag: Boolean
+    override val boldTag: Boolean
         get() = getViewModel()?.boldTag?.value ?: false
-    val boldPid: Boolean
+    override val boldPid: Boolean
         get() = getViewModel()?.boldPid?.value ?: false
-    val boldTid: Boolean
+    override val boldTid: Boolean
         get() = getViewModel()?.boldTid?.value ?: false
 
     val state = ObservableViewModelProperty(StatefulPanel.State.NORMAL)
@@ -109,7 +108,7 @@ class LogTableModel(
         return contexts.getContext(LogPanel::class.java)?.viewModel
     }
 
-    fun addLogTableModelListener(eventListener: LogTableModelListener) {
+    override fun addLogTableModelListener(eventListener: LogTableModelListener) {
         eventListeners.add(eventListener)
     }
 
@@ -192,13 +191,13 @@ class LogTableModel(
         }
     }
 
-    fun getItemInCurrentPage(row: Int): LogcatLogItem {
+    override fun getItemInCurrentPage(row: Int): LogcatLogItem {
         return accessPageData(currentPage) { logItems ->
             logItems[row]
         }
     }
 
-    fun getLogFilter(): LogcatRealTimeFilter {
+    override fun getLogFilter(): LogcatRealTimeFilter {
         return (logRepository.logFilter as LogcatRealTimeFilter)
     }
 
@@ -239,8 +238,13 @@ class LogTableModel(
         pageMetaData.updateValue(PageMetadata(currentPage, pageCount, pageSize, dataSize))
     }
 
-    fun getRowIndex(lineNumber: Int): Int {
-        return (0 until rowCount).map { it to getItemInCurrentPage(it) }.firstOrNull { it.second.num >= lineNumber }?.first ?: 0
+    override fun getRowIndex(lineNumber: Int): Int {
+        return (0 until rowCount).map { it to getItemInCurrentPage(it) }
+            .firstOrNull { it.second.num >= lineNumber }?.first ?: 0
+    }
+
+    override fun isFullLogTable(): Boolean {
+        return logRepository is FullLogcatRepository
     }
 
     override fun <R> accessPageData(page: Int, action: (List<LogcatLogItem>) -> R): R {

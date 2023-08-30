@@ -2,7 +2,6 @@ package me.gegenbauer.catspy.script.ui
 
 import com.malinskiy.adam.request.device.Device
 import com.malinskiy.adam.request.device.DeviceState
-import me.gegenbauer.catspy.common.ui.tab.TabPanel
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -15,12 +14,18 @@ import me.gegenbauer.catspy.script.parser.DirectRule
 import me.gegenbauer.catspy.script.parser.RegexRule
 import me.gegenbauer.catspy.task.TaskManager
 import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
+import me.gegenbauer.catspy.view.tab.TabPanel
 import java.awt.BorderLayout
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
 class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
+
+    override val tabName: String = TAB_NAME
+    override val tabIcon: Icon = GIcons.Tab.Script.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
+    override val tabTooltip: String? = null
+    override val tabMnemonic: Char = ' '
 
     private val taskManager = TaskManager()
     private val cardContainer = ScriptCardContainer()
@@ -95,17 +100,9 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
     override fun configureContext(context: Context) {
         super.configureContext(context)
         focusedActivityCard.setContexts(contexts)
-        currentDevice =
-            ServiceManager.getContextService(AdamDeviceManager::class.java).getDevices().firstOrNull() ?: currentDevice
+        currentDevice = ServiceManager.getContextService(AdamDeviceManager::class.java)
+            .getDevices().firstOrNull() ?: currentDevice
     }
-
-    override val tabName: String
-        get() = "Script"
-    override val tabIcon: Icon = GIcons.Tab.Script.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
-    override val tabTooltip: String?
-        get() = null
-    override val tabMnemonic: Char
-        get() = ' '
 
     override fun onTabSelected() {
         taskManager.updatePauseState(false)
@@ -115,8 +112,8 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
         taskManager.updatePauseState(true)
     }
 
-    override fun onDestroy() {
-        cardContainer.onDestroy()
+    override fun destroy() {
+        cardContainer.destroy()
         taskManager.cancelAll()
     }
 
@@ -131,5 +128,6 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
 
     companion object {
         val defaultDevice = Device("", DeviceState.DEVICE)
+        private const val TAB_NAME = "Script"
     }
 }

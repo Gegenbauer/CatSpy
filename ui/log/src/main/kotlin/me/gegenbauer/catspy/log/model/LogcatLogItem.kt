@@ -1,10 +1,10 @@
 package me.gegenbauer.catspy.log.model
 
-import me.gegenbauer.catspy.common.log.LogLevel
-import me.gegenbauer.catspy.common.log.getLevelFromFlag
-import me.gegenbauer.catspy.common.support.LogColorScheme
-import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.resource.strings.app
+import me.gegenbauer.catspy.log.LogLevel
+import me.gegenbauer.catspy.log.getLevelFromFlag
+import me.gegenbauer.catspy.configuration.LogColorScheme
+import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.app
 import java.awt.Color
 
 data class LogcatLogItem(

@@ -5,9 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.gegenbauer.catspy.common.configuration.ThemeManager
-import me.gegenbauer.catspy.common.ui.card.Card
-import me.gegenbauer.catspy.common.ui.card.RoundedCard
+import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
@@ -17,6 +15,8 @@ import me.gegenbauer.catspy.script.executor.CommandExecutor
 import me.gegenbauer.catspy.script.ui.ScriptTabPanel.Companion.defaultDevice
 import me.gegenbauer.catspy.task.PeriodicTask
 import me.gegenbauer.catspy.task.TaskManager
+import me.gegenbauer.catspy.view.card.Card
+import me.gegenbauer.catspy.view.card.RoundedCard
 import java.awt.GridLayout
 import javax.swing.JLabel
 
@@ -89,7 +89,7 @@ class ScriptCard(
         periodUpdateTask.resume()
     }
 
-    override fun onDestroy() {
+    override fun destroy() {
         ThemeManager.unregisterThemeUpdateListener(this)
     }
 

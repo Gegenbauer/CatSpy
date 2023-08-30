@@ -1,10 +1,5 @@
 package me.gegenbauer.catspy.log.repo
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.concurrency.ModelScope
-import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.log.model.LogcatLogItem
 import me.gegenbauer.catspy.task.Task
 import me.gegenbauer.catspy.task.TaskListener
@@ -19,7 +14,6 @@ abstract class BaseLogcatLogCollector(
     protected var logTempFile: File? = null
     private val logItems = mutableListOf<LogcatLogItem>()
     private val logCount = AtomicInteger(0)
-    private val scope = ModelScope()
     private val callbacks = mutableListOf<LogObservable.Observer<LogcatLogItem>>()
 
     private fun observeCollectorTask() {
@@ -82,9 +76,7 @@ abstract class BaseLogcatLogCollector(
 
     override fun onError(task: Task, t: Throwable) {
         super.onError(task, t)
-        scope.launch(Dispatchers.UI) {
-            notifyError(t)
-        }
+        notifyError(t)
     }
 
     override fun addObserver(observer: LogObservable.Observer<LogcatLogItem>) {
@@ -96,6 +88,6 @@ abstract class BaseLogcatLogCollector(
     }
 
     override fun destroy() {
-        scope.cancel()
+
     }
 }

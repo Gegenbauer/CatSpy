@@ -1,12 +1,12 @@
 package me.gegenbauer.catspy.log.ui.table
 
-import me.gegenbauer.catspy.common.log.FilterItem.Companion.getMatchedList
-import me.gegenbauer.catspy.common.support.LogColorScheme
+import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.model.LogcatLogItem.Companion.fgColor
 import me.gegenbauer.catspy.log.ui.LogTabPanel
-import me.gegenbauer.catspy.render.html.HtmlStringRenderer
+import me.gegenbauer.catspy.render.HtmlStringRenderer
+import me.gegenbauer.catspy.view.filter.FilterItem.Companion.getMatchedList
 import java.awt.Color
 import java.awt.Component
 import java.awt.Graphics

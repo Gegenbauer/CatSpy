@@ -1,14 +1,14 @@
 package me.gegenbauer.catspy.log.ui.panel
 
-import me.gegenbauer.catspy.common.configuration.Rotation
-import me.gegenbauer.catspy.common.ui.state.StatefulPanel
+import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
-import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.utils.currentPlatform
+import me.gegenbauer.catspy.platform.currentPlatform
+import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.view.state.StatefulPanel
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
@@ -141,10 +141,10 @@ class SplitLogPane(
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        filteredLogPanel.onDestroy()
-        fullLogPanel.onDestroy()
+    override fun destroy() {
+        super.destroy()
+        filteredLogPanel.destroy()
+        fullLogPanel.destroy()
     }
 
     override fun focusGained(e: FocusEvent) {

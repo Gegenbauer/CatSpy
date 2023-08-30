@@ -2,9 +2,9 @@ package me.gegenbauer.catspy.log.ui.dialog
 
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
 import me.gegenbauer.catspy.iconset.GIcons
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.ui.panel.FullLogPanel
-import me.gegenbauer.catspy.utils.Utils
+import me.gegenbauer.catspy.utils.KeyUtils
 import java.awt.BorderLayout
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -37,7 +37,7 @@ class LogTableDialog(
             }
         })
 
-        Utils.installKeyStrokeEscClosing(this)
+        KeyUtils.installKeyStrokeEscClosing(this)
     }
 
     companion object {

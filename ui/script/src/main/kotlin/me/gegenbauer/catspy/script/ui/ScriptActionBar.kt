@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.script.ui
 
-import me.gegenbauer.catspy.common.ui.button.IconBarButton
 import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.view.button.IconBarButton
 import java.awt.FlowLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener

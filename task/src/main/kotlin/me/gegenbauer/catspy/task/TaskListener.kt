@@ -1,6 +1,11 @@
 package me.gegenbauer.catspy.task
 
+import kotlinx.coroutines.CoroutineDispatcher
+
 interface TaskListener {
+    val dispatcher: CoroutineDispatcher?
+        get() = null
+    
     fun onStart(task: Task) {
         // empty implementation
     }

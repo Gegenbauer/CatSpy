@@ -1,12 +1,12 @@
 package me.gegenbauer.catspy.log.ui.panel
 
-import me.gegenbauer.catspy.common.ui.button.ColorToggleButton
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
-import me.gegenbauer.catspy.resource.strings.STRINGS
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.applyTooltip
+import me.gegenbauer.catspy.view.button.ColorToggleButton
 import java.awt.Insets
 import java.awt.event.FocusListener
 import javax.swing.event.ListSelectionEvent

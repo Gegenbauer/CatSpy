@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.concurrency
 
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.glog.GLog
 import javax.swing.SwingUtilities
 
 private const val TAG = "ThreadChecker"

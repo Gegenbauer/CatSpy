@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.ddmlib
 
-import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.log.ILogger
+import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.glog.ILogger
 
 object DdmLog : ILogger by GLog {
     var ddmDebug = false

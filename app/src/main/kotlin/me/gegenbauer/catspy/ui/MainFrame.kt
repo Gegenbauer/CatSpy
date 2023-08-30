@@ -1,10 +1,8 @@
 package me.gegenbauer.catspy.ui
 
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
-import me.gegenbauer.catspy.common.configuration.UIConfManager
-import me.gegenbauer.catspy.common.ui.tab.OnTabChangeListener
-import me.gegenbauer.catspy.common.ui.tab.TabManager
-import me.gegenbauer.catspy.common.viewmodel.GlobalViewModel
+import me.gegenbauer.catspy.configuration.GlobalConfSync
+import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.GlobalContextManager
@@ -16,6 +14,8 @@ import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
 import me.gegenbauer.catspy.ui.panel.TabManagerPane
+import me.gegenbauer.catspy.view.tab.OnTabChangeListener
+import me.gegenbauer.catspy.view.tab.TabManager
 import java.awt.BorderLayout
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -66,10 +66,10 @@ class MainFrame(
     }
 
     private fun bindGlobalViewModel() {
-        selectedProperty(settingsMenu.globalDebug) bindDual GlobalViewModel.globalDebug
-        selectedProperty(settingsMenu.bindingDebug) bindDual GlobalViewModel.dataBindingDebug
-        selectedProperty(settingsMenu.taskDebug) bindDual GlobalViewModel.taskDebug
-        selectedProperty(settingsMenu.ddmDebug) bindDual GlobalViewModel.ddmDebug
+        selectedProperty(settingsMenu.globalDebug) bindDual GlobalConfSync.globalDebug
+        selectedProperty(settingsMenu.bindingDebug) bindDual GlobalConfSync.dataBindingDebug
+        selectedProperty(settingsMenu.taskDebug) bindDual GlobalConfSync.taskDebug
+        selectedProperty(settingsMenu.ddmDebug) bindDual GlobalConfSync.ddmDebug
     }
 
     override fun configureContext(context: Context) {
@@ -114,9 +114,9 @@ class MainFrame(
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        tabbedPane.onDestroy()
+    override fun destroy() {
+        super.destroy()
+        tabbedPane.destroy()
         ServiceManager.dispose(this)
         saveConfigOnDestroy()
     }

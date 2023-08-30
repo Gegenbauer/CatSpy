@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.concurrency
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.swing.Swing
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.glog.GLog
 import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
 
@@ -10,6 +10,7 @@ private const val TAG = "ScopeDomain"
 private const val DISPATCHER_NAME_TRACK = "track"
 private const val DISPATCHER_NAME_SINGLE_UN_BUSY = "singleUnBusy"
 private const val DISPATCHER_NAME_APP_START = "app_launch"
+private const val DISPATCHER_NAME_SERIAL = "serial"
 private const val APP_LAUNCH_CORE_POOL_SIZE = 4
 
 /**
@@ -134,4 +135,13 @@ fun CoroutineScope.runNotOnUiThread(
     } else {
         block()
     }
+}
+
+fun getSerialDispatcher(name: String = DISPATCHER_NAME_SERIAL): CoroutineDispatcher {
+    return Executors.newSingleThreadExecutor(
+        PriorityThreadFactory(
+            name,
+            Thread.NORM_PRIORITY
+        )
+    ).asCoroutineDispatcher()
 }

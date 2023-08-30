@@ -1,0 +1,29 @@
+@startuml
+component [App] {
+    component [UI:Script]
+    component [UI:Log]
+    component [Foundation] {
+        component [GLog]
+        component [Context]
+        component [Cache]
+        component [Concurrency]
+        component [File]
+        component [JavaExt]
+    }
+    component [LowLevelService] {
+        component [DdmLib]
+        component [Task]
+        component [Resource] {
+            component [IconSet]
+            component [String]
+        }
+        component [Platform]
+    }
+    component [UILayer] {
+        component [View]
+        component [DataBinding]
+        component [Configuration]
+        component [Render]
+    }
+}
+@enduml

@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.log.ui.panel
 
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.ui.table.LogTable
 import java.awt.Color
 import java.awt.Dimension

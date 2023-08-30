@@ -1,17 +1,19 @@
 package me.gegenbauer.catspy.log.ui.table
 
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
-import me.gegenbauer.catspy.common.ui.table.RowNavigation
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.dialog.LogViewDialog
 import me.gegenbauer.catspy.log.ui.table.LogTableModel.Companion.COLUMN_NUM
 import me.gegenbauer.catspy.utils.findFrameFromParent
+import me.gegenbauer.catspy.utils.getKeyEventInfo
 import me.gegenbauer.catspy.utils.isDoubleClick
+import me.gegenbauer.catspy.utils.keyEventInfo
+import me.gegenbauer.catspy.view.table.RowNavigation
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.*
@@ -42,16 +44,13 @@ class LogTable(
 
         updateRowHeight()
 
-        val enter = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0)
-        getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(enter, "none")
-
         addMouseListener(MouseHandler())
         addKeyListener(TableKeyHandler())
     }
 
     override fun changeSelection(rowIndex: Int, columnIndex: Int, toggle: Boolean, extend: Boolean) {
         super.changeSelection(rowIndex, columnIndex, toggle, extend)
-        scrollColumnToVisible(rowIndex, columnIndex);
+        scrollColumnToVisible(rowIndex, columnIndex)
     }
 
     private fun scrollColumnToVisible(rowIndex: Int, columnIndex: Int) {
@@ -99,11 +98,15 @@ class LogTable(
 
         setRowSelectionInterval(rowIdx, rowIdx)
 
-        val targetRect = getCellRect(rowIdx, columnIndex.index, true)
+        val targetRect = getCellRect(rowIdx, columnIndex.index, false)
         targetRect.x = visibleRect.x
 
         // 需要多滚动一行，不然还是无法看见选中行
-        targetRect.y += if (lastSelectedRow > rowIdx) -targetRect.height else targetRect.height
+        val isLastRow = selectedRow == tableModel.rowCount - 1
+        val isFirstRow = selectedRow == 0
+        if (tableModel.isFullLogTable().not() && isLastRow.not() && isFirstRow.not()) {
+            targetRect.y -= if (lastSelectedRow > rowIdx) -targetRect.height else targetRect.height
+        }
         scrollRectToVisible(targetRect)
     }
 
@@ -113,6 +116,13 @@ class LogTable(
             return
         }
         moveToRow(lastRow)
+    }
+
+    override fun processKeyBinding(ks: KeyStroke, e: KeyEvent, condition: Int, pressed: Boolean): Boolean {
+        if (disabledKeys.contains(e.keyEventInfo)) {
+            return false
+        }
+        return super.processKeyBinding(ks, e, condition, pressed)
     }
 
     override fun moveToFirstRow() {
@@ -165,7 +175,10 @@ class LogTable(
         val displayContent = if (rows.size > 1) {
             getRowsContent(rows)
         } else {
-            getRowsContent(((rows[0] - 2).coerceAtLeast(0)..(rows[0] + 3).coerceAtMost(rowCount)).toList())
+            getRowsContent(
+                ((rows[0] - 2).coerceAtLeast(0)..(rows[0] + 3)
+                    .coerceAtMost(rowCount - 1)).toList()
+            )
         }
         val caretPos = getRowsContent(arrayListOf(rows[0])).length
         val frame = findFrameFromParent<JFrame>()
@@ -302,27 +315,25 @@ class LogTable(
         }
     }
 
+    @Suppress("SAFE_CALL_WILL_CHANGE_NULLABILITY", "UNNECESSARY_SAFE_CALL")
     override fun updateUI() {
         super.updateUI()
         updateRowHeight()
-        if (columns != null) {
-            columns.forEach { it.configureColumn(this) }
-        }
+        columns?.forEach { it.configureColumn(this) }
     }
 
     internal inner class TableKeyHandler : KeyAdapter() {
         override fun keyPressed(event: KeyEvent) {
-            when {
-                event.keyCode == KeyEvent.VK_B && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> updateBookmark(
-                    selectedNums()
-                )
-
-                event.keyCode == KeyEvent.VK_PAGE_DOWN -> moveToNextSeveralRows()
-                event.keyCode == KeyEvent.VK_PAGE_UP -> moveToPreviousSeveralRows()
-                event.keyCode == KeyEvent.VK_DOWN -> moveToNextRow()
-                event.keyCode == KeyEvent.VK_UP -> moveToPreviousRow()
-                event.keyCode == KeyEvent.VK_ENTER -> showSelected(selectedRows)
-                event.keyCode == KeyEvent.VK_DELETE -> deleteBookmark(selectedNums())
+            when(event.keyEventInfo) {
+                KEY_UPDATE_BOOKMARK -> updateBookmark(selectedNums())
+                KEY_PAGE_DOWN -> moveToNextSeveralRows()
+                KEY_PAGE_UP -> moveToPreviousSeveralRows()
+                KEY_NEXT_ROW -> moveToNextRow()
+                KEY_PREVIOUS_ROW -> moveToPreviousRow()
+                KEY_SHOW_LOGS_IN_DIALOG -> showSelected(selectedRows)
+                KEY_DELETE_BOOKMARK -> deleteBookmark(selectedNums())
+                KEY_LAST_ROW -> moveToLastRow()
+                KEY_FIRST_ROW -> moveToFirstRow()
             }
             super.keyPressed(event)
         }
@@ -332,5 +343,19 @@ class LogTable(
         private const val TAG = "LogTable"
         private const val THRESHOLD = 10
         private const val BATCH_ROW_COUNT_TO_SCROLL = 100
+        private val KEY_UPDATE_BOOKMARK = getKeyEventInfo(KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK)
+        private val KEY_DELETE_BOOKMARK = getKeyEventInfo(KeyEvent.VK_DELETE)
+        private val KEY_PREVIOUS_ROW = getKeyEventInfo(KeyEvent.VK_UP)
+        private val KEY_NEXT_ROW = getKeyEventInfo(KeyEvent.VK_DOWN)
+        private val KEY_PAGE_UP = getKeyEventInfo(KeyEvent.VK_PAGE_UP)
+        private val KEY_PAGE_DOWN = getKeyEventInfo(KeyEvent.VK_PAGE_DOWN)
+        private val KEY_SHOW_LOGS_IN_DIALOG = getKeyEventInfo(KeyEvent.VK_ENTER)
+        private val KEY_LAST_ROW = getKeyEventInfo(KeyEvent.VK_END, KeyEvent.CTRL_DOWN_MASK)
+        private val KEY_FIRST_ROW = getKeyEventInfo(KeyEvent.VK_HOME, KeyEvent.CTRL_DOWN_MASK)
+        private val disabledKeys = listOf(
+            KEY_PREVIOUS_ROW, KEY_NEXT_ROW,
+            KEY_SHOW_LOGS_IN_DIALOG, KEY_PAGE_UP,
+            KEY_PAGE_DOWN, KEY_LAST_ROW, KEY_FIRST_ROW
+        )
     }
 }

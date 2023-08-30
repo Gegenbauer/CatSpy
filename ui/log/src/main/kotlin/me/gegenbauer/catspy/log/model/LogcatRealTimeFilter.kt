@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.log.model
 
 import me.gegenbauer.catspy.cache.PatternProvider
-import me.gegenbauer.catspy.common.log.FilterItem
-import me.gegenbauer.catspy.common.log.LogLevel
-import me.gegenbauer.catspy.common.log.toFilterItem
+import me.gegenbauer.catspy.log.LogLevel
+import me.gegenbauer.catspy.view.filter.FilterItem
+import me.gegenbauer.catspy.view.filter.toFilterItem
 import java.util.regex.Pattern
 
 data class LogcatRealTimeFilter(

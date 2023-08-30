@@ -4,7 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.model.LogcatLogItem
 import me.gegenbauer.catspy.task.OneTimeTask
 import me.gegenbauer.catspy.task.PeriodicTask

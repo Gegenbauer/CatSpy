@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy
 
-import me.gegenbauer.catspy.common.log.parsePattern
+import me.gegenbauer.catspy.view.filter.parsePattern
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

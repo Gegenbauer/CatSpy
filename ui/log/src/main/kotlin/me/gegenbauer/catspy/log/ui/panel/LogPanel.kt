@@ -1,14 +1,7 @@
 package me.gegenbauer.catspy.log.ui.panel
 
-import me.gegenbauer.catspy.common.configuration.UIConfManager
-import me.gegenbauer.catspy.common.support.LogColorScheme
-import me.gegenbauer.catspy.common.ui.button.ColorToggleButton
-import me.gegenbauer.catspy.common.ui.button.IconBarButton
-import me.gegenbauer.catspy.common.ui.container.WrapablePanel
-import me.gegenbauer.catspy.common.ui.icon.DayNightIcon
-import me.gegenbauer.catspy.common.ui.table.PageIndicator
-import me.gegenbauer.catspy.common.ui.table.PageMetadata
-import me.gegenbauer.catspy.common.ui.table.RowNavigation
+import me.gegenbauer.catspy.configuration.LogColorScheme
+import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -16,16 +9,23 @@ import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.BookmarkChangeListener
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.GLog
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTable
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModelListener
-import me.gegenbauer.catspy.resource.strings.STRINGS
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.applyTooltip
+import me.gegenbauer.catspy.view.button.ColorToggleButton
+import me.gegenbauer.catspy.view.button.IconBarButton
+import me.gegenbauer.catspy.view.container.WrapablePanel
+import me.gegenbauer.catspy.view.icon.DayNightIcon
+import me.gegenbauer.catspy.view.table.PageIndicator
+import me.gegenbauer.catspy.view.table.PageMetadata
+import me.gegenbauer.catspy.view.table.RowNavigation
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Font
@@ -36,7 +36,6 @@ import java.awt.event.FocusListener
 import javax.swing.BoxLayout
 import javax.swing.JPanel
 import javax.swing.JScrollBar
-import javax.swing.JScrollPane
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 import javax.swing.event.TableModelEvent
@@ -67,7 +66,7 @@ abstract class LogPanel(
     )
     private val scrollToEndBtn = IconBarButton()
 
-    private val scrollPane = JScrollPane(table)
+    private val scrollPane = LogScrollPane(table)
     private val vStatusPanel = VStatusPanel()
     private val pageNavigationPanel = PageIndicator(tableModel)
     private val adjustmentHandler = AdjustmentHandler()
@@ -279,8 +278,8 @@ abstract class LogPanel(
         }
     }
 
-    override fun onDestroy() {
-        ctrlMainPanel.onDestroy()
+    override fun destroy() {
+        ctrlMainPanel.destroy()
     }
 
     companion object {

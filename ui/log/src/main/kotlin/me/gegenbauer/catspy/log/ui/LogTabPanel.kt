@@ -6,20 +6,19 @@ import com.malinskiy.adam.request.device.Device
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.common.configuration.Rotation
-import me.gegenbauer.catspy.common.configuration.ThemeManager
-import me.gegenbauer.catspy.common.configuration.UIConfManager
-import me.gegenbauer.catspy.common.log.FilterItem.Companion.emptyItem
-import me.gegenbauer.catspy.common.log.FilterItem.Companion.rebuild
-import me.gegenbauer.catspy.common.log.LogLevel
-import me.gegenbauer.catspy.common.log.nameToLogLevel
-import me.gegenbauer.catspy.common.ui.button.ColorToggleButton
-import me.gegenbauer.catspy.common.ui.button.IconBarButton
-import me.gegenbauer.catspy.common.ui.combobox.*
-import me.gegenbauer.catspy.common.ui.state.StatefulPanel
-import me.gegenbauer.catspy.common.ui.tab.TabPanel
+import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
+import me.gegenbauer.catspy.utils.addVSeparator2
+import me.gegenbauer.catspy.utils.applyTooltip
+import me.gegenbauer.catspy.configuration.Rotation
+import me.gegenbauer.catspy.configuration.ThemeManager
+import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.log.LogLevel
+import me.gegenbauer.catspy.log.nameToLogLevel
+import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.GlobalContextManager
@@ -31,9 +30,10 @@ import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.*
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.ddmlib.device.DeviceListListener
+import me.gegenbauer.catspy.utils.findFrameFromParent
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.GLog
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.model.LogcatLogItem
 import me.gegenbauer.catspy.log.model.LogcatRealTimeFilter
 import me.gegenbauer.catspy.log.repo.*
@@ -46,13 +46,20 @@ import me.gegenbauer.catspy.log.ui.panel.SplitLogPane
 import me.gegenbauer.catspy.log.ui.panel.nextRotation
 import me.gegenbauer.catspy.log.ui.popup.FileOpenPopupMenu
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
-import me.gegenbauer.catspy.log.viewmodel.LogMainViewModel
-import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.resource.strings.app
+import me.gegenbauer.catspy.log.viewmodel.LogMainBinding
+import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.app
 import me.gegenbauer.catspy.task.PeriodicTask
 import me.gegenbauer.catspy.task.Task
 import me.gegenbauer.catspy.task.TaskListener
 import me.gegenbauer.catspy.utils.*
+import me.gegenbauer.catspy.view.button.ColorToggleButton
+import me.gegenbauer.catspy.view.button.IconBarButton
+import me.gegenbauer.catspy.view.combobox.*
+import me.gegenbauer.catspy.view.filter.FilterItem.Companion.emptyItem
+import me.gegenbauer.catspy.view.filter.FilterItem.Companion.rebuild
+import me.gegenbauer.catspy.view.state.StatefulPanel
+import me.gegenbauer.catspy.view.tab.TabPanel
 import java.awt.*
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
@@ -67,8 +74,15 @@ import javax.swing.text.JTextComponent
 class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel(), TaskListener,
     LogObservable.Observer<LogcatLogItem>, TabPanel {
 
+    override val tabName: String = TAB_NAME
+    override val tabIcon: Icon = GIcons.Tab.FileLog.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
+    override val tabTooltip: String? = null
+    override val tabMnemonic: Char = ' '
+
+    override val dispatcher: CoroutineDispatcher? = Dispatchers.UI
+
     //region scoped service
-    val viewModel = ServiceManager.getContextService(this, LogMainViewModel::class.java)
+    val viewModel = ServiceManager.getContextService(this, LogMainBinding::class.java)
     private val bookmarkManager = ServiceManager.getContextService(this, BookmarkManager::class.java)
     //endregion
 
@@ -117,8 +131,16 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     //region logToolBar
     private val logToolBar = JPanel(FlowLayout(FlowLayout.LEFT)) withName "logToolBar"
 
-    private val startBtn = IconBarButton(GIcons.Action.Start.get(), STRINGS.toolTip.startBtn)
-    private val stopBtn = IconBarButton(GIcons.Action.Stop.get(), STRINGS.toolTip.stopBtn)
+    private val startBtn = IconBarButton(
+        GIcons.Action.Start.get(),
+        STRINGS.toolTip.startBtn,
+        GIcons.Action.Start.disabled()
+    )
+    private val stopBtn = IconBarButton(
+        GIcons.Action.Stop.get(),
+        STRINGS.toolTip.stopBtn,
+        GIcons.Action.Stop.disabled()
+    )
     private val saveBtn = IconBarButton(GIcons.Action.Save.get(), STRINGS.toolTip.saveBtn)
     private val deviceCombo = readOnlyComboBox(STRINGS.toolTip.devicesCombo)
     private val rotateLogPanelBtn = IconBarButton(GIcons.Action.Rotate.get(), STRINGS.toolTip.rotationBtn)
@@ -208,7 +230,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         ThemeManager.registerThemeUpdateListener(viewModel)
     }
 
-    private fun bindViewModel(viewModel: LogMainViewModel) {
+    private fun bindViewModel(viewModel: LogMainBinding) {
         viewModel.apply {
             //region Toolbar
             //region Filter
@@ -343,6 +365,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     private fun refreshDevices(devices: List<Device>) {
         viewModel.connectedDevices.updateValue((devices.map { it.serial }).toHistoryItemList())
         viewModel.currentDevice.updateValue(devices.firstOrNull()?.serial)
+        startBtn.isEnabled = devices.isEmpty().not()
     }
 
     private fun saveConfiguration() {
@@ -562,6 +585,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     fun openFile(path: String, isAppend: Boolean) {
         GLog.d(TAG, "[openFile] Opening: $path, $isAppend")
+        stopAll()
         viewModel.status.updateValue(" ${STRINGS.ui.open} ")
         logProvider.clear()
         updateLogFilter()
@@ -614,13 +638,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             when (event.source) {
 
                 startBtn -> {
-                    if (state is TaskIdle) {
-                        startAdbScan()
-                    } else if (state is TaskStarted) {
-                        viewModel.pauseAll.updateValue(true)
-                    } else if (state is TaskPaused) {
-                        viewModel.pauseAll.updateValue(false)
-                    }
+                    state?.onStartClicked()
                 }
 
                 stopBtn -> {
@@ -856,7 +874,10 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         fullTableModel.searchFilterItem = searchPanel.searchCombo.filterItem
     }
 
-    private fun resetComboItem(viewModelProperty: ObservableViewModelProperty<List<HistoryItem<String>>>, item: String) {
+    private fun resetComboItem(
+        viewModelProperty: ObservableViewModelProperty<List<HistoryItem<String>>>,
+        item: String
+    ) {
         if (item.isBlank()) return
         val list = viewModelProperty.value
         list ?: return
@@ -1123,14 +1144,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         }
     }
 
-    override val tabName: String
-        get() = "Log"
-    override val tabIcon: Icon = GIcons.Tab.FileLog.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
-    override val tabTooltip: String?
-        get() = null
-    override val tabMnemonic: Char
-        get() = ' '
-
     override fun onTabSelected() {
         taskManager.updatePauseState(false)
     }
@@ -1139,14 +1152,14 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         taskManager.updatePauseState(true)
     }
 
-    override fun onDestroy() {
+    override fun destroy() {
         ServiceManager.dispose(this)
         ThemeManager.unregisterThemeUpdateListener(viewModel)
         logProvider.destroy()
         clearViews()
         taskManager.cancelAll()
         saveConfiguration()
-        splitLogPane.onDestroy()
+        splitLogPane.destroy()
     }
 
     override fun getTabContent(): JComponent {
@@ -1201,6 +1214,8 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     private abstract class TaskState(protected val ui: LogTabPanel) {
         abstract fun updateUI()
+
+        open fun onStartClicked() {}
     }
 
     private class TaskStarted(ui: LogTabPanel) : TaskState(ui) {
@@ -1210,14 +1225,22 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             ui.stopBtn.isEnabled = true
             ui.stopBtn.icon = GIcons.Action.Stop.get()
         }
+
+        override fun onStartClicked() {
+            ui.viewModel.pauseAll.updateValue(true)
+        }
     }
 
     private class TaskIdle(ui: LogTabPanel) : TaskState(ui) {
         override fun updateUI() {
+            ui.startBtn.isEnabled = ui.viewModel.connectedDevices.value.isNullOrEmpty().not()
             ui.startBtn.icon = GIcons.Action.Start.get()
             ui.startBtn.toolTipText = STRINGS.toolTip.startBtn
             ui.stopBtn.isEnabled = false
-            ui.stopBtn.icon = GIcons.Action.Stop.disabled()
+        }
+
+        override fun onStartClicked() {
+            ui.startAdbScan()
         }
     }
 
@@ -1228,9 +1251,14 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             ui.stopBtn.isVisible = true
             ui.stopBtn.icon = GIcons.Action.Stop.get()
         }
+
+        override fun onStartClicked() {
+            ui.viewModel.pauseAll.updateValue(false)
+        }
     }
 
     companion object {
         private const val TAG = "LogMainUI"
+        private const val TAB_NAME = "Log"
     }
 }

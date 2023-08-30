@@ -4,8 +4,8 @@ import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.log.ui.LogTabPanel
-import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.utils.Utils
+import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.utils.KeyUtils
 import java.awt.Dimension
 import java.awt.event.*
 import javax.swing.*
@@ -49,7 +49,7 @@ class LogViewDialog(
         contentPane.add(scrollPane)
         pack()
 
-        Utils.installKeyStrokeEscClosing(this)
+        KeyUtils.installKeyStrokeEscClosing(this)
     }
 
     override fun configureContext(context: Context) {
@@ -69,7 +69,7 @@ class LogViewDialog(
         override fun keyReleased(event: KeyEvent) {
             if (event.keyCode == KeyEvent.VK_ENTER && pressedKeyCode == KeyEvent.VK_ENTER) {
                 textArea.copy()
-                onDestroy()
+                destroy()
             }
         }
     }
@@ -78,7 +78,7 @@ class LogViewDialog(
         override fun focusLost(event: FocusEvent) {
             super.focusLost(event)
             if (!popupMenu.isVisible) {
-                onDestroy()
+                destroy()
             }
         }
     }
@@ -146,7 +146,7 @@ class LogViewDialog(
                     }
 
                     closeItem -> {
-                        onDestroy()
+                        destroy()
                     }
                 }
             }
@@ -156,7 +156,7 @@ class LogViewDialog(
             override fun focusLost(event: FocusEvent) {
                 super.focusLost(event)
                 if (!this@LogViewDialog.hasFocus()) {
-                    onDestroy()
+                    destroy()
                 }
             }
         }
@@ -172,6 +172,9 @@ class LogViewDialog(
 
             super.mouseReleased(event)
         }
+    }
 
+    override fun destroy() {
+        dispose()
     }
 }

@@ -6,4 +6,3 @@ log_viewer.xml
 LogViewer*
 *.log*
 glog.txt*
-/iconset/out/*

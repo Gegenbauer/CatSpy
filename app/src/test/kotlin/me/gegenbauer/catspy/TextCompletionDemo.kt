@@ -6,13 +6,13 @@ import com.github.weisj.darklaf.ui.button.DarkButtonUI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.gegenbauer.catspy.common.configuration.ThemeManager
-import me.gegenbauer.catspy.common.viewmodel.GlobalViewModel
+import me.gegenbauer.catspy.configuration.ThemeManager
+import me.gegenbauer.catspy.configuration.GlobalConfSync
 import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.utils.userDir
+import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.platform.userDir
 import org.fife.ui.autocomplete.*
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants
@@ -28,7 +28,7 @@ fun main() {
             GLog.init(userDir, "glog.txt")
             GLog.debug = true
             ThemeManager.init()
-            GlobalViewModel.init()
+            GlobalConfSync.init()
         }
         ThemeManager.installTheme()
         LafManager.registerInitTask { _: Theme, defaults: UIDefaults ->

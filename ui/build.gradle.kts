@@ -7,10 +7,14 @@ plugins {
 dependencies {
     api(projects.ui.log)
     api(projects.ui.script)
-    compileOnly(projects.glog)
-    compileOnly(kotlin("reflect"))
-    compileOnly(projects.concurrency)
-    compileOnly(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
+    api(projects.ui.configuration)
+    api(projects.ui.databinding)
+    api(projects.ui.utils)
+    api(projects.ui.view)
+    api(projects.ui.filter)
+    implementation(projects.glog)
+    implementation(projects.concurrency)
+    implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
     testImplementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
 }
 

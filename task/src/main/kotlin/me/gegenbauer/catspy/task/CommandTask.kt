@@ -67,7 +67,6 @@ open class CommandTask(
     protected open fun onProcessEnd() {
         TaskLog.d(name, "[onProcessEnd] $process")
         setRunning(false)
-        notifyStop()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

@@ -22,7 +22,6 @@ class PeriodicTask(
             notifyRepeat()
             if (isCanceled) {
                 setRunning(false)
-                notifyStop()
                 return
             }
         }

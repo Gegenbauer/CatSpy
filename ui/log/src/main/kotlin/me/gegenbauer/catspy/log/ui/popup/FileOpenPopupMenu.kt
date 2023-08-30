@@ -1,12 +1,12 @@
 package me.gegenbauer.catspy.log.ui.popup
 
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
-import me.gegenbauer.catspy.common.support.Menu
+import me.gegenbauer.catspy.configuration.Menu
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.iconset.GIcons
-import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.utils.userHome
+import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.platform.userHome
 import java.awt.Dimension
 import java.awt.event.ActionListener
 import java.io.File

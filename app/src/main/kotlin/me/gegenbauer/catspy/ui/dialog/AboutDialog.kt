@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.ui.dialog
 
-import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.resource.strings.version
-import me.gegenbauer.catspy.common.ui.button.GButton
-import me.gegenbauer.catspy.utils.Utils
+import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.version
+import me.gegenbauer.catspy.utils.KeyUtils
+import me.gegenbauer.catspy.view.button.GButton
 import java.awt.BorderLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
@@ -32,7 +32,7 @@ class AboutDialog(parent: JFrame) :JDialog(parent, STRINGS.ui.about, true), Acti
         contentPane.add(panel)
         pack()
 
-        Utils.installKeyStrokeEscClosing(this)
+        KeyUtils.installKeyStrokeEscClosing(this)
     }
 
     override fun actionPerformed(event: ActionEvent) {

@@ -5,10 +5,6 @@ plugins {
 }
 
 dependencies {
-    compileOnly(projects.glog)
-    compileOnly(projects.concurrency)
-}
-
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
+    implementation(projects.glog)
+    implementation(projects.concurrency)
 }

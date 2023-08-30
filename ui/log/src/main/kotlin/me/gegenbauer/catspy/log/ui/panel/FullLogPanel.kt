@@ -1,12 +1,12 @@
 package me.gegenbauer.catspy.log.ui.panel
 
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
-import me.gegenbauer.catspy.common.ui.button.TableBarButton
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
-import me.gegenbauer.catspy.resource.strings.STRINGS
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.applyTooltip
+import me.gegenbauer.catspy.view.button.TableBarButton
 import java.awt.Insets
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener

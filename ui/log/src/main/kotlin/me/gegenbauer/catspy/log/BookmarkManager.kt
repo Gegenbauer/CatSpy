@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.log
 
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
+import me.gegenbauer.catspy.glog.GLog
 
 fun interface BookmarkChangeListener {
     fun bookmarkChanged()

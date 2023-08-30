@@ -3,18 +3,28 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 rootProject.name = "CatSpy"
 include(
     "app",
-    "databinding",
     "glog",
+    "file",
+    "platform",
+    "javaext",
     "concurrency",
     "ddmlib",
     "task",
-    "filter",
-    "utils",
+    "cache",
+    "context",
     "ui",
     "ui:log",
     "ui:script",
-    "ui:common",
-    "iconset"
+    "ui:view",
+    "ui:databinding",
+    "ui:render",
+    "ui:filter",
+    "ui:utils",
+    "ui:configuration",
+    "resources",
+    "resources:iconset",
+    "resources:strings",
+    "resources:common",
 )
 
 pluginManagement {
@@ -35,3 +45,5 @@ pluginManagement {
         idv("net.ltgt.errorprone")
     }
 }
+include("resources:common")
+findProject(":resources:common")?.name = "common"

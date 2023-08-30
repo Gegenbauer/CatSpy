@@ -1,13 +1,13 @@
 package me.gegenbauer.catspy.log.task
 
-import me.gegenbauer.catspy.log.GLog
-import me.gegenbauer.catspy.log.appendPath
-import me.gegenbauer.catspy.log.ensureDir
-import me.gegenbauer.catspy.resource.strings.STRINGS
-import me.gegenbauer.catspy.resource.strings.app
+import me.gegenbauer.catspy.file.appendPath
+import me.gegenbauer.catspy.file.ensureDir
+import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.app
 import me.gegenbauer.catspy.task.CommandTask
-import me.gegenbauer.catspy.utils.LOG_DIR
-import me.gegenbauer.catspy.utils.filesDir
+import me.gegenbauer.catspy.platform.LOG_DIR
+import me.gegenbauer.catspy.platform.filesDir
 import java.io.BufferedOutputStream
 import java.io.File
 import java.time.LocalDateTime

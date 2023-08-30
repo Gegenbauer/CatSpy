@@ -24,10 +24,14 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
     private val _isCanceled = AtomicBoolean(false)
 
     override fun start() {
-        TaskLog.d(name, "[start]")
         _isCanceled.set(false)
-        notifyStart()
-        scope.launch { startInCoroutine() }
+        scope.launch {
+            TaskLog.d(name, "[start]")
+            notifyStart()
+            startInCoroutine()
+            notifyStop()
+            TaskLog.d(name, "[stop]")
+        }
     }
 
     protected open suspend fun startInCoroutine() {
@@ -61,39 +65,44 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
     }
 
     protected fun notifyStart() {
-        listeners.toList().forEach { it.onStart(this) }
+        listeners.toList().forEach { dispatchOrNot(it) { it.onStart(this) } }
     }
 
     protected fun notifyPause() {
-        listeners.toList().forEach { it.onPause(this) }
+        listeners.toList().forEach { dispatchOrNot(it) { it.onPause(this) } }
     }
 
     protected fun notifyResume() {
-        listeners.toList().forEach { it.onResume(this) }
+        listeners.toList().forEach { dispatchOrNot(it) { it.onResume(this) } }
     }
 
     protected fun notifyStop() {
-        listeners.toList().forEach { it.onStop(this) }
+        listeners.toList().forEach { dispatchOrNot(it) { it.onStop(this) } }
     }
 
     protected fun notifyCancel() {
-        listeners.toList().forEach { it.onCancel(this) }
+        listeners.toList().forEach { dispatchOrNot(it) { it.onCancel(this) } }
     }
 
     protected fun notifyProgress(data: Any = Any()) {
-        listeners.toList().forEach { it.onProgress(this, data) }
+        listeners.toList().forEach { dispatchOrNot(it) { it.onProgress(this, data) } }
     }
 
     protected fun notifyRepeat() {
-        listeners.toList().forEach { it.onRepeat(this) }
+        listeners.toList().forEach { dispatchOrNot(it) { it.onRepeat(this) } }
     }
 
     protected fun notifyFinalResult(data: Any = emptyResult) {
-        listeners.toList().forEach { it.onFinalResult(this, data) }
+        listeners.toList().forEach { dispatchOrNot(it) { it.onFinalResult(this, data) } }
     }
 
     protected fun notifyError(t: Throwable) {
-        listeners.toList().forEach { it.onError(this, t) }
+        listeners.toList().forEach { dispatchOrNot(it) { it.onError(this, t) } }
+    }
+
+    private fun dispatchOrNot(listener: TaskListener, block: () -> Unit) {
+        block.takeIf { listener.dispatcher == null }?.invoke()
+            ?: scope.launch(listener.dispatcher!!) { block() }
     }
 
     override fun cancel() {
