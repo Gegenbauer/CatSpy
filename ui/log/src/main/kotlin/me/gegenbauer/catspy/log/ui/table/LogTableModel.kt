@@ -141,7 +141,7 @@ class LogTableModel(
                 }
             }
 
-            return@accessPageData -1
+            -1
         }
     }
 

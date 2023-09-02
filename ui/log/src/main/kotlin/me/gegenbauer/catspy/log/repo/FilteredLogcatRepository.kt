@@ -85,7 +85,6 @@ class FilteredLogcatRepository(
 
     inner class UpdateFilterTask : OneTimeTask() {
         override suspend fun startInCoroutine() {
-            setRunning(true)
             accessFullLogItems { fullLogItems ->
                 accessLogItems { logItems ->
                     logItems.clear()
@@ -105,11 +104,6 @@ class FilteredLogcatRepository(
                     }
                 }
             }
-        }
-
-        override fun cancel() {
-            super.cancel()
-            setRunning(false)
         }
     }
 

@@ -19,7 +19,7 @@ private const val APP_LAUNCH_CORE_POOL_SIZE = 4
 object AppScope : CoroutineScope {
     private const val TAG = "AppScope"
     override val coroutineContext: CoroutineContext
-        get() = CoroutineName(TAG) + Dispatchers.CPU + loggingExceptionHandler + SupervisorJob()
+        = CoroutineName(TAG) + Dispatchers.CPU + loggingExceptionHandler + SupervisorJob()
 }
 
 /**
@@ -27,7 +27,7 @@ object AppScope : CoroutineScope {
  */
 class ServiceScope : CoroutineScope {
     override val coroutineContext: CoroutineContext
-        get() = CoroutineName(TAG) + Dispatchers.CPU + loggingExceptionHandler + SupervisorJob()
+        = CoroutineName(TAG) + Dispatchers.CPU + loggingExceptionHandler + SupervisorJob()
 
     private companion object {
         private const val TAG = "ServiceScope"
@@ -38,8 +38,8 @@ class ServiceScope : CoroutineScope {
  * Model 层中的作用域，默认使用 [Dispatchers.IO]，生命周期随 Model 存在而存在，每个 Model 都有一个对应的 [ModelScope]
  */
 open class ModelScope : CoroutineScope {
-    override val coroutineContext: CoroutineContext
-        get() = CoroutineName(TAG) + Dispatchers.IO + loggingExceptionHandler + SupervisorJob()
+    override val coroutineContext: CoroutineContext =
+        CoroutineName(TAG) + Dispatchers.IO + loggingExceptionHandler + SupervisorJob()
 
     private companion object {
         private const val TAG = "ModelScope"
@@ -51,7 +51,7 @@ open class ModelScope : CoroutineScope {
  */
 class ViewModelScope : CoroutineScope {
     override val coroutineContext: CoroutineContext
-        get() = CoroutineName(TAG) + Dispatchers.CPU + loggingExceptionHandler + SupervisorJob()
+        = CoroutineName(TAG) + Dispatchers.CPU + loggingExceptionHandler + SupervisorJob()
 
     private companion object {
         private const val TAG = "ViewModelScope"
@@ -64,7 +64,7 @@ class ViewModelScope : CoroutineScope {
 object TrackScope : CoroutineScope {
     private const val TAG = "AppScope"
     override val coroutineContext: CoroutineContext
-        get() = CoroutineName(TAG) + Dispatchers.CPU + loggingExceptionHandler + SupervisorJob()
+        = CoroutineName(TAG) + Dispatchers.CPU + loggingExceptionHandler + SupervisorJob()
 }
 
 /**

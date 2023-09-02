@@ -30,13 +30,11 @@ class LogcatTask(private val device: String) : PausableTask(name = "LogcatTask")
     private lateinit var outputChannel: ReceiveChannel<String>
 
     override suspend fun startInCoroutine() {
-        super.startInCoroutine()
         outputChannel = adb.execute(
             request = ChanneledLogcatRequest(modes = listOf(LogcatReadMode.threadtime)),
             scope = scope,
             serial = device
         )
-        setRunning(true)
         outputChannel.consumeEach { logcatChunk ->
 
             addPausePoint()
@@ -53,7 +51,6 @@ class LogcatTask(private val device: String) : PausableTask(name = "LogcatTask")
         }
 
         onStop()
-        setRunning(false)
     }
 
     override fun cancel() {

@@ -5,7 +5,9 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.utils.KeyUtils
+import me.gegenbauer.catspy.utils.Key
+import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
+import me.gegenbauer.catspy.utils.keyEventInfo
 import java.awt.Dimension
 import java.awt.event.*
 import javax.swing.*
@@ -49,7 +51,7 @@ class LogViewDialog(
         contentPane.add(scrollPane)
         pack()
 
-        KeyUtils.installKeyStrokeEscClosing(this)
+        installKeyStrokeEscClosing(this)
     }
 
     override fun configureContext(context: Context) {
@@ -60,14 +62,8 @@ class LogViewDialog(
     }
 
     internal inner class KeyHandler : KeyAdapter() {
-        private var pressedKeyCode: Int = 0
         override fun keyPressed(event: KeyEvent) {
-            pressedKeyCode = event.keyCode
-            super.keyPressed(event)
-        }
-
-        override fun keyReleased(event: KeyEvent) {
-            if (event.keyCode == KeyEvent.VK_ENTER && pressedKeyCode == KeyEvent.VK_ENTER) {
+            if (event.keyEventInfo == Key.ENTER) {
                 textArea.copy()
                 destroy()
             }

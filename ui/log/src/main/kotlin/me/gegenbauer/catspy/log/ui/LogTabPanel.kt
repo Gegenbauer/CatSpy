@@ -6,19 +6,11 @@ import com.malinskiy.adam.request.device.Device
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
-import me.gegenbauer.catspy.utils.addVSeparator2
-import me.gegenbauer.catspy.utils.applyTooltip
 import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.configuration.UIConfManager
-import me.gegenbauer.catspy.log.LogLevel
-import me.gegenbauer.catspy.log.nameToLogLevel
-import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.GlobalContextManager
@@ -30,12 +22,13 @@ import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.*
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.ddmlib.device.DeviceListListener
-import me.gegenbauer.catspy.utils.findFrameFromParent
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.log.LogLevel
 import me.gegenbauer.catspy.log.model.LogcatLogItem
 import me.gegenbauer.catspy.log.model.LogcatRealTimeFilter
+import me.gegenbauer.catspy.log.nameToLogLevel
 import me.gegenbauer.catspy.log.repo.*
 import me.gegenbauer.catspy.log.task.LogTask
 import me.gegenbauer.catspy.log.task.LogTaskManager
@@ -78,8 +71,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     override val tabIcon: Icon = GIcons.Tab.FileLog.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
     override val tabTooltip: String? = null
     override val tabMnemonic: Char = ' '
-
-    override val dispatcher: CoroutineDispatcher? = Dispatchers.UI
 
     //region scoped service
     val viewModel = ServiceManager.getContextService(this, LogMainBinding::class.java)
@@ -458,37 +449,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     }
 
     private fun registerEvent() {
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher { event ->
-            when {
-                event.keyCode == KeyEvent.VK_PAGE_DOWN && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> {
-                    splitLogPane.filteredLogPanel.moveToLastRow()
-                    splitLogPane.fullLogPanel.moveToLastRow()
-                }
-
-                event.keyCode == KeyEvent.VK_PAGE_UP && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> {
-                    splitLogPane.filteredLogPanel.moveToFirstRow()
-                    splitLogPane.fullLogPanel.moveToFirstRow()
-                }
-
-                event.keyCode == KeyEvent.VK_L && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> {
-                    deviceCombo.requestFocus()
-                }
-
-                event.keyCode == KeyEvent.VK_G && (event.modifiersEx and KeyEvent.CTRL_DOWN_MASK) != 0 -> {
-                    val goToDialog = GoToDialog(findFrameFromParent())
-                    goToDialog.setLocationRelativeTo(this@LogTabPanel)
-                    goToDialog.isVisible = true
-                    if (goToDialog.line != -1) {
-                        GLog.d(TAG, "[KeyEventDispatcher] Cancel Goto Line ${goToDialog.line}")
-                        goToLine(goToDialog.line)
-                    } else {
-                        GLog.d(TAG, "[KeyEventDispatcher] Cancel Goto Line")
-                    }
-                }
-            }
-
-            false
-        }
+        registerStrokes()
 
         // fix bug: event registered for editor in ComboBox will be removed when ComboBoxUI changed
         registerComboBoxEditorEvent()
@@ -525,6 +486,35 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         }
         logProvider.addObserver(this)
         taskManager.addListener(this)
+    }
+
+    private fun registerStrokes() {
+        registerStroke(Key.C_PAGE_DOWN, "Log Move To Last Row") {
+            splitLogPane.filteredLogPanel.moveToLastRow()
+            splitLogPane.fullLogPanel.moveToLastRow()
+        }
+        registerStroke(Key.C_PAGE_UP, "Log Move To First Row") {
+            splitLogPane.filteredLogPanel.moveToFirstRow()
+            splitLogPane.fullLogPanel.moveToFirstRow()
+        }
+        registerStroke(Key.C_L, "Device Combo Request Focus") { deviceCombo.requestFocus() }
+        registerStroke(Key.C_G, "Go To Target Log Line") {
+            val goToDialog = GoToDialog(findFrameFromParent())
+            goToDialog.setLocationRelativeTo(this@LogTabPanel)
+            goToDialog.isVisible = true
+            if (goToDialog.line > 0) {
+                GLog.d(TAG, "[KeyEventDispatcher] Cancel Goto Line ${goToDialog.line}")
+                goToLine(goToDialog.line)
+            } else {
+                GLog.d(TAG, "[KeyEventDispatcher] Cancel Goto Line")
+            }
+        }
+        registerStroke(Key.C_K, "Stop All Log Task") { stopAll() }
+        registerStroke(Key.C_P, "Start Logcat") {
+            startBtn.doClick()
+        }
+        registerStroke(Key.C_O, "Select Log File") { filePopupMenu.onClickFileOpen() }
+        registerStroke(Key.C_DELETE, "Clear All Logs") { clearViews() }
     }
 
     private fun registerComboBoxEditorEvent() {
@@ -584,14 +574,15 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     }
 
     fun openFile(path: String, isAppend: Boolean) {
-        GLog.d(TAG, "[openFile] Opening: $path, $isAppend")
         stopAll()
-        viewModel.status.updateValue(" ${STRINGS.ui.open} ")
-        logProvider.clear()
-        updateLogFilter()
-
-        updateLogUITask.start()
         logProvider.stopCollectLog()
+        logProvider.clear()
+
+        GLog.d(TAG, "[openFile] Opening: $path, $isAppend")
+        viewModel.status.updateValue(" ${STRINGS.ui.open} ")
+        updateLogFilter()
+        startUpdateUITask()
+
         logProvider.startCollectLog(FileLogCollector(taskManager, path))
 
         if (isAppend) {
@@ -601,31 +592,36 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         }
     }
 
-    fun startAdbScan() {
-        viewModel.status.updateValue(" ${STRINGS.ui.adb} ")
-        updateLogFilter()
-
+    private fun startUpdateUITask() {
         if (updateLogUITask.isRunning.not()) {
             taskManager.exec(updateLogUITask)
         }
+        updateLogUITask.resume()
+        viewModel.pauseAll.updateValue(false)
+    }
+
+    fun startLogcat() {
+        if (viewModel.connectedDevices.value.isNullOrEmpty()) return
+        viewModel.status.updateValue(" ${STRINGS.ui.adb} ")
+        updateLogFilter()
+
+        startUpdateUITask()
         logProvider.stopCollectLog()
         logProvider.clear()
         logProvider.startCollectLog(RealTimeLogCollector(taskManager, viewModel.currentDevice.value ?: ""))
-        viewModel.pauseAll.updateValue(false)
-
         viewModel.filePath.updateValue(logProvider.logTempFile?.absolutePath ?: "")
+        repaint()
     }
 
     private fun stopAll() {
         viewModel.status.updateValue(" ${STRINGS.ui.adb} ${STRINGS.ui.stop} ")
 
-        if (!logProvider.isCollecting()) {
-            GLog.d(TAG, "stopAdbScan : not adb scanning mode")
-            return
-        }
-
         logProvider.stopCollectLog()
-        taskManager.cancelAll()
+        taskManager.cancelAll { task -> task != updateLogUITask }
+        if (taskManager.isAnyTaskRunning { it is LogTask }.not()) {
+            state = TaskIdle(this)
+        }
+        updateLogUITask.pause()
     }
 
     private fun startFileFollow(filePath: String) {
@@ -821,19 +817,18 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     private inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(event: KeyEvent) {
-            if (KeyEvent.VK_ENTER == event.keyCode && event.isControlDown) {
-                when (event.source) {
-                    in listOf(
-                        showLogCombo.editorComponent,
-                        boldLogCombo.editorComponent,
-                        showTagCombo.editorComponent,
-                        showPidCombo.editorComponent,
-                        showTidCombo.editorComponent,
-                        boldLogCombo.editorComponent,
-                    ) -> {
-                        updateComboBox()
-                        updateLogFilter()
-                    }
+            if (event.keyEventInfo == Key.C_ENTER) {
+                val receivedTargets = listOf(
+                    showLogCombo.editorComponent,
+                    boldLogCombo.editorComponent,
+                    showTagCombo.editorComponent,
+                    showPidCombo.editorComponent,
+                    showTidCombo.editorComponent,
+                    boldLogCombo.editorComponent,
+                )
+                if (event.source in receivedTargets) {
+                    updateComboBox()
+                    updateLogFilter()
                 }
             }
             super.keyReleased(event)
@@ -1038,17 +1033,13 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
         private inner class SearchKeyHandler : KeyAdapter() {
             override fun keyReleased(event: KeyEvent) {
-                if (KeyEvent.VK_ENTER == event.keyCode) {
-                    when (event.source) {
-                        searchCombo.editorComponent -> {
-                            resetComboItem(viewModel.searchHistory, viewModel.searchCurrentContent.value ?: "")
-                            updateSearchFilter()
-                            this@SearchPanel::moveToPrev.takeIf { KeyEvent.SHIFT_DOWN_MASK == event.modifiersEx }
-                                ?.invoke() ?: this@SearchPanel::moveToNext.invoke()
-                        }
-                    }
+                if (event.keyEventInfo == Key.ENTER || event.keyEventInfo == Key.S_ENTER) {
+                    resetComboItem(viewModel.searchHistory, viewModel.searchCurrentContent.value ?: "")
+                    updateSearchFilter()
+                    this@SearchPanel::moveToPrev
+                        .takeIf { KeyEvent.SHIFT_DOWN_MASK == event.modifiersEx }
+                        ?.invoke() ?: this@SearchPanel::moveToNext.invoke()
                 }
-                super.keyReleased(event)
             }
         }
 
@@ -1118,30 +1109,22 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     override fun onStart(task: Task) {
         super.onStart(task)
-        if (task is LogTask) {
-            state = TaskStarted(this)
-        }
+        checkCurrentState()
     }
 
     override fun onStop(task: Task) {
         super.onStop(task)
-        if (!taskManager.isAnyTaskRunning { it is LogTask }) {
-            state = TaskIdle(this)
-        }
+        checkCurrentState()
     }
 
     override fun onPause(task: Task) {
         super.onPause(task)
-        if (taskManager.isPaused()) {
-            state = TaskPaused(this)
-        }
+        checkCurrentState()
     }
 
     override fun onResume(task: Task) {
         super.onResume(task)
-        if (taskManager.isPaused().not()) {
-            state = TaskStarted(this)
-        }
+        checkCurrentState()
     }
 
     override fun onTabSelected() {
@@ -1152,7 +1135,16 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         taskManager.updatePauseState(true)
     }
 
+    private fun checkCurrentState() {
+        state = when {
+            taskManager.isAnyTaskRunning { it is LogTask }.not() -> TaskIdle(this)
+            taskManager.isPaused() -> TaskPaused(this)
+            else -> TaskStarted(this)
+        }
+    }
+
     override fun destroy() {
+        stopAll()
         ServiceManager.dispose(this)
         ThemeManager.unregisterThemeUpdateListener(viewModel)
         logProvider.destroy()
@@ -1240,7 +1232,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         }
 
         override fun onStartClicked() {
-            ui.startAdbScan()
+            ui.startLogcat()
         }
     }
 

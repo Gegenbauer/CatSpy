@@ -20,10 +20,4 @@ object BindingLog: ILogger by GLog {
             GLog.d(tag, msg)
         }
     }
-
-    override fun i(tag: String, msg: String) {
-        if (bindingDebug) {
-            GLog.i(tag, msg)
-        }
-    }
 }

@@ -2,6 +2,8 @@ package me.gegenbauer.catspy.log.repo
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.log.model.LogFilter
 import me.gegenbauer.catspy.log.model.LogcatLogItem
@@ -20,7 +22,7 @@ abstract class BaseLogcatRepository(
     override var fullMode: Boolean = false
     override var bookmarkMode: Boolean = false
 
-    override val dispatcher: CoroutineDispatcher? = Dispatchers.UI
+    override val dispatcher: CoroutineDispatcher? = Dispatchers.UI.immediate
 
     override var logFilter: LogFilter<LogcatLogItem> = LogcatRealTimeFilter.emptyRealTimeFilter
         set(value) {
@@ -37,6 +39,7 @@ abstract class BaseLogcatRepository(
     private val logChangeListeners = mutableListOf<LogRepository.LogChangeListener>()
     private val cacheItemLock = ReentrantReadWriteLock()
     private val logItemLock = ReentrantReadWriteLock()
+    private val scope = MainScope()
 
     init {
         registerTaskListener()
@@ -67,7 +70,7 @@ abstract class BaseLogcatRepository(
     }
 
     override fun onRepeat(task: Task) {
-        processCacheForUIUpdate()
+        scope.launch { processCacheForUIUpdate() }
     }
 
     protected open fun processCacheForUIUpdate() {

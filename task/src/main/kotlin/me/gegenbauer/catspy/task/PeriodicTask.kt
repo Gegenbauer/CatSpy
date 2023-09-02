@@ -13,19 +13,15 @@ class PeriodicTask(
 ) : PausableTask(dispatcher, name) {
 
     override suspend fun startInCoroutine() {
-        setRunning(true)
-        super.startInCoroutine()
         repeat(Int.MAX_VALUE) {
             delay(period)
             addPausePoint()
             task()
             notifyRepeat()
             if (isCanceled) {
-                setRunning(false)
                 return
             }
         }
-        setRunning(false)
     }
 
 }

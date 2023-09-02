@@ -229,7 +229,6 @@ abstract class LogPanel(
     internal inner class AdjustmentHandler : AdjustmentListener {
         override fun adjustmentValueChanged(event: AdjustmentEvent) {
             val currentPosition = event.value
-            GLog.d(TAG, "[adjustmentValueChanged] lastPosition = $lastPosition, currentPosition = $currentPosition")
             if (lastPosition < 0) {
                 lastPosition = currentPosition
                 return

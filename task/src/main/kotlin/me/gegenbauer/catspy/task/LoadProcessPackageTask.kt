@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.task
 
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.CancellablePause
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -11,13 +10,11 @@ class LoadProcessPackageTask : BaseObservableTask(name = "LoadProcessPackageTask
     private var pidToNameMapper = ConcurrentHashMap<String, String>()
     private val cancellablePause = CancellablePause()
 
-    override fun start() {
-        scope.launch {
-            repeat(Int.MAX_VALUE) {
-                updatePidToNameMap()
-                delay(3000)
-                cancellablePause.addPausePoint()
-            }
+    override suspend fun startInCoroutine() {
+        repeat(Int.MAX_VALUE) {
+            updatePidToNameMap()
+            delay(3000)
+            cancellablePause.addPausePoint()
         }
     }
 

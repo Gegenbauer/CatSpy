@@ -2,10 +2,10 @@ package me.gegenbauer.catspy.view.button
 
 import com.github.weisj.darklaf.iconset.AllIcons
 import com.github.weisj.darklaf.ui.tabbedpane.DarkTabbedPaneUI
-import me.gegenbauer.catspy.utils.isDoubleClick
-import me.gegenbauer.catspy.utils.isLeftClick
-import me.gegenbauer.catspy.utils.isSingleClick
-import java.awt.*
+import me.gegenbauer.catspy.utils.*
+import java.awt.Dimension
+import java.awt.FlowLayout
+import java.awt.Insets
 import java.awt.event.*
 import javax.swing.*
 
@@ -79,10 +79,10 @@ class ClosableTabHeader(
                     parent.selectedIndex = parent.indexOfTabComponent(this@ClosableTabHeader)
                     parent.requestFocusInWindow()
                 }
-                val rect: Rectangle = parent.ui.getTabBounds(parent, parent.selectedIndex)
+                val rect = parent.ui.getTabBounds(parent, parent.selectedIndex)
                 if (e.isLeftClick && e.isDoubleClick) {
                     startEditing()
-                } else if (!rect.contains(e.getPoint()) && editor.isVisible) {
+                } else if (!rect.contains(e.point) && editor.isVisible) {
                     renameTabTitle()
                 }
             }
@@ -101,11 +101,11 @@ class ClosableTabHeader(
         })
         editor.addKeyListener(object : KeyAdapter() {
             override fun keyPressed(e: KeyEvent) {
-                when (e.keyCode) {
-                    KeyEvent.VK_ENTER -> renameTabTitle()
-                    KeyEvent.VK_ESCAPE -> cancelEditing()
+                when (e.keyEventInfo) {
+                    Key.ENTER -> renameTabTitle()
+                    Key.ESCAPE -> cancelEditing()
                     else -> {
-                        editor.preferredSize = if (editor.getText().length > titleLen) null else editorMinDimen
+                        editor.preferredSize = if (editor.text.length > titleLen) null else editorMinDimen
                         parent.revalidate()
                     }
                 }
@@ -134,9 +134,8 @@ class ClosableTabHeader(
     }
 
     private fun startEditing() {
-        if (!editable) {
-            return
-        }
+        takeIf { editable } ?: return
+
         editor.text = title.text
         editor.selectAll()
         titleLen = editor.text.length
@@ -163,10 +162,9 @@ class ClosableTabHeader(
     }
 
     private fun renameTabTitle() {
-        if (!editable) {
-            return
-        }
-        val titleContent = editor.getText().trim()
+        takeIf { editable } ?: return
+
+        val titleContent = editor.text.trim()
         if (titleContent.isNotEmpty()) {
             title.text = titleContent
         }

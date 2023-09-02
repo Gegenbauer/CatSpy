@@ -1,12 +1,11 @@
 package me.gegenbauer.catspy.log.ui.popup
 
-import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import me.gegenbauer.catspy.configuration.Menu
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.iconset.GIcons
-import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.platform.userHome
+import me.gegenbauer.catspy.strings.STRINGS
 import java.awt.Dimension
 import java.awt.event.ActionListener
 import java.io.File
@@ -64,7 +63,8 @@ class FileOpenPopupMenu(override val contexts: Contexts = Contexts.default) : JP
         multiSelection: Boolean,
         onFilesSelected: (Array<File>) -> Unit
     ) {
-        val frame = DarkUIUtil.getParentOfType(JFrame::class.java, invoker)
+        val frame = contexts.getContext(JFrame::class.java)
+        frame ?: return
         val chooser = JFileChooser(userHome)
         chooser.dialogTitle = STRINGS.ui.file + " " + title
         chooser.preferredSize = Dimension(

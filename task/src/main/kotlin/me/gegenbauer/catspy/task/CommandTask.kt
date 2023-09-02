@@ -5,11 +5,13 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
+import me.gegenbauer.catspy.glog.GLog
 import java.io.BufferedInputStream
 import java.io.File
 import java.util.*
 
 // TODO 增加关于接受输出和处理输出的速度比较，避免出现数据积压然后遗漏的情况
+@Suppress("OPT_IN_IS_NOT_ENABLED")
 open class CommandTask(
     protected val commands: Array<String>,
     private val args: Array<String> = arrayOf(),
@@ -21,11 +23,14 @@ open class CommandTask(
     protected var workingDirectory: File? = null
 
     override suspend fun startInCoroutine() {
-        super.startInCoroutine()
-        execute().collect {
-            addPausePoint()
-            onReceiveOutput(it)
+        GLog.d(name, "[startInCoroutine] start")
+        runCatching {
+            execute().collect {
+                addPausePoint()
+                onReceiveOutput(it)
+            }
         }
+        GLog.d(name, "[startInCoroutine] end")
         onProcessEnd()
     }
 
@@ -61,12 +66,10 @@ open class CommandTask(
 
     protected open fun onProcessStart() {
         TaskLog.d(name, "[onProcessStart] $process")
-        setRunning(true)
     }
 
     protected open fun onProcessEnd() {
         TaskLog.d(name, "[onProcessEnd] $process")
-        setRunning(false)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -91,13 +94,14 @@ open class CommandTask(
                     notifyError(IllegalStateException(it))
                 }
             }
+            close()
         }
     }
 
     override fun cancel() {
         super.cancel()
         TaskLog.d(name, "[cancel] kill process $process")
-        process?.destroyForcibly()
+        process?.run { destroyForcibly() }
     }
 
 }

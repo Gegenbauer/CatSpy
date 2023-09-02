@@ -27,6 +27,7 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation(projects.ui)
+    testImplementation(projects.concurrency)
     testImplementation(Mockk.groupName, Mockk.mockk.artifact, Mockk.mockk.version)
 }
 

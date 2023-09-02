@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.ui.dialog
 
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.helpText
-import me.gegenbauer.catspy.utils.KeyUtils
+import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
 import me.gegenbauer.catspy.view.button.GButton
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -39,7 +39,7 @@ class HelpDialog(parent: JFrame) : JDialog(parent, STRINGS.ui.help, true), Actio
         contentPane.add(panel)
         pack()
 
-        KeyUtils.installKeyStrokeEscClosing(this)
+        installKeyStrokeEscClosing(this)
     }
 
     override fun actionPerformed(event: ActionEvent) {

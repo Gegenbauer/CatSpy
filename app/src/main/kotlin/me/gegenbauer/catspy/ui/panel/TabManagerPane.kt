@@ -7,13 +7,16 @@ import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.menu.TabSelectorPopupMenu
 import me.gegenbauer.catspy.ui.supportedTabs
+import me.gegenbauer.catspy.utils.Key
+import me.gegenbauer.catspy.utils.registerStroke
 import me.gegenbauer.catspy.view.button.ClosableTabHeader
 import me.gegenbauer.catspy.view.tab.TabManager
 import me.gegenbauer.catspy.view.tab.TabPanel
 import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
 import javax.swing.*
 
-class TabManagerPane(override val contexts: Contexts) : TabManager, JTabbedPane() {
+class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabManager, JTabbedPane() {
     private val tabHeaders = mutableMapOf<Int, ClosableTabHeader>()
     private val selectMenu = TabSelectorPopupMenu()
     private val scope = MainScope()
@@ -41,6 +44,16 @@ class TabManagerPane(override val contexts: Contexts) : TabManager, JTabbedPane(
         putClientProperty(DarkTabbedPaneUI.KEY_DND, true)
         putClientProperty(DarkTabbedPaneUI.KEY_SHOW_NEW_TAB_BUTTON, true)
         putClientProperty("TabbedPane.tabsOpaque", false)
+
+        addTabSelectStroke()
+    }
+
+    private fun addTabSelectStroke() {
+        for (index in 0 until 8) {
+            registerStroke(Key.getKeyEventInfo(KeyEvent.VK_1 + index, KeyEvent.ALT_DOWN_MASK), "Select Tab $index") {
+                selectTab(index)
+            }
+        }
     }
 
     private fun createNewTabAction(): Action {
@@ -54,7 +67,13 @@ class TabManagerPane(override val contexts: Contexts) : TabManager, JTabbedPane(
     }
 
     override fun selectTab(tabPanel: TabPanel) {
-        selectedIndex = indexOfComponent(tabPanel.getTabContent())
+        selectTab(indexOfComponent(tabPanel.getTabContent()))
+    }
+
+    override fun selectTab(index: Int) {
+        if (index in 0 until tabCount) {
+            selectedIndex = index
+        }
     }
 
     override fun addTab(tabPanel: TabPanel) {

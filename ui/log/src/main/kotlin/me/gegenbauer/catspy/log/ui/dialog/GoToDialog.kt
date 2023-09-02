@@ -1,5 +1,7 @@
 package me.gegenbauer.catspy.log.ui.dialog
 
+import me.gegenbauer.catspy.utils.Key
+import me.gegenbauer.catspy.utils.keyEventInfo
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.KeyAdapter
@@ -8,10 +10,11 @@ import javax.swing.*
 
 class GoToDialog(parent: JFrame) : JDialog(parent, "GoTo line", true) {
 
-    val textField = JTextField()
-    val label = JLabel(" GoTo : ")
-    var line = -1
+    var line = INVALID_LINE_NUM
         private set
+
+    private val textField = JTextField()
+    private val label = JLabel(" GoTo : ")
 
     init {
         textField.addKeyListener(KeyHandler())
@@ -27,17 +30,22 @@ class GoToDialog(parent: JFrame) : JDialog(parent, "GoTo line", true) {
 
     internal inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(event: KeyEvent) {
-            if (event.keyCode == KeyEvent.VK_ESCAPE) {
-                line = -1
-                dispose()
-            } else if (event.keyCode == KeyEvent.VK_ENTER && textField.text.trim().isNotEmpty()) {
-                line = try {
-                    textField.text.toInt()
-                } catch (e: NumberFormatException) {
-                    -1
+            when(event.keyEventInfo) {
+                Key.ESCAPE -> {
+                    line = INVALID_LINE_NUM
+                    dispose()
                 }
-                dispose()
+                Key.ENTER -> {
+                    line = textField.text.trim().takeIf { it.isNotEmpty() }?.runCatching {
+                        textField.text.toInt()
+                    }?.getOrNull() ?: INVALID_LINE_NUM
+                    dispose()
+                }
             }
         }
+    }
+
+    companion object {
+        const val INVALID_LINE_NUM = -1
     }
 }

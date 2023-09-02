@@ -9,10 +9,7 @@ import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.dialog.LogViewDialog
 import me.gegenbauer.catspy.log.ui.table.LogTableModel.Companion.COLUMN_NUM
-import me.gegenbauer.catspy.utils.findFrameFromParent
-import me.gegenbauer.catspy.utils.getKeyEventInfo
-import me.gegenbauer.catspy.utils.isDoubleClick
-import me.gegenbauer.catspy.utils.keyEventInfo
+import me.gegenbauer.catspy.utils.*
 import me.gegenbauer.catspy.view.table.RowNavigation
 import java.awt.Dimension
 import java.awt.Rectangle
@@ -264,7 +261,7 @@ class LogTable(
                     }
 
                     startItem -> {
-                        logTabPanel.startAdbScan()
+                        logTabPanel.startLogcat()
                     }
 
                     stopItem -> {
@@ -343,15 +340,15 @@ class LogTable(
         private const val TAG = "LogTable"
         private const val THRESHOLD = 10
         private const val BATCH_ROW_COUNT_TO_SCROLL = 100
-        private val KEY_UPDATE_BOOKMARK = getKeyEventInfo(KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK)
-        private val KEY_DELETE_BOOKMARK = getKeyEventInfo(KeyEvent.VK_DELETE)
-        private val KEY_PREVIOUS_ROW = getKeyEventInfo(KeyEvent.VK_UP)
-        private val KEY_NEXT_ROW = getKeyEventInfo(KeyEvent.VK_DOWN)
-        private val KEY_PAGE_UP = getKeyEventInfo(KeyEvent.VK_PAGE_UP)
-        private val KEY_PAGE_DOWN = getKeyEventInfo(KeyEvent.VK_PAGE_DOWN)
-        private val KEY_SHOW_LOGS_IN_DIALOG = getKeyEventInfo(KeyEvent.VK_ENTER)
-        private val KEY_LAST_ROW = getKeyEventInfo(KeyEvent.VK_END, KeyEvent.CTRL_DOWN_MASK)
-        private val KEY_FIRST_ROW = getKeyEventInfo(KeyEvent.VK_HOME, KeyEvent.CTRL_DOWN_MASK)
+        private val KEY_UPDATE_BOOKMARK = Key.C_B
+        private val KEY_DELETE_BOOKMARK = Key.DELETE
+        private val KEY_PREVIOUS_ROW = Key.UP
+        private val KEY_NEXT_ROW = Key.DOWN
+        private val KEY_PAGE_UP = Key.PAGE_UP
+        private val KEY_PAGE_DOWN = Key.PAGE_DOWN
+        private val KEY_SHOW_LOGS_IN_DIALOG = Key.ENTER
+        private val KEY_LAST_ROW = Key.C_END
+        private val KEY_FIRST_ROW = Key.C_HOME
         private val disabledKeys = listOf(
             KEY_PREVIOUS_ROW, KEY_NEXT_ROW,
             KEY_SHOW_LOGS_IN_DIALOG, KEY_PAGE_UP,

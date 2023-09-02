@@ -19,7 +19,7 @@ class Contexts {
         return contexts[contextId]?.get()
     }
 
-    fun <T: Context> getContext(clazz: Class<T>): T? {
+    fun <T> getContext(clazz: Class<T>): T? {
         contexts.values.forEach {
             val context = it.get()
             if (context != null && clazz.isInstance(context)) {

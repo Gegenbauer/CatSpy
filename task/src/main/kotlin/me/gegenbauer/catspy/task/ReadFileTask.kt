@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.task
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
 import me.gegenbauer.catspy.concurrency.GIO
 import java.io.File
 
@@ -15,12 +14,10 @@ open class ReadFileTask(
     private var accumulateSize = 0
 
     override suspend fun startInCoroutine() {
-        super.startInCoroutine()
         if (file.exists().not()) {
             notifyError(IllegalArgumentException("File ${file.absolutePath} does not exist"))
             return
         }
-        setRunning(true)
         TaskLog.d(name, "[startInCoroutine] read file: ${file.absolutePath}")
         // read file and calculate progress
         val totalSize = file.length()
@@ -40,7 +37,6 @@ open class ReadFileTask(
             }
         }
         notifyFinalResult()
-        setRunning(false)
         TaskLog.d(name, "[startInCoroutine] progress=${accumulateSize / totalSize.toFloat()}}")
     }
 

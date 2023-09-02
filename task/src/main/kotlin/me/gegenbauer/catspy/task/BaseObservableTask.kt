@@ -2,15 +2,13 @@ package me.gegenbauer.catspy.task
 
 import kotlinx.coroutines.*
 import me.gegenbauer.catspy.concurrency.GIO
-import me.gegenbauer.catspy.concurrency.ModelScope
-import java.util.Collections
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
 abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.GIO, override val name: String) : Task {
-    override val scope: CoroutineScope = object : ModelScope() {
-        override val coroutineContext: CoroutineContext
-            get() = dispatcher + Job()
+    override val scope: CoroutineScope = object : CoroutineScope {
+        override val coroutineContext: CoroutineContext = dispatcher + SupervisorJob()
     }
 
     override val isRunning: Boolean
@@ -27,16 +25,16 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
         _isCanceled.set(false)
         scope.launch {
             TaskLog.d(name, "[start]")
+            setRunning(true)
             notifyStart()
-            startInCoroutine()
+            runCatching { startInCoroutine() }
+            setRunning(false)
             notifyStop()
             TaskLog.d(name, "[stop]")
         }
     }
 
-    protected open suspend fun startInCoroutine() {
-        // empty implementation
-    }
+    protected abstract suspend fun startInCoroutine()
 
     override fun pause() {
         TaskLog.d(name, "[pause]")
@@ -47,7 +45,7 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
         return false
     }
 
-    protected fun setRunning(running: Boolean) {
+    private fun setRunning(running: Boolean) {
         this._isRunning.set(running)
     }
 
@@ -85,11 +83,11 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
     }
 
     protected fun notifyProgress(data: Any = Any()) {
-        listeners.toList().forEach { dispatchOrNot(it) { it.onProgress(this, data) } }
+        listeners.toList().forEach { it.onProgress(this, data) }
     }
 
     protected fun notifyRepeat() {
-        listeners.toList().forEach { dispatchOrNot(it) { it.onRepeat(this) } }
+        listeners.toList().forEach { it.onRepeat(this) }
     }
 
     protected fun notifyFinalResult(data: Any = emptyResult) {
@@ -110,6 +108,10 @@ abstract class BaseObservableTask(dispatcher: CoroutineDispatcher = Dispatchers.
         notifyCancel()
         scope.cancel()
         _isCanceled.set(true)
+    }
+
+    override fun toString(): String {
+        return "${name}_${hashCode()}"
     }
 
     companion object {

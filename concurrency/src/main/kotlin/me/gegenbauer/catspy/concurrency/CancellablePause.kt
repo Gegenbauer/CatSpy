@@ -7,6 +7,7 @@ import me.gegenbauer.catspy.glog.GLog
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
+@Suppress("OPT_IN_IS_NOT_ENABLED")
 class CancellablePause(private val name: String = "") {
     private val enablePause = AtomicBoolean(false)
     private val paused = AtomicBoolean(false)
@@ -43,11 +44,12 @@ class CancellablePause(private val name: String = "") {
         }
         resumeCurrentPausePoint()
         timer?.cancel()
-        GLog.d("CancellablePause", "[$name] [resume]")
+        GLog.d(TAG, "[$name] [resume]")
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun resumeCurrentPausePoint() {
+        GLog.d(TAG, "[resumeCurrentPausePoint]")
         cancellableContinuation?.resume(Unit, null)
         cancellableContinuation = null
         paused.set(false)

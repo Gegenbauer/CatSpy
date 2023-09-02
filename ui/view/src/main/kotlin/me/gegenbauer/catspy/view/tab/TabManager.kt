@@ -6,6 +6,8 @@ import me.gegenbauer.catspy.context.Disposable
 interface TabManager: Disposable, Context {
     fun selectTab(tabPanel: TabPanel)
 
+    fun selectTab(index: Int)
+
     fun addTab(tabPanel: TabPanel)
 
     fun removeTab(tabPanel: TabPanel)

@@ -17,10 +17,4 @@ object TaskLog: ILogger by GLog {
             GLog.d(tag, msg)
         }
     }
-
-    override fun i(tag: String, msg: String) {
-        if (taskDebug) {
-            GLog.i(tag, msg)
-        }
-    }
 }
