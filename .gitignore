@@ -6,3 +6,6 @@ log_viewer.xml
 LogViewer*
 *.log*
 glog.txt*
+global.json
+ui.json
+applog
