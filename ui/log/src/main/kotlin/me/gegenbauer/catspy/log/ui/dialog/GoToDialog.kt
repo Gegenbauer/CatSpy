@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.log.ui.dialog
 
 import me.gegenbauer.catspy.utils.Key
 import me.gegenbauer.catspy.utils.keyEventInfo
+import me.gegenbauer.catspy.utils.released
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.KeyAdapter
@@ -31,11 +32,11 @@ class GoToDialog(parent: JFrame) : JDialog(parent, "GoTo line", true) {
     internal inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(event: KeyEvent) {
             when(event.keyEventInfo) {
-                Key.ESCAPE -> {
+                Key.ESCAPE.released() -> {
                     line = INVALID_LINE_NUM
                     dispose()
                 }
-                Key.ENTER -> {
+                Key.ENTER.released() -> {
                     line = textField.text.trim().takeIf { it.isNotEmpty() }?.runCatching {
                         textField.text.toInt()
                     }?.getOrNull() ?: INVALID_LINE_NUM

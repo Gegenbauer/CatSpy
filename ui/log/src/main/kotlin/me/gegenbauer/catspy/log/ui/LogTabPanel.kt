@@ -817,7 +817,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     private inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(event: KeyEvent) {
-            if (event.keyEventInfo == Key.C_ENTER) {
+            if (event.keyEventInfo == Key.C_ENTER.released()) {
                 val receivedTargets = listOf(
                     showLogCombo.editorComponent,
                     boldLogCombo.editorComponent,
@@ -831,7 +831,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
                     updateLogFilter()
                 }
             }
-            super.keyReleased(event)
+                super.keyReleased(event)
         }
     }
 
@@ -1033,7 +1033,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
         private inner class SearchKeyHandler : KeyAdapter() {
             override fun keyReleased(event: KeyEvent) {
-                if (event.keyEventInfo == Key.ENTER || event.keyEventInfo == Key.S_ENTER) {
+                if (event.keyEventInfo == Key.ENTER.released() || event.keyEventInfo == Key.S_ENTER.released()) {
                     resetComboItem(viewModel.searchHistory, viewModel.searchCurrentContent.value ?: "")
                     updateSearchFilter()
                     this@SearchPanel::moveToPrev

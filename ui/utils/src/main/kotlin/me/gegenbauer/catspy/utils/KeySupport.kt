@@ -100,11 +100,21 @@ object Key {
 data class KeyEventInfo(
     val keyCode: Int,
     val modifiers: Int = 0,
-    val action: Int = KeyEvent.KEY_PRESSED,
+    var action: Int = KeyEvent.KEY_PRESSED,
 )
 
+fun KeyEventInfo.pressed(): KeyEventInfo {
+    action = KeyEvent.KEY_PRESSED
+    return this
+}
+
+fun KeyEventInfo.released(): KeyEventInfo {
+    action = KeyEvent.KEY_RELEASED
+    return this
+}
+
 val KeyEvent.keyEventInfo: KeyEventInfo
-    get() = KeyEventInfo(keyCode, modifiersEx, KeyEvent.KEY_RELEASED)
+    get() = KeyEventInfo(keyCode, modifiersEx, id)
 
 fun registerGlobalKeyEvent(action: KeyEventDispatcher) {
     KeyboardFocusManager

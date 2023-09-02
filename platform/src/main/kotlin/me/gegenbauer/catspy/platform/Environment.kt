@@ -81,7 +81,7 @@ const val LOG_DIR = "applog"
 
 private inline val _currentPlatform: Platform
     get() = when (System.getProperty("os.name").lowercase()) {
-        "windows" -> Platform.WINDOWS
+        "windows", "windows 11" -> Platform.WINDOWS
         "linux" -> Platform.LINUX
         "mac" -> Platform.MAC
         else -> Platform.UNKNOWN

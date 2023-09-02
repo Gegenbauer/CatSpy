@@ -8,7 +8,7 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.*
 
-val locale: Locale = Locale.CHINA
+val locale: Locale = Locale.ENGLISH
 
 val STRINGS = StringParser().parse(locale)
 
