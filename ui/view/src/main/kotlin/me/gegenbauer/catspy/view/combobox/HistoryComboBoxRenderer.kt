@@ -13,9 +13,7 @@ class HistoryComboBoxRenderer<T> : JLabel(), ListCellRenderer<HistoryItem<T>> {
         isSelected: Boolean,
         cellHasFocus: Boolean
     ): Component {
-        if (value != null) {
-            text = value.content.toString()
-        }
+        text = value?.content?.toString() ?: ""
         return this
     }
 }

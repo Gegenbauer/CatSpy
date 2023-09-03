@@ -832,7 +832,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
                     updateLogFilter()
                 }
             }
-                super.keyReleased(event)
+            super.keyReleased(event)
         }
     }
 
@@ -1214,6 +1214,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     private class TaskStarted(ui: LogTabPanel) : TaskState(ui) {
         override fun updateUI() {
             ui.startBtn.icon = GIcons.Action.Pause.get()
+            ui.startBtn.isEnabled = true
             ui.startBtn.toolTipText = STRINGS.toolTip.pauseBtn
             ui.stopBtn.isEnabled = true
             ui.stopBtn.icon = GIcons.Action.Stop.get()

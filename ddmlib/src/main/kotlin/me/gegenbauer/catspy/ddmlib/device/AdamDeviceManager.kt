@@ -59,7 +59,7 @@ class AdamDeviceManager : ContextService, DeviceManager {
 
             deviceEventsChannel.consumeEach {
                 adbServerRunning.set(true)
-                dispatchDeviceListChange(it)
+                dispatchDeviceListChange(it.filterConnected())
             }
         }
     }
