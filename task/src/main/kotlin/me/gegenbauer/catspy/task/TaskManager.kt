@@ -1,90 +1,27 @@
 package me.gegenbauer.catspy.task
 
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CopyOnWriteArrayList
+interface TaskManager : TaskListener {
+    fun exec(task: Task)
 
-open class TaskManager : TaskListener {
-    private val taskList = CopyOnWriteArrayList<Task>()
-    private var paused = false
-    private val taskListeners = ConcurrentHashMap<TaskListener, (Task) -> Boolean>()
+    fun cancelAll(taskMatcher: (Task) -> Boolean)
 
-    override fun onStart(task: Task) {
-        TaskLog.i(TAG, "[onStart] $task")
-    }
+    fun cancelAll()
 
-    override fun onStop(task: Task) {
-        TaskLog.i(TAG, "[onStop] $task")
-        taskList.remove(task)
-    }
+    fun addListener(taskListener: TaskListener, taskMatcher: (Task) -> Boolean)
 
-    override fun onCancel(task: Task) {
-        TaskLog.i(TAG, "[onCancel] $task")
-    }
+    fun addListener(taskListener: TaskListener)
 
-    override fun onResume(task: Task) {
-        TaskLog.i(TAG, "[onResume] $task")
-    }
+    fun removeListener(taskListener: TaskListener, taskMatcher: (Task) -> Boolean)
 
-    override fun onPause(task: Task) {
-        TaskLog.i(TAG, "[onPause] $task")
-    }
+    fun removeListener(taskListener: TaskListener)
 
-    override fun onError(task: Task, t: Throwable) {
-        TaskLog.e(TAG, "[onError] $task", t)
-    }
+    fun updatePauseState(paused: Boolean)
 
-    fun exec(task: Task) {
-        taskList.add(task)
-        taskListeners.toList().filter { it.second(task) }.forEach { task.addListener(it.first) }
-        updateTaskPauseState(task, paused)
-        task.addListener(this)
-        task.start()
-    }
+    fun isPaused(): Boolean
 
-    fun cancelAll(taskMatcher: (Task) -> Boolean = { _ -> true }) {
-        taskList.filter(taskMatcher).forEach(Task::cancel)
-    }
+    fun isIdle(): Boolean
 
-    fun addListener(taskListener: TaskListener, taskMatcher: (Task) -> Boolean = { _ -> true }) {
-        taskListeners[taskListener] = taskMatcher
-        taskList.filter(taskMatcher).forEach { it.addListener(taskListener) }
-    }
+    fun isRunning(): Boolean
 
-    fun removeListener(taskListener: TaskListener, taskMatch: (Task) -> Boolean = { _ -> true }) {
-        taskListeners.remove(taskListener)
-        taskList.filter(taskMatch).forEach { it.removeListener(taskListener) }
-    }
-
-    fun updatePauseState(paused: Boolean) {
-        this.paused = paused
-        taskList.forEach { updateTaskPauseState(it, paused) }
-    }
-
-    fun isIdle(): Boolean {
-        return taskList.all { it.isRunning.not() }
-    }
-
-    fun isPaused(): Boolean {
-        return paused
-    }
-
-    fun isRunning(): Boolean {
-        return taskList.any { it.isRunning }
-    }
-
-    fun isAnyTaskRunning(taskMatcher: (Task) -> Boolean): Boolean {
-        return taskList.filter(taskMatcher).any { it.isRunning }
-    }
-
-    private fun updateTaskPauseState(task: Task, paused: Boolean) {
-        if (paused) {
-            task.pause()
-        } else {
-            task.resume()
-        }
-    }
-
-    companion object {
-        private const val TAG = "TaskManager"
-    }
+    fun isAnyTaskRunning(taskMatcher: (Task) -> Boolean): Boolean
 }

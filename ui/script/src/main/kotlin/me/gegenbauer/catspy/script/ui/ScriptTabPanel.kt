@@ -12,7 +12,7 @@ import me.gegenbauer.catspy.script.model.Script
 import me.gegenbauer.catspy.script.model.ScriptType
 import me.gegenbauer.catspy.script.parser.DirectRule
 import me.gegenbauer.catspy.script.parser.RegexRule
-import me.gegenbauer.catspy.task.TaskManager
+import me.gegenbauer.catspy.script.task.ScriptTaskManager
 import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
 import me.gegenbauer.catspy.view.tab.TabPanel
 import java.awt.BorderLayout
@@ -27,7 +27,7 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
     override val tabTooltip: String? = null
     override val tabMnemonic: Char = ' '
 
-    private val taskManager = TaskManager()
+    private val taskManager = ServiceManager.getContextService(ScriptTaskManager::class.java)
     private val cardContainer = ScriptCardContainer()
 
     private val focusedActivityParseRule = RegexRule("mCurrentFocus=Window\\{[0-9a-z]+ [0-9a-z]+ (.*)\\}", DirectRule())

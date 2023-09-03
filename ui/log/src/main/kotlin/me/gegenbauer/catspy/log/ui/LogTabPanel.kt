@@ -614,6 +614,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     }
 
     private fun stopAll() {
+        if (state is TaskIdle) return
         viewModel.status.updateValue(" ${STRINGS.ui.adb} ${STRINGS.ui.stop} ")
 
         logProvider.stopCollectLog()

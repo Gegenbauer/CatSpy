@@ -57,7 +57,7 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
     }
 
     companion object {
-        private const val TAB_NAME = "HomePanel"
+        private const val TAB_NAME = "Home"
     }
 }
 
