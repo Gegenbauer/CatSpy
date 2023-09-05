@@ -104,13 +104,11 @@ data class KeyEventInfo(
 )
 
 fun KeyEventInfo.pressed(): KeyEventInfo {
-    action = KeyEvent.KEY_PRESSED
-    return this
+    return copy(action = KeyEvent.KEY_PRESSED)
 }
 
 fun KeyEventInfo.released(): KeyEventInfo {
-    action = KeyEvent.KEY_RELEASED
-    return this
+    return copy(action = KeyEvent.KEY_RELEASED)
 }
 
 val KeyEvent.keyEventInfo: KeyEventInfo
