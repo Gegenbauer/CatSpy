@@ -35,11 +35,9 @@ tasks.test {
     useJUnitPlatform()
 }
 
-val version = "1.0.0"
-val appName = APP_NAME
 
-val snapshotId = System.currentTimeMillis()
-val snapshotVersion = "$version.$snapshotId"
+val version = "1.0.2"
+val appName = APP_NAME
 
 // TODO 更改应用安装后的图标
 compose.desktop {
@@ -63,13 +61,15 @@ compose.desktop {
 
             linux {
                 iconFile.set(iconsRoot.resolve("icon-linux.png"))
-                appRelease = snapshotVersion
+                appRelease = version
+                debPackageVersion = version
             }
 
             windows {
                 console = true
                 dirChooser = true
-                upgradeUuid = snapshotVersion
+                upgradeUuid = "eff1902c-4e55-11ee-be56-0242ac120002"
+                msiPackageVersion = version
             }
         }
     }
