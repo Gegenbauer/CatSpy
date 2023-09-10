@@ -71,9 +71,9 @@ class FileOpenPopupMenu(override val contexts: Contexts = Contexts.default) : JP
             (frame.size.width / 2).coerceAtLeast(600),
             (frame.size.height / 2).coerceAtLeast(300)
         )
-        chooser.addChoosableFileFilter(FileNameExtensionFilter("Log File", "txt"))
+        chooser.addChoosableFileFilter(FileNameExtensionFilter(STRINGS.ui.logFile, "txt"))
         // TODO support archives
-        chooser.addChoosableFileFilter(FileNameExtensionFilter("Log Archive", "zip", "rar", "gz", "tar"))
+        chooser.addChoosableFileFilter(FileNameExtensionFilter(STRINGS.ui.logArchive, "zip", "rar", "gz", "tar"))
         chooser.isMultiSelectionEnabled = multiSelection
         chooser.showOpenDialog(frame)
         val files = chooser.selectedFiles

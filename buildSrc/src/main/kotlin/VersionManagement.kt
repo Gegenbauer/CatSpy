@@ -1,3 +1,6 @@
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.kotlin.dsl.DependencyHandlerScope
+
 object Kotlin {
     val groupName = "org.jetbrains.kotlinx"
     val version = "1.6.10"

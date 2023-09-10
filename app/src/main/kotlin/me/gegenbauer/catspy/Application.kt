@@ -5,14 +5,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.cache.PatternProvider
-import me.gegenbauer.catspy.configuration.ThemeManager
-import me.gegenbauer.catspy.configuration.LogColorScheme
-import me.gegenbauer.catspy.configuration.VStatusPanelTheme
-import me.gegenbauer.catspy.configuration.GlobalConfSync
 import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.configuration.*
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.componentName
@@ -21,11 +18,10 @@ import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.platform.isInDebugMode
+import me.gegenbauer.catspy.strings.Configuration
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.app
 import me.gegenbauer.catspy.ui.MainFrame
-import me.gegenbauer.catspy.utils.toArgb
-import org.jetbrains.skia.Color
 import java.awt.Container
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -38,7 +34,7 @@ object Application {
     private const val TAG = "Main"
 
     init {
-        Color.BLACK.toArgb()
+        Locale.setDefault(Locale.CHINA)
         if (isInDebugMode()) {
             // ubuntu 调试会拦截所有事件导致无法操作
             System.setProperty("Dsun.awt.disablegrab", "true")
@@ -52,7 +48,7 @@ object Application {
     fun main(args: Array<String>) {
         AppScope.launch(Dispatchers.UI) {
             withContext(Dispatchers.APP_LAUNCH) {
-                GLog.init(filesDir, "glog.txt")
+                GLog.init(filesDir, Configuration.LOG_NAME)
                 ThemeManager.init()
                 GlobalConfSync.init()
                 GLog.i(TAG, "[currentPlatform] $currentPlatform")
@@ -67,7 +63,6 @@ object Application {
             mainFrame.isVisible = true
             ThemeManager.registerDefaultThemeUpdateListener()
 
-            addClickListenerForAllComponents(mainFrame.components)
             mainFrame.addWindowListener(object : WindowAdapter() {
                 override fun windowClosing(e: WindowEvent) {
                     GLog.i(TAG, "[windowClosing]")
@@ -79,6 +74,8 @@ object Application {
                     }
                 }
             })
+
+            takeIf { GLog.debug }?.let { addClickListenerForAllComponents(mainFrame.components) }
         }
     }
 

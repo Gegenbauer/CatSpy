@@ -1,5 +1,7 @@
 package me.gegenbauer.catspy.ui.dialog
 
+import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
+import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.version
 import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
@@ -34,6 +36,7 @@ class AboutDialog(parent: JFrame) :JDialog(parent, STRINGS.ui.about, true), Acti
 
         contentPane.add(panel)
         pack()
+        iconImages = listOf((GIcons.Logo.get(200, 200) as DerivableImageIcon).image)
 
         installKeyStrokeEscClosing(this)
     }

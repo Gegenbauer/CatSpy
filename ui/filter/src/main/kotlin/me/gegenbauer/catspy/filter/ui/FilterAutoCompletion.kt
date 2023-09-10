@@ -31,6 +31,7 @@ class FilterAutoCompletion(provider: CompletionProvider) : AutoCompletion(provid
         })
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun getCurrentSelectedCompletion(): Completion? {
         val popupWindow = getPopupWindow()
         return if (popupWindow != null && popupWindow.isVisible) {

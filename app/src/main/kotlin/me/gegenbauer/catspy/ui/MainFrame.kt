@@ -48,7 +48,7 @@ class MainFrame(
 
         registerEvents()
 
-        bindGlobalViewModel()
+        bindGlobalProperties()
 
         GlobalContextManager.register(this)
     }
@@ -65,7 +65,7 @@ class MainFrame(
         deviceManager.startMonitor()
     }
 
-    private fun bindGlobalViewModel() {
+    private fun bindGlobalProperties() {
         selectedProperty(settingsMenu.globalDebug) bindDual GlobalConfSync.globalDebug
         selectedProperty(settingsMenu.bindingDebug) bindDual GlobalConfSync.dataBindingDebug
         selectedProperty(settingsMenu.taskDebug) bindDual GlobalConfSync.taskDebug

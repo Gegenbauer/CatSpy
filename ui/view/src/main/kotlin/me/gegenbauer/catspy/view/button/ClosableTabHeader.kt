@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.view.button
 
 import com.github.weisj.darklaf.iconset.AllIcons
 import com.github.weisj.darklaf.ui.tabbedpane.DarkTabbedPaneUI
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.*
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -40,7 +41,7 @@ class ClosableTabHeader(
         isOpaque = false
         name = "Tab.header"
         closeButton.name = "Tab.close"
-        closeButton.toolTipText = "Close Tab"
+        closeButton.toolTipText = STRINGS.toolTip.tabCloseBtn
         closeButton.isRolloverEnabled = false
         closeButton.isContentAreaFilled = false
         val d = Dimension(

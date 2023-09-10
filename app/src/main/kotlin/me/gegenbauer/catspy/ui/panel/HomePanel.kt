@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.ui.panel
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.menu.TabSelectorPopupMenu
 import me.gegenbauer.catspy.ui.supportedTabs
@@ -15,19 +16,18 @@ import javax.swing.JPanel
 import javax.swing.SwingUtilities
 
 class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
-    override val tabName: String = TAB_NAME
+    override val tabName: String = STRINGS.ui.tabHome
     override val tabIcon: Icon = GIcons.Tab.Home.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
-    override val tabTooltip: String? = null
-    override val tabMnemonic: Char = ' '
     override val closeable: Boolean = false
 
-    private val tabSelector = GButton("Select Tab")
+    private val tabSelector = GButton(STRINGS.ui.selectTab)
     private val selectMenu = TabSelectorPopupMenu()
 
     init {
-        componentName = "HomePanel"
+        componentName = this::class.java.simpleName
 
         layout = GridBagLayout()
+        tabSelector.toolTipText = STRINGS.toolTip.selectTabBtn
         add(tabSelector)
         tabSelector.addActionListener {
             selectMenu.isVisible = false
@@ -56,13 +56,11 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
         return this
     }
 
-    companion object {
-        private const val TAB_NAME = "Home"
-    }
 }
 
 data class TabInfo(
     val tabName: String,
     val tabIcon: Icon?,
     val tabClazz: Class<out TabPanel>,
+    val tooltip: String? = null
 )

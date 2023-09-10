@@ -33,7 +33,7 @@ class FullLogPanel(
         windowedModeBtn.margin = Insets(0, 3, 0, 3)
         windowedModeBtn.addActionListener(actionHandler)
         createUI()
-        bind(viewModel)
+        bind(binding)
     }
 
     override fun updateTableBar() {

@@ -42,11 +42,8 @@ class VStatusPanel(override val contexts: Contexts = Contexts.default) : JPanel(
             val logTable = contexts.getContext(LogTable::class.java)
             logTable ?: return
             val row = event.point.y * logTable.rowCount / height
-            try {
-                logTable.scrollRectToVisible(Rectangle(logTable.getCellRect(row, 0, true)))
-            } catch (e: IllegalArgumentException) {
-                GLog.e(TAG, "", e)
-            }
+            require(row >= 0 && row < logTable.rowCount) { "Row must be between 0 and ${logTable.rowCount}" }
+            logTable.scrollRectToVisible(Rectangle(logTable.getCellRect(row, 0, true)))
             super.mouseClicked(event)
         }
     }

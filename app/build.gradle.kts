@@ -66,7 +66,6 @@ compose.desktop {
             }
 
             windows {
-                console = true
                 dirChooser = true
                 upgradeUuid = "eff1902c-4e55-11ee-be56-0242ac120002"
                 msiPackageVersion = version

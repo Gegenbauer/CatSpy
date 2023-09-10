@@ -24,8 +24,6 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
 
     override val tabName: String = TAB_NAME
     override val tabIcon: Icon = GIcons.Tab.Script.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
-    override val tabTooltip: String? = null
-    override val tabMnemonic: Char = ' '
 
     private val taskManager = ServiceManager.getContextService(ScriptTaskManager::class.java)
     private val cardContainer = ScriptCardContainer()

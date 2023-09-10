@@ -13,6 +13,7 @@ class TabSelectorPopupMenu : JPopupMenu() {
         removeAll()
         tabs.forEach { tab ->
             val item = JMenuItem(tab.tabName, tab.tabIcon)
+            item.toolTipText = tab.tooltip
             item.addActionListener {
                 onTabSelected?.invoke(tab)
             }

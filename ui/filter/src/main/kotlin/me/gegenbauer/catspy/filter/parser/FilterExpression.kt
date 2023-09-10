@@ -21,9 +21,7 @@ open class FilterExpression internal constructor(
     }
 
     fun lastCharBefore(index: Int): Char {
-        if (index == 0) {
-            throw IllegalArgumentException("Index must be greater than 0")
-        }
+        require(index > 0) { "Index must be greater than 0" }
         return wholeExpression[index - 1]
     }
 

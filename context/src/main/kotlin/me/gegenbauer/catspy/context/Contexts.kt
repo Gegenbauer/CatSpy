@@ -19,6 +19,7 @@ class Contexts {
         return contexts[contextId]?.get()
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> getContext(clazz: Class<T>): T? {
         contexts.values.forEach {
             val context = it.get()
