@@ -107,7 +107,7 @@ class LogViewDialog(
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
                 val logTabPanel = DarkUIUtil.getParentOfType(this@LogViewDialog, LogTabPanel::class.java)
-                val viewModel = logTabPanel.viewModel
+                val logMainBinding = logTabPanel.logMainBinding
                 when (event.source) {
                     includeItem -> {
                         if (textArea.selectedText.isNullOrEmpty()) return
@@ -127,14 +127,14 @@ class LogViewDialog(
 
                     searchAddItem -> {
                         if (textArea.selectedText.isNullOrEmpty()) return
-                        var text = viewModel.searchCurrentContent.getValueNonNull()
+                        var text = logMainBinding.searchCurrentContent.getValueNonNull()
                         text += "|" + textArea.selectedText
-                        viewModel.searchCurrentContent.updateValue(text)
+                        logMainBinding.searchCurrentContent.updateValue(text)
                     }
 
                     searchSetItem -> {
-                        viewModel.searchPanelVisible.updateValue(true)
-                        viewModel.searchCurrentContent.updateValue(textArea.selectedText)
+                        logMainBinding.searchPanelVisible.updateValue(true)
+                        logMainBinding.searchCurrentContent.updateValue(textArea.selectedText)
                     }
 
                     copyItem -> {

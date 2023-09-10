@@ -7,4 +7,9 @@ plugins {
 dependencies {
     api(kotlin("reflect"))
     implementation(projects.glog)
+    testImplementation(kotlin("test"))
+}
+
+tasks.getByName<Test>("test") {
+    useJUnitPlatform()
 }

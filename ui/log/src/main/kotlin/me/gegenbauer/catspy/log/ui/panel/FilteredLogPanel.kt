@@ -29,19 +29,19 @@ class FilteredLogPanel(
 
         observeViewModelProperty()
 
-        bind(viewModel)
+        bind(binding)
     }
 
     private fun observeViewModelProperty() {
-        viewModel.fullMode.addObserver {
+        binding.fullMode.addObserver {
             if (it == true) {
-                viewModel.bookmarkMode.updateValue(false)
+                binding.bookmarkMode.updateValue(false)
             }
             tableModel.logRepository.onFilterUpdate()
         }
-        viewModel.bookmarkMode.addObserver {
+        binding.bookmarkMode.addObserver {
             if (it == true) {
-                viewModel.fullMode.updateValue(false)
+                binding.fullMode.updateValue(false)
             }
             tableModel.logRepository.onFilterUpdate()
         }
@@ -54,9 +54,9 @@ class FilteredLogPanel(
         ctrlMainPanel.updateUI()
     }
 
-    override fun bind(viewModel: LogPanelViewModel) {
-        super.bind(viewModel)
-        viewModel.apply {
+    override fun bind(binding: LogPanelBinding) {
+        super.bind(binding)
+        binding.apply {
             Bindings.bind(selectedProperty(fullBtn), fullMode)
             Bindings.bind(selectedProperty(bookmarksBtn), bookmarkMode)
         }

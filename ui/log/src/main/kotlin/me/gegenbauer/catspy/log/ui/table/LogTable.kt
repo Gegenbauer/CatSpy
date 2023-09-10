@@ -9,6 +9,7 @@ import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.dialog.LogViewDialog
 import me.gegenbauer.catspy.log.ui.table.LogTableModel.Companion.COLUMN_NUM
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.*
 import me.gegenbauer.catspy.view.table.RowNavigation
 import java.awt.Dimension
@@ -210,12 +211,12 @@ class LogTable(
     }
 
     internal inner class PopUp : JPopupMenu() {
-        var copyItem: JMenuItem = JMenuItem("Copy")
-        var showEntireItem = JMenuItem("Show entire line")
-        var bookmarkItem = JMenuItem("Bookmark")
-        var startItem = JMenuItem("Start")
-        var stopItem = JMenuItem("Stop")
-        var clearItem = JMenuItem("Clear")
+        var copyItem: JMenuItem = JMenuItem(STRINGS.ui.copy)
+        var showEntireItem = JMenuItem(STRINGS.ui.showEntireLine)
+        var bookmarkItem = JMenuItem(STRINGS.ui.bookmark)
+        var startItem = JMenuItem(STRINGS.ui.start)
+        var stopItem = JMenuItem(STRINGS.ui.stop)
+        var clearItem = JMenuItem(STRINGS.ui.clear)
 
         private val actionHandler = ActionHandler()
 

@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.view.state
 import me.gegenbauer.catspy.configuration.EmptyStatePanelTheme
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.view.button.IconBarButton
 import java.awt.CardLayout
 import java.awt.Dimension
@@ -31,7 +32,7 @@ class StatefulPanel : JPanel() {
     }
     private val loadingProgress = JProgressBar().apply {
         preferredSize = Dimension(200, 20)
-        string = "加载中"
+        string = STRINGS.ui.loading
         isStringPainted = true
     }
     private val emptyContainer = JPanel().apply {
@@ -120,6 +121,6 @@ class StatefulPanel : JPanel() {
     }
 
     companion object {
-        private const val TAG = "EmptyStatePanel"
+        private const val TAG = "StatefulPanel"
     }
 }

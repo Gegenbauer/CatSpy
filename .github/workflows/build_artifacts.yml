@@ -1,6 +1,8 @@
 name: Build Artifacts
 on:
   push:
+    branches:
+      - main
     paths:
       - '**.cpp'
       - '**.kt'
@@ -10,6 +12,8 @@ on:
       - '**.kts'
       - '**.java'
   pull_request:
+    branches:
+      - main
     paths:
       - '**.cpp'
       - '**.kt'

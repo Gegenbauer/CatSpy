@@ -58,9 +58,9 @@ class TaskManagerImpl: TaskManager {
         addListener(taskListener) { true }
     }
 
-    override fun removeListener(taskListener: TaskListener, taskMatch: (Task) -> Boolean) {
+    override fun removeListener(taskListener: TaskListener, taskMatcher: (Task) -> Boolean) {
         taskListeners.remove(taskListener)
-        taskList.filter(taskMatch).forEach { it.removeListener(taskListener) }
+        taskList.filter(taskMatcher).forEach { it.removeListener(taskListener) }
     }
 
     override fun removeListener(taskListener: TaskListener) {

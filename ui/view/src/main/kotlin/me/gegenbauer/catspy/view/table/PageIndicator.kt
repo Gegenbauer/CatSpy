@@ -99,11 +99,11 @@ class PageIndicator<T>(
 
     private fun addPageButton(buttonGroup: ButtonGroup, pageNumber: Int, currentPage: Int) {
         val toggleButton = JToggleButton((pageNumber).toString())
-        toggleButton.setMargin(Insets(1, 4, 1, 4))
+        toggleButton.margin = Insets(1, 4, 1, 4)
         buttonGroup.add(toggleButton)
         add(toggleButton)
         if (pageNumber == currentPage) {
-            toggleButton.setSelected(true)
+            toggleButton.isSelected = true
         }
         toggleButton.addActionListener { ae: ActionEvent ->
             gotoPage(ae.actionCommand.toInt())

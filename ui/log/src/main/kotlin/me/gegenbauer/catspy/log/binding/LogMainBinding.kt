@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.log.viewmodel
+package me.gegenbauer.catspy.log.binding
 
 import com.github.weisj.darklaf.theme.Theme
 import me.gegenbauer.catspy.log.LogLevel
@@ -129,7 +129,7 @@ class LogMainBinding : ContextService, GThemeChangeListener {
         textProperty(comboBox.editorComponent) bindDual editorContentProperty
     }
 
-    fun syncGlobalConfWithMainViewModel() {
+    fun syncGlobalConfWithMainBindings() {
         searchHistory.addObserver {
             UIConfManager.uiConf.searchHistory.clear()
             UIConfManager.uiConf.searchHistory.addAll(it!!.toContentList())

@@ -16,6 +16,7 @@ import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTable
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModelListener
+import me.gegenbauer.catspy.strings.Configuration
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.applyTooltip
 import me.gegenbauer.catspy.view.button.ColorToggleButton
@@ -47,14 +48,14 @@ abstract class LogPanel(
     val table: LogTable = LogTable(tableModel)
 ) : JPanel(), Context, ListSelectionListener, RowNavigation by table {
 
-    val viewModel = LogPanelViewModel()
+    val binding = LogPanelBinding()
     protected val ctrlMainPanel: WrapablePanel = WrapablePanel() withName "ctrlMainPanel"
 
     private val topBtn = IconBarButton(GIcons.Action.Top.get()) applyTooltip STRINGS.toolTip.viewFirstBtn
     private val bottomBtn = IconBarButton(GIcons.Action.Bottom.get()) applyTooltip STRINGS.toolTip.viewLastBtn
-    private val tagBtn = ColorToggleButton(STRINGS.ui.tag) applyTooltip STRINGS.toolTip.viewTagToggle
-    private val pidBtn = ColorToggleButton(STRINGS.ui.pid) applyTooltip STRINGS.toolTip.viewPidToggle
-    private val tidBtn = ColorToggleButton(STRINGS.ui.tid) applyTooltip STRINGS.toolTip.viewTidToggle
+    private val tagBtn = ColorToggleButton(Configuration.TAG) applyTooltip STRINGS.toolTip.viewTagToggle
+    private val pidBtn = ColorToggleButton(Configuration.PID) applyTooltip STRINGS.toolTip.viewPidToggle
+    private val tidBtn = ColorToggleButton(Configuration.TID) applyTooltip STRINGS.toolTip.viewTidToggle
     private val scrollToEndIcon = DayNightIcon(
         GIcons.State.ScrollEnd.get(24, 24),
         GIcons.State.ScrollEndDark.get(24, 24)
@@ -63,7 +64,7 @@ abstract class LogPanel(
         GIcons.State.ScrollEnd.selected(24, 24),
         GIcons.State.ScrollEndDark.selected(24, 24)
     )
-    private val scrollToEndBtn = IconBarButton()
+    private val scrollToEndBtn = IconBarButton(tooltip = STRINGS.toolTip.keepScrollToEnd)
 
     private val scrollPane = LogScrollPane(table)
     private val vStatusPanel = VStatusPanel()
@@ -93,16 +94,16 @@ abstract class LogPanel(
     }
 
     private fun observeViewModelProperty() {
-        viewModel.boldPid.addObserver {
+        binding.boldPid.addObserver {
             table.repaint()
         }
-        viewModel.boldTid.addObserver {
+        binding.boldTid.addObserver {
             table.repaint()
         }
-        viewModel.boldTag.addObserver {
+        binding.boldTag.addObserver {
             table.repaint()
         }
-        viewModel.scrollToEnd.addObserver {
+        binding.scrollToEnd.addObserver {
             if (it == true) {
                 moveToLastRow()
             }
@@ -113,13 +114,13 @@ abstract class LogPanel(
                 return@addObserver
             }
             if (lastPageMetaData.isPageChanged(it)) {
-                viewModel.scrollToEnd.updateValue(false)
+                binding.scrollToEnd.updateValue(false)
             }
             lastPageMetaData = it
         }
     }
 
-    class LogPanelViewModel {
+    class LogPanelBinding {
         val scrollToEnd = ObservableViewModelProperty(false)
         val boldPid = ObservableViewModelProperty(false)
         val boldTid = ObservableViewModelProperty(false)
@@ -128,8 +129,8 @@ abstract class LogPanel(
         val bookmarkMode = ObservableViewModelProperty(false)
     }
 
-    protected open fun bind(viewModel: LogPanelViewModel) {
-        viewModel.apply {
+    protected open fun bind(binding: LogPanelBinding) {
+        binding.apply {
             Bindings.bind(selectedProperty(scrollToEndBtn), scrollToEnd)
             Bindings.bind(selectedProperty(pidBtn), boldPid)
             Bindings.bind(selectedProperty(tidBtn), boldTid)
@@ -161,6 +162,7 @@ abstract class LogPanel(
             pidBtn.margin = this
             tidBtn.margin = this
         }
+
         scrollToEndBtn.isRolloverEnabled = false
         scrollToEndBtn.isContentAreaFilled = false
         scrollToEndBtn.icon = scrollToEndIcon
@@ -213,7 +215,7 @@ abstract class LogPanel(
     }
 
     fun setGoToLast(value: Boolean) {
-        viewModel.scrollToEnd.updateValue(value)
+        binding.scrollToEnd.updateValue(value)
     }
 
     override fun moveToFirstRow() {
@@ -259,7 +261,7 @@ abstract class LogPanel(
         override fun onLogDataChanged(event: TableModelEvent) {
             lastPosition = -1
 
-            if (viewModel.scrollToEnd.value == true) {
+            if (binding.scrollToEnd.value == true) {
                 moveToLastRow()
             }
         }

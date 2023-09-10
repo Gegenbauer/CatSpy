@@ -53,7 +53,8 @@ fun createIconAccessor(propertyFile: File, packageName : String, className: Stri
 
         return """
             |@javax.annotation.Generated(value = {"GenerateIconAccessor"})
-            |public ${if (topLevel) "" else "static "}final class ${name.capitalize()} {
+            |public ${if (topLevel) "" else "static "}final class ${name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+        }} {
             |    $properties
             |    $subNodes
             |}

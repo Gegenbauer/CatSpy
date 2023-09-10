@@ -54,11 +54,11 @@ class LogTableModel(
         get() = DEFAULT_PAGE_SIZE
 
     override val boldTag: Boolean
-        get() = getViewModel()?.boldTag?.value ?: false
+        get() = getBindings()?.boldTag?.value ?: false
     override val boldPid: Boolean
-        get() = getViewModel()?.boldPid?.value ?: false
+        get() = getBindings()?.boldPid?.value ?: false
     override val boldTid: Boolean
-        get() = getViewModel()?.boldTid?.value ?: false
+        get() = getBindings()?.boldTid?.value ?: false
 
     val state = ObservableViewModelProperty(StatefulPanel.State.NORMAL)
 
@@ -66,10 +66,10 @@ class LogTableModel(
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        getViewModel()?.bookmarkMode?.addObserver {
+        getBindings()?.bookmarkMode?.addObserver {
             logRepository.bookmarkMode = it ?: false
         }
-        getViewModel()?.fullMode?.addObserver {
+        getBindings()?.fullMode?.addObserver {
             logRepository.fullMode = it ?: false
         }
         logRepository.addLogChangeListener(this)
@@ -104,8 +104,8 @@ class LogTableModel(
         }
     }
 
-    private fun getViewModel(): LogPanel.LogPanelViewModel? {
-        return contexts.getContext(LogPanel::class.java)?.viewModel
+    private fun getBindings(): LogPanel.LogPanelBinding? {
+        return contexts.getContext(LogPanel::class.java)?.binding
     }
 
     override fun addLogTableModelListener(eventListener: LogTableModelListener) {

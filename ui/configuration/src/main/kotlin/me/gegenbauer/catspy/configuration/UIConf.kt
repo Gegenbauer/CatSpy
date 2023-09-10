@@ -4,6 +4,7 @@ import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.log.LogLevel
 import java.awt.Font
 import java.awt.Frame
+import java.util.Locale
 
 data class UIConf(
     /** 应用配置 start **/
@@ -64,6 +65,8 @@ data class UIConf(
     /** 搜索框配置 start **/
     var searchMatchCaseEnabled: Boolean = false,
     /** 搜索框配置 end **/
+
+    var locale: Locale = Locale.getDefault()
 ) {
     fun getLogFont(): Font {
         return Font(logFontName, logFontStyle, logFontSize)
