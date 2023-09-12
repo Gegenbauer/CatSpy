@@ -3,7 +3,9 @@ package me.gegenbauer.catspy.configuration
 import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.java.ext.getEnum
 import me.gegenbauer.catspy.platform.filesDir
+import me.gegenbauer.catspy.strings.globalLocale
 import java.io.File
 
 object UIConfManager {
@@ -20,10 +22,15 @@ object UIConfManager {
         }
     }
 
+    fun init() {
+        // empty implementation, just to trigger lazy initialization
+    }
+
     private fun loadUI(): UIConf {
         return JsonReader(uiFile.reader()).use {
             Gson().fromJson<UIConf?>(it, UIConf::class.java).apply {
                 GLog.i(TAG, "[loadUI] $this")
+                globalLocale = getEnum(locale)
             }
         }
     }

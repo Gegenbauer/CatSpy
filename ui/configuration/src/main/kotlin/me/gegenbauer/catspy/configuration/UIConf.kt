@@ -2,9 +2,9 @@ package me.gegenbauer.catspy.configuration
 
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.log.LogLevel
+import me.gegenbauer.catspy.strings.Locale
 import java.awt.Font
 import java.awt.Frame
-import java.util.Locale
 
 data class UIConf(
     /** 应用配置 start **/
@@ -65,8 +65,7 @@ data class UIConf(
     /** 搜索框配置 start **/
     var searchMatchCaseEnabled: Boolean = false,
     /** 搜索框配置 end **/
-
-    var locale: Locale = Locale.getDefault()
+    var locale: Int = Locale.EN.ordinal
 ) {
     fun getLogFont(): Font {
         return Font(logFontName, logFontStyle, logFontSize)

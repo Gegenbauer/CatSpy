@@ -9,7 +9,6 @@ import me.gegenbauer.catspy.context.GlobalContextManager
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
-import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
@@ -60,11 +59,6 @@ class MainFrame(
         add(tabbedPane)
     }
 
-    private fun startServices() {
-        val deviceManager = ServiceManager.getContextService(AdamDeviceManager::class.java)
-        deviceManager.startMonitor()
-    }
-
     private fun bindGlobalProperties() {
         selectedProperty(settingsMenu.globalDebug) bindDual GlobalConfSync.globalDebug
         selectedProperty(settingsMenu.bindingDebug) bindDual GlobalConfSync.dataBindingDebug
@@ -73,9 +67,9 @@ class MainFrame(
     }
 
     override fun configureContext(context: Context) {
-        startServices()
         super.configureContext(context)
         tabbedPane.getAllTabs().forEach { it.setContexts(contexts) }
+        settingsMenu.setContexts(contexts)
     }
 
     private fun registerEvents() {
@@ -119,6 +113,7 @@ class MainFrame(
         tabbedPane.destroy()
         ServiceManager.dispose(this)
         saveConfigOnDestroy()
+        dispose()
     }
 
     private fun saveConfigOnDestroy() {

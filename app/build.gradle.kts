@@ -24,6 +24,7 @@ dependencies {
     implementation(projects.cache)
     implementation(projects.context)
     implementation(projects.resources)
+    implementation(projects.javaext)
 
     testImplementation(kotlin("test"))
     testImplementation(projects.ui)

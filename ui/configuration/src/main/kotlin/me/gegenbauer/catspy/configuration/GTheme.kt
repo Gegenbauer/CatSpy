@@ -4,6 +4,7 @@ import com.github.weisj.darklaf.theme.*
 import com.github.weisj.darklaf.theme.spec.AccentColorRule
 import com.github.weisj.darklaf.theme.spec.FontPrototype
 import com.github.weisj.darklaf.theme.spec.FontSizeRule
+import me.gegenbauer.catspy.strings.Locale
 import me.gegenbauer.catspy.utils.toArgb
 import java.awt.Font
 
@@ -23,7 +24,7 @@ data class GTheme(
     val isSystemPreferencesEnabled: Boolean = false,
     val isAccentColorFollowsSystem: Boolean = false,
     val isSelectionColorFollowsSystem: Boolean = false,
-    val isThemeFollowsSystem: Boolean = false
+    val isThemeFollowsSystem: Boolean = false,
 )
 
 private val themes = arrayListOf(
@@ -60,7 +61,7 @@ fun Theme.toFont(): Font {
     return Font(fontPrototype.family(), 0, (DEFAULT_FONT_SIZE.toFloat() * fontSizeRule.percentage / 100).toInt())
 }
 
-fun Font.newFont(theme: Theme, baseFontSize: Int): Font {
+fun Font.newFont(theme: Theme = ThemeManager.currentTheme, baseFontSize: Int): Font {
     return Font(
         theme.fontPrototype.family(), 0, (baseFontSize.toDouble() *
                 theme.fontSizeRule.percentage / 100).toInt()

@@ -11,6 +11,7 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ModelScope
+import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.ddmlib.DdmLog
 import java.net.ConnectException
@@ -62,6 +63,10 @@ class AdamDeviceManager : ContextService, DeviceManager {
                 dispatchDeviceListChange(it.filterConnected())
             }
         }
+    }
+
+    override fun onContextDestroyed(context: Context) {
+        stopMonitor()
     }
 
     override fun stopMonitor() {

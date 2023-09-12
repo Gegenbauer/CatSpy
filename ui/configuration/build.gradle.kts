@@ -11,10 +11,12 @@ dependencies {
     implementation(projects.ui.databinding)
     implementation(projects.concurrency)
     implementation(projects.resources.iconset)
+    implementation(projects.resources.strings)
     implementation(projects.platform)
     implementation(projects.ddmlib)
     implementation(projects.task)
     implementation(projects.glog)
+    implementation(projects.javaext)
     implementation(Gson.groupName, Gson.gson.artifact, Gson.gson.version)
     implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
 }
