@@ -125,7 +125,7 @@ object ThemeManager {
             settingsConfiguration.isSystemPreferencesEnabled,
             settingsConfiguration.isAccentColorFollowsSystem,
             settingsConfiguration.isSelectionColorFollowsSystem,
-            settingsConfiguration.isThemeFollowsSystem
+            settingsConfiguration.isThemeFollowsSystem,
         )
         themeFile.writeText(Gson().toJson(gTheme))
     }

@@ -34,7 +34,7 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
             SwingUtilities.updateComponentTreeUI(selectMenu)
             selectMenu.show(supportedTabs, tabSelector)
         }
-        
+
         selectMenu.onTabSelected = { tab ->
             contexts.getContext(MainFrame::class.java)?.addTab(tab.tabClazz.getConstructor().newInstance())
         }

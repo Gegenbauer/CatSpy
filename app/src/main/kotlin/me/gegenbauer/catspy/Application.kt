@@ -19,8 +19,7 @@ import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.platform.isInDebugMode
 import me.gegenbauer.catspy.strings.Configuration
-import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.strings.app
+import me.gegenbauer.catspy.strings.StringResourceManager
 import me.gegenbauer.catspy.ui.MainFrame
 import java.awt.Container
 import java.awt.event.WindowAdapter
@@ -30,8 +29,10 @@ import javax.swing.JComponent
 import javax.swing.UIDefaults
 import kotlin.system.exitProcess
 
-object Application {
+object Application : WindowAdapter() {
     private const val TAG = "Main"
+
+    private lateinit var mainFrame: MainFrame
 
     init {
         Locale.setDefault(Locale.CHINA)
@@ -49,6 +50,7 @@ object Application {
         AppScope.launch(Dispatchers.UI) {
             withContext(Dispatchers.APP_LAUNCH) {
                 GLog.init(filesDir, Configuration.LOG_NAME)
+                UIConfManager.init()
                 ThemeManager.init()
                 GlobalConfSync.init()
                 GLog.i(TAG, "[currentPlatform] $currentPlatform")
@@ -57,31 +59,41 @@ object Application {
             ThemeManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
             ThemeManager.registerInitTask(::adjustBeforeThemeLoaded)
             ThemeManager.installTheme()
-            val mainFrame = MainFrame(STRINGS.ui.app, Contexts())
-            mainFrame.configureContext(mainFrame)
             ThemeManager.applyTempTheme()
-            mainFrame.isVisible = true
             ThemeManager.registerDefaultThemeUpdateListener()
-
-            mainFrame.addWindowListener(object : WindowAdapter() {
-                override fun windowClosing(e: WindowEvent) {
-                    GLog.i(TAG, "[windowClosing]")
-                    AppScope.launch(Dispatchers.GIO) {
-                        GLog.i(TAG, "[windowClosing] handle dispose start")
-                        mainFrame.destroy()
-                        GLog.i(TAG, "[windowClosing] handle dispose end")
-                        exitProcess(0)
-                    }
-                }
-            })
+            openMainFrame()
 
             takeIf { GLog.debug }?.let { addClickListenerForAllComponents(mainFrame.components) }
         }
     }
 
+    override fun windowClosing(e: WindowEvent?) {
+        GLog.i(TAG, "[windowClosing]")
+        AppScope.launch(Dispatchers.GIO) {
+            GLog.i(TAG, "[windowClosing] handle dispose start")
+            mainFrame.destroy()
+            GLog.i(TAG, "[windowClosing] handle dispose end")
+            exitProcess(0)
+        }
+    }
+
+    private fun openMainFrame() {
+        if (::mainFrame.isInitialized) {
+            mainFrame.destroy()
+        }
+        StringResourceManager.loadStrings()
+        mainFrame = MainFrame(Configuration.APP_NAME, Contexts())
+        mainFrame.configureContext(mainFrame)
+        mainFrame.isVisible = true
+        mainFrame.addWindowListener(this@Application)
+    }
+
     private fun registerGlobalService() {
         ServiceManager.registerContextService(AdamDeviceManager::class.java)
         ServiceManager.registerContextService(PatternProvider::class.java)
+
+        val deviceManager = ServiceManager.getContextService(AdamDeviceManager::class.java)
+        deviceManager.startMonitor()
     }
 
     private val themeAwareControllers = listOf(

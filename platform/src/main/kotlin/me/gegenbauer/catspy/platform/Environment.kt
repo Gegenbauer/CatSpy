@@ -1,8 +1,7 @@
 package me.gegenbauer.catspy.platform
 
 import me.gegenbauer.catspy.file.appendPath
-import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.strings.app
+import me.gegenbauer.catspy.strings.Configuration
 import java.io.File
 import java.lang.management.ManagementFactory
 import javax.swing.TransferHandler.TransferSupport
@@ -46,17 +45,17 @@ enum class Platform : IPlatform {
         }
 
         override fun getFilesDir(): String {
-            return userHome.appendPath("AppData").appendPath(STRINGS.ui.app)
+            return userHome.appendPath("AppData").appendPath(Configuration.APP_NAME)
         }
     },
     LINUX {
         override fun getFilesDir(): String {
-            return userHome.appendPath(".config").appendPath(STRINGS.ui.app)
+            return userHome.appendPath(".config").appendPath(Configuration.APP_NAME)
         }
     },
     MAC {
         override fun getFilesDir(): String {
-            return userHome.appendPath("Library").appendPath("Application Support").appendPath(STRINGS.ui.app)
+            return userHome.appendPath("Library").appendPath("Application Support").appendPath(Configuration.APP_NAME)
         }
     },
     UNKNOWN {

@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.ui.dialog
 
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.strings.helpText
+import me.gegenbauer.catspy.strings.globalLocale
 import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
 import me.gegenbauer.catspy.view.button.GButton
 import java.awt.BorderLayout
@@ -20,7 +20,7 @@ class HelpDialog(parent: JFrame) : JDialog(parent, STRINGS.ui.help, true), Actio
         helpTextPane = JTextPane()
         helpTextPane.contentType = "text/html"
 
-        helpTextPane.text = STRINGS.ui.helpText
+        helpTextPane.text = globalLocale.helpText
 
         helpTextPane.caretPosition = 0
         val scrollPane = JScrollPane(helpTextPane)

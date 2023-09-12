@@ -3,11 +3,10 @@ package me.gegenbauer.catspy.log.task
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.file.ensureDir
 import me.gegenbauer.catspy.glog.GLog
-import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.strings.app
-import me.gegenbauer.catspy.task.CommandTask
 import me.gegenbauer.catspy.platform.LOG_DIR
 import me.gegenbauer.catspy.platform.filesDir
+import me.gegenbauer.catspy.strings.Configuration
+import me.gegenbauer.catspy.task.CommandTask
 import java.io.BufferedOutputStream
 import java.io.File
 import java.time.LocalDateTime
@@ -42,7 +41,7 @@ class LogcatTask(private val device: String) : CommandTask(
         val filePath = filesDir
             .appendPath(LOG_DIR)
             .appendPath(device)
-            .appendPath("${STRINGS.ui.app}_${device}_${dtf.format(LocalDateTime.now())}.txt")
+            .appendPath("${Configuration.APP_NAME}_${device}_${dtf.format(LocalDateTime.now())}.txt")
         return File(filePath).apply {
             if (exists().not()) {
                 parentFile.ensureDir()

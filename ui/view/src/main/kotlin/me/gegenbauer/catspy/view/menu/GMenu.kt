@@ -15,7 +15,7 @@ open class GMenu: JMenu() {
         border = BorderFactory.createEmptyBorder(4, 6, 4, 6)
 
         addFocusListener(object : FocusAdapter() {
-            override fun focusLost(e: FocusEvent?) {
+            override fun focusLost(e: FocusEvent) {
                 isPopupMenuVisible = false
             }
         })

@@ -1,10 +1,9 @@
 package me.gegenbauer.catspy.log.model
 
+import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.log.LogLevel
 import me.gegenbauer.catspy.log.getLevelFromFlag
-import me.gegenbauer.catspy.configuration.LogColorScheme
-import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.strings.app
+import me.gegenbauer.catspy.strings.Configuration
 import java.awt.Color
 
 data class LogcatLogItem(
@@ -60,7 +59,7 @@ data class LogcatLogItem(
                     val message = items[MESSAGE_INDEX]
                     LogcatLogItem(line, num, time, pid, tid, level, tag, message)
                 } else {
-                    val level = if (line.startsWith(STRINGS.ui.app)) {
+                    val level = if (line.startsWith(Configuration.APP_NAME)) {
                         LogLevel.ERROR
                     } else if (Character.isAlphabetic(items[PID_INDEX][0].code)) {
                         getLevelFromFlag(items[PID_INDEX][0].toString()) // 目前不知含义

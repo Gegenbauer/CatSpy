@@ -28,6 +28,7 @@ import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.LogLevel
+import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.log.model.LogcatLogItem
 import me.gegenbauer.catspy.log.model.LogcatRealTimeFilter
 import me.gegenbauer.catspy.log.nameToLogLevel
@@ -41,10 +42,8 @@ import me.gegenbauer.catspy.log.ui.panel.SplitLogPane
 import me.gegenbauer.catspy.log.ui.panel.nextRotation
 import me.gegenbauer.catspy.log.ui.popup.FileOpenPopupMenu
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
-import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.strings.Configuration
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.strings.app
 import me.gegenbauer.catspy.task.PeriodicTask
 import me.gegenbauer.catspy.task.Task
 import me.gegenbauer.catspy.task.TaskListener
@@ -56,16 +55,16 @@ import me.gegenbauer.catspy.view.filter.FilterItem.Companion.emptyItem
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.rebuild
 import me.gegenbauer.catspy.view.state.StatefulPanel
 import me.gegenbauer.catspy.view.tab.TabPanel
-import java.awt.*
-import java.awt.datatransfer.Clipboard
-import java.awt.datatransfer.StringSelection
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.FlowLayout
+import java.awt.Font
 import java.awt.event.*
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.swing.*
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
-import javax.swing.text.JTextComponent
 
 class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel(), TaskListener,
     LogObservable.Observer<LogcatLogItem>, TabPanel {
@@ -534,11 +533,11 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             }
 
             STRINGS.ui.adb, STRINGS.ui.cmd, "${STRINGS.ui.adb} ${STRINGS.ui.stop}", "${STRINGS.ui.cmd} ${STRINGS.ui.stop}" -> {
-                (logMainBinding.currentDevice.value ?: "").ifEmpty { STRINGS.ui.app }
+                (logMainBinding.currentDevice.value ?: "").ifEmpty { Configuration.APP_NAME }
             }
 
             else -> {
-                STRINGS.ui.app
+                Configuration.APP_NAME
             }
         }
     }
