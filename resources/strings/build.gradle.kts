@@ -22,8 +22,23 @@ val generateStringAccessor by tasks.registering {
     }
     doFirst {
         sourceSets.main.configure {
+
+            fun getStringResourceFiles(): List<File> {
+                val result = arrayListOf<File>()
+                val stringResourceDir = project.file("src/main/resources/strings/")
+                stringResourceDir.takeIf { it.isDirectory }?.run {
+                    listFiles()?.filter { it.isFile && it.extension == "json" }?.let { files ->
+                        result.addAll(files)
+                    }
+                }
+                return result
+            }
+
             val strJson = project.file("default.json")
-            strJson.writeText(sortProperties(strJson).toPrettyString())
+            val strJsonFilesToSort = mutableListOf(strJson)
+            strJsonFilesToSort.addAll(getStringResourceFiles())
+            println("sort json properties: ${strJsonFilesToSort.map { it.name }}")
+            strJsonFilesToSort.forEach { it.writeText(sortProperties(it).toPrettyString()) }
             val allStringsName = "Strings"
             generatedDir.mkdirs()
             val packageName = "me.gegenbauer.catspy.strings"
@@ -36,7 +51,7 @@ val generateStringAccessor by tasks.registering {
     }
 }
 
-tasks.compileJava.configure {
+tasks.compileKotlin.configure {
     dependsOn(generateStringAccessor)
 }
 

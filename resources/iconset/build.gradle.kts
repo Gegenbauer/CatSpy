@@ -29,7 +29,7 @@ val generateIconAccessor by tasks.registering {
     }
 }
 
-tasks.compileJava.configure {
+tasks.compileKotlin.configure {
     dependsOn(generateIconAccessor)
 }
 

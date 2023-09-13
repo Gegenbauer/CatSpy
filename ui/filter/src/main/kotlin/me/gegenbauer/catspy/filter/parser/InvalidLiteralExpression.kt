@@ -4,7 +4,7 @@ class InvalidLiteralExpression(
     wholeExpression: String,
     start: Int,
     end: Int,
-    reason: String = ""
+    val reason: String = ""
 ) : FilterExpression(wholeExpression, start, end) {
 
     constructor(

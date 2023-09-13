@@ -79,6 +79,7 @@
     "font": "字体",
     "full": "全部",
     "help": "帮助",
+    "languageSettingHint": "修改语言需要重启应用才能生效",
     "loading": "加载中...",
     "log": "日志",
     "logArchive": "日志存档",

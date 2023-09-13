@@ -13,6 +13,7 @@ import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.listProperty
 import me.gegenbauer.catspy.databinding.property.support.selectedIndexProperty
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.globalLocale
 import me.gegenbauer.catspy.strings.supportLocales
 import java.awt.BorderLayout
@@ -81,7 +82,7 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         private val lanSelectCombo = JComboBox<String>().apply {
             maximumSize = Dimension(400, 30)
         }
-        private val hint = JLabel("修改语言需要重启应用才能生效").apply {
+        private val hint = JLabel(STRINGS.ui.languageSettingHint).apply {
             font = ThemeSettings.getInstance().theme.toFont().newFont(baseFontSize = 10)
             isEnabled = false
             border = BorderFactory.createEmptyBorder(2, 8, 0, 0)

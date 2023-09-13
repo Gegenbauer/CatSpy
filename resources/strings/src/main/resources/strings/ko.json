@@ -80,6 +80,7 @@
     "font": "폰트",
     "full": "전체",
     "help": "도움말",
+    "languageSettingHint": "언어를 변경하려면 애플리케이션을 다시 시작해야 합니다.",
     "loading": "로딩 중...",
     "log": "로그",
     "logArchive": "로그 아카이브",
