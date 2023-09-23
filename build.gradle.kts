@@ -1,13 +1,3 @@
-plugins {
-    idea
-    id("com.diffplug.spotless")
-    id("com.github.vlsi.crlf")
-    id("com.github.vlsi.gradle-extensions")
-    id("com.github.vlsi.stage-vote-release")
-    id("org.ajoberstar.grgit")
-    id("net.ltgt.errorprone") apply false
-}
-
 allprojects {
     group = "me.gegenbauer.catspy"
     version = "1.0.0"

@@ -1,0 +1,30 @@
+CREATE TABLE IF NOT EXISTS workspace (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  creationTime TEXT NOT NULL,
+  lastOpenedTime TEXT NOT NULL,
+  isArchived INTEGER NOT NULL
+);
+
+insertWorkspace:
+INSERT OR IGNORE INTO workspace (name, creationTime, lastOpenedTime, isArchived)
+VALUES (?, ?, ?, ?);
+
+selectWorkspaceById:
+SELECT * FROM workspace WHERE id = ?;
+
+selectAllWorkspaces:
+SELECT * FROM workspace;
+
+updateLastOpenedTime:
+UPDATE workspace
+SET lastOpenedTime = ?
+WHERE id = ?;
+
+updateIsArchived:
+UPDATE workspace
+SET isArchived = ?
+WHERE id = ?;
+
+deleteWorkspaceById:
+DELETE FROM workspace WHERE id = ?;

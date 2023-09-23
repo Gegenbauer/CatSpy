@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS log_entry (
+    id INTEGER PRIMARY KEY NOT NULL,
+    file_id INTEGER NOT NULL,
+    time TEXT NOT NULL,
+    pid TEXT NOT NULL,
+    tid TEXT NOT NULL,
+    level TEXT NOT NULL,
+    tag TEXT NOT NULL,
+    message TEXT NOT NULL
+);
+
+dropLogEntry:
+DROP TABLE IF EXISTS LogEntry;
+
+selectAll:
+SELECT * FROM log_entry;
+
+insertLogEntry:
+INSERT INTO log_entry(id, file_id, time, pid, tid, level, tag, message)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);

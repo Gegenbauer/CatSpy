@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm")
     `java-library`
     `module-info-compile`
 }
@@ -17,7 +17,7 @@ dependencies {
     implementation(projects.task)
     implementation(projects.context)
     implementation(projects.ddmlib)
-    implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
+    implementation(Weisj.darklafCore)
 }
 
 tasks.withType<KotlinCompile> {

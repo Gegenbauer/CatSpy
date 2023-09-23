@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm")
     `java-library`
     `module-info-compile`
 }
@@ -7,5 +7,6 @@ plugins {
 dependencies {
     implementation(projects.glog)
     implementation(projects.javaext)
-    implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
+    implementation(Weisj.darklafCore)
+    implementation(Zip4j.zip4j)
 }

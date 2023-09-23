@@ -1,13 +1,13 @@
 plugins {
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm")
     `java-library`
     `module-info-compile`
 }
 
 dependencies {
-    api(kotlin("reflect"))
+    api(kotlinReflectApi())
     implementation(projects.glog)
-    testImplementation(kotlin("test"))
+    testImplementation(kotlinTestApi())
 }
 
 tasks.getByName<Test>("test") {

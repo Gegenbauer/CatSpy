@@ -1,0 +1,31 @@
+CREATE TABLE IF NOT EXISTS workspace_file_tree (
+  workspace_id INTEGER NOT NULL REFERENCES workspace(id) ON DELETE CASCADE,
+  file_id INTEGER NOT NULL REFERENCES file(id) ON DELETE CASCADE,
+  isExpanded INTEGER NOT NULL,
+  isOpen INTEGER NOT NULL,
+  position INTEGER NOT NULL,
+  PRIMARY KEY(workspace_id, file_id),
+  FOREIGN KEY(workspace_id) REFERENCES workspace(id) ON DELETE CASCADE,
+  FOREIGN KEY(file_id) REFERENCES file(id) ON DELETE CASCADE
+);
+
+-- 为一个工作空间添加一个文件，设置其展开状态和打开状态
+insertIntoWorkspaceFileTree:
+INSERT OR REPLACE INTO workspace_file_tree (workspace_id, file_id, isExpanded, isOpen, position)
+VALUES (?, ?, ?, ?, ?);
+
+-- 获取一个工作空间的全部文件树状态
+selectAllFromWorkspaceFileTree:
+SELECT * FROM workspace_file_tree WHERE workspace_id = ? ORDER BY position;
+
+-- 更新一个工作空间文件的展开状态
+updateIsExpandedInWorkspaceFileTree:
+UPDATE workspace_file_tree SET isExpanded = ? WHERE workspace_id = ? AND file_id = ?;
+
+-- 更新一个工作空间文件的打开状态
+updateIsOpenInWorkspaceFileTree:
+UPDATE workspace_file_tree SET isOpen = ? WHERE workspace_id = ? AND file_id = ?;
+
+-- 删除一个工作空间的文件树状态
+deleteFromWorkspaceFileTree:
+DELETE FROM workspace_file_tree WHERE workspace_id = ? AND file_id = ?;

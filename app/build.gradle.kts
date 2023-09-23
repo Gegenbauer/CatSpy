@@ -2,9 +2,8 @@ import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-    kotlin("jvm") version Kotlin.version
-    id("org.jetbrains.compose") version Compose.version
-    id("io.gitlab.arturbosch.detekt") version("1.21.0")
+    kotlin("jvm")
+    id(Compose.groupName)
 }
 
 repositories {
@@ -26,10 +25,10 @@ dependencies {
     implementation(projects.resources)
     implementation(projects.javaext)
 
-    testImplementation(kotlin("test"))
+    testImplementation(kotlinTestApi())
     testImplementation(projects.ui)
     testImplementation(projects.concurrency)
-    testImplementation(Mockk.groupName, Mockk.mockk.artifact, Mockk.mockk.version)
+    testImplementation(Mockk.mockk)
 }
 
 tasks.test {

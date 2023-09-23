@@ -5,6 +5,7 @@ import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.dialog.AboutDialog
 import me.gegenbauer.catspy.ui.dialog.HelpDialog
+import me.gegenbauer.catspy.utils.MENU_ICON_SIZE
 import me.gegenbauer.catspy.utils.findFrameFromParent
 import me.gegenbauer.catspy.view.menu.GMenu
 import java.awt.event.ActionListener
@@ -17,7 +18,7 @@ class HelpMenu : GMenu() {
         icon = GIcons.Menu.Help.get(Menu.MENU_ITEM_ICON_SIZE, Menu.MENU_ITEM_ICON_SIZE)
     }
     private val itemAbout = JMenuItem(STRINGS.ui.about).apply {
-        icon = GIcons.Menu.About.get(14, 14)
+        icon = GIcons.Menu.About.get(MENU_ICON_SIZE, MENU_ICON_SIZE)
     }
     private val actionHandler = ActionListener {
         when (it.source) {

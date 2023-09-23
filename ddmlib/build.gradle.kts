@@ -1,13 +1,13 @@
 plugins {
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm")
     `java-library`
     `module-info-compile`
 }
 
 dependencies {
-    api(AndroidDdm.groupName, AndroidDdm.ddmlib.artifact, AndroidDdm.ddmlib.version)
-    api(Adam.groupName, Adam.adam.artifact, Adam.adam.version)
-    implementation(Slf4j.groupName, Slf4j.simple.artifact, Slf4j.simple.version)
+    api(AndroidDdm.ddmlib)
+    api(Adam.adam)
+    implementation(Slf4j.simple)
     implementation(projects.concurrency)
     implementation(projects.glog)
     implementation(projects.context)

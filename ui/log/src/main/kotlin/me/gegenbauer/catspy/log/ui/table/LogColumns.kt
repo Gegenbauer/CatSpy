@@ -158,20 +158,17 @@ private class SimpleLogCellRenderer : DefaultLogTableCellRenderer() {
     }
 }
 
-private abstract class BoldLogCellRenderer : DefaultLogTableCellRenderer() {
+private abstract class BoldLogCellRenderer : MessageLogCellRenderer() {
 
     init {
         horizontalAlignment = JLabel.LEFT
         verticalAlignment = JLabel.CENTER
     }
 
-    override fun render(table: LogTable, label: JLabel, row: Int, col: Int, content: String) {
-        foreground = table.tableModel.getItemInCurrentPage(row).fgColor
-        if (shouldBold(table)) {
-            val renderer = HtmlStringRenderer(content)
+    override fun addRenderItem(logTable: LogTable, row: Int, renderer: HtmlStringRenderer) {
+        if (shouldBold(logTable)) {
             renderer.foreground(0, renderer.raw.length - 1, getBoldColor())
             renderer.bold(0, renderer.raw.length - 1)
-            label.text = renderer.render()
         }
     }
 
@@ -190,7 +187,7 @@ private open class MessageLogCellRenderer : DefaultLogTableCellRenderer() {
         label.text = getRenderedContent(table, row, content)
     }
 
-    protected open fun getRenderedContent(logTable: LogTable, row: Int, content: String): String {
+    protected fun getRenderedContent(logTable: LogTable, row: Int, content: String): String {
         val renderer = HtmlStringRenderer(content)
         val logItem = logTable.tableModel.getItemInCurrentPage(row)
         val foreground = logItem.fgColor

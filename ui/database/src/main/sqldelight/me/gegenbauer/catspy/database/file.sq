@@ -1,0 +1,30 @@
+CREATE TABLE IF NOT EXISTS file (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  path TEXT NOT NULL UNIQUE, -- UNIQUE constraint added
+  type INTEGER NOT NULL,
+  md5 TEXT NOT NULL,
+  is_cache INTEGER NOT NULL DEFAULT 0  -- 0 for regular files, 1 for cache files
+);
+CREATE INDEX IF NOT EXISTS idx_file_path ON file (path);
+
+insertFile:
+INSERT INTO file (name, path, type, md5, is_cache) VALUES (?, ?, ?, ?, ?);
+
+selectFileById:
+SELECT * FROM file WHERE id = ?;
+
+selectAllFiles:
+SELECT * FROM file;
+
+updateFileMd5ById:
+UPDATE file SET md5 = ? WHERE id = ?;
+
+deleteFileById:
+DELETE FROM file WHERE id = ?;
+
+deleteFileByPath:
+DELETE FROM file WHERE path = ?;
+
+queryIdByPath:
+SELECT id FROM file WHERE path = ?;

@@ -1,5 +1,5 @@
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.kotlin.dsl.DependencyHandlerScope
+import org.gradle.kotlin.dsl.kotlin
 
 object Kotlin {
     val groupName = "org.jetbrains.kotlinx"
@@ -84,6 +84,20 @@ object JavaXAnno {
     val annotationApi = Dependency(groupName, "javax.annotation-api", "1.3.2")
 }
 
+object SqlDelight {
+    val groupName = "com.squareup.sqldelight"
+    val version = "1.5.4"
+
+    val sqliteDriver = Dependency(groupName, "sqlite-driver", version)
+    val coroutines = Dependency(groupName, "coroutines-extensions", version)
+}
+
+object Zip4j {
+val groupName = "net.lingala.zip4j"
+
+    val zip4j = Dependency(groupName, "zip4j", "2.11.5")
+}
+
 data class Dependency(
     val group: String,
     val artifact: String,
@@ -93,3 +107,29 @@ data class Dependency(
         return "$group:$artifact:$version"
     }
 }
+
+fun DependencyHandler.implementation(dependency: Dependency) {
+    add("implementation", dependency.toString())
+}
+
+fun DependencyHandler.testImplementation(dependency: Dependency) {
+    add("testImplementation", dependency.toString())
+}
+
+fun DependencyHandler.api(dependency: Dependency) {
+    add("api", dependency.toString())
+}
+
+fun DependencyHandler.kotlinTestApi(): Any {
+    return kotlin("test")
+}
+
+fun DependencyHandler.kotlinReflectApi(): Any {
+    return kotlin("reflect")
+}
+
+object FileDependency {
+    const val flatlaf = "libs/flatlaf-2.1.jar"
+    const val swingx = "libs/swingx-1.6.1.jar"
+}
+

@@ -36,7 +36,7 @@ class AboutDialog(parent: JFrame) :JDialog(parent, STRINGS.ui.about, true), Acti
 
         contentPane.add(panel)
         pack()
-        iconImages = listOf((GIcons.Logo.get(200, 200) as DerivableImageIcon).image)
+        setIconImage((GIcons.Logo.get(200, 200) as DerivableImageIcon).image)
 
         installKeyStrokeEscClosing(this)
     }

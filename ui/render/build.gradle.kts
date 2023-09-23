@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm")
     `java-library`
     `module-info-compile`
 }
@@ -7,8 +7,8 @@ plugins {
 dependencies {
     implementation(projects.glog)
 
-    testImplementation(kotlin("test"))
-    testImplementation(Mockk.groupName, Mockk.mockk.artifact, Mockk.mockk.version)
+    testImplementation(kotlinTestApi())
+    testImplementation(Mockk.mockk)
 }
 
 tasks.getByName<Test>("test") {

@@ -182,10 +182,11 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
         get() = replace("<", "&lt;").replace(">", "&gt;").replace(" ", "&nbsp;")
 
     private fun averageColor(colors: List<Color>): Color {
+        val alpha = colors.map { it.alpha }.average().roundToInt()
         val r = colors.map { it.red }.average().roundToInt()
         val g = colors.map { it.green }.average().roundToInt()
         val b = colors.map { it.blue }.average().roundToInt()
-        return Color(r, g, b)
+        return Color(r, g, b, alpha)
     }
 
     private data class Span(

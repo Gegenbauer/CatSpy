@@ -1,48 +1,25 @@
-package me.gegenbauer.catspy
+package me.gegenbauer.catspy.demo
 
-import com.github.weisj.darklaf.LafManager
-import com.github.weisj.darklaf.theme.Theme
-import com.github.weisj.darklaf.ui.button.DarkButtonUI
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import me.gegenbauer.catspy.configuration.ThemeManager
-import me.gegenbauer.catspy.configuration.GlobalConfSync
-import me.gegenbauer.catspy.concurrency.APP_LAUNCH
-import me.gegenbauer.catspy.concurrency.AppScope
-import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.glog.GLog
-import me.gegenbauer.catspy.platform.userDir
+import me.gegenbauer.catspy.demo.base.BaseComponentDemo
+import me.gegenbauer.catspy.demo.base.DemoExecutor
 import org.fife.ui.autocomplete.*
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants
+import java.awt.BorderLayout
 import java.awt.Dimension
-import javax.swing.*
+import javax.swing.JScrollPane
 import javax.swing.text.AbstractDocument
 import javax.swing.text.DocumentFilter
 
 
 fun main() {
-    AppScope.launch(Dispatchers.UI) {
-        withContext(Dispatchers.APP_LAUNCH) {
-            GLog.init(userDir, "glog.txt")
-            GLog.debug = true
-            ThemeManager.init()
-            GlobalConfSync.init()
-        }
-        ThemeManager.installTheme()
-        LafManager.registerInitTask { _: Theme, defaults: UIDefaults ->
-            defaults[DarkButtonUI.KEY_VARIANT] = DarkButtonUI.VARIANT_BORDERLESS
-        }
-        val frame = AutoCompleteDemo()
-        frame.size = Dimension(500, 500)
-        frame.isVisible = true
-    }
+    DemoExecutor.show(AutoCompleteDemo())
 }
 
 
-class AutoCompleteDemo : JFrame() {
+class AutoCompleteDemo : BaseComponentDemo() {
     init {
+        layout = BorderLayout()
         val textArea = RSyntaxTextArea()
         textArea.syntaxEditingStyle = SyntaxConstants.SYNTAX_STYLE_NONE
         textArea.lineWrap = false
@@ -80,11 +57,7 @@ class AutoCompleteDemo : JFrame() {
         ac.isAutoCompleteEnabled = true
         ac.isAutoActivationEnabled = true
         ac.install(textArea)
-        setContentPane(contentPane)
-        title = "AutoComplete Demo"
-        defaultCloseOperation = EXIT_ON_CLOSE
-        pack()
-        setLocationRelativeTo(null)
+        add(contentPane, BorderLayout.CENTER)
     }
 
     /**
@@ -119,18 +92,6 @@ class AutoCompleteDemo : JFrame() {
         }
     }
 
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            // Instantiate GUI on the EDT.
-            SwingUtilities.invokeLater {
-                try {
-                    val laf = UIManager.getSystemLookAndFeelClassName()
-                    UIManager.setLookAndFeel(laf)
-                } catch (e: Exception) { /* Never happens */
-                }
-                AutoCompleteDemo().isVisible = true
-            }
-        }
-    }
+    override val demoName: String
+        get() = "AutoCompleteDemo"
 }
