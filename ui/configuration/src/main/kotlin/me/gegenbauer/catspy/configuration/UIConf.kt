@@ -6,7 +6,7 @@ import me.gegenbauer.catspy.strings.Locale
 import java.awt.Font
 import java.awt.Frame
 
-data class UIConf(
+data class  UIConf(
     /** 应用配置 start **/
     var versionCode: Int = 10000,
     var versionName: String = "1.0.0",
@@ -49,7 +49,7 @@ data class UIConf(
     var uiFontScale: Int = 100,
     var dividerSize: Int = 10,
     var logFontName: String = "DialogInput",
-    var logFontSize: Int = 14,
+    var logFontSize: Int = DEFAULT_FONT_SIZE,
     var logFontStyle: Int = 0,
     val strColorList: MutableList<String> = mutableListOf(),
     /** 界面主题 end **/

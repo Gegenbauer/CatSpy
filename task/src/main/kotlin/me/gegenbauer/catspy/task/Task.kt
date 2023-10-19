@@ -11,6 +11,8 @@ interface Task {
 
     val isRunning: Boolean
 
+    val listeners: List<TaskListener>
+
     fun start()
 
     fun pause()

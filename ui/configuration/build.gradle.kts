@@ -1,7 +1,5 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm")
     `java-library`
     `module-info-compile`
 }
@@ -17,7 +15,7 @@ dependencies {
     implementation(projects.task)
     implementation(projects.glog)
     implementation(projects.javaext)
-    implementation(Gson.groupName, Gson.gson.artifact, Gson.gson.version)
-    implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
+    implementation(Gson.gson)
+    implementation(Weisj.darklafCore)
 }
 

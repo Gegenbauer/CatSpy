@@ -1,22 +1,22 @@
 plugins {
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm")
     `java-library`
     `module-info-compile`
 }
 
 dependencies {
-    implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
+    implementation(Weisj.darklafCore)
     implementation(projects.glog)
     implementation(projects.ui.utils)
     implementation(projects.javaext)
-    api(Kotlin.groupName, Kotlin.coroutineCore.artifact, Kotlin.coroutineCore.version)
-    api(Kotlin.groupName, Kotlin.coroutineSwing.artifact, Kotlin.coroutineSwing.version)
-    api(Fifesoft.groupName, Fifesoft.autocomplete.artifact, Fifesoft.autocomplete.version)
+    api(Kotlin.coroutineCore)
+    api(Kotlin.coroutineSwing)
+    api(Fifesoft.autocomplete)
 
-    testImplementation(kotlin("test"))
+    testImplementation(kotlinTestApi())
     testImplementation(projects.ui.utils)
-    testImplementation(kotlin("reflect"))
-    testImplementation(Mockk.groupName, Mockk.mockk.artifact, Mockk.mockk.version)
+    testImplementation(kotlinReflectApi())
+    testImplementation(Mockk.mockk)
 }
 
 tasks.getByName<Test>("test") {

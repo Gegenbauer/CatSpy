@@ -8,6 +8,7 @@ import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.Rotation
@@ -216,7 +217,10 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         registerEvent()
 
         observeViewModelValue()
-        bind(logMainBinding)
+        scope.launch {
+            delay(100)
+            bind(logMainBinding)
+        }
         ThemeManager.registerThemeUpdateListener(logMainBinding)
     }
 

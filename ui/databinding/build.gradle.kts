@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm")
     `java-library`
     `module-info-compile`
 }
@@ -11,16 +11,16 @@ dependencies {
     implementation(projects.glog)
     implementation(projects.ui.utils)
     implementation(projects.javaext)
-    implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
+    implementation(Weisj.darklafCore)
     testImplementation(projects.concurrency)
     testImplementation(projects.glog)
-    testImplementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
-    testImplementation(JGoodies.groupName, JGoodies.binding.artifact, JGoodies.binding.version)
+    testImplementation(Weisj.darklafCore)
+    testImplementation(JGoodies.binding)
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
         freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
     }
 }

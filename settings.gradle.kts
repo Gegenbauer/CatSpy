@@ -1,6 +1,24 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    }
+    plugins {
+        val kotlinVersion = extra["kotlinVersion"] as String
+        val composeVersion = extra["composeVersion"] as String
+
+        kotlin("jvm").version(kotlinVersion)
+        kotlin("multiplatform").version(kotlinVersion)
+        id("org.jetbrains.compose").version(composeVersion)
+    }
+}
+
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "CatSpy"
+
 include(
     "app",
     "glog",
@@ -26,24 +44,3 @@ include(
     "resources:strings",
     "resources:common",
 )
-
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-    }
-    plugins {
-        fun idv(id: String, key: String = id) = id(id) version extra["$key.version"].toString()
-        idv("com.diffplug.spotless")
-        idv("com.github.vlsi.crlf", "com.github.vlsi.vlsi-release-plugins")
-        idv("com.github.vlsi.gradle-extensions", "com.github.vlsi.vlsi-release-plugins")
-        idv("com.github.vlsi.license-gather", "com.github.vlsi.vlsi-release-plugins")
-        idv("com.github.vlsi.stage-vote-release", "com.github.vlsi.vlsi-release-plugins")
-        idv("org.ajoberstar.grgit")
-        idv("net.ltgt.errorprone")
-    }
-}
-include("resources:common")
-findProject(":resources:common")?.name = "common"

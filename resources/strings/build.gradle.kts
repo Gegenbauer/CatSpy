@@ -1,7 +1,7 @@
 import com.google.gson.GsonBuilder
 
 plugins {
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm")
     `java-library`
     `module-info-compile`
 }

@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm")
     `java-library`
     `module-info-compile`
 }
@@ -11,7 +11,7 @@ dependencies {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
         freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
     }
 }

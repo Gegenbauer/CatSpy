@@ -1,11 +1,12 @@
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.kotlin.dsl.DependencyHandlerScope
+import org.gradle.kotlin.dsl.kotlin
 
 object Kotlin {
     val groupName = "org.jetbrains.kotlinx"
-    val version = "1.6.10"
+    val version = "1.8.22"
 
-    val coroutineVersion = "1.5.2"
+    val coroutineVersion = "1.7.1"
     val coroutineCore = Dependency(groupName, "kotlinx-coroutines-core", coroutineVersion)
     val coroutineSwing = Dependency(groupName, "kotlinx-coroutines-swing", coroutineVersion)
 }
@@ -92,4 +93,29 @@ data class Dependency(
     override fun toString(): String {
         return "$group:$artifact:$version"
     }
+}
+
+fun DependencyHandler.implementation(dependency: Dependency) {
+    add("implementation", dependency.toString())
+}
+
+fun DependencyHandler.testImplementation(dependency: Dependency) {
+    add("testImplementation", dependency.toString())
+}
+
+fun DependencyHandler.api(dependency: Dependency) {
+    add("api", dependency.toString())
+}
+
+fun DependencyHandler.kotlinTestApi(): Any {
+    return kotlin("test")
+}
+
+fun DependencyHandler.kotlinReflectApi(): Any {
+    return kotlin("reflect")
+}
+
+object FileDependency {
+    const val flatlaf = "libs/flatlaf-2.1.jar"
+    const val swingx = "libs/swingx-1.6.1.jar"
 }

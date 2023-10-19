@@ -181,7 +181,7 @@ class LogMainBinding : ContextService, GThemeChangeListener {
         }
         logFont.addObserver {
             UIConfManager.uiConf.logFontName = it?.fontName ?: "DialogInput"
-            UIConfManager.uiConf.logFontSize = it?.size ?: 14
+            UIConfManager.uiConf.logFontSize = it?.size ?: DEFAULT_FONT_SIZE
             UIConfManager.uiConf.logFontStyle = it?.style ?: 0
         }
     }

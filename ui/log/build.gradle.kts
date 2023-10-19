@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm")
     `java-library`
     `module-info-compile`
 }
@@ -22,11 +22,13 @@ dependencies {
     implementation(projects.javaext)
     implementation(projects.ui.render)
     implementation(projects.ui.databinding)
+
+    testImplementation(kotlinTestApi())
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
         freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
     }
 }

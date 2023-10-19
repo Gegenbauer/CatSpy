@@ -4,7 +4,6 @@ import com.github.weisj.darklaf.theme.*
 import com.github.weisj.darklaf.theme.spec.AccentColorRule
 import com.github.weisj.darklaf.theme.spec.FontPrototype
 import com.github.weisj.darklaf.theme.spec.FontSizeRule
-import me.gegenbauer.catspy.strings.Locale
 import me.gegenbauer.catspy.utils.toArgb
 import java.awt.Font
 

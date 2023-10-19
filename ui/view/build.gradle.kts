@@ -1,14 +1,14 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm")
     `java-library`
     `module-info-compile`
 }
 
 dependencies {
-    api(files("libs/flatlaf-2.1.jar"))
-    api(files("libs/swingx-1.6.1.jar"))
+    api(files(FileDependency.flatlaf))
+    api(files(FileDependency.swingx))
     implementation(projects.ui.utils)
     implementation(projects.ui.databinding)
     implementation(projects.ui.configuration)
@@ -18,20 +18,20 @@ dependencies {
     implementation(projects.context)
     implementation(projects.cache)
 
-    api(TableLayout.groupName, TableLayout.tablelayout.artifact, TableLayout.tablelayout.version)
-    api(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
-    api(FormDev.groupName, FormDev.flatLaf.artifact, FormDev.flatLaf.version)
-    api(Weisj.groupName, Weisj.darklafVisualPadding.artifact, Weisj.darklafVisualPadding.version)
-    implementation(Gson.groupName, Gson.gson.artifact, Gson.gson.version)
-    implementation(Fifesoft.groupName, Fifesoft.autocomplete.artifact, Fifesoft.autocomplete.version)
+    api(TableLayout.tablelayout)
+    api(Weisj.darklafCore)
+    api(FormDev.flatLaf)
+    api(Weisj.darklafVisualPadding)
+    implementation(Gson.gson)
+    implementation(Fifesoft.autocomplete)
 
-    testImplementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
-    testImplementation(kotlin("test"))
+    testImplementation(Weisj.darklafCore)
+    testImplementation(kotlinTestApi())
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
         freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
     }
 }

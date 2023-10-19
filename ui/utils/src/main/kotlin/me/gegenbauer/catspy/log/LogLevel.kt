@@ -18,33 +18,19 @@ sealed class LogLevel(
     }
 }
 
-private val levelToLogLevelMap = LogLevel::class.nestedClasses.filter { clazz ->
-    LogLevel::class.java.isAssignableFrom(clazz.java) && (clazz.java != LogLevel::class.java)
-}.map {
-    it.objectInstance as LogLevel
-}.associateBy {
-    it.logLevel
-}
+private val logLevels = arrayListOf(
+    LogLevel.NONE,
+    LogLevel.VERBOSE,
+    LogLevel.DEBUG,
+    LogLevel.INFO,
+    LogLevel.WARN,
+    LogLevel.ERROR,
+    LogLevel.FATAL
+)
 
-private val flagToLevelMap = LogLevel::class.nestedClasses.filter { clazz ->
-    LogLevel::class.java.isAssignableFrom(clazz.java) && (clazz.java != LogLevel::class.java)
-}.map {
-    it.objectInstance as LogLevel
-}.associateBy {
-    it.flag
-}
+private val flagToLevelMap = logLevels.associateBy({ it.flag }, { it })
 
-val nameToLogLevel = LogLevel::class.nestedClasses.filter { clazz ->
-    LogLevel::class.java.isAssignableFrom(clazz.java) && (clazz.java != LogLevel::class.java)
-}.map {
-    it.objectInstance as LogLevel
-}.associateBy {
-    it.logName
-}
-
-fun getLevel(logLevel: Int): LogLevel {
-    return levelToLogLevelMap[logLevel] ?: LogLevel.VERBOSE
-}
+val nameToLogLevel = logLevels.associateBy({ it.logName }, { it })
 
 fun getLevelFromFlag(flag: String): LogLevel {
     return flagToLevelMap[flag] ?: LogLevel.VERBOSE

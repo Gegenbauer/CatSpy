@@ -85,10 +85,14 @@ object LogColorScheme: ThemeAware {
         FILER_COMBO_BOX_SEPARATOR_BG(46),
     }
 
+    private fun Color.alpha(alpha: Double): Color {
+        return Color(red, green, blue, (alpha * 255).toInt())
+    }
+
     private val colorArrayLight = arrayOf(
         ColorItem(0, "Filtered FG", Color(0xFFFFFF)),
         ColorItem(14, "Selected BG", Color(0xE0E0E0)),
-        ColorItem(15, "Filtered BG", Color(0x20B020)),
+        ColorItem(15, "Filtered BG", Color(0x20B020).alpha(0.3)),
         ColorItem(16, "Log BG", Color(0xFFFAFA)),
         ColorItem(17, "LineNum BG", Color(0xD0D0D0)),
         ColorItem(18, "Bookmark BG", Color(0xE0E0FF)),
@@ -109,7 +113,7 @@ object LogColorScheme: ThemeAware {
         ColorItem(21, "LineNum Bookmark Selected BG", Color(0xC0C0CF)),
         ColorItem(22, "LineNum Bookmark BG", Color(0xE0E0EF)),
         ColorItem(23, "LineNum Selected BG", Color(0xC0C0C0)),
-        ColorItem(24, "Highlight BG", Color(0x3030B0)),
+        ColorItem(24, "Highlight BG", Color(0x3030B0).alpha(0.8)),
         ColorItem(26, "Filtered 1 FG", Color(0xFFFFFF)),
         ColorItem(27, "Filtered 2 FG", Color(0xFFFFFF)),
         ColorItem(28, "Filtered 3 FG", Color(0xFFFFFF)),
