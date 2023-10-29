@@ -30,24 +30,19 @@ import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.LogLevel
 import me.gegenbauer.catspy.log.binding.LogMainBinding
-import me.gegenbauer.catspy.log.model.LogcatLogItem
-import me.gegenbauer.catspy.log.model.LogcatRealTimeFilter
+import me.gegenbauer.catspy.log.datasource.*
+import me.gegenbauer.catspy.log.model.LogcatFilter
 import me.gegenbauer.catspy.log.nameToLogLevel
-import me.gegenbauer.catspy.log.repo.*
-import me.gegenbauer.catspy.log.task.LogTask
-import me.gegenbauer.catspy.log.task.LogTaskManager
 import me.gegenbauer.catspy.log.ui.dialog.GoToDialog
 import me.gegenbauer.catspy.log.ui.dialog.LogTableDialog
 import me.gegenbauer.catspy.log.ui.panel.FullLogPanel
 import me.gegenbauer.catspy.log.ui.panel.SplitLogPane
 import me.gegenbauer.catspy.log.ui.panel.nextRotation
 import me.gegenbauer.catspy.log.ui.popup.FileOpenPopupMenu
+import me.gegenbauer.catspy.log.ui.table.FilteredLogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.strings.Configuration
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.task.PeriodicTask
-import me.gegenbauer.catspy.task.Task
-import me.gegenbauer.catspy.task.TaskListener
 import me.gegenbauer.catspy.utils.*
 import me.gegenbauer.catspy.view.button.ColorToggleButton
 import me.gegenbauer.catspy.view.button.IconBarButton
@@ -67,27 +62,27 @@ import javax.swing.*
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 
-class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel(), TaskListener,
-    LogObservable.Observer<LogcatLogItem>, TabPanel {
+class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
 
     override val tabName: String = TAB_NAME
     override val tabIcon: Icon = GIcons.Tab.FileLog.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
 
     //region scoped service
     val logMainBinding = ServiceManager.getContextService(this, LogMainBinding::class.java)
-    private val bookmarkManager = ServiceManager.getContextService(this, BookmarkManager::class.java)
     //endregion
 
     //region task
-    private val taskManager = ServiceManager.getContextService(this, LogTaskManager::class.java)
-    private val updateLogUITask = PeriodicTask(500, "updateLogUITask")
     private val scope = MainScope()
+    private var taskState: TaskUIState = TaskNone(this)
+        set(value) {
+            field = value
+            value.updateUI()
+        }
     //endregion
 
     //region log data
-    private val logProvider = LogcatLogProvider()
-    private val fullLogcatRepository = FullLogcatRepository(updateLogUITask)
-    private val filteredLogcatRepository = FilteredLogcatRepository(taskManager, updateLogUITask, bookmarkManager)
+    private val logViewModel = LogViewModel()
+    private var logProducer: LogProducer = EmptyLogProducer
     //endregion
 
     //region filterPanel
@@ -147,9 +142,9 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     //region splitLogPane
     private val splitLogWithStatefulPanel = StatefulPanel()
-    private val fullTableModel = LogTableModel(fullLogcatRepository)
-    private val filteredTableModel = LogTableModel(filteredLogcatRepository)
-    internal val splitLogPane = SplitLogPane(fullTableModel, filteredTableModel).apply {
+    private val fullTableModel = LogTableModel(logViewModel)
+    private val filteredTableModel = FilteredLogTableModel(logViewModel)
+    private val splitLogPane = SplitLogPane(fullTableModel, filteredTableModel).apply {
         onFocusGained = {
             searchPanel.setTargetView(it)
         }
@@ -196,12 +191,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             splitLogPane.fullLogPanel.customFont = value
         }
 
-    private var state: TaskState? = null
-        set(value) {
-            if (field != value) value?.updateUI()
-            field = value
-        }
-
     private val devicesChangeListener = DeviceListListener {
         refreshDevices(it)
     }
@@ -209,16 +198,13 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     init {
         GlobalContextManager.register(this)
 
-        logProvider.addObserver(fullLogcatRepository)
-        logProvider.addObserver(filteredLogcatRepository)
-
         createUI()
 
         registerEvent()
 
         observeViewModelValue()
         scope.launch {
-            delay(100)
+            delay(50)
             bind(logMainBinding)
         }
         ThemeManager.registerThemeUpdateListener(logMainBinding)
@@ -325,17 +311,23 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        splitLogPane.setContexts(contexts)
-        filePopupMenu.setContexts(contexts)
 
+        ServiceManager.getContextService(this, BookmarkManager::class.java)
         ServiceManager.getContextService(AdamDeviceManager::class.java).registerDevicesListener(devicesChangeListener)
         registerSearchStroke()
+
+        splitLogPane.setContexts(contexts)
+        filePopupMenu.setContexts(contexts)
     }
 
     private fun observeViewModelValue() {
         logMainBinding.apply {
             pauseAll.addObserver {
-                taskManager.updatePauseState(it == true)
+                if (it == true) {
+                    logViewModel.pause()
+                } else {
+                    logViewModel.resume()
+                }
             }
             filterMatchCaseEnabled.addObserver { updateLogFilter() }
             logLevel.addObserver { updateLogFilter() }
@@ -407,7 +399,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         logToolBar.add(rotateLogPanelBtn)
         logToolBar.addVSeparator2()
         logToolBar.add(clearViewsBtn)
-        state = TaskIdle(this)
 
         toolBarPanel.border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
         toolBarPanel.add(logToolBar)
@@ -463,29 +454,40 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         rotateLogPanelBtn.addActionListener(actionHandler)
         saveBtn.addActionListener(actionHandler)
 
-        fullTableModel.addLogTableModelListener { event ->
-            scope.launch(Dispatchers.UI.immediate) {
-                splitLogWithStatefulPanel.state = if ((event.source as LogTableModel).rowCount > 0) {
-                    StatefulPanel.State.NORMAL
-                } else {
-                    StatefulPanel.State.EMPTY
+        scope.launch(Dispatchers.UI) {
+            logViewModel.fullLogListState.collect {
+                splitLogWithStatefulPanel.listState = it
+            }
+        }
+        scope.launch(Dispatchers.UI) {
+            logViewModel.errorFlow.collect {
+                it ?: return@collect
+                GLog.e(TAG, "[registerEvent] error", it)
+                JOptionPane.showMessageDialog(
+                    this@LogTabPanel,
+                    it.message ?: "Unknown Error",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                )
+            }
+        }
+        scope.launch(Dispatchers.UI) {
+            logViewModel.taskState.collect {
+                taskState = when (it) {
+                    TaskState.IDLE -> {
+                        TaskIdle(this@LogTabPanel)
+                    }
+
+                    TaskState.RUNNING -> {
+                        TaskStarted(this@LogTabPanel)
+                    }
+
+                    TaskState.PAUSED -> {
+                        TaskPaused(this@LogTabPanel)
+                    }
                 }
             }
         }
-        filteredTableModel.state.addObserver {
-            scope.launch(Dispatchers.UI.immediate) {
-                splitLogPane.filterStatefulPanel.state = it ?: StatefulPanel.State.NONE
-            }
-        }
-        splitLogPane.fullLogPanel.table.selectionModel.addListSelectionListener {
-            fullLogcatRepository.selectedRow = splitLogPane.fullLogPanel.table.selectedRow.takeIf { it >= 0 } ?: -1
-        }
-        splitLogPane.filteredLogPanel.table.selectionModel.addListSelectionListener {
-            filteredLogcatRepository.selectedRow =
-                splitLogPane.filteredLogPanel.table.selectedRow.takeIf { it >= 0 } ?: -1
-        }
-        logProvider.addObserver(this)
-        taskManager.addListener(this)
     }
 
     private fun registerStrokes() {
@@ -510,11 +512,9 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             }
         }
         registerStroke(Key.C_K, "Stop All Log Task") { stopAll() }
-        registerStroke(Key.C_P, "Start Logcat") {
-            startBtn.doClick()
-        }
+        registerStroke(Key.C_P, "Start Logcat") { startBtn.doClick() }
         registerStroke(Key.C_O, "Select Log File") { filePopupMenu.onClickFileOpen() }
-        registerStroke(Key.C_DELETE, "Clear All Logs") { clearViews() }
+        registerStroke(Key.C_DELETE, "Clear All Logs") { clearAllLogs() }
     }
 
     private fun registerComboBoxEditorEvent() {
@@ -569,15 +569,14 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     fun openFile(path: String, isAppend: Boolean) {
         stopAll()
-        logProvider.stopCollectLog()
-        logProvider.clear()
+
+        logProducer = FileLogProducer(path)
+        logViewModel.clear()
+        logViewModel.startProduce(logProducer)
 
         GLog.d(TAG, "[openFile] Opening: $path, $isAppend")
         logMainBinding.status.updateValue(" ${STRINGS.ui.open} ")
         updateLogFilter()
-        startUpdateUITask()
-
-        logProvider.startCollectLog(FileLogCollector(taskManager, path))
 
         if (isAppend) {
             logMainBinding.filePath.updateValue(logMainBinding.filePath.value + path)
@@ -586,37 +585,27 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         }
     }
 
-    private fun startUpdateUITask() {
-        if (updateLogUITask.isRunning.not()) {
-            taskManager.exec(updateLogUITask)
-        }
-        updateLogUITask.resume()
-        logMainBinding.pauseAll.updateValue(false)
-    }
-
     fun startLogcat() {
+        stopAll()
         if (logMainBinding.connectedDevices.value.isNullOrEmpty()) return
+
+        logProducer = DeviceLogProducer(logMainBinding.currentDevice.value ?: "")
+        logViewModel.clear()
+        logViewModel.startProduce(logProducer)
+
+        GLog.d(TAG, "[startLogcat] Start Logcat: ${logMainBinding.currentDevice.value ?: ""}")
+
         logMainBinding.status.updateValue(" ${STRINGS.ui.adb} ")
         updateLogFilter()
 
-        startUpdateUITask()
-        logProvider.stopCollectLog()
-        logProvider.clear()
-        logProvider.startCollectLog(RealTimeLogCollector(taskManager, logMainBinding.currentDevice.value ?: ""))
-        logMainBinding.filePath.updateValue(logProvider.logTempFile?.absolutePath ?: "")
-        repaint()
+
+        logMainBinding.filePath.updateValue(logProducer.tempFile.absolutePath ?: "")
     }
 
-    private fun stopAll() {
-        if (state is TaskIdle) return
+    fun stopAll() {
         logMainBinding.status.updateValue(" ${STRINGS.ui.adb} ${STRINGS.ui.stop} ")
-
-        logProvider.stopCollectLog()
-        taskManager.cancelAll { task -> task != updateLogUITask }
-        if (taskManager.isAnyTaskRunning { it is LogTask }.not()) {
-            state = TaskIdle(this)
-        }
-        updateLogUITask.pause()
+        logViewModel.pause()
+        logProducer.cancel()
     }
 
     private fun startFileFollow(filePath: String) {
@@ -627,13 +616,12 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     private inner class ActionHandler : ActionListener {
         override fun actionPerformed(event: ActionEvent) {
             when (event.source) {
-
                 startBtn -> {
-                    state?.onStartClicked()
+                    taskState.onStartClicked()
                 }
 
                 stopBtn -> {
-                    stopScan()
+                    stopAll()
                 }
 
                 rotateLogPanelBtn -> {
@@ -643,33 +631,24 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
                 }
 
                 clearViewsBtn -> {
-                    clearViews()
+                    clearAllLogs()
                 }
 
                 saveBtn -> {
-                    if (logProvider.isCollecting()) {
-                        // TODO Save As
-                    } else {
-                        // TODO Disable Save button
-                        GLog.d(TAG, "SaveBtn : not adb scanning mode")
+                    val fileChooser = JFileChooser()
+                    fileChooser.dialogTitle = STRINGS.ui.saveLogTitle
+                    val userSelection = fileChooser.showSaveDialog(this@LogTabPanel)
+                    if (userSelection == JFileChooser.APPROVE_OPTION) {
+                        val fileToSave = fileChooser.selectedFile
+                        logViewModel.saveLog(fileToSave)
                     }
                 }
             }
         }
     }
 
-    fun stopScan() {
-        stopAll()
-    }
-
-    private fun clearViews() {
-        filteredLogcatRepository.clear()
-        fullLogcatRepository.clear()
-        repaint()
-    }
-
-    fun clearAdbLog() {
-        clearViews()
+    fun clearAllLogs() {
+        logViewModel.clear()
     }
 
     fun getTextShowLogCombo(): String {
@@ -720,7 +699,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         scope.launch {
             logMainBinding.apply {
                 val matchCase = filterMatchCaseEnabled.getValueNonNull()
-                LogcatRealTimeFilter(
+                LogcatFilter(
                     if (logFilterEnabled.getValueNonNull()) showLogCombo.filterItem.rebuild(matchCase) else emptyItem,
                     if (tagFilterEnabled.getValueNonNull()) showTagCombo.filterItem.rebuild(matchCase) else emptyItem,
                     if (pidFilterEnabled.getValueNonNull()) showPidCombo.filterItem.rebuild(matchCase) else emptyItem,
@@ -728,8 +707,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
                     if (logLevelFilterEnabled.getValueNonNull()) logMainBinding.logLevel.getValueNonNull() else LogLevel.VERBOSE,
                     logMainBinding.filterMatchCaseEnabled.getValueNonNull()
                 ).apply {
-                    filteredLogcatRepository.logFilter = this
-                    fullLogcatRepository.logFilter = this
+                    logViewModel.updateFilter(this)
                 }
                 filteredTableModel.highlightFilterItem =
                     if (boldEnabled.getValueNonNull()) boldLogCombo.filterItem.rebuild(matchCase) else emptyItem
@@ -970,59 +948,20 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         targetPanel.toolTipText = ""
     }
 
-    override fun onError(error: Throwable) {
-        GLog.e(TAG, "[onError]", error)
-        JOptionPane.showMessageDialog(
-            this,
-            error,
-            "Error",
-            JOptionPane.ERROR_MESSAGE
-        )
-    }
-
-    override fun onStart(task: Task) {
-        super.onStart(task)
-        checkCurrentState()
-    }
-
-    override fun onStop(task: Task) {
-        super.onStop(task)
-        checkCurrentState()
-    }
-
-    override fun onPause(task: Task) {
-        super.onPause(task)
-        checkCurrentState()
-    }
-
-    override fun onResume(task: Task) {
-        super.onResume(task)
-        checkCurrentState()
-    }
-
     override fun onTabSelected() {
-        taskManager.updatePauseState(false)
+        logProducer.resume()
     }
 
     override fun onTabUnselected() {
-        taskManager.updatePauseState(true)
-    }
-
-    private fun checkCurrentState() {
-        state = when {
-            taskManager.isAnyTaskRunning { it is LogTask }.not() -> TaskIdle(this)
-            taskManager.isPaused() -> TaskPaused(this)
-            else -> TaskStarted(this)
-        }
+        logProducer.pause()
     }
 
     override fun destroy() {
         stopAll()
         ServiceManager.dispose(this)
         ThemeManager.unregisterThemeUpdateListener(logMainBinding)
-        logProvider.destroy()
-        clearViews()
-        taskManager.cancelAll()
+        logViewModel.destroy()
+        clearAllLogs()
         saveConfiguration()
         splitLogPane.destroy()
     }
@@ -1077,13 +1016,21 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         rootPane.actionMap.put(actionMapKey, action)
     }
 
-    private abstract class TaskState(protected val ui: LogTabPanel) {
+    private abstract class TaskUIState(protected val ui: LogTabPanel) {
         abstract fun updateUI()
 
         open fun onStartClicked() {}
     }
 
-    private class TaskStarted(ui: LogTabPanel) : TaskState(ui) {
+    private class TaskNone(ui: LogTabPanel) : TaskUIState(ui) {
+        override fun updateUI() {
+        }
+
+        override fun onStartClicked() {
+        }
+    }
+
+    private class TaskStarted(ui: LogTabPanel) : TaskUIState(ui) {
         override fun updateUI() {
             ui.startBtn.icon = GIcons.Action.Pause.get()
             ui.startBtn.isEnabled = true
@@ -1097,7 +1044,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         }
     }
 
-    private class TaskIdle(ui: LogTabPanel) : TaskState(ui) {
+    private class TaskIdle(ui: LogTabPanel) : TaskUIState(ui) {
         override fun updateUI() {
             ui.startBtn.isEnabled = ui.logMainBinding.connectedDevices.value.isNullOrEmpty().not()
             ui.startBtn.icon = GIcons.Action.Start.get()
@@ -1110,7 +1057,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         }
     }
 
-    private class TaskPaused(ui: LogTabPanel) : TaskState(ui) {
+    private class TaskPaused(ui: LogTabPanel) : TaskUIState(ui) {
         override fun updateUI() {
             ui.startBtn.icon = GIcons.Action.Start.get()
             ui.startBtn.toolTipText = STRINGS.toolTip.startBtn

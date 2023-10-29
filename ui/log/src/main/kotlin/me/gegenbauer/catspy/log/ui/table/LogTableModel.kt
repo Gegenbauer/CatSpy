@@ -1,26 +1,23 @@
 package me.gegenbauer.catspy.log.ui.table
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.concurrency.ViewModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
-import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.BookmarkManager
+import me.gegenbauer.catspy.log.datasource.LogViewModel
 import me.gegenbauer.catspy.log.flag
-import me.gegenbauer.catspy.log.model.LogcatLogItem
-import me.gegenbauer.catspy.log.model.LogcatRealTimeFilter
-import me.gegenbauer.catspy.log.repo.FilteredLogcatRepository
-import me.gegenbauer.catspy.log.repo.FullLogcatRepository
-import me.gegenbauer.catspy.log.repo.LogRepository
-import me.gegenbauer.catspy.log.task.LogTaskManager
+import me.gegenbauer.catspy.log.model.LogcatFilter
+import me.gegenbauer.catspy.log.model.LogcatItem
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.panel.LogPanel
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.task.Task
-import me.gegenbauer.catspy.task.TaskListener
 import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.isEmpty
-import me.gegenbauer.catspy.view.state.StatefulPanel
 import me.gegenbauer.catspy.view.table.PageMetadata
 import me.gegenbauer.catspy.view.table.Pageable
 import me.gegenbauer.catspy.view.table.Searchable
@@ -32,11 +29,10 @@ fun interface LogTableModelListener {
     fun onLogDataChanged(event: TableModelEvent)
 }
 
-class LogTableModel(
-    internal val logRepository: LogRepository,
+open class LogTableModel(
+    val viewModel: LogViewModel,
     override val contexts: Contexts = Contexts.default
-) : AbstractTableModel(), LogRepository.LogChangeListener, Context, TaskListener,
-    Searchable, Pageable<LogcatLogItem>, ILogTableModel {
+) : AbstractTableModel(), Context, Searchable, Pageable<LogcatItem>, ILogTableModel {
     override var highlightFilterItem: FilterItem = FilterItem.emptyItem
         set(value) {
             field = value.takeIf { it != field }?.also { contexts.getContext(LogTable::class.java)?.repaint() } ?: value
@@ -59,48 +55,28 @@ class LogTableModel(
         get() = getBindings()?.boldPid?.value ?: false
     override val boldTid: Boolean
         get() = getBindings()?.boldTid?.value ?: false
+    override var selectedRows: List<Int>
+        get() = viewModel.fullTableSelectedRows
+        set(value) {
+            viewModel.fullTableSelectedRows = value
+        }
 
-    val state = ObservableViewModelProperty(StatefulPanel.State.NORMAL)
-
+    protected val scope = ViewModelScope()
+    protected var logItems = mutableListOf<LogcatItem>()
     private val eventListeners = Collections.synchronizedList(ArrayList<LogTableModelListener>())
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        getBindings()?.bookmarkMode?.addObserver {
-            logRepository.bookmarkMode = it ?: false
-        }
-        getBindings()?.fullMode?.addObserver {
-            logRepository.fullMode = it ?: false
-        }
-        logRepository.addLogChangeListener(this)
-        val logMainUI = contexts.getContext(LogTabPanel::class.java)
-        logMainUI?.let {
-            val taskManager = ServiceManager.getContextService(logMainUI, LogTaskManager::class.java)
-            taskManager.addListener(this)
-        }
+        viewModel.setContexts(contexts)
+        collectLogItems()
     }
 
-    override fun onStart(task: Task) {
-        if (task is FilteredLogcatRepository.UpdateFilterTask) {
-            state.updateValue(StatefulPanel.State.LOADING)
-        }
-    }
-
-    override fun onCancel(task: Task) {
-        if (task is FilteredLogcatRepository.UpdateFilterTask) {
-            state.updateValue(StatefulPanel.State.NORMAL)
-        }
-    }
-
-    override fun onError(task: Task, t: Throwable) {
-        if (task is FilteredLogcatRepository.UpdateFilterTask) {
-            state.updateValue(StatefulPanel.State.NORMAL)
-        }
-    }
-
-    override fun onFinalResult(task: Task, data: Any) {
-        if (task is FilteredLogcatRepository.UpdateFilterTask) {
-            state.updateValue(StatefulPanel.State.NORMAL)
+    protected open fun collectLogItems() {
+        scope.launch(Dispatchers.UI) {
+            viewModel.fullLogItemsFlow.collect {
+                logItems = it.toMutableList()
+                fireTableDataChanged()
+            }
         }
     }
 
@@ -160,7 +136,7 @@ class LogTableModel(
     private fun moveToSearch(isNext: Boolean) {
         if (searchFilterItem.isEmpty()) return
 
-        val selectedRow = logRepository.selectedRow
+        val selectedRow = viewModel.fullTableSelectedRows.firstOrNull() ?: -1
         val mainUI = contexts.getContext(LogTabPanel::class.java)
         mainUI ?: return
         val table = contexts.getContext(LogTable::class.java)
@@ -176,64 +152,49 @@ class LogTableModel(
 
         val idxFound = if (isNext) {
             (targetRow until rowCount).firstOrNull {
-                searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).logLine).find()
+                searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).message).find()
             } ?: -1
         } else {
             (targetRow downTo 0).firstOrNull {
-                searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).logLine).find()
+                searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).message).find()
             } ?: -1
         }
 
         if (idxFound >= 0) {
-            table.moveToRow(idxFound)
+            table.moveToRow(idxFound, true)
         } else {
             mainUI.showSearchResultTooltip(isNext, "\"$searchFilterItem\" ${STRINGS.ui.notFound}")
         }
     }
 
-    override fun getItemInCurrentPage(row: Int): LogcatLogItem {
-        return accessPageData(currentPage) { logItems ->
-            logItems[row]
-        }
+    override fun getItemInCurrentPage(row: Int): LogcatItem {
+        return accessPageData(currentPage) { it[row] }
     }
 
-    override fun getLogFilter(): LogcatRealTimeFilter {
-        return (logRepository.logFilter as LogcatRealTimeFilter)
+    override fun getLogFilter(): LogcatFilter {
+        return viewModel.highlightFilter
     }
 
-    override fun onLogChanged(event: LogRepository.LogChangeEvent) {
+    override fun fireTableDataChanged() {
         val mainUI = contexts.getContext(LogTabPanel::class.java)
         mainUI ?: return
 
         recalculatePage() // 在表格 UI 更新之前重新计算页数信息，因为 UI 更新需要用到页数信息
+        val logPanel = contexts.getContext(LogPanel::class.java)
+        logPanel?.repaint()
 
-        when (event.type) {
-            TableModelEvent.INSERT -> {
-                fireTableRowsInserted(event.startRow, event.endRow)
-            }
-
-            TableModelEvent.UPDATE -> {
-                GLog.d(TAG, "[onLogChanged] UPDATE")
-                fireTableRowsUpdated(event.startRow, event.endRow)
-            }
-
-            TableModelEvent.DELETE -> {
-                if (event.endRow == Int.MAX_VALUE) {
-                    val bookmarkManager = ServiceManager.getContextService(mainUI, BookmarkManager::class.java)
-                    bookmarkManager.clear()
-                    fireTableDataChanged()
-                    Runtime.getRuntime().gc()
-                } else {
-                    fireTableRowsDeleted(event.startRow, event.endRow)
-                }
-            }
+        if (logItems.isEmpty()) {
+            val bookmarkManager = ServiceManager.getContextService(mainUI, BookmarkManager::class.java)
+            bookmarkManager.clear()
+            Runtime.getRuntime().gc()
         }
+        super.fireTableDataChanged()
     }
 
     private fun recalculatePage() {
-        val pageCount = (logRepository.getLogCount() + pageSize - 1) / pageSize
+        val pageCount = (logItems.size + pageSize - 1) / pageSize
         val currentPage = minOf(currentPage, pageCount - 1).coerceAtLeast(0)
-        val dataSize = logRepository.getLogCount()
+        val dataSize = logItems.size
 
         pageMetaData.updateValue(PageMetadata(currentPage, pageCount, pageSize, dataSize))
     }
@@ -243,21 +204,11 @@ class LogTableModel(
             .firstOrNull { it.second.num >= lineNumber }?.first ?: 0
     }
 
-    override fun isFullLogTable(): Boolean {
-        return logRepository is FullLogcatRepository
-    }
-
-    override fun <R> accessPageData(page: Int, action: (List<LogcatLogItem>) -> R): R {
+    override fun <R> accessPageData(page: Int, action: (List<LogcatItem>) -> R): R {
         val start = page * pageSize
-        val end = minOf((page + 1) * pageSize, logRepository.getLogCount())
-        return logRepository.accessLogItems { logItems ->
-            runCatching {
-                action(logItems.subList(start, end))
-            }.getOrElse {
-                GLog.e(TAG, "[accessPageData] error", it)
-                action(emptyList())
-            }
-        }
+        val end = minOf((page + 1) * pageSize, logItems.size)
+        if (start > end) return action(emptyList())
+        return action(logItems.subList(start, end))
     }
 
     override fun nextPage() {
@@ -298,7 +249,6 @@ class LogTableModel(
         const val COLUMN_LEVEL = 4
         const val COLUMN_TAG = 5
         const val COLUMN_MESSAGE = 6
-        private const val TAG = "LogTableModel"
         private const val DEFAULT_PAGE_SIZE = 10 * 10000
     }
 

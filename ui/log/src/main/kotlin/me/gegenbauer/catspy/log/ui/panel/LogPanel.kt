@@ -105,7 +105,7 @@ abstract class LogPanel(
         }
         binding.scrollToEnd.addObserver {
             if (it == true) {
-                moveToLastRow()
+                table.scrollToEnd()
             }
         }
         tableModel.pageMetaData.addObserver {
@@ -211,7 +211,7 @@ abstract class LogPanel(
     }
 
     fun goToLineIndex(logNum: Int) {
-        table.moveToRow(logNum)
+        table.moveToRow(logNum, true)
     }
 
     fun setGoToLast(value: Boolean) {
@@ -262,7 +262,7 @@ abstract class LogPanel(
             lastPosition = -1
 
             if (binding.scrollToEnd.value == true) {
-                moveToLastRow()
+                scrollToEnd()
             }
         }
     }

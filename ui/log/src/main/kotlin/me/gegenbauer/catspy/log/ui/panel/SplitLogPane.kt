@@ -1,5 +1,10 @@
 package me.gegenbauer.catspy.log.ui.panel
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
@@ -8,6 +13,7 @@ import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.view.state.ListState
 import me.gegenbauer.catspy.view.state.StatefulPanel
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.FocusEvent
@@ -34,13 +40,20 @@ class SplitLogPane(
             field = value
             changeRotation(value)
         }
+    private val scope = MainScope()
 
     init {
         continuousLayout = false
         orientation = HORIZONTAL_SPLIT
 
         filterStatefulPanel.setContent(filteredLogPanel)
-        filterStatefulPanel.state = StatefulPanel.State.NORMAL
+        filterStatefulPanel.listState = ListState.NORMAL
+        scope.launch(Dispatchers.UI) {
+            filteredTableModel.viewModel.filteredLogListState.collect {
+                filterStatefulPanel.listState =
+                    if (it == ListState.LOADING) ListState.LOADING else ListState.NORMAL
+            }
+        }
 
         add(fullLogPanel, LEFT)
         add(filterStatefulPanel, RIGHT)
@@ -145,6 +158,7 @@ class SplitLogPane(
         super.destroy()
         filteredLogPanel.destroy()
         fullLogPanel.destroy()
+        scope.cancel()
     }
 
     override fun focusGained(e: FocusEvent) {

@@ -37,13 +37,11 @@ class FilteredLogPanel(
             if (it == true) {
                 binding.bookmarkMode.updateValue(false)
             }
-            tableModel.logRepository.onFilterUpdate()
         }
         binding.bookmarkMode.addObserver {
             if (it == true) {
                 binding.fullMode.updateValue(false)
             }
-            tableModel.logRepository.onFilterUpdate()
         }
     }
 

@@ -44,6 +44,12 @@ class LogTable(
 
         addMouseListener(MouseHandler())
         addKeyListener(TableKeyHandler())
+
+        selectionModel.addListSelectionListener {
+            selectedRows.takeIf { it.isNotEmpty() }?.let {
+                tableModel.selectedRows = it.toList()
+            }
+        }
     }
 
     override fun changeSelection(rowIndex: Int, columnIndex: Int, toggle: Boolean, extend: Boolean) {
@@ -77,9 +83,9 @@ class LogTable(
         tableModel.setContexts(contexts)
     }
 
-    override fun moveToRow(row: Int) {
+    override fun moveToRow(row: Int, setSelected: Boolean) {
         if (row !in 0 until tableModel.dataSize) {
-            GLog.d(TAG, "[goToRow] invalid idx")
+            GLog.d(TAG, "[moveToRow] invalid idx $row")
             return
         }
         val lastSelectedRow = selectedRow
@@ -88,13 +94,15 @@ class LogTable(
         clearSelection()
         selectionModel.addListSelectionListener(listSelectionHandler)
 
-        // 跳转到目标行所在页
+        // position target page of target row
         tableModel.gotoPage(row / tableModel.pageSize)
 
         // 计算目标行在当前页的位置
         val rowIdx = row % tableModel.pageSize
 
-        setRowSelectionInterval(rowIdx, rowIdx)
+        if (setSelected) {
+            setRowSelectionInterval(rowIdx, rowIdx)
+        }
 
         val targetRect = getCellRect(rowIdx, columnIndex.index, false)
         targetRect.x = visibleRect.x
@@ -102,7 +110,7 @@ class LogTable(
         // 需要多滚动一行，不然还是无法看见选中行
         val isLastRow = selectedRow == tableModel.rowCount - 1
         val isFirstRow = selectedRow == 0
-        if (tableModel.isFullLogTable().not() && isLastRow.not() && isFirstRow.not()) {
+        if (tableModel is FilteredLogTableModel && isLastRow.not() && isFirstRow.not()) {
             targetRect.y -= if (lastSelectedRow > rowIdx) -targetRect.height else targetRect.height
         }
         scrollRectToVisible(targetRect)
@@ -113,7 +121,7 @@ class LogTable(
         if (lastRow < 0) {
             return
         }
-        moveToRow(lastRow)
+        moveToRow(lastRow, false)
     }
 
     override fun processKeyBinding(ks: KeyStroke, e: KeyEvent, condition: Int, pressed: Boolean): Boolean {
@@ -127,7 +135,7 @@ class LogTable(
         if (tableModel.dataSize <= 0) {
             return
         }
-        moveToRow(0)
+        moveToRow(0, false)
     }
 
     fun isLastRowSelected(): Boolean {
@@ -142,28 +150,38 @@ class LogTable(
         if (selectedRow < 0) {
             return
         }
-        moveToRow((selectedRow + BATCH_ROW_COUNT_TO_SCROLL).coerceAtMost(tableModel.dataSize - 1))
+        moveToRow((selectedRow + BATCH_ROW_COUNT_TO_SCROLL).coerceAtMost(tableModel.dataSize - 1), true)
     }
 
     override fun moveToPreviousSeveralRows() {
         if (selectedRow < 0) {
             return
         }
-        moveToRow((selectedRow - BATCH_ROW_COUNT_TO_SCROLL).coerceAtLeast(0))
+        moveToRow((selectedRow - BATCH_ROW_COUNT_TO_SCROLL).coerceAtLeast(0), true)
     }
 
     override fun moveToNextRow() {
         if (selectedRow < 0) {
             return
         }
-        moveToRow((selectedRow + 1).coerceAtMost(tableModel.dataSize - 1))
+        moveToRow((selectedRow + 1).coerceAtMost(tableModel.dataSize - 1), true)
     }
 
     override fun moveToPreviousRow() {
         if (selectedRow < 0) {
             return
         }
-        moveToRow((selectedRow - 1).coerceAtLeast(0))
+        moveToRow((selectedRow - 1).coerceAtLeast(0), true)
+    }
+
+    override fun scrollToEnd() {
+        if (rowCount <= 0) {
+            return
+        }
+        val targetRect = getCellRect(rowCount - 1, 0, true)
+        targetRect.x = visibleRect.x
+        targetRect.y += targetRect.height
+        scrollRectToVisible(targetRect)
     }
 
     private fun showSelected(rows: IntArray) {
@@ -186,12 +204,12 @@ class LogTable(
     }
 
     private fun getRowsContent(rows: List<Int>): String {
-        return rows.joinToString("\n") { this.tableModel.getItemInCurrentPage(it).logLine }
+        return rows.joinToString("\n") { this.tableModel.getItemInCurrentPage(it).toLogLine() }
     }
 
     //TODO add render effect for this
     private fun getRowsContent(rows: IntArray): String {
-        return rows.joinToString("\n") { this.tableModel.getItemInCurrentPage(it).logLine }
+        return rows.joinToString("\n") { this.tableModel.getItemInCurrentPage(it).toLogLine() }
     }
 
     private fun updateBookmark(rows: List<Int>) {
@@ -266,11 +284,11 @@ class LogTable(
                     }
 
                     stopItem -> {
-                        logTabPanel.stopScan()
+                        logTabPanel.stopAll()
                     }
 
                     clearItem -> {
-                        logTabPanel.clearAdbLog()
+                        logTabPanel.clearAllLogs()
                     }
                 }
             }

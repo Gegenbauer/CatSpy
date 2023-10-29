@@ -13,7 +13,7 @@ import javax.swing.*
 class StatefulPanel : JPanel() {
     var action: (JComponent) -> Unit = { _ -> }
 
-    var state: State = State.NONE
+    var listState: ListState = ListState.NONE
         set(value) {
             if (value == field) return
             GLog.d(TAG, "[state] set $value")
@@ -58,35 +58,35 @@ class StatefulPanel : JPanel() {
         emptyContainer.add(loadingProgressContainer, "loadingProgress")
         emptyContainer.add(emptyImageContainer, "emptyImage")
 
-        state = State.EMPTY
+        listState = ListState.EMPTY
     }
 
-    private fun setStateInternal(state: State) {
-        when (state) {
-            State.NORMAL -> {
+    private fun setStateInternal(listState: ListState) {
+        when (listState) {
+            ListState.NORMAL -> {
                 setContentVisible(true)
             }
 
-            State.EMPTY -> {
+            ListState.EMPTY -> {
                 setContentVisible(false)
             }
 
-            State.LOADING -> {
+            ListState.LOADING -> {
                 setContentVisible(false)
             }
 
-            State.NONE -> {
+            ListState.NONE -> {
                 emptyContainer.isVisible = false
                 content.isVisible = false
             }
         }
 
-        if (state == State.LOADING) {
+        if (listState == ListState.LOADING) {
             emptyContainerLayout.show(emptyContainer, "loadingProgress")
-        } else if (state == State.EMPTY) {
+        } else if (listState == ListState.EMPTY) {
             emptyContainerLayout.show(emptyContainer, "emptyImage")
         }
-        loadingProgress.isIndeterminate = state == State.LOADING
+        loadingProgress.isIndeterminate = listState == ListState.LOADING
 
         SwingUtilities.updateComponentTreeUI(this)
     }
@@ -116,11 +116,11 @@ class StatefulPanel : JPanel() {
         }
     }
 
-    enum class State {
-        NORMAL, EMPTY, LOADING, NONE
-    }
-
     companion object {
         private const val TAG = "StatefulPanel"
     }
+}
+
+enum class ListState {
+    NORMAL, EMPTY, LOADING, NONE
 }

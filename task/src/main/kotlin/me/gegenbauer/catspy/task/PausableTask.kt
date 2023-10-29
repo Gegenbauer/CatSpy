@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.task
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import me.gegenbauer.catspy.concurrency.CancellablePause
+import me.gegenbauer.catspy.concurrency.CoroutineSuspender
 import me.gegenbauer.catspy.concurrency.GIO
 
 /**
@@ -13,28 +13,28 @@ import me.gegenbauer.catspy.concurrency.GIO
 abstract class PausableTask(dispatcher: CoroutineDispatcher = Dispatchers.GIO, name: String) :
     BaseObservableTask(dispatcher, name) {
 
-    protected val cancellablePause = CancellablePause(name)
+    protected val coroutineSuspender = CoroutineSuspender(name)
 
     override fun pause() {
         super.pause()
-        cancellablePause.pause()
+        coroutineSuspender.enable()
     }
 
     override fun resume() {
         super.resume()
-        cancellablePause.resume()
+        coroutineSuspender.disable()
     }
 
     protected suspend fun addPausePoint() {
-        cancellablePause.addPausePoint()
+        coroutineSuspender.checkSuspend()
     }
 
     override fun cancel() {
         super.cancel()
-        cancellablePause.resume()
+        coroutineSuspender.disable()
     }
 
     override fun isPausing(): Boolean {
-        return cancellablePause.isPausing()
+        return coroutineSuspender.isPausing()
     }
 }

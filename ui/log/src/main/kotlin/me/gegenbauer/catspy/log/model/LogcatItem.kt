@@ -2,36 +2,23 @@ package me.gegenbauer.catspy.log.model
 
 import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.log.LogLevel
+import me.gegenbauer.catspy.log.flag
 import me.gegenbauer.catspy.log.getLevelFromFlag
 import me.gegenbauer.catspy.strings.Configuration
 import java.awt.Color
 
-data class LogcatLogItem(
-    val logLine: String,
-    val num: Int = 0,
+data class LogcatItem(
+    override val num: Int = 0,
     val time: String = "",
     val pid: String = "",
     val tid: String = "",
     val level: LogLevel = LogLevel.VERBOSE,
     val tag: String = "",
-    val message: String = ""
-): LogItem {
-    private var hidden = false
+    override val message: String = ""
+) : LogItem {
 
-    override fun setHidden(hidden: Boolean) {
-        this.hidden = hidden
-    }
-
-    override fun isHidden(): Boolean {
-        return hidden
-    }
-
-    override fun isFromFile(): Boolean {
-        return false
-    }
-
-    override fun getDisplayText(): String {
-        return logLine
+    fun toLogLine(): String {
+        return "$time\t$pid\t$tid\t${level.flag}\t$tag\t$message"
     }
 
     companion object {
@@ -43,11 +30,7 @@ data class LogcatLogItem(
         private const val TAG_INDEX = 5
         private const val MESSAGE_INDEX = 6
 
-        fun LogcatLogItem.isShow(): Boolean {
-            return !hidden
-        }
-
-        fun from(line: String, num: Int): LogcatLogItem {
+        fun from(line: String, num: Int): LogcatItem {
             val items = splitLineIntoParts(line)
             return runCatching {
                 if (items.size > TAG_INDEX) {
@@ -57,7 +40,7 @@ data class LogcatLogItem(
                     val level = getLevelFromFlag(items[LEVEL_INDEX])
                     val tag = items[TAG_INDEX]
                     val message = items[MESSAGE_INDEX]
-                    LogcatLogItem(line, num, time, pid, tid, level, tag, message)
+                    LogcatItem(num, time, pid, tid, level, tag, message)
                 } else {
                     val level = if (line.startsWith(Configuration.APP_NAME)) {
                         LogLevel.ERROR
@@ -66,10 +49,10 @@ data class LogcatLogItem(
                     } else {
                         LogLevel.VERBOSE
                     }
-                    LogcatLogItem(line, num, level = level, message = line)
+                    LogcatItem(num, level = level, message = line)
                 }
             }.getOrElse {
-                LogcatLogItem(line, num)
+                LogcatItem(num, message = line)
             }
         }
 
@@ -89,7 +72,7 @@ data class LogcatLogItem(
             return firstFiveWords + stringBuilder.toString()
         }
 
-        inline val LogcatLogItem.fgColor: Color
+        inline val LogcatItem.fgColor: Color
             get() = when (level) {
                 LogLevel.VERBOSE -> {
                     LogColorScheme.logLevelVerbose

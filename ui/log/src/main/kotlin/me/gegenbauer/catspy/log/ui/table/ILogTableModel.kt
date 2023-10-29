@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.log.ui.table
 
-import me.gegenbauer.catspy.log.model.LogcatLogItem
-import me.gegenbauer.catspy.log.model.LogcatRealTimeFilter
+import me.gegenbauer.catspy.log.model.LogcatItem
+import me.gegenbauer.catspy.log.model.LogcatFilter
 import me.gegenbauer.catspy.view.filter.FilterItem
 
 interface ILogTableModel {
@@ -13,14 +13,14 @@ interface ILogTableModel {
 
     val boldTid: Boolean
 
+    var selectedRows: List<Int>
+
     fun addLogTableModelListener(eventListener: LogTableModelListener)
 
-    fun getItemInCurrentPage(row: Int): LogcatLogItem
+    fun getItemInCurrentPage(row: Int): LogcatItem
 
-    fun getLogFilter(): LogcatRealTimeFilter
+    fun getLogFilter(): LogcatFilter
 
     fun getRowIndex(lineNumber: Int): Int
-
-    fun isFullLogTable(): Boolean
 
 }

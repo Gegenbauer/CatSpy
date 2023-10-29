@@ -1,5 +1,3 @@
-import com.google.gson.GsonBuilder
-
 plugins {
     kotlin("jvm")
     `java-library`

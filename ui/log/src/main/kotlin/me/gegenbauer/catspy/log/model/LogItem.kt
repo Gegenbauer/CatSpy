@@ -1,11 +1,7 @@
 package me.gegenbauer.catspy.log.model
 
 interface LogItem {
-    fun setHidden(hidden: Boolean)
+    val num: Int
 
-    fun isHidden(): Boolean
-
-    fun isFromFile(): Boolean
-
-    fun getDisplayText(): String
+    val message: String
 }

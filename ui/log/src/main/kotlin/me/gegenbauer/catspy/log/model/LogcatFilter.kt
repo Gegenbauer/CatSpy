@@ -6,14 +6,14 @@ import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.toFilterItem
 import java.util.regex.Pattern
 
-data class LogcatRealTimeFilter(
+data class LogcatFilter(
     val filterLog: FilterItem,
     val filterTag: FilterItem,
     val filterPid: FilterItem,
     val filterTid: FilterItem,
     val filterLevel: LogLevel,
     val matchCase: Boolean = false
-) : LogFilter<LogcatLogItem> {
+) : LogFilter<LogcatItem> {
 
     constructor(
         filterLog: String,
@@ -31,26 +31,31 @@ data class LogcatRealTimeFilter(
         matchCase
     )
 
-    override fun filter(item: LogcatLogItem): Boolean {
-        if (this == emptyRealTimeFilter) {
+    override fun match(item: LogcatItem): Boolean {
+        if (this == EMPTY_FILTER) {
             return true
         }
         if (item.level < this.filterLevel) {
             return false
         }
-        val logLine = item.logLine
+        val message = item.message
         val tag = item.tag
         val pid = item.pid
         val tid = item.tid
 
-        return (matchHidePattern(filterLog.negativeFilter, logLine) &&
-                matchShowPattern(filterLog.positiveFilter, logLine) &&
-                matchHidePattern(filterTag.negativeFilter, tag) &&
-                matchShowPattern(filterTag.positiveFilter, tag) &&
-                matchHidePattern(filterPid.negativeFilter, pid) &&
-                matchShowPattern(filterPid.positiveFilter, pid) &&
-                matchHidePattern(filterTid.negativeFilter, tid) &&
-                matchShowPattern(filterTid.positiveFilter, tid))
+        val logLineMatches = matchHidePattern(filterLog.negativeFilter, message) &&
+                matchShowPattern(filterLog.positiveFilter, message)
+
+        val tagMatches = matchHidePattern(filterTag.negativeFilter, tag) &&
+                matchShowPattern(filterTag.positiveFilter, tag)
+
+        val pidMatches = matchHidePattern(filterPid.negativeFilter, pid) &&
+                matchShowPattern(filterPid.positiveFilter, pid)
+
+        val tidMatches = matchHidePattern(filterTid.negativeFilter, tid) &&
+                matchShowPattern(filterTid.positiveFilter, tid)
+
+        return logLineMatches && tagMatches && pidMatches && tidMatches
     }
 
     private fun matchShowPattern(pattern: Pattern, text: String): Boolean {
@@ -64,6 +69,6 @@ data class LogcatRealTimeFilter(
     }
 
     companion object {
-        val emptyRealTimeFilter = LogcatRealTimeFilter("", "", "", "", LogLevel.VERBOSE)
+        val EMPTY_FILTER = LogcatFilter("", "", "", "", LogLevel.VERBOSE)
     }
 }

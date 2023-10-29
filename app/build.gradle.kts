@@ -36,7 +36,7 @@ tasks.test {
 }
 
 
-val version = "1.0.2"
+val version = "1.0.3"
 val appName = APP_NAME
 
 // TODO 更改应用安装后的图标
