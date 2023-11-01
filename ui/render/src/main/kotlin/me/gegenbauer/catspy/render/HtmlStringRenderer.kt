@@ -84,15 +84,25 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
             return raw
         }
 
-        val builder = TaggedStringBuilder(raw)
+        val builder = TaggedStringBuilder()
+        builder.addTag(Tag.HTML)
+        builder.append(renderWithoutTags())
+        builder.closeTag()
+        return builder.build()
+    }
+
+    override fun renderWithoutTags(): String {
+        if (raw.isEmpty() || spans.isEmpty()) {
+            return raw
+        }
+
+        val builder = TaggedStringBuilder()
         spans.add(Span(0, raw.length - 1, SpanType.NORMAL))
         val splitIntervals = splitStringIntoIntervals(spans)
         val splitSpans = getSplitSpans(splitIntervals)
 
         val mergedSpans = mergeSpans(splitSpans)
         val spansGroupByStart = mergedSpans.groupBy { it.start }.map { it.value }
-
-        builder.addTag(Tag.HTML)
         spansGroupByStart.forEach {
             val start = it.first().start
             val end = it.first().end
@@ -106,7 +116,6 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
                 builder.closeTag(Tag.SPAN)
             }
         }
-        builder.closeTag()
         return builder.build()
     }
 

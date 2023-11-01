@@ -1037,6 +1037,9 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             ui.startBtn.toolTipText = STRINGS.toolTip.pauseBtn
             ui.stopBtn.isEnabled = true
             ui.stopBtn.icon = GIcons.Action.Stop.get()
+            if (ui.logProducer is DeviceLogProducer) {
+                ui.saveBtn.isVisible = true
+            }
         }
 
         override fun onStartClicked() {
@@ -1050,6 +1053,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             ui.startBtn.icon = GIcons.Action.Start.get()
             ui.startBtn.toolTipText = STRINGS.toolTip.startBtn
             ui.stopBtn.isEnabled = false
+            ui.saveBtn.isVisible = false
         }
 
         override fun onStartClicked() {

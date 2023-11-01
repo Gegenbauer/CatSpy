@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.log.ui.table
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.concurrency.ViewModelScope
@@ -60,6 +61,8 @@ open class LogTableModel(
         set(value) {
             viewModel.fullTableSelectedRows = value
         }
+    override val logFlow: Flow<List<LogcatItem>>
+        get() = viewModel.fullLogItemsFlow
 
     protected val scope = ViewModelScope()
     protected var logItems = mutableListOf<LogcatItem>()
@@ -73,11 +76,20 @@ open class LogTableModel(
 
     protected open fun collectLogItems() {
         scope.launch(Dispatchers.UI) {
-            viewModel.fullLogItemsFlow.collect {
+            logFlow.collect {
                 logItems = it.toMutableList()
                 fireTableDataChanged()
+                if (selectedRows.isNotEmpty()) {
+                    val selectedRowStart = selectedRows.first()
+                    val selectedRowEnd = selectedRows.last()
+                    getLogTable()?.setRowSelectionInterval(selectedRowStart, selectedRowEnd)
+                }
             }
         }
+    }
+
+    private fun getLogTable(): LogTable? {
+        return contexts.getContext(LogTable::class.java)
     }
 
     private fun getBindings(): LogPanel.LogPanelBinding? {
@@ -139,7 +151,7 @@ open class LogTableModel(
         val selectedRow = viewModel.fullTableSelectedRows.firstOrNull() ?: -1
         val mainUI = contexts.getContext(LogTabPanel::class.java)
         mainUI ?: return
-        val table = contexts.getContext(LogTable::class.java)
+        val table = getLogTable()
         table ?: return
 
         val targetRow = selectedRow.run { if (isNext) this + 1 else this - 1 }

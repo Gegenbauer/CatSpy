@@ -1,9 +1,8 @@
 package me.gegenbauer.catspy.log.ui.table
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.concurrency.UI
+import kotlinx.coroutines.flow.Flow
 import me.gegenbauer.catspy.log.datasource.LogViewModel
+import me.gegenbauer.catspy.log.model.LogcatItem
 
 class FilteredLogTableModel(viewModel: LogViewModel) : LogTableModel(viewModel) {
 
@@ -13,12 +12,6 @@ class FilteredLogTableModel(viewModel: LogViewModel) : LogTableModel(viewModel) 
             viewModel.filteredTableSelectedRows = value
         }
 
-    override fun collectLogItems() {
-        scope.launch(Dispatchers.UI) {
-            viewModel.filteredLogItemsFlow.collect {
-                logItems = it.toMutableList()
-                fireTableDataChanged()
-            }
-        }
-    }
+    override val logFlow: Flow<List<LogcatItem>>
+        get() = viewModel.filteredLogItemsFlow
 }

@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.log.ui.table
 
+import kotlinx.coroutines.flow.Flow
 import me.gegenbauer.catspy.log.model.LogcatItem
 import me.gegenbauer.catspy.log.model.LogcatFilter
 import me.gegenbauer.catspy.view.filter.FilterItem
@@ -14,6 +15,8 @@ interface ILogTableModel {
     val boldTid: Boolean
 
     var selectedRows: List<Int>
+
+    val logFlow: Flow<List<LogcatItem>>
 
     fun addLogTableModelListener(eventListener: LogTableModelListener)
 

@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.log.ui.dialog
 
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
+import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.log.ui.LogTabPanel
@@ -11,16 +12,16 @@ import me.gegenbauer.catspy.utils.keyEventInfo
 import java.awt.Dimension
 import java.awt.event.*
 import javax.swing.*
+import javax.swing.text.html.HTMLEditorKit
 
 
 class LogViewDialog(
     parent: JFrame,
     log: String,
-    caretPos: Int,
     override val contexts: Contexts = Contexts.default
 ) : JDialog(parent, false), Context {
 
-    private val textArea = JTextArea()
+    private val textArea = JTextPane()
     private val scrollPane = JScrollPane(textArea)
     private val popupMenu = PopUpLogViewDialog()
 
@@ -28,13 +29,13 @@ class LogViewDialog(
         isUndecorated = true
         textArea.isEditable = false
         textArea.caret.isVisible = true
-        textArea.lineWrap = true
 
+        textArea.editorKit = HTMLEditorKit()
         textArea.addKeyListener(KeyHandler())
         textArea.addMouseListener(MouseHandler())
         textArea.addFocusListener(FocusHandler())
         textArea.text = log
-        textArea.caretPosition = caretPos
+        textArea.selectionColor = LogColorScheme.selectedBG
         var width = parent.width - 100
         if (width < 960) {
             width = 960

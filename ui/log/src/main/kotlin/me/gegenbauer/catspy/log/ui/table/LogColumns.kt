@@ -6,6 +6,8 @@ import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.model.LogcatItem.Companion.fgColor
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.render.HtmlStringRenderer
+import me.gegenbauer.catspy.render.Tag
+import me.gegenbauer.catspy.render.TaggedStringBuilder
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.getMatchedList
 import java.awt.Color
 import java.awt.Component
@@ -266,6 +268,32 @@ private class LineNumBorder(val color: Color, private val thickness: Int) : Abst
     override fun isBorderOpaque(): Boolean {
         return true
     }
+}
+
+fun LogTable.getRenderedContent(rows: List<Int>): String {
+    val renderedContent = TaggedStringBuilder()
+    renderedContent.addTag(Tag.HTML)
+    renderedContent.addTag(Tag.BODY)
+    val logFilterItem = tableModel.getLogFilter().filterLog
+    var length = 0
+    rows.forEachIndexed { index, row ->
+        val logItem = tableModel.getItemInCurrentPage(row)
+        val content = logItem.toLogLine()
+        val renderer = HtmlStringRenderer(logItem.toLogLine())
+        val matchedList = logFilterItem.getMatchedList(content)
+        matchedList.forEach {
+            renderer.highlight(it.first, it.second, LogColorScheme.filteredBGs[0])
+            renderer.foreground(it.first, it.second, LogColorScheme.filteredFGs[0])
+        }
+        val foreground = logItem.fgColor
+        renderer.foreground(0, content.length - 1, foreground)
+        renderedContent.append(renderer.renderWithoutTags())
+        if (index != rows.lastIndex) renderedContent.addSingleTag(Tag.LINE_BREAK)
+        length += content.length
+    }
+    renderedContent.closeTag()
+    renderedContent.closeTag()
+    return renderedContent.build()
 }
 
 private fun LogTable.getColumnBackground(num: Int, row: Int): Color {

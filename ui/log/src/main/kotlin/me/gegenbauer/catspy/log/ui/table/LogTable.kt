@@ -4,16 +4,19 @@ import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.dialog.LogViewDialog
 import me.gegenbauer.catspy.log.ui.table.LogTableModel.Companion.COLUMN_NUM
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.utils.*
+import me.gegenbauer.catspy.utils.Key
+import me.gegenbauer.catspy.utils.findFrameFromParent
+import me.gegenbauer.catspy.utils.isDoubleClick
+import me.gegenbauer.catspy.utils.keyEventInfo
 import me.gegenbauer.catspy.view.table.RowNavigation
 import java.awt.Dimension
 import java.awt.Rectangle
+import java.awt.datatransfer.StringSelection
 import java.awt.event.*
 import javax.swing.*
 import javax.swing.event.ListSelectionListener
@@ -31,12 +34,15 @@ class LogTable(
 
     init {
         setShowGrid(false)
-        tableHeader = null
-        autoResizeMode = AUTO_RESIZE_OFF
+        setTableHeader(null)
+        setAutoResizeMode(AUTO_RESIZE_OFF)
         autoscrolls = false
         dragEnabled = true
         dropMode = DropMode.INSERT
         intercellSpacing = Dimension(0, 0)
+        selectionModel.selectionMode = ListSelectionModel.SINGLE_INTERVAL_SELECTION
+        setRowSelectionAllowed(true)
+        columnSelectionAllowed = false
 
         columns.forEach { it.configureColumn(this) }
 
@@ -85,7 +91,6 @@ class LogTable(
 
     override fun moveToRow(row: Int, setSelected: Boolean) {
         if (row !in 0 until tableModel.dataSize) {
-            GLog.d(TAG, "[moveToRow] invalid idx $row")
             return
         }
         val lastSelectedRow = selectedRow
@@ -189,27 +194,21 @@ class LogTable(
             return
         }
         val displayContent = if (rows.size > 1) {
-            getRowsContent(rows)
+            getRenderedContent(rows.toList())
         } else {
-            getRowsContent(
+            getRenderedContent(
                 ((rows[0] - 2).coerceAtLeast(0)..(rows[0] + 3)
                     .coerceAtMost(rowCount - 1)).toList()
             )
         }
-        val caretPos = getRowsContent(arrayListOf(rows[0])).length
         val frame = findFrameFromParent<JFrame>()
-        val logViewDialog = LogViewDialog(frame, displayContent.trim(), caretPos)
+        val logViewDialog = LogViewDialog(frame, displayContent.trim())
         logViewDialog.setLocationRelativeTo(frame)
         logViewDialog.isVisible = true
     }
 
     private fun getRowsContent(rows: List<Int>): String {
-        return rows.joinToString("\n") { this.tableModel.getItemInCurrentPage(it).toLogLine() }
-    }
-
-    //TODO add render effect for this
-    private fun getRowsContent(rows: IntArray): String {
-        return rows.joinToString("\n") { this.tableModel.getItemInCurrentPage(it).toLogLine() }
+        return rows.joinToString("\n") { tableModel.getItemInCurrentPage(it).toLogLine() }
     }
 
     private fun updateBookmark(rows: List<Int>) {
@@ -226,6 +225,13 @@ class LogTable(
         val context = contexts.getContext(LogTabPanel::class.java) ?: return
         val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
         rows.forEach(bookmarkManager::removeBookmark)
+    }
+
+    private fun copySelectedRows() {
+        toolkit.systemClipboard.setContents(
+            StringSelection(getRowsContent(selectedRows.toList())),
+            null
+        )
     }
 
     internal inner class PopUp : JPopupMenu() {
@@ -259,16 +265,7 @@ class LogTable(
                 val logTabPanel = DarkUIUtil.getParentOfType(this@LogTable, LogTabPanel::class.java)
                 when (event.source) {
                     copyItem -> {
-                        this@LogTable.processKeyEvent(
-                            KeyEvent(
-                                this@LogTable,
-                                KeyEvent.KEY_PRESSED,
-                                event.`when`,
-                                KeyEvent.CTRL_DOWN_MASK,
-                                KeyEvent.VK_C,
-                                'C'
-                            )
-                        )
+                        copySelectedRows()
                     }
 
                     showEntireItem -> {
@@ -350,13 +347,13 @@ class LogTable(
                 KEY_DELETE_BOOKMARK -> deleteBookmark(selectedNums())
                 KEY_LAST_ROW -> moveToLastRow()
                 KEY_FIRST_ROW -> moveToFirstRow()
+                KEY_COPY -> copySelectedRows()
             }
             super.keyPressed(event)
         }
     }
 
     companion object {
-        private const val TAG = "LogTable"
         private const val THRESHOLD = 10
         private const val BATCH_ROW_COUNT_TO_SCROLL = 100
         private val KEY_UPDATE_BOOKMARK = Key.C_B
@@ -368,10 +365,12 @@ class LogTable(
         private val KEY_SHOW_LOGS_IN_DIALOG = Key.ENTER
         private val KEY_LAST_ROW = Key.C_END
         private val KEY_FIRST_ROW = Key.C_HOME
+        private val KEY_COPY = Key.C_C
         private val disabledKeys = listOf(
             KEY_PREVIOUS_ROW, KEY_NEXT_ROW,
             KEY_SHOW_LOGS_IN_DIALOG, KEY_PAGE_UP,
-            KEY_PAGE_DOWN, KEY_LAST_ROW, KEY_FIRST_ROW
+            KEY_PAGE_DOWN, KEY_LAST_ROW, KEY_FIRST_ROW,
+            KEY_COPY
         )
     }
 }

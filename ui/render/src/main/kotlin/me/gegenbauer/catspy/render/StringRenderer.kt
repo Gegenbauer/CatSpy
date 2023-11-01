@@ -20,5 +20,7 @@ interface StringRenderer {
 
     fun render(): String
 
+    fun renderWithoutTags(): String
+
     fun clear(type: HtmlStringRenderer.SpanType)
 }

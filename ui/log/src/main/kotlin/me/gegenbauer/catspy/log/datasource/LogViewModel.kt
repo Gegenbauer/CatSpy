@@ -24,7 +24,6 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 
-// TODO 选中行状态错误，改变滞后
 // TODO 渲染日志弹窗
 // TODO Memory Monitor
 // TODO 优化

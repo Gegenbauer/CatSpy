@@ -2,13 +2,14 @@ package me.gegenbauer.catspy.render
 
 import java.util.*
 
-class TaggedStringBuilder(raw: String) {
-
-    val rawLength = raw.length
-    val rawLastIndex = rawLength - 1
+class TaggedStringBuilder {
 
     private val tags = Stack<Tag>()
     private val cache = StringBuilder()
+
+    fun addSingleTag(tag: Tag) {
+        cache.append("<${tag.value}/>")
+    }
 
     fun addTag(tag: Tag, property: String = "") {
         tags.push(tag)
@@ -51,4 +52,7 @@ class TaggedStringBuilder(raw: String) {
 enum class Tag(val value: String) {
     SPAN("span"),
     HTML("html"),
+    BODY("body"),
+    PARAGRAPH("p"),
+    LINE_BREAK("br"),
 }
