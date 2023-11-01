@@ -58,6 +58,7 @@ jobs:
         with:
           name: catspy_amd64.deb
           path: app/build/compose/binaries/main/deb/${{ steps.getFilename.outputs.debFileName }}
+          retention-days: 1
 
   windows:
     name: Windows (Java 17)
@@ -98,5 +99,6 @@ jobs:
         with:
           name: catspy_x64.msi
           path: app/build/compose/binaries/main/msi/${{ steps.getFilename.outputs.msiFileName }}
+          retention-days: 1
 
 
