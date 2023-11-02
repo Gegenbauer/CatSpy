@@ -72,6 +72,7 @@ object Application : WindowAdapter() {
         AppScope.launch(Dispatchers.GIO) {
             GLog.i(TAG, "[windowClosing] handle dispose start")
             mainFrame.destroy()
+            GLog.flush()
             GLog.i(TAG, "[windowClosing] handle dispose end")
             exitProcess(0)
         }
