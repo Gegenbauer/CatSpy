@@ -23,6 +23,7 @@ interface TabManager: Disposable, Context {
     fun getSelectedTab(): TabPanel
 
     override fun destroy() {
+        super.destroy()
         getAllTabs().forEach { it.destroy() }
     }
 }

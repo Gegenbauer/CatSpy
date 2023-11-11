@@ -15,6 +15,8 @@ data class  UIConf(
     var dataBindingDebug: Boolean = false,
     var taskDebug: Boolean = false,
     var ddmDebug: Boolean = false,
+    var cacheDebug: Boolean = false,
+    var logDebug: Boolean = false,
     /** 应用配置 end **/
 
     /** 主窗口配置 start **/

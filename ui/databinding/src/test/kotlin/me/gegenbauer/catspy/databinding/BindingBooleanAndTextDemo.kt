@@ -8,7 +8,7 @@ import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.CPU
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.databinding.bind.Bindings
-import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.databinding.property.support.enabledProperty
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.databinding.property.support.textProperty
@@ -77,6 +77,6 @@ fun main() {
 // MVVM 示例
 // ViewModel
 class Binding {
-    val checked = ObservableViewModelProperty(false)
-    val text = ObservableViewModelProperty("asdasdasd")
+    val checked = ObservableValueProperty(false)
+    val text = ObservableValueProperty("asdasdasd")
 }

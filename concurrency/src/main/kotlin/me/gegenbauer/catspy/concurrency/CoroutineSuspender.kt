@@ -16,7 +16,7 @@ class CoroutineSuspender(private val name: String = "") {
 
     suspend fun checkSuspend(timeout: Long = Int.MAX_VALUE.toLong()) {
         Unit.takeIf { enabled.get().not() } ?: suspendCancellableCoroutine { con ->
-            GLog.d(TAG, "[$name] [checkSuspend]")
+            GLog.d(TAG, "[$name] [checkSuspend] start suspend")
             this.con = con
             timer = Timer().also {
                 it.schedule(object : TimerTask() {

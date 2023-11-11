@@ -33,6 +33,8 @@ class SettingsMenu(override val contexts: Contexts = Contexts.default) : GMenu()
     val bindingDebug = JCheckBoxMenuItem(Configuration.DEBUG_DATA_BINDING)
     val taskDebug = JCheckBoxMenuItem(Configuration.DEBUG_TASK)
     val ddmDebug = JCheckBoxMenuItem(Configuration.DEBUG_DDM)
+    val cacheDebug = JCheckBoxMenuItem(Configuration.DEBUG_CACHE)
+    val logDebug = JCheckBoxMenuItem(Configuration.DEBUG_LOG)
 
     init {
         text = STRINGS.ui.setting
@@ -43,6 +45,8 @@ class SettingsMenu(override val contexts: Contexts = Contexts.default) : GMenu()
         debugMenu.add(bindingDebug)
         debugMenu.add(taskDebug)
         debugMenu.add(ddmDebug)
+        debugMenu.add(cacheDebug)
+        debugMenu.add(logDebug)
         add(debugMenu)
     }
 }

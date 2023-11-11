@@ -6,7 +6,7 @@ import me.gegenbauer.catspy.log.getLevelFromName
 import me.gegenbauer.catspy.log.nameToLogLevel
 import me.gegenbauer.catspy.configuration.*
 import me.gegenbauer.catspy.context.ContextService
-import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.bind.bindLeft
 import me.gegenbauer.catspy.databinding.property.support.*
@@ -23,92 +23,92 @@ class LogMainBinding : ContextService, GThemeChangeListener {
 
     //region Toolbar
     //region Filter
-    val logFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.logFilterEnabled)
-    val logFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.logFilterHistory.toHistoryItemList())
-    val logFilterSelectedIndex = ObservableViewModelProperty<Int>()
-    val logFilterCurrentContent = ObservableViewModelProperty<String>()
-    val logFilterErrorMessage = ObservableViewModelProperty<String>()
+    val logFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.logFilterEnabled)
+    val logFilterHistory = ObservableValueProperty(UIConfManager.uiConf.logFilterHistory.toHistoryItemList())
+    val logFilterSelectedIndex = ObservableValueProperty<Int>()
+    val logFilterCurrentContent = ObservableValueProperty<String>()
+    val logFilterErrorMessage = ObservableValueProperty<String>()
 
-    val tagFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.tagFilterEnabled)
-    val tagFilterHistory = ObservableViewModelProperty(UIConfManager.uiConf.tagFilterHistory.toHistoryItemList())
-    val tagFilterSelectedIndex = ObservableViewModelProperty<Int>()
-    val tagFilterCurrentContent = ObservableViewModelProperty<String>()
-    val tagFilterErrorMessage = ObservableViewModelProperty<String>()
+    val tagFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.tagFilterEnabled)
+    val tagFilterHistory = ObservableValueProperty(UIConfManager.uiConf.tagFilterHistory.toHistoryItemList())
+    val tagFilterSelectedIndex = ObservableValueProperty<Int>()
+    val tagFilterCurrentContent = ObservableValueProperty<String>()
+    val tagFilterErrorMessage = ObservableValueProperty<String>()
 
-    val pidFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.pidFilterEnabled)
-    val pidFilterHistory = ObservableViewModelProperty(arrayListOf<String>().toHistoryItemList())
-    val pidFilterSelectedIndex = ObservableViewModelProperty<Int>()
-    val pidFilterCurrentContent = ObservableViewModelProperty<String>()
-    val pidFilterErrorMessage = ObservableViewModelProperty<String>()
+    val pidFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.pidFilterEnabled)
+    val pidFilterHistory = ObservableValueProperty(arrayListOf<String>().toHistoryItemList())
+    val pidFilterSelectedIndex = ObservableValueProperty<Int>()
+    val pidFilterCurrentContent = ObservableValueProperty<String>()
+    val pidFilterErrorMessage = ObservableValueProperty<String>()
 
-    val tidFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.tidFilterEnabled)
-    val tidFilterHistory = ObservableViewModelProperty(arrayListOf<String>().toHistoryItemList())
-    val tidFilterSelectedIndex = ObservableViewModelProperty<Int>()
-    val tidFilterCurrentContent = ObservableViewModelProperty<String>()
-    val tidFilterErrorMessage = ObservableViewModelProperty<String>()
+    val tidFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.tidFilterEnabled)
+    val tidFilterHistory = ObservableValueProperty(arrayListOf<String>().toHistoryItemList())
+    val tidFilterSelectedIndex = ObservableValueProperty<Int>()
+    val tidFilterCurrentContent = ObservableValueProperty<String>()
+    val tidFilterErrorMessage = ObservableValueProperty<String>()
 
-    val logLevelFilterEnabled = ObservableViewModelProperty(UIConfManager.uiConf.logLevelFilterEnabled)
+    val logLevelFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.logLevelFilterEnabled)
     private val sortedLogLevels = nameToLogLevel.toList().sortedBy { it.second.logLevel }.map { it.second.logName }
-    val logLevelFilterHistory = ObservableViewModelProperty(sortedLogLevels.toHistoryItemList())
-    val logLevelFilterCurrentContent = ObservableViewModelProperty(UIConfManager.uiConf.logLevel)
+    val logLevelFilterHistory = ObservableValueProperty(sortedLogLevels.toHistoryItemList())
+    val logLevelFilterCurrentContent = ObservableValueProperty(UIConfManager.uiConf.logLevel)
     val logLevelFilterSelectedIndex =
-        ObservableViewModelProperty(sortedLogLevels.indexOf(UIConfManager.uiConf.logLevel))
+        ObservableValueProperty(sortedLogLevels.indexOf(UIConfManager.uiConf.logLevel))
 
-    val boldEnabled = ObservableViewModelProperty(UIConfManager.uiConf.boldEnabled)
-    val boldHistory = ObservableViewModelProperty(UIConfManager.uiConf.highlightHistory.toHistoryItemList())
-    val boldSelectedIndex = ObservableViewModelProperty<Int>()
-    val boldCurrentContent = ObservableViewModelProperty<String>()
-    val boldErrorMessage = ObservableViewModelProperty<String>()
+    val boldEnabled = ObservableValueProperty(UIConfManager.uiConf.boldEnabled)
+    val boldHistory = ObservableValueProperty(UIConfManager.uiConf.highlightHistory.toHistoryItemList())
+    val boldSelectedIndex = ObservableValueProperty<Int>()
+    val boldCurrentContent = ObservableValueProperty<String>()
+    val boldErrorMessage = ObservableValueProperty<String>()
 
-    val filterMatchCaseEnabled = ObservableViewModelProperty(UIConfManager.uiConf.filterMatchCaseEnabled)
+    val filterMatchCaseEnabled = ObservableValueProperty(UIConfManager.uiConf.filterMatchCaseEnabled)
     //endregion
 
     //region ADB
-    val connectedDevices = ObservableViewModelProperty(arrayListOf<HistoryItem<String>>().toList())
-    val deviceSelectedIndex = ObservableViewModelProperty<Int>()
-    val currentDevice = ObservableViewModelProperty<String>()
+    val connectedDevices = ObservableValueProperty(arrayListOf<HistoryItem<String>>().toList())
+    val deviceSelectedIndex = ObservableValueProperty<Int>()
+    val currentDevice = ObservableValueProperty<String>()
 
-    val pauseAll = ObservableViewModelProperty(false)
+    val pauseAll = ObservableValueProperty(false)
 
-    val searchPanelVisible = ObservableViewModelProperty(false)
+    val searchPanelVisible = ObservableValueProperty(false)
     //endregion
 
     //region Menu
-    val rotation = ObservableViewModelProperty(getEnum<Rotation>(UIConfManager.uiConf.rotation))
-    val logLevel = ObservableViewModelProperty(getLevelFromName(UIConfManager.uiConf.logLevel))
+    val rotation = ObservableValueProperty(getEnum<Rotation>(UIConfManager.uiConf.rotation))
+    val logLevel = ObservableValueProperty(getLevelFromName(UIConfManager.uiConf.logLevel))
     //endregion
 
     //endregion
 
     //region SearchBar
-    val searchHistory = ObservableViewModelProperty(UIConfManager.uiConf.searchHistory.toHistoryItemList())
-    val searchSelectedIndex = ObservableViewModelProperty<Int>()
-    val searchCurrentContent = ObservableViewModelProperty<String>()
-    val searchMatchCase = ObservableViewModelProperty(UIConfManager.uiConf.searchMatchCaseEnabled)
-    val searchErrorMessage = ObservableViewModelProperty<String>()
+    val searchHistory = ObservableValueProperty(UIConfManager.uiConf.searchHistory.toHistoryItemList())
+    val searchSelectedIndex = ObservableValueProperty<Int>()
+    val searchCurrentContent = ObservableValueProperty<String>()
+    val searchMatchCase = ObservableValueProperty(UIConfManager.uiConf.searchMatchCaseEnabled)
+    val searchErrorMessage = ObservableValueProperty<String>()
     //endregion
 
     //region LogPanel
-    val splitPanelDividerLocation = ObservableViewModelProperty(UIConfManager.uiConf.dividerLocation)
+    val splitPanelDividerLocation = ObservableValueProperty(UIConfManager.uiConf.dividerLocation)
     //endregion
 
     //region status bar
-    val status = ObservableViewModelProperty("")
-    val filePath = ObservableViewModelProperty(STRINGS.ui.none)
+    val status = ObservableValueProperty("")
+    val filePath = ObservableValueProperty(STRINGS.ui.none)
     //endregion
 
     //region Style
-    val logFont = ObservableViewModelProperty(UIConfManager.uiConf.getLogFont())
+    val logFont = ObservableValueProperty(UIConfManager.uiConf.getLogFont())
     //endregion
 
     fun bindLogFilter(
         comboBox: HistoryComboBox<String>,
         toggle: JToggleButton,
-        selectedIndexProperty: ObservableViewModelProperty<Int>,
-        listProperty: ObservableViewModelProperty<List<HistoryItem<String>>>,
-        enabledProperty: ObservableViewModelProperty<Boolean>,
-        editorContentProperty: ObservableViewModelProperty<String>,
-        errorMessageProperty: ObservableViewModelProperty<String>? = null,
+        selectedIndexProperty: ObservableValueProperty<Int>,
+        listProperty: ObservableValueProperty<List<HistoryItem<String>>>,
+        enabledProperty: ObservableValueProperty<Boolean>,
+        editorContentProperty: ObservableValueProperty<String>,
+        errorMessageProperty: ObservableValueProperty<String>? = null,
     ) {
         selectedProperty(toggle) bindDual enabledProperty
         enabledProperty(comboBox) bindDual enabledProperty
@@ -120,9 +120,9 @@ class LogMainBinding : ContextService, GThemeChangeListener {
 
     fun bindNormalCombo(
         comboBox: HistoryComboBox<String>,
-        selectedIndexProperty: ObservableViewModelProperty<Int>,
-        listProperty: ObservableViewModelProperty<List<HistoryItem<String>>>,
-        editorContentProperty: ObservableViewModelProperty<String>,
+        selectedIndexProperty: ObservableValueProperty<Int>,
+        listProperty: ObservableValueProperty<List<HistoryItem<String>>>,
+        editorContentProperty: ObservableValueProperty<String>,
     ) {
         listProperty(comboBox) bindDual listProperty
         selectedIndexProperty(comboBox) bindLeft selectedIndexProperty

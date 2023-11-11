@@ -98,8 +98,8 @@ class SplitLogPane(
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        filteredLogPanel.setContexts(contexts)
-        fullLogPanel.setContexts(contexts)
+        filteredLogPanel.setParent(this)
+        fullLogPanel.setParent(this)
     }
 
     fun resetWithCurrentRotation() {
@@ -134,16 +134,15 @@ class SplitLogPane(
             logMainUI ?: return false
 
             val options = listOf<Pair<String, (List<File>) -> Unit>>(
-                STRINGS.ui.append to { files -> files.forEach { logMainUI.openFile(it.absolutePath, true) } },
                 STRINGS.ui.open to {
-                    it.forEachIndexed { index, file -> logMainUI.openFile(file.absolutePath, index == it.indices.first) }
+                    it.forEach { logMainUI.openFile(it.absolutePath) }
                 },
-                STRINGS.ui.cancel to { GLog.d(TAG, "select cancel") }
+                STRINGS.ui.cancel to { GLog.d(TAG, "[onDragLogFile] select cancel") }
             )
             val value = JOptionPane.showOptionDialog(
-                this@SplitLogPane, STRINGS.ui.msgSelectOpenMode,
+                this@SplitLogPane, STRINGS.ui.dragLogFileWarning,
                 "",
-                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE,
                 null,
                 options.map { it.first }.toTypedArray(),

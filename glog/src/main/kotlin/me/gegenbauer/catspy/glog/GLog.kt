@@ -64,6 +64,10 @@ object GLog : ILogger {
         getLogger(tag).e("", msg, tr)
     }
 
+    override fun flush() {
+        logConfig.flush()
+    }
+
     private fun getLogger(tag: String): GLogger {
         return if (loggers.containsKey(tag)) {
             loggers[tag]!!

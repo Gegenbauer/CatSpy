@@ -18,7 +18,7 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.GlobalContextManager
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.bind.bindLeft
 import me.gegenbauer.catspy.databinding.bind.withName
@@ -161,17 +161,8 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     //region menu
     private val filePopupMenu = FileOpenPopupMenu().apply {
         onFileSelected = { file ->
-            openFile(file.absolutePath, false)
+            openFile(file.absolutePath)
         }
-        onFileFollowSelected = { file ->
-            startFileFollow(file.absolutePath)
-        }
-        onFileListSelected = {
-            it.forEachIndexed { index, file ->
-                openFile(file.absolutePath, index == it.indices.first)
-            }
-        }
-        onFilesAppendSelected = { it.forEach { openFile(it.absolutePath, true) } }
     }
     //endregion
 
@@ -316,8 +307,8 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         ServiceManager.getContextService(AdamDeviceManager::class.java).registerDevicesListener(devicesChangeListener)
         registerSearchStroke()
 
-        splitLogPane.setContexts(contexts)
-        filePopupMenu.setContexts(contexts)
+        splitLogPane.setParent(this)
+        filePopupMenu.setParent(this)
     }
 
     private fun observeViewModelValue() {
@@ -567,22 +558,18 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         splitLogPane.resetWithCurrentRotation()
     }
 
-    fun openFile(path: String, isAppend: Boolean) {
+    fun openFile(path: String) {
         stopAll()
 
         logProducer = FileLogProducer(path)
         logViewModel.clear()
         logViewModel.startProduce(logProducer)
 
-        GLog.d(TAG, "[openFile] Opening: $path, $isAppend")
+        GLog.d(TAG, "[openFile] Opening: $path")
         logMainBinding.status.updateValue(" ${STRINGS.ui.open} ")
         updateLogFilter()
 
-        if (isAppend) {
-            logMainBinding.filePath.updateValue(logMainBinding.filePath.value + path)
-        } else {
-            logMainBinding.filePath.updateValue(path)
-        }
+        logMainBinding.filePath.updateValue(path)
     }
 
     fun startLogcat() {
@@ -606,11 +593,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         logMainBinding.status.updateValue(" ${STRINGS.ui.adb} ${STRINGS.ui.stop} ")
         logViewModel.pause()
         logProducer.cancel()
-    }
-
-    private fun startFileFollow(filePath: String) {
-        logMainBinding.filePath.updateValue(filePath)
-        logMainBinding.status.updateValue(" ${STRINGS.ui.follow} ")
     }
 
     private inner class ActionHandler : ActionListener {
@@ -721,7 +703,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     }
 
     private fun resetComboItem(
-        viewModelProperty: ObservableViewModelProperty<List<HistoryItem<String>>>,
+        viewModelProperty: ObservableValueProperty<List<HistoryItem<String>>>,
         item: String
     ) {
         if (item.isBlank()) return
@@ -957,6 +939,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     }
 
     override fun destroy() {
+        super.destroy()
         stopAll()
         ServiceManager.dispose(this)
         ThemeManager.unregisterThemeUpdateListener(logMainBinding)
@@ -1052,6 +1035,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             ui.startBtn.isEnabled = ui.logMainBinding.connectedDevices.value.isNullOrEmpty().not()
             ui.startBtn.icon = GIcons.Action.Start.get()
             ui.startBtn.toolTipText = STRINGS.toolTip.startBtn
+            ui.logMainBinding.pauseAll.updateValue(false)
             ui.stopBtn.isEnabled = false
             ui.saveBtn.isVisible = false
         }

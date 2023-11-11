@@ -1,7 +1,10 @@
 package me.gegenbauer.catspy.ui
 
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
-import me.gegenbauer.catspy.configuration.GlobalConfSync
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import me.gegenbauer.catspy.conf.GlobalConfSync
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
@@ -12,15 +15,14 @@ import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
+import me.gegenbauer.catspy.ui.panel.MemoryStatusBar
 import me.gegenbauer.catspy.ui.panel.TabManagerPane
 import me.gegenbauer.catspy.view.tab.OnTabChangeListener
 import me.gegenbauer.catspy.view.tab.TabManager
 import java.awt.BorderLayout
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
-import javax.swing.JFrame
-import javax.swing.JMenuBar
-import javax.swing.JTabbedPane
+import javax.swing.*
 
 /**
  *  TODO 将底部状态栏抽出，并增加进度条，显示某些任务进度
@@ -40,6 +42,10 @@ class MainFrame(
     }
     //endregion
 
+    private val memoryStatusBar = MemoryStatusBar()
+    private val mainViewModel = ServiceManager.getContextService(this, MainViewModel::class.java)
+    private val scope = MainScope()
+
     init {
         configureWindow()
 
@@ -50,13 +56,18 @@ class MainFrame(
         bindGlobalProperties()
 
         GlobalContextManager.register(this)
+
+        mainViewModel.startMemoryMonitor()
     }
 
     private fun createUI() {
         jMenuBar = menuBar
         layout = BorderLayout()
 
-        add(tabbedPane)
+        add(tabbedPane, BorderLayout.CENTER)
+        add(memoryStatusBar, BorderLayout.SOUTH)
+
+        mainViewModel.startMemoryMonitor()
     }
 
     private fun bindGlobalProperties() {
@@ -64,12 +75,17 @@ class MainFrame(
         selectedProperty(settingsMenu.bindingDebug) bindDual GlobalConfSync.dataBindingDebug
         selectedProperty(settingsMenu.taskDebug) bindDual GlobalConfSync.taskDebug
         selectedProperty(settingsMenu.ddmDebug) bindDual GlobalConfSync.ddmDebug
+        selectedProperty(settingsMenu.cacheDebug) bindDual GlobalConfSync.cacheDebug
+        selectedProperty(settingsMenu.logDebug) bindDual GlobalConfSync.logDebug
     }
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        tabbedPane.getAllTabs().forEach { it.setContexts(contexts) }
-        settingsMenu.setContexts(contexts)
+        tabbedPane.getAllTabs().forEach { it.setParent(this) }
+        settingsMenu.setParent(this)
+        mainViewModel.setParent(this)
+        memoryStatusBar.setParent(this)
+        helpMenu.setParent(this)
     }
 
     private fun registerEvents() {
@@ -88,6 +104,18 @@ class MainFrame(
                 getWindows().filter { it.type == Type.POPUP }.forEach { it.dispose() }
             }
         })
+        scope.launch {
+            mainViewModel.messageDialog.collect {
+                it.takeIf { it.isNotBlank() }?.let { msg ->
+                    JOptionPane.showMessageDialog(
+                        this@MainFrame,
+                        msg,
+                        "",
+                        JOptionPane.INFORMATION_MESSAGE
+                    )
+                }
+            }
+        }
     }
 
     private fun configureWindow() {
@@ -110,7 +138,7 @@ class MainFrame(
 
     override fun destroy() {
         super.destroy()
-        tabbedPane.destroy()
+        scope.cancel()
         ServiceManager.dispose(this)
         saveConfigOnDestroy()
         dispose()

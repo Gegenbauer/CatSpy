@@ -13,7 +13,7 @@ private const val TAG = "Bindings"
 interface Bindable {
     fun <T> bind(
         componentProperty: ObservableComponentProperty<T>,
-        viewModelProperty: ObservableViewModelProperty<T>,
+        viewModelProperty: ObservableValueProperty<T>,
     )
 }
 
@@ -44,7 +44,7 @@ enum class BindType : Bindable {
     ONE_WAY_TO_SOURCE {
         override fun <T> bind(
             componentProperty: ObservableComponentProperty<T>,
-            viewModelProperty: ObservableViewModelProperty<T>
+            viewModelProperty: ObservableValueProperty<T>
         ) {
             val bindingCache = componentProperty.component.getOrCreateBindingCache()
             if (bindingCache.containsKey(componentProperty)) {
@@ -60,7 +60,7 @@ enum class BindType : Bindable {
     ONE_WAY_TO_TARGET {
         override fun <T> bind(
             componentProperty: ObservableComponentProperty<T>,
-            viewModelProperty: ObservableViewModelProperty<T>
+            viewModelProperty: ObservableValueProperty<T>
         ) {
             BindingLog.d(TAG, "[bind ONE_WAY_TO_TARGET] binding prepare to bind ${componentProperty.getDisplayName()} to ${viewModelProperty.getDisplayName()}")
             val bindingCache = componentProperty.component.getOrCreateBindingCache()
@@ -68,7 +68,7 @@ enum class BindType : Bindable {
                 BindingLog.w(TAG, "[bind ONE_WAY_TO_TARGET] binding ${bindingCache[componentProperty]?.javaClass?.simpleName} already exists")
                 return
             }
-            val observer = ViewModelPropertyObserver(componentProperty, viewModelProperty)
+            val observer = ValuePropertyObserver(componentProperty, viewModelProperty)
             viewModelProperty.addObserver(observer)
             bindingCache[componentProperty] = BindingItem(this, componentProperty, viewModelProperty, null, observer)
         }
@@ -77,7 +77,7 @@ enum class BindType : Bindable {
     TWO_WAY {
         override fun <T> bind(
             componentProperty: ObservableComponentProperty<T>,
-            viewModelProperty: ObservableViewModelProperty<T>
+            viewModelProperty: ObservableValueProperty<T>
         ) {
             BindingLog.d(TAG, "[bind TWO_WAY] binding prepare to bind ${componentProperty.getDisplayName()} to ${viewModelProperty.getDisplayName()}")
             val bindingCache = componentProperty.component.getOrCreateBindingCache()
@@ -85,11 +85,11 @@ enum class BindType : Bindable {
                 BindingLog.w(TAG, "[bind TWO_WAY] binding ${bindingCache[componentProperty]?.javaClass?.simpleName} already exists")
                 return
             }
-            val viewModelPropertyObserver = ViewModelPropertyObserver(componentProperty, viewModelProperty)
-            viewModelProperty.addObserver(viewModelPropertyObserver)
+            val valuePropertyObserver = ValuePropertyObserver(componentProperty, viewModelProperty)
+            viewModelProperty.addObserver(valuePropertyObserver)
             val componentPropertyObserver = ComponentPropertyObserver(viewModelProperty, componentProperty)
             componentProperty.addObserver(componentPropertyObserver)
-            bindingCache[componentProperty] = BindingItem(this, componentProperty, viewModelProperty, componentPropertyObserver, viewModelPropertyObserver)
+            bindingCache[componentProperty] = BindingItem(this, componentProperty, viewModelProperty, componentPropertyObserver, valuePropertyObserver)
         }
     }
 }
@@ -97,9 +97,9 @@ enum class BindType : Bindable {
 data class BindingItem(
     val bindType: BindType,
     val componentProperty: ObservableComponentProperty<*>,
-    val viewModelProperty: ObservableViewModelProperty<*>,
+    val viewModelProperty: ObservableValueProperty<*>,
     var componentPropertyChangeListener: ComponentPropertyObserver<*>? = null,
-    var viewModelPropertyChangeListener: ViewModelPropertyObserver<*>? = null,
+    var viewModelPropertyChangeListener: ValuePropertyObserver<*>? = null,
 ) {
     override fun hashCode(): Int {
         return componentProperty.hashCode()
@@ -127,7 +127,7 @@ object Bindings {
 
     fun <T> bind(
         componentProperty: ObservableComponentProperty<T>,
-        observable: ObservableViewModelProperty<T>,
+        observable: ObservableValueProperty<T>,
         bindType: BindType = BindType.TWO_WAY
     ) {
         scope.launch(Dispatchers.UI.immediate) {
@@ -148,7 +148,7 @@ object Bindings {
                 unBindInternal(componentProperty)
                 bind(
                     (componentProperty as ObservableComponentProperty<Any>).createProperty(target),
-                    bindingItem.viewModelProperty as ObservableViewModelProperty<Any>, bindingItem.bindType
+                    bindingItem.viewModelProperty as ObservableValueProperty<Any>, bindingItem.bindType
                 )
             }
         }
@@ -163,8 +163,8 @@ object Bindings {
         }
         BindingLog.d(TAG, "[unBind] unBinding ${componentProperty.getDisplayName()}")
         val bindingItem = bindingCache[componentProperty]!!
-        (bindingItem.viewModelProperty as ObservableViewModelProperty<Any>)
-            .removeObserver(bindingItem.viewModelPropertyChangeListener as? ViewModelPropertyObserver<Any>)
+        (bindingItem.viewModelProperty as ObservableValueProperty<Any>)
+            .removeObserver(bindingItem.viewModelPropertyChangeListener as? ValuePropertyObserver<Any>)
         (bindingItem.componentProperty as ObservableComponentProperty<Any>)
             .removeObserver(bindingItem.componentPropertyChangeListener as? ComponentPropertyObserver<Any>)
         bindingCache.remove(componentProperty)

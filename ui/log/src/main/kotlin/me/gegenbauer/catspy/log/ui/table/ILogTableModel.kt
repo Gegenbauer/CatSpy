@@ -14,7 +14,7 @@ interface ILogTableModel {
 
     val boldTid: Boolean
 
-    var selectedRows: List<Int>
+    var selectedLogRows: List<Int>
 
     val logFlow: Flow<List<LogcatItem>>
 

@@ -30,9 +30,6 @@ class FileOpenPopupMenu(override val contexts: Contexts = Contexts.default) : JP
     }
 
     var onFileSelected: (File) -> Unit = {}
-    var onFileListSelected: (Array<File>) -> Unit = {}
-    var onFilesAppendSelected: (Array<File>) -> Unit = {}
-    var onFileFollowSelected: (File) -> Unit = {}
 
     init {
         add(itemFileOpen)
@@ -43,12 +40,6 @@ class FileOpenPopupMenu(override val contexts: Contexts = Contexts.default) : JP
     fun onClickFileOpen() {
         chooseSingleFile(STRINGS.ui.open) {
             it?.let(onFileSelected)
-        }
-    }
-
-    private fun onClickFileOpenFiles() {
-        chooseMultiFiles(STRINGS.ui.openFiles, false) {
-            onFileListSelected(it)
         }
     }
 

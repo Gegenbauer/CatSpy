@@ -42,6 +42,10 @@ class Contexts {
         return clone
     }
 
+    fun getAllContexts(): List<Context> {
+        return contexts.values.mapNotNull { it.get() }
+    }
+
     companion object {
         val default: Contexts
             get() = Contexts()

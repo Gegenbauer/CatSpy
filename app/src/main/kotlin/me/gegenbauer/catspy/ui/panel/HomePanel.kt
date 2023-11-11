@@ -48,10 +48,6 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     }
 
-    override fun destroy() {
-
-    }
-
     override fun getTabContent(): JPanel {
         return this
     }

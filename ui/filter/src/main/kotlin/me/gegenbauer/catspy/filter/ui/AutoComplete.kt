@@ -6,12 +6,8 @@ import org.fife.ui.autocomplete.CompletionProvider
 import java.awt.event.KeyEvent
 import javax.swing.text.JTextComponent
 
-private val prefixes = listOf("-", "")
-private val suffixes = listOf("~:", ":")
-private val keywords = listOf("pid", "tid", "tag", "message", "level")
-
-fun JTextComponent.enableAutoComplete() {
-    val provider = createCompletionProvider()
+fun JTextComponent.enableAutoComplete(suggestions: List<String>) {
+    val provider = createCompletionProvider(suggestions)
     val ac = FilterAutoCompletion(provider)
 
     // disable enter key
@@ -39,7 +35,7 @@ fun JTextComponent.enableAutoComplete() {
 /**
  * Create a simple provider that adds some Java-related completions.
  */
-private fun createCompletionProvider(): CompletionProvider {
+private fun createCompletionProvider(suggestions: List<String>): CompletionProvider {
 
     // A DefaultCompletionProvider is the simplest concrete implementation
     // of CompletionProvider. This provider has no understanding of
@@ -48,12 +44,6 @@ private fun createCompletionProvider(): CompletionProvider {
     // that is needed in the majority of cases.
     return FilterCompletionProvider().apply {
         setAutoActivationRules(false, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-        prefixes.forEach {prefix ->
-            keywords.forEach {keyword ->
-                suffixes.forEach {suffix ->
-                    addCompletion(BasicCompletion(this, "$prefix$keyword$suffix"))
-                }
-            }
-        }
+        addCompletions(suggestions.map { BasicCompletion(this, it) })
     }
 }

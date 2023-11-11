@@ -24,4 +24,6 @@ interface ILogger {
     fun e(tag: String, msg: String)
 
     fun e(tag: String, msg: String, tr: Throwable?)
+
+    fun flush() {}
 }

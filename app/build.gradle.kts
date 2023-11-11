@@ -24,6 +24,7 @@ dependencies {
     implementation(projects.context)
     implementation(projects.resources)
     implementation(projects.javaext)
+    implementation(projects.file)
 
     testImplementation(kotlinTestApi())
     testImplementation(projects.ui)

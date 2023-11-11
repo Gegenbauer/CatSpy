@@ -22,14 +22,14 @@ inline infix fun <reified T: JComponent> T.withName(name: String): T {
     return this
 }
 
-infix fun <T> ObservableComponentProperty<T>?.bindDual(viewModelProperty: ObservableViewModelProperty<T>?) {
+infix fun <T> ObservableComponentProperty<T>?.bindDual(viewModelProperty: ObservableValueProperty<T>?) {
     if (this == null || viewModelProperty == null) {
         return
     }
     Bindings.bind(this, viewModelProperty)
 }
 
-infix fun <T> ObservableComponentProperty<T>?.bindRight(viewModelProperty: ObservableViewModelProperty<T>?) {
+infix fun <T> ObservableComponentProperty<T>?.bindRight(viewModelProperty: ObservableValueProperty<T>?) {
     if (this == null || viewModelProperty == null) {
         return
     }
@@ -40,7 +40,7 @@ infix fun <T> ObservableComponentProperty<T>?.bindRight(viewModelProperty: Obser
     )
 }
 
-infix fun <T> ObservableComponentProperty<T>?.bindLeft(viewModelProperty: ObservableViewModelProperty<T>?) {
+infix fun <T> ObservableComponentProperty<T>?.bindLeft(viewModelProperty: ObservableValueProperty<T>?) {
     if (this == null || viewModelProperty == null) {
         return
     }

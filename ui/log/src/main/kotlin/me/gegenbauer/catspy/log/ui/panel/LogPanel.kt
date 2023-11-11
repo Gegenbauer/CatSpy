@@ -6,7 +6,7 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.Bindings
-import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.iconset.GIcons
@@ -121,12 +121,12 @@ abstract class LogPanel(
     }
 
     class LogPanelBinding {
-        val scrollToEnd = ObservableViewModelProperty(false)
-        val boldPid = ObservableViewModelProperty(false)
-        val boldTid = ObservableViewModelProperty(false)
-        val boldTag = ObservableViewModelProperty(false)
-        val fullMode = ObservableViewModelProperty(false)
-        val bookmarkMode = ObservableViewModelProperty(false)
+        val scrollToEnd = ObservableValueProperty(false)
+        val boldPid = ObservableValueProperty(false)
+        val boldTid = ObservableValueProperty(false)
+        val boldTag = ObservableValueProperty(false)
+        val fullMode = ObservableValueProperty(false)
+        val bookmarkMode = ObservableValueProperty(false)
     }
 
     protected open fun bind(binding: LogPanelBinding) {
@@ -140,8 +140,8 @@ abstract class LogPanel(
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        table.setContexts(contexts)
-        vStatusPanel.setContexts(contexts)
+        table.setParent(this)
+        vStatusPanel.setParent(this)
 
         contexts.getContext(LogTabPanel::class.java)?.apply {
             val bookmarkManager = ServiceManager.getContextService(this, BookmarkManager::class.java)
@@ -276,10 +276,6 @@ abstract class LogPanel(
             vStatusPanel.repaint()
             table.repaint()
         }
-    }
-
-    override fun destroy() {
-        ctrlMainPanel.destroy()
     }
 
     companion object {

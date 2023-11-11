@@ -14,7 +14,7 @@ internal class LogConfig(logPath: String, logName: String) {
     private val consoleHandler: Handler = ConsoleHandler().apply {
         formatter = GLogFormatter()
     }
-    private val fileHandler = FileHandler(logFilePath, 100000, 1, true).apply {
+    private val fileHandler = FileHandler(logFilePath, LOG_FILE_MAX_SIZE, LOG_FILE_MAX_COUNT, true).apply {
         formatter = GLogFormatter()
     }
 
@@ -37,6 +37,10 @@ internal class LogConfig(logPath: String, logName: String) {
         gLogger.logger.addHandlerIfNotPresent(consoleHandler)
     }
 
+    fun flush() {
+        fileHandler.flush()
+    }
+
     private fun Logger.addHandlerIfNotPresent(handler: Handler) {
         if (handlers.contains(handler)) {
             return
@@ -46,5 +50,7 @@ internal class LogConfig(logPath: String, logName: String) {
 
     companion object {
         private const val TAG = "LogConfig"
+        private const val LOG_FILE_MAX_SIZE = 100 * 1024 * 1024L
+        private const val LOG_FILE_MAX_COUNT = 3
     }
 }

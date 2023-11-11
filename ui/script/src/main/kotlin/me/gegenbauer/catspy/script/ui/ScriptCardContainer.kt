@@ -91,10 +91,11 @@ class ScriptCardContainer(override val contexts: Contexts = Contexts.default) : 
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        cards.forEach { it.setContexts(contexts) }
+        cards.forEach { it.setParent(this) }
     }
 
     override fun destroy() {
+        super.destroy()
         cards.forEach(Card::destroy)
     }
 
