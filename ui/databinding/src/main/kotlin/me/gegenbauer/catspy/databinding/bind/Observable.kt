@@ -22,7 +22,7 @@ fun interface Observer<T> {
 }
 
 class ComponentPropertyObserver<T>(
-    val viewModelProperty: ObservableViewModelProperty<T>,
+    val viewModelProperty: ObservableValueProperty<T>,
     val componentProperty: ObservableComponentProperty<T>
 ) : Observer<T> {
     override fun onChange(newValue: T?) {
@@ -31,9 +31,9 @@ class ComponentPropertyObserver<T>(
     }
 }
 
-class ViewModelPropertyObserver<T>(
+class ValuePropertyObserver<T>(
     val componentProperty: ObservableComponentProperty<T>,
-    val viewModelProperty: ObservableViewModelProperty<T>
+    val viewModelProperty: ObservableValueProperty<T>
 ) : Observer<T> {
     override fun onChange(newValue: T?) {
         BindingLog.d(TAG, "[ViewModelPropertyObserver] ${viewModelProperty.getDisplayName()} property change to $newValue")

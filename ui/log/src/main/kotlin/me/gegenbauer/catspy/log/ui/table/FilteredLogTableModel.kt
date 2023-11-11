@@ -6,7 +6,7 @@ import me.gegenbauer.catspy.log.model.LogcatItem
 
 class FilteredLogTableModel(viewModel: LogViewModel) : LogTableModel(viewModel) {
 
-    override var selectedRows: List<Int>
+    override var selectedLogRows: List<Int>
         get() = viewModel.filteredTableSelectedRows
         set(value) {
             viewModel.filteredTableSelectedRows = value

@@ -172,6 +172,7 @@ class LogViewDialog(
     }
 
     override fun destroy() {
+        super.destroy()
         dispose()
     }
 }

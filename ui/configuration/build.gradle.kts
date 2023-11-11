@@ -6,7 +6,6 @@ plugins {
 
 dependencies {
     implementation(projects.ui.utils)
-    implementation(projects.ui.databinding)
     implementation(projects.concurrency)
     implementation(projects.resources.iconset)
     implementation(projects.resources.strings)
@@ -15,6 +14,7 @@ dependencies {
     implementation(projects.task)
     implementation(projects.glog)
     implementation(projects.javaext)
+    implementation(projects.cache)
     implementation(Gson.gson)
     implementation(Weisj.darklafCore)
 }

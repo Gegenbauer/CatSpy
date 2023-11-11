@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.log.model
 
-import me.gegenbauer.catspy.cache.PatternProvider
+import me.gegenbauer.catspy.cache.isEmpty
 import me.gegenbauer.catspy.log.LogLevel
 import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.toFilterItem
@@ -59,12 +59,12 @@ data class LogcatFilter(
     }
 
     private fun matchShowPattern(pattern: Pattern, text: String): Boolean {
-        if (pattern == PatternProvider.emptyPattern) return true
+        if (pattern.isEmpty) return true
         return pattern.matcher(text).find()
     }
 
     private fun matchHidePattern(pattern: Pattern, text: String): Boolean {
-        if (pattern == PatternProvider.emptyPattern) return true
+        if (pattern.isEmpty) return true
         return pattern.matcher(text).find().not()
     }
 

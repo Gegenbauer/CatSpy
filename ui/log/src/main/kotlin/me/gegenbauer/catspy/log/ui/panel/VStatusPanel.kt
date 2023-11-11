@@ -30,7 +30,7 @@ class VStatusPanel(override val contexts: Contexts = Contexts.default) : JPanel(
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        (getUI() as? VStatusPanelUI)?.setContexts(contexts)
+        (getUI() as? VStatusPanelUI)?.setParent(this)
     }
 
     override fun updateUI() {

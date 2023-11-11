@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.view.table
 
-import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import javax.swing.JLabel
 import javax.swing.JToggleButton
 import kotlin.test.Test
@@ -88,7 +88,7 @@ class PageIndicatorTest {
     }
 
     class PageableTestImpl : Pageable<String> {
-        override val pageMetaData: ObservableViewModelProperty<PageMetadata> = ObservableViewModelProperty()
+        override val pageMetaData: ObservableValueProperty<PageMetadata> = ObservableValueProperty()
 
         override fun nextPage() {}
 

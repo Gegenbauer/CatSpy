@@ -9,6 +9,8 @@ object Configuration {
     const val DEBUG_DDM = "Ddm"
     const val DEBUG_GLOBAL = "Global"
     const val DEBUG_TASK = "Task"
+    const val DEBUG_CACHE = "Cache"
+    const val DEBUG_LOG = "Log"
     const val LOG = "Log"
     const val MATCH_CASE = "Aa"
     const val PID = "PID"

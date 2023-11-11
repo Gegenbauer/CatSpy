@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.platform
 
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.strings.Configuration
+import java.awt.Desktop
 import java.io.File
 import java.lang.management.ManagementFactory
 import javax.swing.TransferHandler.TransferSupport
@@ -22,6 +23,10 @@ interface IPlatform {
         if (!file.exists()) {
             file.mkdirs()
         }
+    }
+
+    fun openExplorer(file: File) {
+        Desktop.getDesktop().open(file)
     }
 }
 

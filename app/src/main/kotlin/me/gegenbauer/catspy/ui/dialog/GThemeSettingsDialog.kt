@@ -9,7 +9,7 @@ import info.clearthought.layout.TableLayoutConstants
 import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.configuration.newFont
 import me.gegenbauer.catspy.configuration.toFont
-import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.listProperty
 import me.gegenbauer.catspy.databinding.property.support.selectedIndexProperty
@@ -104,8 +104,8 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         }
 
         inner class LanBinding {
-            val lans = ObservableViewModelProperty<List<String>>()
-            val currentSelectIndex = ObservableViewModelProperty<Int>()
+            val lans = ObservableValueProperty<List<String>>()
+            val currentSelectIndex = ObservableValueProperty<Int>()
         }
     }
 }

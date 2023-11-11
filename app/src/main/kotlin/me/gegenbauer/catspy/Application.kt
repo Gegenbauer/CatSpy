@@ -9,6 +9,7 @@ import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.conf.GlobalConfSync
 import me.gegenbauer.catspy.configuration.*
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -30,7 +31,7 @@ import javax.swing.UIDefaults
 import kotlin.system.exitProcess
 
 object Application : WindowAdapter() {
-    private const val TAG = "Main"
+    private const val TAG = "Application"
 
     private lateinit var mainFrame: MainFrame
 
@@ -63,7 +64,7 @@ object Application : WindowAdapter() {
             ThemeManager.registerDefaultThemeUpdateListener()
             openMainFrame()
 
-            takeIf { GLog.debug }?.let { addClickListenerForAllComponents(mainFrame.components) }
+            //takeIf { GLog.debug }?.let { addClickListenerForAllComponents(mainFrame.components) }
         }
     }
 

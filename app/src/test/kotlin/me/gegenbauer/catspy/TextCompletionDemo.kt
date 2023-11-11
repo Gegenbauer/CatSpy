@@ -7,10 +7,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.configuration.ThemeManager
-import me.gegenbauer.catspy.configuration.GlobalConfSync
 import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.conf.GlobalConfSync
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.platform.userDir
 import org.fife.ui.autocomplete.*

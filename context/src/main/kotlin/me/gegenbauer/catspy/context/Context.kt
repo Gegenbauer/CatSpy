@@ -6,6 +6,10 @@ package me.gegenbauer.catspy.context
 interface Context: Disposable {
     val contexts: Contexts
 
+    var parentContext: Context?
+        get() = null
+        set(value) = Unit
+
     fun getId(): Long {
         return hashCode().toLong()
     }
@@ -16,11 +20,19 @@ interface Context: Disposable {
         return this
     }
 
+    fun setParent(context: Context) {
+        parentContext = context
+        this.contexts.set(context.contexts)
+        configureContext(this)
+    }
+
     fun configureContext(context: Context) {
         contexts.putContext(context)
     }
 
-    override fun destroy() {}
+    override fun destroy() {
+        contexts.getAllContexts().filter { it.parentContext == this }.forEach { it.destroy() }
+    }
 
     companion object {
         val process = object : Context {

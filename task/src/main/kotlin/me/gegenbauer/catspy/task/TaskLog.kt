@@ -4,16 +4,16 @@ import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.glog.ILogger
 
 object TaskLog: ILogger by GLog {
-    var taskDebug = true
+    var debug = true
 
     override fun v(tag: String, msg: String) {
-        if (taskDebug) {
+        if (debug) {
             GLog.v(tag, msg)
         }
     }
 
     override fun d(tag: String, msg: String) {
-        if (taskDebug) {
+        if (debug) {
             GLog.d(tag, msg)
         }
     }

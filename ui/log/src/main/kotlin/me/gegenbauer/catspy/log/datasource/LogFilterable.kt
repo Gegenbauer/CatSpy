@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.log.datasource
 import me.gegenbauer.catspy.log.model.LogcatFilter
 
 interface LogFilterable {
-    val highlightFilter: LogcatFilter
+    val logcatFilter: LogcatFilter
 
     var fullMode: Boolean
 

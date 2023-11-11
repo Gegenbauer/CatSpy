@@ -1,9 +1,9 @@
-package me.gegenbauer.catspy.ddmlib
+package me.gegenbauer.catspy.log
 
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.glog.ILogger
 
-object DdmLog : ILogger by GLog {
+object Log: ILogger by GLog {
     var debug = false
 
     override fun v(tag: String, msg: String) {

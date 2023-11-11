@@ -90,6 +90,7 @@ class ScriptCard(
     }
 
     override fun destroy() {
+        super.destroy()
         ThemeManager.unregisterThemeUpdateListener(this)
     }
 

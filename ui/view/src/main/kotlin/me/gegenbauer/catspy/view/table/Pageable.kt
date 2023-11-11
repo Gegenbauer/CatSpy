@@ -1,10 +1,10 @@
 package me.gegenbauer.catspy.view.table
 
-import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 
 interface Pageable<T> {
 
-    val pageMetaData: ObservableViewModelProperty<PageMetadata>
+    val pageMetaData: ObservableValueProperty<PageMetadata>
 
     val pageCount: Int
         get() = pageMetaData.value?.pageCount ?: 0

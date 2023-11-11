@@ -299,7 +299,7 @@ fun LogTable.getRenderedContent(rows: List<Int>): String {
 private fun LogTable.getColumnBackground(num: Int, row: Int): Color {
     val context = contexts.getContext(LogTabPanel::class.java) ?: return LogColorScheme.logBG
     val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
-    val isRowSelected = tableModel.selectedRows.contains(row)
+    val isRowSelected = tableModel.selectedLogRows.contains(row)
     return if (bookmarkManager.isBookmark(num)) {
         if (isRowSelected) {
             LogColorScheme.bookmarkSelectedBG

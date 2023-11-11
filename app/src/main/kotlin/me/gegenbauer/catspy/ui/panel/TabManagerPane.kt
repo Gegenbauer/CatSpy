@@ -78,7 +78,7 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
 
     override fun addTab(tabPanel: TabPanel) {
         add(tabPanel.tabName, tabPanel.getTabContent())
-        tabPanel.setContexts(contexts)
+        tabPanel.setParent(this)
         selectTab(tabPanel)
         setTabComponentAt(indexOfComponent(tabPanel.getTabContent()), createTabHeader(tabPanel))
         SwingUtilities.updateComponentTreeUI(this)

@@ -53,7 +53,8 @@ class LogTable(
 
         selectionModel.addListSelectionListener {
             selectedRows.takeIf { it.isNotEmpty() }?.let {
-                tableModel.selectedRows = it.toList()
+                tableModel.selectedLogRows = it.toList()
+                repaint()
             }
         }
     }
@@ -86,7 +87,7 @@ class LogTable(
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        tableModel.setContexts(contexts)
+        tableModel.setParent(this)
     }
 
     override fun moveToRow(row: Int, setSelected: Boolean) {

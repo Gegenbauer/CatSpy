@@ -97,7 +97,7 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        focusedActivityCard.setContexts(contexts)
+        focusedActivityCard.setParent(this)
         currentDevice = ServiceManager.getContextService(AdamDeviceManager::class.java)
             .getDevices().firstOrNull() ?: currentDevice
     }
@@ -111,7 +111,7 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
     }
 
     override fun destroy() {
-        cardContainer.destroy()
+        super.destroy()
         taskManager.cancelAll()
     }
 

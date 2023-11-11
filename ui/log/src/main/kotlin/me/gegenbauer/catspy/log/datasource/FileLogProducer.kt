@@ -31,6 +31,7 @@ class FileLogProducer(
                     send(Result.success(LogcatItem.from(line, logNum.getAndIncrement())))
                 }
             }
+            invokeOnClose { moveToState(LogProducer.State.COMPLETE) }
         }
     }
 }

@@ -16,7 +16,6 @@ class StatefulPanel : JPanel() {
     var listState: ListState = ListState.NONE
         set(value) {
             if (value == field) return
-            GLog.d(TAG, "[state] set $value")
             field = value
             setStateInternal(value)
         }

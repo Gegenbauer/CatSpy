@@ -3,7 +3,6 @@ package me.gegenbauer.catspy.view.filter
 import me.gegenbauer.catspy.cache.PatternProvider
 import me.gegenbauer.catspy.cache.PatternProvider.Companion.toPatternKey
 import me.gegenbauer.catspy.context.ServiceManager
-import java.lang.StringBuilder
 import java.util.*
 import java.util.regex.Pattern
 
@@ -35,7 +34,7 @@ data class FilterItem(
     }
 
     companion object {
-        val emptyItem = FilterItem(PatternProvider.emptyPattern, PatternProvider.emptyPattern, "")
+        val emptyItem = FilterItem(PatternProvider.EMPTY_PATTERN, PatternProvider.EMPTY_PATTERN, "")
         private const val STR_PATTERN_EMPTY = "Empty"
 
         fun FilterItem.isEmpty(): Boolean {
@@ -45,15 +44,15 @@ data class FilterItem(
         fun FilterItem.rebuild(matchCase: Boolean): FilterItem {
             return FilterItem(
                 positiveFilter = ServiceManager.getContextService(PatternProvider::class.java)
-                    .get(this.positiveFilter.pattern().toPatternKey(matchCase)),
+                    [this.positiveFilter.pattern().toPatternKey(matchCase)] ?: PatternProvider.EMPTY_PATTERN,
                 negativeFilter = ServiceManager.getContextService(PatternProvider::class.java)
-                    .get(this.negativeFilter.pattern().toPatternKey(matchCase)),
+                    [this.negativeFilter.pattern().toPatternKey(matchCase)] ?: PatternProvider.EMPTY_PATTERN,
                 errorMessage = this.errorMessage
             )
         }
 
         fun Pattern.str(): String {
-            if (this == PatternProvider.emptyPattern) return STR_PATTERN_EMPTY
+            if (this == PatternProvider.EMPTY_PATTERN) return STR_PATTERN_EMPTY
             return this.pattern()
         }
 
@@ -89,15 +88,15 @@ fun String.toFilterItem(matchCase: Boolean = false): FilterItem {
     val patternProvider = ServiceManager.getContextService(PatternProvider::class.java)
     var errorMessage = ""
     val positiveFilter = runCatching {
-        patternProvider.get(patterns.first.toPatternKey(matchCase))
+        patternProvider[patterns.first.toPatternKey(matchCase)] ?: PatternProvider.EMPTY_PATTERN
     }.onFailure {
         errorMessage = it.message ?: ""
-    }.getOrDefault(PatternProvider.emptyPattern)
+    }.getOrDefault(PatternProvider.EMPTY_PATTERN)
     val negativeFilter = runCatching {
-        patternProvider.get(patterns.second.toPatternKey(matchCase))
+        patternProvider[patterns.second.toPatternKey(matchCase)] ?: PatternProvider.EMPTY_PATTERN
     }.onFailure {
         errorMessage += ", ${it.message ?: ""}"
-    }.getOrDefault(PatternProvider.emptyPattern)
+    }.getOrDefault(PatternProvider.EMPTY_PATTERN)
     return FilterItem(positiveFilter, negativeFilter, errorMessage)
 }
 

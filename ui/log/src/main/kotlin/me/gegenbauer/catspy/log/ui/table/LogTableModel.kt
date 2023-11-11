@@ -8,7 +8,8 @@ import me.gegenbauer.catspy.concurrency.ViewModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.databinding.bind.ObservableViewModelProperty
+import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.datasource.LogViewModel
 import me.gegenbauer.catspy.log.flag
@@ -45,7 +46,7 @@ open class LogTableModel(
 
     override var searchMatchCase: Boolean = false
 
-    override val pageMetaData: ObservableViewModelProperty<PageMetadata> = ObservableViewModelProperty()
+    override val pageMetaData: ObservableValueProperty<PageMetadata> = ObservableValueProperty()
 
     override val pageSize: Int
         get() = DEFAULT_PAGE_SIZE
@@ -56,7 +57,7 @@ open class LogTableModel(
         get() = getBindings()?.boldPid?.value ?: false
     override val boldTid: Boolean
         get() = getBindings()?.boldTid?.value ?: false
-    override var selectedRows: List<Int>
+    override var selectedLogRows: List<Int>
         get() = viewModel.fullTableSelectedRows
         set(value) {
             viewModel.fullTableSelectedRows = value
@@ -70,20 +71,65 @@ open class LogTableModel(
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        viewModel.setContexts(contexts)
+        viewModel.setParent(this)
         collectLogItems()
     }
 
     protected open fun collectLogItems() {
         scope.launch(Dispatchers.UI) {
-            logFlow.collect {
-                logItems = it.toMutableList()
-                fireTableDataChanged()
-                if (selectedRows.isNotEmpty()) {
-                    val selectedRowStart = selectedRows.first()
-                    val selectedRowEnd = selectedRows.last()
-                    getLogTable()?.setRowSelectionInterval(selectedRowStart, selectedRowEnd)
-                }
+            logFlow.collect { items ->
+                val oldItems = logItems
+                logItems = items.toMutableList()
+                fireChangeEvent(oldItems, logItems)
+            }
+        }
+    }
+
+    private fun fireChangeEvent(oldItems: List<LogcatItem>, newItems: List<LogcatItem>) {
+        recalculatePage() // 在表格 UI 更新之前重新计算页数信息，因为 UI 更新需要用到页数信息
+        if (oldItems.firstOrNull()?.num != newItems.firstOrNull()?.num) {
+            fireTableDataChanged()
+            clearSelectedRows()
+        } else if (newItems.isEmpty()) {
+            if (oldItems.isNotEmpty()) {
+                fireTableChanged(TableModelEvent(this, 0, oldItems.lastIndex, TableModelEvent.ALL_COLUMNS, TableModelEvent.DELETE))
+            }
+            clearBookmark()
+            clearSelectedRows()
+            Runtime.getRuntime().gc()
+        } else {
+            fireTableChanged(TableModelEvent(this, oldItems.lastIndex + 1, newItems.lastIndex, TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT))
+            resetSelectedRows()
+        }
+
+        val logPanel = contexts.getContext(LogPanel::class.java)
+        logPanel?.repaint()
+    }
+
+    private fun clearBookmark() {
+        val mainUI = contexts.getContext(LogTabPanel::class.java)
+        mainUI ?: return
+        val bookmarkManager = ServiceManager.getContextService(mainUI, BookmarkManager::class.java)
+        bookmarkManager.clear()
+    }
+
+    private fun clearSelectedRows() {
+        selectedLogRows = emptyList()
+    }
+
+    private fun resetSelectedRows() {
+        if (selectedLogRows.isNotEmpty() && selectedLogRows.firstOrNull() in 0 until rowCount
+            && selectedLogRows.lastOrNull() in 0 until rowCount
+        ) {
+            val selectedRowStart = selectedLogRows.first()
+            val selectedRowEnd = selectedLogRows.last()
+            runCatching {
+                getLogTable()?.setRowSelectionInterval(selectedRowStart, selectedRowEnd)
+            }.onFailure {
+                GLog.e(
+                    "LogTableModel", "[collectLogItems] selectedRows=$selectedLogRows, " +
+                            "rowCount=$rowCount, itemsSize=${logItems.size}", it
+                )
             }
         }
     }
@@ -184,23 +230,7 @@ open class LogTableModel(
     }
 
     override fun getLogFilter(): LogcatFilter {
-        return viewModel.highlightFilter
-    }
-
-    override fun fireTableDataChanged() {
-        val mainUI = contexts.getContext(LogTabPanel::class.java)
-        mainUI ?: return
-
-        recalculatePage() // 在表格 UI 更新之前重新计算页数信息，因为 UI 更新需要用到页数信息
-        val logPanel = contexts.getContext(LogPanel::class.java)
-        logPanel?.repaint()
-
-        if (logItems.isEmpty()) {
-            val bookmarkManager = ServiceManager.getContextService(mainUI, BookmarkManager::class.java)
-            bookmarkManager.clear()
-            Runtime.getRuntime().gc()
-        }
-        super.fireTableDataChanged()
+        return viewModel.logcatFilter
     }
 
     private fun recalculatePage() {
