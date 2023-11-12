@@ -17,6 +17,8 @@ dependencies {
     implementation(projects.resources)
     implementation(projects.context)
     implementation(projects.cache)
+    implementation(projects.platform)
+    implementation(projects.concurrency)
 
     api(TableLayout.tablelayout)
     api(Weisj.darklafCore)

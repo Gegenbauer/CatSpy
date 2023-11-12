@@ -43,6 +43,7 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
     override fun createEditorComponent(): JTextField {
         return super.createEditorComponent().apply {
             //enableAutoComplete()
+            putClientProperty("JTextField.showClear", true)
         }
     }
 

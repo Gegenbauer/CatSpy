@@ -14,4 +14,6 @@ interface LogFilterable {
     var filteredTableSelectedRows: List<Int>
 
     fun updateFilter(filter: LogcatFilter)
+
+    fun updateFilter(filter: LogcatFilter, force: Boolean)
 }

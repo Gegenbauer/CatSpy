@@ -18,8 +18,4 @@ class CustomEditorDarkComboBoxUI(private val customEditor: ComboBoxEditor): Dark
         })
         return comboBoxEditor
     }
-
-    companion object {
-        private const val TAG = "CustomDarkComboBoxUI"
-    }
 }

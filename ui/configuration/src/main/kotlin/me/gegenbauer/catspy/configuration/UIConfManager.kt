@@ -19,6 +19,8 @@ object UIConfManager {
         if (!uiFile.exists()) {
             uiFile.createNewFile()
             uiFile.writeText(Gson().toJson(UIConf()))
+        } else if (uiFile.length().toInt() == 0) {
+            uiFile.writeText(Gson().toJson(UIConf()))
         }
     }
 

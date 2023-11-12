@@ -66,13 +66,9 @@ class FileOpenPopupMenu(override val contexts: Contexts = Contexts.default) : JP
         // TODO support archives
         chooser.addChoosableFileFilter(FileNameExtensionFilter(STRINGS.ui.logArchive, "zip", "rar", "gz", "tar"))
         chooser.isMultiSelectionEnabled = multiSelection
-        chooser.showOpenDialog(frame)
-        val files = chooser.selectedFiles
-        val file = chooser.selectedFile
-        if (!files.isNullOrEmpty()) {
-            onFilesSelected(files)
-        } else if (file != null) {
-            onFilesSelected(arrayOf(file))
+        val result = chooser.showOpenDialog(frame)
+        if (result == JFileChooser.APPROVE_OPTION) {
+            onFilesSelected(chooser.selectedFiles.takeIf { it.isNotEmpty()} ?: arrayOf(chooser.selectedFile))
         }
     }
 }

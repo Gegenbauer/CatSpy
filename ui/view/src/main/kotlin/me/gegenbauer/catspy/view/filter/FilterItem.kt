@@ -34,14 +34,15 @@ data class FilterItem(
     }
 
     companion object {
-        val emptyItem = FilterItem(PatternProvider.EMPTY_PATTERN, PatternProvider.EMPTY_PATTERN, "")
+        val EMPTY_ITEM = FilterItem(PatternProvider.EMPTY_PATTERN, PatternProvider.EMPTY_PATTERN, "")
         private const val STR_PATTERN_EMPTY = "Empty"
 
         fun FilterItem.isEmpty(): Boolean {
-            return this == emptyItem
+            return this == EMPTY_ITEM
         }
 
         fun FilterItem.rebuild(matchCase: Boolean): FilterItem {
+            if (EMPTY_ITEM == this) return this
             return FilterItem(
                 positiveFilter = ServiceManager.getContextService(PatternProvider::class.java)
                     [this.positiveFilter.pattern().toPatternKey(matchCase)] ?: PatternProvider.EMPTY_PATTERN,
@@ -61,7 +62,7 @@ data class FilterItem(
         }
 
         fun FilterItem.isNotEmpty(): Boolean {
-            return this != emptyItem
+            return this != EMPTY_ITEM
         }
 
         fun FilterItem.getMatchedList(text: String): List<Pair<Int, Int>> {
@@ -82,7 +83,7 @@ private const val PATTERN_SPLITTER = "|"
 private const val NEGATIVE_PATTERN_PREFIX = '-'
 fun String.toFilterItem(matchCase: Boolean = false): FilterItem {
     if (this.isEmpty()) {
-        return FilterItem.emptyItem
+        return FilterItem.EMPTY_ITEM
     }
     val patterns = parsePattern(this)
     val patternProvider = ServiceManager.getContextService(PatternProvider::class.java)

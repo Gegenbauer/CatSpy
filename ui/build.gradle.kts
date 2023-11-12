@@ -14,8 +14,8 @@ dependencies {
     api(projects.ui.filter)
     implementation(projects.glog)
     implementation(projects.concurrency)
-    implementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
-    testImplementation(Weisj.groupName, Weisj.darklafCore.artifact, Weisj.darklafCore.version)
+    implementation(Weisj.darklafCore)
+    testImplementation(Weisj.darklafCore)
 }
 
 tasks.getByName<Test>("test") {

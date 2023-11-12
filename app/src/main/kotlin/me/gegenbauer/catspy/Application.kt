@@ -11,15 +11,15 @@ import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.conf.GlobalConfSync
 import me.gegenbauer.catspy.configuration.*
-import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.platform.isInDebugMode
-import me.gegenbauer.catspy.strings.Configuration
+import me.gegenbauer.catspy.strings.GlobalConstants
 import me.gegenbauer.catspy.strings.StringResourceManager
 import me.gegenbauer.catspy.ui.MainFrame
 import java.awt.Container
@@ -50,7 +50,7 @@ object Application : WindowAdapter() {
     fun main(args: Array<String>) {
         AppScope.launch(Dispatchers.UI) {
             withContext(Dispatchers.APP_LAUNCH) {
-                GLog.init(filesDir, Configuration.LOG_NAME)
+                GLog.init(filesDir, GlobalConstants.LOG_NAME)
                 UIConfManager.init()
                 ThemeManager.init()
                 GlobalConfSync.init()
@@ -84,7 +84,7 @@ object Application : WindowAdapter() {
             mainFrame.destroy()
         }
         StringResourceManager.loadStrings()
-        mainFrame = MainFrame(Configuration.APP_NAME, Contexts())
+        mainFrame = MainFrame(GlobalProperties.APP_NAME)
         mainFrame.configureContext(mainFrame)
         mainFrame.isVisible = true
         mainFrame.addWindowListener(this@Application)

@@ -1,9 +1,6 @@
 package me.gegenbauer.catspy.log.binding
 
 import com.github.weisj.darklaf.theme.Theme
-import me.gegenbauer.catspy.log.LogLevel
-import me.gegenbauer.catspy.log.getLevelFromName
-import me.gegenbauer.catspy.log.nameToLogLevel
 import me.gegenbauer.catspy.configuration.*
 import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
@@ -11,12 +8,15 @@ import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.bind.bindLeft
 import me.gegenbauer.catspy.databinding.property.support.*
 import me.gegenbauer.catspy.java.ext.getEnum
+import me.gegenbauer.catspy.log.LogLevel
+import me.gegenbauer.catspy.log.getLevelFromName
+import me.gegenbauer.catspy.log.nameToLogLevel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.editorComponent
 import me.gegenbauer.catspy.view.combobox.HistoryComboBox
 import me.gegenbauer.catspy.view.combobox.HistoryItem
-import me.gegenbauer.catspy.view.combobox.toContentList
-import me.gegenbauer.catspy.view.combobox.toHistoryItemList
+import me.gegenbauer.catspy.view.combobox.toStrContentList
+import me.gegenbauer.catspy.view.combobox.toStrHistoryList
 import javax.swing.JToggleButton
 
 class LogMainBinding : ContextService, GThemeChangeListener {
@@ -24,38 +24,38 @@ class LogMainBinding : ContextService, GThemeChangeListener {
     //region Toolbar
     //region Filter
     val logFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.logFilterEnabled)
-    val logFilterHistory = ObservableValueProperty(UIConfManager.uiConf.logFilterHistory.toHistoryItemList())
+    val logFilterHistory = ObservableValueProperty(UIConfManager.uiConf.logFilterHistory.toStrHistoryList())
     val logFilterSelectedIndex = ObservableValueProperty<Int>()
     val logFilterCurrentContent = ObservableValueProperty<String>()
     val logFilterErrorMessage = ObservableValueProperty<String>()
 
     val tagFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.tagFilterEnabled)
-    val tagFilterHistory = ObservableValueProperty(UIConfManager.uiConf.tagFilterHistory.toHistoryItemList())
+    val tagFilterHistory = ObservableValueProperty(UIConfManager.uiConf.tagFilterHistory.toStrHistoryList())
     val tagFilterSelectedIndex = ObservableValueProperty<Int>()
     val tagFilterCurrentContent = ObservableValueProperty<String>()
     val tagFilterErrorMessage = ObservableValueProperty<String>()
 
     val pidFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.pidFilterEnabled)
-    val pidFilterHistory = ObservableValueProperty(arrayListOf<String>().toHistoryItemList())
+    val pidFilterHistory = ObservableValueProperty(arrayListOf<String>().toStrHistoryList())
     val pidFilterSelectedIndex = ObservableValueProperty<Int>()
     val pidFilterCurrentContent = ObservableValueProperty<String>()
     val pidFilterErrorMessage = ObservableValueProperty<String>()
 
     val tidFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.tidFilterEnabled)
-    val tidFilterHistory = ObservableValueProperty(arrayListOf<String>().toHistoryItemList())
+    val tidFilterHistory = ObservableValueProperty(arrayListOf<String>().toStrHistoryList())
     val tidFilterSelectedIndex = ObservableValueProperty<Int>()
     val tidFilterCurrentContent = ObservableValueProperty<String>()
     val tidFilterErrorMessage = ObservableValueProperty<String>()
 
     val logLevelFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.logLevelFilterEnabled)
     private val sortedLogLevels = nameToLogLevel.toList().sortedBy { it.second.logLevel }.map { it.second.logName }
-    val logLevelFilterHistory = ObservableValueProperty(sortedLogLevels.toHistoryItemList())
+    val logLevelFilterHistory = ObservableValueProperty(sortedLogLevels.toStrHistoryList())
     val logLevelFilterCurrentContent = ObservableValueProperty(UIConfManager.uiConf.logLevel)
     val logLevelFilterSelectedIndex =
         ObservableValueProperty(sortedLogLevels.indexOf(UIConfManager.uiConf.logLevel))
 
     val boldEnabled = ObservableValueProperty(UIConfManager.uiConf.boldEnabled)
-    val boldHistory = ObservableValueProperty(UIConfManager.uiConf.highlightHistory.toHistoryItemList())
+    val boldHistory = ObservableValueProperty(UIConfManager.uiConf.highlightHistory.toStrHistoryList())
     val boldSelectedIndex = ObservableValueProperty<Int>()
     val boldCurrentContent = ObservableValueProperty<String>()
     val boldErrorMessage = ObservableValueProperty<String>()
@@ -81,7 +81,7 @@ class LogMainBinding : ContextService, GThemeChangeListener {
     //endregion
 
     //region SearchBar
-    val searchHistory = ObservableValueProperty(UIConfManager.uiConf.searchHistory.toHistoryItemList())
+    val searchHistory = ObservableValueProperty(UIConfManager.uiConf.searchHistory.toStrHistoryList())
     val searchSelectedIndex = ObservableValueProperty<Int>()
     val searchCurrentContent = ObservableValueProperty<String>()
     val searchMatchCase = ObservableValueProperty(UIConfManager.uiConf.searchMatchCaseEnabled)
@@ -132,19 +132,19 @@ class LogMainBinding : ContextService, GThemeChangeListener {
     fun syncGlobalConfWithMainBindings() {
         searchHistory.addObserver {
             UIConfManager.uiConf.searchHistory.clear()
-            UIConfManager.uiConf.searchHistory.addAll(it!!.toContentList())
+            UIConfManager.uiConf.searchHistory.addAll(it!!.toStrContentList())
         }
         logFilterHistory.addObserver {
             UIConfManager.uiConf.logFilterHistory.clear()
-            UIConfManager.uiConf.logFilterHistory.addAll(it!!.toContentList())
+            UIConfManager.uiConf.logFilterHistory.addAll(it!!.toStrContentList())
         }
         tagFilterHistory.addObserver {
             UIConfManager.uiConf.tagFilterHistory.clear()
-            UIConfManager.uiConf.tagFilterHistory.addAll(it!!.toContentList())
+            UIConfManager.uiConf.tagFilterHistory.addAll(it!!.toStrContentList())
         }
         boldHistory.addObserver {
             UIConfManager.uiConf.highlightHistory.clear()
-            UIConfManager.uiConf.highlightHistory.addAll(it!!.toContentList())
+            UIConfManager.uiConf.highlightHistory.addAll(it!!.toStrContentList())
         }
         rotation.addObserver {
             UIConfManager.uiConf.rotation = it?.ordinal ?: Rotation.ROTATION_LEFT_RIGHT.ordinal

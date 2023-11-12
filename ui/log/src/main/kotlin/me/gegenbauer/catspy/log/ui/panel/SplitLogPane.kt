@@ -34,7 +34,7 @@ class SplitLogPane(
 
     val fullLogPanel = FullLogPanel(fullTableModel, this)
     val filteredLogPanel = FilteredLogPanel(filteredTableModel, this, fullLogPanel)
-    val filterStatefulPanel = StatefulPanel()
+    private val filterStatefulPanel = StatefulPanel()
     private var rotation: Rotation = Rotation.ROTATION_LEFT_RIGHT
         set(value) {
             field = value
@@ -134,8 +134,8 @@ class SplitLogPane(
             logMainUI ?: return false
 
             val options = listOf<Pair<String, (List<File>) -> Unit>>(
-                STRINGS.ui.open to {
-                    it.forEach { logMainUI.openFile(it.absolutePath) }
+                STRINGS.ui.open to { files ->
+                    files.firstOrNull()?.let { logMainUI.openFile(it.absolutePath) }
                 },
                 STRINGS.ui.cancel to { GLog.d(TAG, "[onDragLogFile] select cancel") }
             )

@@ -2,7 +2,9 @@ package me.gegenbauer.catspy.log
 
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
-import me.gegenbauer.catspy.glog.GLog
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 fun interface BookmarkChangeListener {
     fun bookmarkChanged()
@@ -12,55 +14,55 @@ class BookmarkManager: ContextService {
 
     private val bookmarks = HashSet<Int>()
     private val eventListeners = ArrayList<BookmarkChangeListener>()
+    private val listenerLock = ReentrantReadWriteLock()
+    private val bookmarksLock = ReentrantReadWriteLock()
 
     fun addBookmarkEventListener(listener: BookmarkChangeListener) {
-        eventListeners.add(listener)
+        listenerLock.write { eventListeners.add(listener) }
+    }
+
+    fun removeBookmarkEventListener(listener: BookmarkChangeListener) {
+        listenerLock.write { eventListeners.remove(listener) }
     }
 
     fun isBookmark(bookmark: Int): Boolean {
-        return bookmarks.contains(bookmark)
+        return bookmarksLock.read { bookmarks.contains(bookmark) }
     }
 
     fun updateBookmark(bookmark: Int) {
-        if (bookmarks.contains(bookmark)) {
-            removeBookmark(bookmark)
-        } else {
-            addBookmark(bookmark)
+        bookmarksLock.read {
+            if (bookmarks.contains(bookmark)) {
+                removeBookmark(bookmark)
+            } else {
+                addBookmark(bookmark)
+            }
         }
     }
 
     fun checkNewRow(rows: List<Int>): Boolean {
-        return rows.any { !bookmarks.contains(it) }
+        return bookmarksLock.read { rows.any { bookmarks.contains(it) } }
     }
 
     fun addBookmark(bookmark: Int) {
-        GLog.d(TAG, "[addBookmark] bookmark: $bookmark")
-        bookmarks.add(bookmark)
+        bookmarksLock.write { bookmarks.add(bookmark) }
         notifyChanged()
     }
 
     fun removeBookmark(bookmark: Int) {
-        GLog.d(TAG, "[removeBookmark] bookmark: $bookmark")
-        bookmarks.remove(bookmark)
+        bookmarksLock.write { bookmarks.remove(bookmark) }
         notifyChanged()
     }
 
     fun clear() {
-        bookmarks.clear()
+        bookmarksLock.write { bookmarks.clear() }
         notifyChanged()
     }
 
     private fun notifyChanged() {
-        for (listener in eventListeners) {
-            listener.bookmarkChanged()
-        }
+        eventListeners.toList().forEach(BookmarkChangeListener::bookmarkChanged)
     }
 
     override fun onContextDestroyed(context: Context) {
         clear()
-    }
-
-    companion object {
-        private const val TAG = "BookmarkManager"
     }
 }
