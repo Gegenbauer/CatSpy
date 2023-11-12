@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.log.model
 import me.gegenbauer.catspy.cache.isEmpty
 import me.gegenbauer.catspy.log.LogLevel
 import me.gegenbauer.catspy.view.filter.FilterItem
+import me.gegenbauer.catspy.view.filter.FilterItem.Companion.isEmpty
 import me.gegenbauer.catspy.view.filter.toFilterItem
 import java.util.regex.Pattern
 
@@ -68,7 +69,31 @@ data class LogcatFilter(
         return pattern.matcher(text).find().not()
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (other !is LogcatFilter) {
+            return false
+        }
+        if (filterLog.isEmpty() && other.filterLog.isEmpty() &&
+            filterTag.isEmpty() && other.filterTag.isEmpty() &&
+            filterPid.isEmpty() && other.filterPid.isEmpty() &&
+            filterTid.isEmpty() && other.filterTid.isEmpty() &&
+            filterLevel == other.filterLevel
+        ) {
+            return true
+        }
+        return this.filterLog == other.filterLog &&
+                this.filterTag == other.filterTag &&
+                this.filterPid == other.filterPid &&
+                this.filterTid == other.filterTid &&
+                this.filterLevel == other.filterLevel &&
+                this.matchCase == other.matchCase
+    }
+
+    override fun hashCode(): Int {
+        return super.hashCode()
+    }
+
     companion object {
-        val EMPTY_FILTER = LogcatFilter("", "", "", "", LogLevel.VERBOSE)
+        val EMPTY_FILTER = LogcatFilter("", "", "", "", LogLevel.NONE)
     }
 }

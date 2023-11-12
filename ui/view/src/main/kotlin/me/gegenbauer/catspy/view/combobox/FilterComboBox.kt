@@ -25,7 +25,7 @@ import javax.swing.text.JTextComponent
 class FilterComboBox(private val enableHighlight: Boolean = true, private val tooltip: String? = null) :
     HistoryComboBox<String>() {
 
-    var filterItem: FilterItem = FilterItem.emptyItem
+    var filterItem: FilterItem = FilterItem.EMPTY_ITEM
     var keyListener: KeyListener? = null
         set(value) {
             field = value

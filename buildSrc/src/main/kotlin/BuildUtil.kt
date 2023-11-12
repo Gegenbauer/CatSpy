@@ -18,3 +18,6 @@ fun runCommand(vararg args : String, workingDirectory : File? = null): String? {
 fun String.runCommand(): String? {
     return runCommand(*split(" ").toTypedArray())
 }
+
+val Int.indent: String
+    get() = "    ".repeat(this)

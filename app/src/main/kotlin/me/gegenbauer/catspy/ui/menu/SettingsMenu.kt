@@ -4,7 +4,7 @@ import me.gegenbauer.catspy.configuration.Menu.MENU_ITEM_ICON_SIZE
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.iconset.GIcons
-import me.gegenbauer.catspy.strings.Configuration
+import me.gegenbauer.catspy.strings.GlobalConstants
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.dialog.GThemeSettingsDialog
 import me.gegenbauer.catspy.utils.findFrameFromParent
@@ -29,12 +29,12 @@ class SettingsMenu(override val contexts: Contexts = Contexts.default) : GMenu()
     private val debugMenu = JMenu(STRINGS.ui.debug).apply {
         icon = GIcons.Menu.Debug.get(MENU_ITEM_ICON_SIZE, MENU_ITEM_ICON_SIZE)
     }
-    val globalDebug = JCheckBoxMenuItem(Configuration.DEBUG_GLOBAL)
-    val bindingDebug = JCheckBoxMenuItem(Configuration.DEBUG_DATA_BINDING)
-    val taskDebug = JCheckBoxMenuItem(Configuration.DEBUG_TASK)
-    val ddmDebug = JCheckBoxMenuItem(Configuration.DEBUG_DDM)
-    val cacheDebug = JCheckBoxMenuItem(Configuration.DEBUG_CACHE)
-    val logDebug = JCheckBoxMenuItem(Configuration.DEBUG_LOG)
+    val globalDebug = JCheckBoxMenuItem(GlobalConstants.DEBUG_GLOBAL)
+    val bindingDebug = JCheckBoxMenuItem(GlobalConstants.DEBUG_DATA_BINDING)
+    val taskDebug = JCheckBoxMenuItem(GlobalConstants.DEBUG_TASK)
+    val ddmDebug = JCheckBoxMenuItem(GlobalConstants.DEBUG_DDM)
+    val cacheDebug = JCheckBoxMenuItem(GlobalConstants.DEBUG_CACHE)
+    val logDebug = JCheckBoxMenuItem(GlobalConstants.DEBUG_LOG)
 
     init {
         text = STRINGS.ui.setting

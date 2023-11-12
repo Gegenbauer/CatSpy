@@ -1,9 +1,6 @@
 import com.google.gson.JsonObject
 import java.io.File
 
-val Int.indent: String
-    get() = "    ".repeat(this)
-
 fun createStringAccessor(jsonFile: File, packageName: String, className: String): String {
     val gson = com.google.gson.Gson()
     val jsonObject = gson.fromJson(jsonFile.reader(), JsonObject::class.java)

@@ -40,7 +40,7 @@ class LogTable(
         dragEnabled = true
         dropMode = DropMode.INSERT
         intercellSpacing = Dimension(0, 0)
-        selectionModel.selectionMode = ListSelectionModel.SINGLE_INTERVAL_SELECTION
+        setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION)
         setRowSelectionAllowed(true)
         columnSelectionAllowed = false
 
@@ -90,36 +90,45 @@ class LogTable(
         tableModel.setParent(this)
     }
 
-    override fun moveToRow(row: Int, setSelected: Boolean) {
-        if (row !in 0 until tableModel.dataSize) {
+    override fun moveRowToCenter(rowIndex: Int, setSelected: Boolean) {
+        if (rowIndex !in 0 until tableModel.dataSize) {
             return
         }
-        val lastSelectedRow = selectedRow
+
+        if (parent !is JViewport) {
+            return
+        }
+
         // clear section 会触发 onListSelectionChanged，而 onListSelectionChanged 中会重新设置 goToLast or goToFirst 导致循环调用
         selectionModel.removeListSelectionListener(listSelectionHandler)
         clearSelection()
         selectionModel.addListSelectionListener(listSelectionHandler)
 
         // position target page of target row
-        tableModel.gotoPage(row / tableModel.pageSize)
+        tableModel.gotoPage(rowIndex / tableModel.pageSize)
 
         // 计算目标行在当前页的位置
-        val rowIdx = row % tableModel.pageSize
+        val rowIdx = rowIndex % tableModel.pageSize
 
         if (setSelected) {
             setRowSelectionInterval(rowIdx, rowIdx)
         }
 
-        val targetRect = getCellRect(rowIdx, columnIndex.index, false)
-        targetRect.x = visibleRect.x
+        val viewPort = parent as JViewport
+        val rect = getCellRect(rowIdx, 0, true)
+        val viewRect = viewPort.viewRect
+        rect.setLocation(rect.x - viewRect.x, rect.y - viewRect.y)
 
-        // 需要多滚动一行，不然还是无法看见选中行
-        val isLastRow = selectedRow == tableModel.rowCount - 1
-        val isFirstRow = selectedRow == 0
-        if (tableModel is FilteredLogTableModel && isLastRow.not() && isFirstRow.not()) {
-            targetRect.y -= if (lastSelectedRow > rowIdx) -targetRect.height else targetRect.height
+        var centerX = (viewRect.width - rect.width) / 2
+        var centerY = (viewRect.height - rect.height) / 2
+        if (rect.x < centerX) {
+            centerX = -centerX
         }
-        scrollRectToVisible(targetRect)
+        if (rect.y < centerY) {
+            centerY = -centerY
+        }
+        rect.translate(centerX, centerY)
+        viewPort.scrollRectToVisible(rect)
     }
 
     override fun moveToLastRow() {
@@ -127,7 +136,7 @@ class LogTable(
         if (lastRow < 0) {
             return
         }
-        moveToRow(lastRow, false)
+        moveRowToCenter(lastRow, false)
     }
 
     override fun processKeyBinding(ks: KeyStroke, e: KeyEvent, condition: Int, pressed: Boolean): Boolean {
@@ -141,7 +150,7 @@ class LogTable(
         if (tableModel.dataSize <= 0) {
             return
         }
-        moveToRow(0, false)
+        moveRowToCenter(0, false)
     }
 
     fun isLastRowSelected(): Boolean {
@@ -156,28 +165,28 @@ class LogTable(
         if (selectedRow < 0) {
             return
         }
-        moveToRow((selectedRow + BATCH_ROW_COUNT_TO_SCROLL).coerceAtMost(tableModel.dataSize - 1), true)
+        moveRowToCenter((selectedRow + BATCH_ROW_COUNT_TO_SCROLL).coerceAtMost(tableModel.dataSize - 1), true)
     }
 
     override fun moveToPreviousSeveralRows() {
         if (selectedRow < 0) {
             return
         }
-        moveToRow((selectedRow - BATCH_ROW_COUNT_TO_SCROLL).coerceAtLeast(0), true)
+        moveRowToCenter((selectedRow - BATCH_ROW_COUNT_TO_SCROLL).coerceAtLeast(0), true)
     }
 
     override fun moveToNextRow() {
         if (selectedRow < 0) {
             return
         }
-        moveToRow((selectedRow + 1).coerceAtMost(tableModel.dataSize - 1), true)
+        moveRowToCenter((selectedRow + 1).coerceAtMost(tableModel.dataSize - 1), true)
     }
 
     override fun moveToPreviousRow() {
         if (selectedRow < 0) {
             return
         }
-        moveToRow((selectedRow - 1).coerceAtLeast(0), true)
+        moveRowToCenter((selectedRow - 1).coerceAtLeast(0), true)
     }
 
     override fun scrollToEnd() {

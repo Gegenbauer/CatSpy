@@ -12,10 +12,10 @@ import me.gegenbauer.catspy.ui.dialog.AboutDialog
 import me.gegenbauer.catspy.ui.dialog.HelpDialog
 import me.gegenbauer.catspy.utils.MENU_ICON_SIZE
 import me.gegenbauer.catspy.utils.findFrameFromParent
+import me.gegenbauer.catspy.view.dialog.FileSaveHandler
 import me.gegenbauer.catspy.view.menu.GMenu
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
-import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JMenuItem
 
@@ -67,13 +67,10 @@ class HelpMenu(override val contexts: Contexts = Contexts.default) : GMenu(), Co
         val mainFrame = contexts.getContext(MainFrame::class.java)
         mainFrame?.let { frame ->
             val vm = ServiceManager.getContextService(frame, MainViewModel::class.java)
-            val fileChooser = JFileChooser()
-            fileChooser.dialogTitle = STRINGS.ui.saveLogTitle
-            val userSelection = fileChooser.showSaveDialog(frame)
-            if (userSelection == JFileChooser.APPROVE_OPTION) {
-                val fileToSave = fileChooser.selectedFile
-                vm.exportLog(fileToSave)
-            }
+            FileSaveHandler.Builder(frame)
+                .onFileSpecified(vm::exportLog)
+                .build()
+                .show()
         }
     }
 }

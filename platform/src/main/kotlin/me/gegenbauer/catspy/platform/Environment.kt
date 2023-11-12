@@ -1,8 +1,6 @@
 package me.gegenbauer.catspy.platform
 
 import me.gegenbauer.catspy.file.appendPath
-import me.gegenbauer.catspy.strings.Configuration
-import java.awt.Desktop
 import java.io.File
 import java.lang.management.ManagementFactory
 import javax.swing.TransferHandler.TransferSupport
@@ -25,9 +23,7 @@ interface IPlatform {
         }
     }
 
-    fun openExplorer(file: File) {
-        Desktop.getDesktop().open(file)
-    }
+    fun showFileInExplorer(file: File) {}
 }
 
 fun isInDebugMode(): Boolean {
@@ -50,17 +46,25 @@ enum class Platform : IPlatform {
         }
 
         override fun getFilesDir(): String {
-            return userHome.appendPath("AppData").appendPath(Configuration.APP_NAME)
+            return userHome.appendPath("AppData").appendPath(GlobalProperties.APP_NAME)
+        }
+
+        override fun showFileInExplorer(file: File) {
+            Runtime.getRuntime().exec("explorer.exe /select,${file.absolutePath}")
         }
     },
     LINUX {
         override fun getFilesDir(): String {
-            return userHome.appendPath(".config").appendPath(Configuration.APP_NAME)
+            return userHome.appendPath(".config").appendPath(GlobalProperties.APP_NAME)
+        }
+
+        override fun showFileInExplorer(file: File) {
+            Runtime.getRuntime().exec("nautilus ${file.absolutePath}")
         }
     },
     MAC {
         override fun getFilesDir(): String {
-            return userHome.appendPath("Library").appendPath("Application Support").appendPath(Configuration.APP_NAME)
+            return userHome.appendPath("Library").appendPath("Application Support").appendPath(GlobalProperties.APP_NAME)
         }
     },
     UNKNOWN {

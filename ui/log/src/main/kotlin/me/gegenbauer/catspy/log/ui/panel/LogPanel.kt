@@ -16,7 +16,7 @@ import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTable
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModelListener
-import me.gegenbauer.catspy.strings.Configuration
+import me.gegenbauer.catspy.strings.GlobalConstants
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.applyTooltip
 import me.gegenbauer.catspy.view.button.ColorToggleButton
@@ -53,9 +53,9 @@ abstract class LogPanel(
 
     private val topBtn = IconBarButton(GIcons.Action.Top.get()) applyTooltip STRINGS.toolTip.viewFirstBtn
     private val bottomBtn = IconBarButton(GIcons.Action.Bottom.get()) applyTooltip STRINGS.toolTip.viewLastBtn
-    private val tagBtn = ColorToggleButton(Configuration.TAG) applyTooltip STRINGS.toolTip.viewTagToggle
-    private val pidBtn = ColorToggleButton(Configuration.PID) applyTooltip STRINGS.toolTip.viewPidToggle
-    private val tidBtn = ColorToggleButton(Configuration.TID) applyTooltip STRINGS.toolTip.viewTidToggle
+    private val tagBtn = ColorToggleButton(GlobalConstants.TAG) applyTooltip STRINGS.toolTip.viewTagToggle
+    private val pidBtn = ColorToggleButton(GlobalConstants.PID) applyTooltip STRINGS.toolTip.viewPidToggle
+    private val tidBtn = ColorToggleButton(GlobalConstants.TID) applyTooltip STRINGS.toolTip.viewTidToggle
     private val scrollToEndIcon = DayNightIcon(
         GIcons.State.ScrollEnd.get(24, 24),
         GIcons.State.ScrollEndDark.get(24, 24)
@@ -143,9 +143,12 @@ abstract class LogPanel(
         table.setParent(this)
         vStatusPanel.setParent(this)
 
-        contexts.getContext(LogTabPanel::class.java)?.apply {
-            val bookmarkManager = ServiceManager.getContextService(this, BookmarkManager::class.java)
-            bookmarkManager.addBookmarkEventListener(bookmarkHandler)
+        getBookmarkManager()?.addBookmarkEventListener(bookmarkHandler)
+    }
+
+    private fun getBookmarkManager(): BookmarkManager? {
+        return contexts.getContext(LogTabPanel::class.java)?.let {
+            ServiceManager.getContextService(it, BookmarkManager::class.java)
         }
     }
 
@@ -210,8 +213,8 @@ abstract class LogPanel(
         super.repaint()
     }
 
-    fun goToLineIndex(logNum: Int) {
-        table.moveToRow(logNum, true)
+    fun goToRowIndex(rowIndex: Int, setSelected: Boolean = true) {
+        table.moveRowToCenter(rowIndex, setSelected)
     }
 
     fun setGoToLast(value: Boolean) {
@@ -225,6 +228,11 @@ abstract class LogPanel(
 
     override fun moveToLastRow() {
         table.moveToLastRow()
+    }
+
+    override fun destroy() {
+        super.destroy()
+        getBookmarkManager()?.removeBookmarkEventListener(bookmarkHandler)
     }
 
     internal inner class AdjustmentHandler : AdjustmentListener {
@@ -276,9 +284,5 @@ abstract class LogPanel(
             vStatusPanel.repaint()
             table.repaint()
         }
-    }
-
-    companion object {
-        private const val TAG = "LogPanel"
     }
 }

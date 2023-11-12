@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.ui.dialog
 
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
 import me.gegenbauer.catspy.iconset.GIcons
-import me.gegenbauer.catspy.strings.Configuration
+import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
 import me.gegenbauer.catspy.view.button.GButton
@@ -21,7 +21,7 @@ class AboutDialog(parent: JFrame) :JDialog(parent, STRINGS.ui.about, true), Acti
     init {
         closeBtn.addActionListener(this)
 
-        aboutLabel = JLabel("<html><center><h1>CatSpy ${Configuration.APP_VERSION}</h1><br>https://github.com/Gegenbauer/CatSpy</center></html>")
+        aboutLabel = JLabel("<html><center><h1>${GlobalProperties.APP_NAME} ${GlobalProperties.APP_VERSION}</h1><br>https://github.com/Gegenbauer/CatSpy</center></html>")
 
         val aboutPanel = JPanel()
         aboutPanel.add(aboutLabel)

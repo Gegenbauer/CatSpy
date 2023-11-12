@@ -8,9 +8,9 @@ import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.file.ensureDir
 import me.gegenbauer.catspy.log.model.LogcatItem
+import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.LOG_DIR
 import me.gegenbauer.catspy.platform.filesDir
-import me.gegenbauer.catspy.strings.Configuration
 import me.gegenbauer.catspy.task.CommandExecutorImpl
 import me.gegenbauer.catspy.task.CommandProcessBuilder
 import me.gegenbauer.catspy.task.toCommandArray
@@ -55,7 +55,7 @@ class DeviceLogProducer(
         val filePath = filesDir
             .appendPath(LOG_DIR)
             .appendPath(device)
-            .appendPath("${Configuration.APP_NAME}_${device}_${dtf.format(LocalDateTime.now())}.txt")
+            .appendPath("${GlobalProperties.APP_NAME}_${device}_${dtf.format(LocalDateTime.now())}.txt")
         return File(filePath).apply {
             if (exists().not()) {
                 parentFile.ensureDir()

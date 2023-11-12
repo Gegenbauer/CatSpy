@@ -35,11 +35,11 @@ open class LogTableModel(
     val viewModel: LogViewModel,
     override val contexts: Contexts = Contexts.default
 ) : AbstractTableModel(), Context, Searchable, Pageable<LogcatItem>, ILogTableModel {
-    override var highlightFilterItem: FilterItem = FilterItem.emptyItem
+    override var highlightFilterItem: FilterItem = FilterItem.EMPTY_ITEM
         set(value) {
             field = value.takeIf { it != field }?.also { contexts.getContext(LogTable::class.java)?.repaint() } ?: value
         }
-    override var searchFilterItem: FilterItem = FilterItem.emptyItem
+    override var searchFilterItem: FilterItem = FilterItem.EMPTY_ITEM
         set(value) {
             field = value.takeIf { it != field }?.also { contexts.getContext(LogTable::class.java)?.repaint() } ?: value
         }
@@ -65,8 +65,8 @@ open class LogTableModel(
     override val logFlow: Flow<List<LogcatItem>>
         get() = viewModel.fullLogItemsFlow
 
-    protected val scope = ViewModelScope()
-    protected var logItems = mutableListOf<LogcatItem>()
+    private val scope = ViewModelScope()
+    private var logItems = mutableListOf<LogcatItem>()
     private val eventListeners = Collections.synchronizedList(ArrayList<LogTableModelListener>())
 
     override fun configureContext(context: Context) {
@@ -98,7 +98,15 @@ open class LogTableModel(
             clearSelectedRows()
             Runtime.getRuntime().gc()
         } else {
-            fireTableChanged(TableModelEvent(this, oldItems.lastIndex + 1, newItems.lastIndex, TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT))
+            fireTableChanged(
+                TableModelEvent(
+                    this,
+                    oldItems.lastIndex + 1,
+                    newItems.lastIndex,
+                    TableModelEvent.ALL_COLUMNS,
+                    TableModelEvent.INSERT
+                )
+            )
             resetSelectedRows()
         }
 
@@ -219,7 +227,7 @@ open class LogTableModel(
         }
 
         if (idxFound >= 0) {
-            table.moveToRow(idxFound, true)
+            table.moveRowToCenter(idxFound, true)
         } else {
             mainUI.showSearchResultTooltip(isNext, "\"$searchFilterItem\" ${STRINGS.ui.notFound}")
         }
@@ -256,31 +264,36 @@ open class LogTableModel(
     override fun nextPage() {
         if (currentPage >= pageCount - 1) return
         pageMetaData.updateValue(PageMetadata(currentPage + 1, pageCount, pageSize, dataSize))
-        fireTableDataChanged()
+        onPageChanged()
     }
 
     override fun previousPage() {
         if (currentPage <= 0) return
         pageMetaData.updateValue(PageMetadata(currentPage - 1, pageCount, pageSize, dataSize))
-        fireTableDataChanged()
+        onPageChanged()
     }
 
     override fun firstPage() {
         pageMetaData.updateValue(PageMetadata(0, pageCount, pageSize, dataSize))
-        fireTableDataChanged()
+        onPageChanged()
     }
 
     override fun lastPage() {
         pageMetaData.updateValue(PageMetadata(pageCount - 1, pageCount, pageSize, dataSize))
-        fireTableDataChanged()
+        onPageChanged()
     }
 
     override fun gotoPage(page: Int) {
         if (page < 0 || page >= pageCount) return
         if (currentPage != page) {
             pageMetaData.updateValue(PageMetadata(page, pageCount, pageSize, dataSize))
-            fireTableDataChanged()
+            onPageChanged()
         }
+    }
+
+    private fun onPageChanged() {
+        clearSelectedRows()
+        fireTableDataChanged()
     }
 
     companion object {

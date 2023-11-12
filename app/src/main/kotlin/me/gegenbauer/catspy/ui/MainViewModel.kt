@@ -5,6 +5,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ViewModelScope
 import me.gegenbauer.catspy.context.Context
@@ -13,8 +14,7 @@ import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.file.copy
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.platform.filesDir
-import me.gegenbauer.catspy.strings.Configuration
-import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.GlobalConstants
 import java.io.File
 
 class MainViewModel(override val contexts: Contexts = Contexts.default) : Context, ContextService {
@@ -49,16 +49,11 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
         }
     }
 
-    /**
-     * 增加文件存在询问是否覆盖的弹框
-     * 增加报错弹出消息的弹框
-     */
-    fun exportLog(targetFile: File) {
-        scope.launch(Dispatchers.GIO) {
+    suspend fun exportLog(targetFile: File) {
+        withContext(Dispatchers.GIO) {
             val logFile = getLastModifiedLog()
             GLog.d(TAG, "[exportLog] targetLogFile=${targetFile.absolutePath}, sourceLogFile=${logFile?.absolutePath}")
             logFile?.copy(targetFile)
-            _messageDialog.emit(STRINGS.ui.exportFileSuccess)
         }
     }
 
@@ -68,7 +63,7 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
             return null
         }
         return logDir.listFiles()
-            ?.filter { it.name.startsWith(Configuration.LOG_NAME) }
+            ?.filter { it.name.startsWith(GlobalConstants.LOG_NAME) }
             ?.maxByOrNull { it.lastModified() }
     }
 

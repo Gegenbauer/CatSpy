@@ -1,4 +1,3 @@
-import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
@@ -36,10 +35,6 @@ tasks.test {
     useJUnitPlatform()
 }
 
-
-val version = "1.0.3"
-val appName = APP_NAME
-
 // TODO 更改应用安装后的图标
 compose.desktop {
     application {
@@ -53,7 +48,7 @@ compose.desktop {
             modules += listOf("jdk.unsupported", "jdk.management")
             jvmArgs += "--add-exports=java.desktop/sun.awt=ALL-UNNAMED"
 
-            packageName = appName
+            packageName = project.extra["app.name"].toString()
             group = "me.gegenbauer"
             description = "A simple tool to browse your log files or Android device logs " +
                     "and can control your device with given adb commands."
@@ -62,14 +57,14 @@ compose.desktop {
 
             linux {
                 iconFile.set(iconsRoot.resolve("icon-linux.png"))
-                appRelease = version
-                debPackageVersion = version
+                appRelease = project.extra["app.version"].toString()
+                debPackageVersion = project.extra["app.version"].toString()
             }
 
             windows {
                 dirChooser = true
                 upgradeUuid = "eff1902c-4e55-11ee-be56-0242ac120002"
-                msiPackageVersion = version
+                msiPackageVersion = project.extra["app.version"].toString()
             }
         }
     }

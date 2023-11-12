@@ -9,7 +9,7 @@ interface RowNavigation {
 
     fun moveToLastRow()
 
-    fun moveToRow(row: Int, setSelected: Boolean)
+    fun moveRowToCenter(rowIndex: Int, setSelected: Boolean)
 
     fun scrollToEnd()
 

@@ -4,11 +4,13 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import me.gegenbauer.catspy.concurrency.CoroutineSuspender
+import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ViewModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.Observer
+import me.gegenbauer.catspy.java.ext.formatDuration
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.model.LogFilter
@@ -22,16 +24,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import kotlin.system.measureTimeMillis
 
 
-// TODO 修复实时日志模式时，打开文件日志偶现文件日志未加载完
-// TODO 打开新页面时，过滤器默认清空
 // TODO 增加过滤器提示，实时日志时，缓存 tag 作为 tag 输入提示
-// TODO Memory Monitor
-// TODO 跳转到某一行尽量跳转到中间，否则跳转到上半区域
 // TODO 优化（读取设备日志时，如果最后一行不可见，则不刷新UI数据源）
-// TODO 导出应用日志
-// TODO 全局消息管理
+// TODO 全局消息管理l
 open class LogViewModel(override val contexts: Contexts = Contexts.default) :
     Context, LogProducerManager<LogcatItem>, LogFilterable {
     override val fullLogItemsFlow: StateFlow<List<LogcatItem>>
@@ -88,7 +86,9 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
 
     private val updatingFullLogTriggerCount = MutableStateFlow(0)
     private val updatingFilteredLogTriggerCount = MutableStateFlow(0)
+    private val updateTriggerCountLock = ReentrantReadWriteLock()
     private var notifyDisplayedLogTask: Job? = null
+    private var hasPendingUpdateFilterTask = false
 
     private fun ensureUpdateLogTaskRunning() {
         if (notifyDisplayedLogTask.isActive) {
@@ -103,26 +103,24 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
             }
         }
         scope.launch {
-            async {
-                updatingFullLogTriggerCount.collect { count ->
-                    Log.d(TAG, "[onFullLogTriggerCountChanged] count=$count")
-                    if (count == 0) {
-                        fullLogRepo.submitLogItems()
-                        updateFullLogTaskSuspender.enable()
-                    } else {
-                        updateFullLogTaskSuspender.disable()
-                    }
+            updatingFullLogTriggerCount.collect { count ->
+                Log.d(TAG, "[onFullLogTriggerCountChanged] count=$count")
+                if (count == 0) {
+                    fullLogRepo.submitLogItems()
+                    updateFullLogTaskSuspender.enable()
+                } else {
+                    updateFullLogTaskSuspender.disable()
                 }
             }
-            async {
-                updatingFilteredLogTriggerCount.collect { count ->
-                    Log.d(TAG, "[onFilteredLogTriggerCountChanged] count=$count")
-                    if (count == 0) {
-                        filteredLogRepo.submitLogItems()
-                        updateFilteredLogTaskSuspender.enable()
-                    } else {
-                        updateFilteredLogTaskSuspender.disable()
-                    }
+        }
+        scope.launch {
+            updatingFilteredLogTriggerCount.collect { count ->
+                Log.d(TAG, "[onFilteredLogTriggerCountChanged] count=$count")
+                if (count == 0) {
+                    filteredLogRepo.submitLogItems()
+                    updateFilteredLogTaskSuspender.enable()
+                } else {
+                    updateFilteredLogTaskSuspender.disable()
                 }
             }
         }
@@ -153,8 +151,11 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
             this@LogViewModel.logProducer = logProducer
 
             Log.d(TAG, "[startProduce]")
-            updatingFullLogTriggerCount.value += 1
-            updatingFilteredLogTriggerCount.value += 1
+            updateTriggerCountLock.write {
+                updatingFullLogTriggerCount.value += 1
+                updatingFilteredLogTriggerCount.value += 1
+            }
+
             val observeLogProducerStateTask = async { observeLogProducerState(logProducer) }
             val realStartProducerTask = async { startProduceInternal() }
 
@@ -163,8 +164,10 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
 
             realStartProducerTask.invokeOnCompletion {
                 Log.d(TAG, "[startProduce] realStartProducerTask completed")
-                updatingFullLogTriggerCount.value -= 1
-                updatingFilteredLogTriggerCount.value -= 1
+                updateTriggerCountLock.write {
+                    updatingFullLogTriggerCount.value -= 1
+                    updatingFilteredLogTriggerCount.value -= 1
+                }
                 observeLogProducerStateTask.cancel()
             }
         }
@@ -173,7 +176,7 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
     private fun playLoadingAnimation(logRepo: LogRepo) {
         scope.launch {
             logRepo.onLoadingStart()
-            delay(200)
+            delay(500)
             logRepo.onLoadingEnd()
         }
     }
@@ -207,26 +210,28 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
 
     private suspend fun startProduceInternal() {
         Log.d(TAG, "[startProduceInternal] start")
-        logProducer.start().collect { result ->
-            val exception = result.exceptionOrNull()
-            val item = result.getOrNull()
+        val cost = measureTimeMillis {
+            logProducer.start().collect { result ->
+                val exception = result.exceptionOrNull()
+                val item = result.getOrNull()
 
-            exception?.let {
-                onLogProduceError(it)
-                return@collect
+                exception?.let {
+                    onLogProduceError(it)
+                    return@collect
+                }
+
+                item?.let { onLogItemReceived(it) }
             }
-
-            item?.let { onLogItemReceived(it) }
         }
         logProducer.moveToState(LogProducer.State.COMPLETE)
-        Log.d(TAG, "[startProduceInternal] end")
+        Log.d(TAG, "[startProduceInternal] end, cost=${formatDuration(cost)}")
     }
 
-    override fun updateFilter(filter: LogcatFilter) {
-        if (filter == logcatFilter) {
-            Log.d(TAG, "[updateFilter] filter not changed")
+    override fun updateFilter(filter: LogcatFilter, force: Boolean) {
+        if (!force && filter == logcatFilter) {
             return
         }
+        hasPendingUpdateFilterTask = false
         logcatFilter = filter
         val composedFilter = getLogFilter(filter)
         if (fullLogRepo.logItems.isEmpty()) {
@@ -234,26 +239,44 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
         }
         playLoadingAnimation(filteredLogRepo)
         scope.launch {
+            Log.d(TAG, "[updateFilter] start")
             updateFilterCompanyJobs.toList().forEach { it.cancelAndJoin() }
             updateFilterCompanyJobs.clear()
 
-            updatingFilteredLogTriggerCount.value += 1
-            val realUpdateFilterJob = async { updateFilterInternal(composedFilter) }
+            updateTriggerCountLock.write {
+                updatingFilteredLogTriggerCount.value += 1
+            }
+
+            val producerRunning = AtomicBoolean(false)
+            producerRunning.set(logProducer.isRunning)
+
+            val realUpdateFilterJob = async {
+                logProducer.pause()
+                updateFilterInternal(composedFilter)
+            }
 
             updateFilterCompanyJobs.add(realUpdateFilterJob)
 
             realUpdateFilterJob.invokeOnCompletion {
                 Log.d(TAG, "[updateFilter] realUpdateFilterJob completed")
-                updatingFilteredLogTriggerCount.value -= 1
+                updateTriggerCountLock.write {
+                    updatingFilteredLogTriggerCount.value -= 1
+                }
+                updateFilterCompanyJobs.remove(realUpdateFilterJob)
+                logProducer.takeIf { producerRunning.get() }?.resume()
             }
         }
+    }
+
+    override fun updateFilter(filter: LogcatFilter) {
+        updateFilter(filter, false)
     }
 
     /**
      * save full log to file
      */
-    fun saveLog(file: File) {
-        scope.launch {
+    suspend fun saveLog(file: File) {
+        withContext(Dispatchers.GIO) {
             coroutineContext.job.invokeOnCompletion { t ->
                 if (t != null) {
                     Log.e(TAG, "[saveLog] error", t)
@@ -267,22 +290,13 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
 
     private suspend fun updateFilterInternal(filter: LogFilter<LogcatItem>) {
         withContext(Dispatchers.Default) {
-            Log.d(TAG, "[updateFilterInternal] start")
-            val producerRunning = AtomicBoolean(false)
-            producerRunning.set(logProducer.isRunning)
-            coroutineContext.job.invokeOnCompletion {
-                logProducer.takeIf { producerRunning.get() }?.resume()
-            }
-            logProducer.pause()
             filteredLogRepo.writeLogItems { filteredLogItems ->
                 filteredLogItems.clear()
-                fullLogRepo.readLogItems { fullLogItems ->
-                    fullLogItems.forEach {
-                        filteredLogRepo.onReceiveLogItem(it, filter)
-                    }
-                }
             }
-            Log.d(TAG, "[updateFilterInternal] end")
+            fullLogRepo.logItems.forEach { item ->
+                ensureActive()
+                filteredLogRepo.onReceiveLogItem(item, filter)
+            }
         }
     }
 
@@ -298,11 +312,20 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
     }
 
     override fun pause() {
+        if (updateFilterCompanyJobs.any { it.isActive }) {
+            Log.d(TAG, "[pause] has active updateFilterCompanyJobs")
+            hasPendingUpdateFilterTask = true
+        }
+        updateFilterCompanyJobs.forEach(Job::cancel)
         logProducer.pause()
     }
 
     override fun resume() {
         logProducer.resume()
+        if (hasPendingUpdateFilterTask) {
+            Log.d(TAG, "[resume] restart pending updateFilterCompanyJobs")
+            updateFilter(logcatFilter, true)
+        }
     }
 
     override fun clear() {
@@ -312,6 +335,8 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
 
     override fun destroy() {
         logProducer.destroy()
+        updateFullLogTaskSuspender.disable()
+        updateFilteredLogTaskSuspender.disable()
         scope.cancel()
         getBindings()?.fullMode?.removeObserver(fullModeObserver)
         getBindings()?.bookmarkMode?.removeObserver(bookmarkModeObserver)
@@ -375,6 +400,9 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
             readLogItems {
                 if (logItemsChanged() || force) {
                     _logItemsFlow.value = it
+                    if (it.isNotEmpty()) {
+                        onLoadingEnd()
+                    }
                 }
             }
         }
