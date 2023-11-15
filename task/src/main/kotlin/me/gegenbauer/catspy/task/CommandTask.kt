@@ -1,10 +1,12 @@
 package me.gegenbauer.catspy.task
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.ProducerScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.emptyFlow
 import me.gegenbauer.catspy.glog.GLog
 import java.io.BufferedInputStream
 import java.io.File
@@ -38,7 +40,6 @@ open class CommandTask(
         notifyProgress(line)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     protected open fun execute(): Flow<String> {
         if (process?.isAlive == true) {
             TaskLog.w(name, "[execute] , CommandExecutor is now executing!")
@@ -72,7 +73,6 @@ open class CommandTask(
         TaskLog.d(name, "[onProcessEnd] $process")
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private fun ProducerScope<String>.readOutput(process: Process) {
         async {
             Scanner(BufferedInputStream(process.inputStream)).use {
@@ -85,7 +85,6 @@ open class CommandTask(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private fun ProducerScope<String>.readError(process: Process) {
         async {
             process.errorStream.readAllBytes().toString(Charsets.UTF_8).let {

@@ -78,11 +78,11 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
 
     private val fullModeObserver = Observer<Boolean> {
         fullMode = it ?: false
-        updateFilter(logcatFilter)
+        updateFilter(logcatFilter, true)
     }
     private val bookmarkModeObserver = Observer<Boolean> {
         bookmarkMode = it ?: false
-        updateFilter(logcatFilter)
+        updateFilter(logcatFilter, true)
     }
     private val updateFullLogTaskSuspender = CoroutineSuspender("updateFullLogTaskSuspender")
     private val updateFilteredLogTaskSuspender = CoroutineSuspender("updateFilteredLogTaskSuspender")
@@ -92,6 +92,7 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
     private val updateTriggerCountLock = ReentrantReadWriteLock()
     private var notifyDisplayedLogTask: Job? = null
     private var hasPendingUpdateFilterTask = false
+    private var updateFilterTask: Job? = null
 
     private fun ensureUpdateLogTaskRunning() {
         if (notifyDisplayedLogTask.isActive) {
@@ -236,14 +237,15 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
         hasPendingUpdateFilterTask = false
         logcatFilter = filter
         val composedFilter = getLogFilter(filter)
-        if (fullLogRepo.logItems.isEmpty()) {
-            return
-        }
         playLoadingAnimation(filteredLogRepo)
-        scope.launch {
+        val lastTask = updateFilterTask
+        updateFilterTask = scope.launch {
+            lastTask?.cancelAndJoin()
+
             Log.d(TAG, "[updateFilter] start")
             updateFilterCompanyJobs.toList().forEach { it.cancelAndJoin() }
             updateFilterCompanyJobs.clear()
+            filteredLogRepo.clear()
 
             updateTriggerCountLock.write {
                 updatingFilteredLogTriggerCount.value += 1
@@ -292,9 +294,6 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
 
     private suspend fun updateFilterInternal(filter: LogFilter<LogcatItem>) {
         withContext(Dispatchers.Default) {
-            filteredLogRepo.writeLogItems { filteredLogItems ->
-                filteredLogItems.clear()
-            }
             fullLogRepo.logItems.forEach { item ->
                 ensureActive()
                 filteredLogRepo.onReceiveLogItem(item, filter)

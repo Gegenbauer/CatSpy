@@ -8,7 +8,6 @@ import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.Rotation
