@@ -733,8 +733,8 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
         lineNumber.takeIf { it > 0 } ?: return
 
-        splitLogPane.filteredLogPanel.goToRowIndex(filteredTableModel.getRowIndex(lineNumber))
-        splitLogPane.fullLogPanel.goToRowIndex(fullTableModel.getRowIndex(lineNumber))
+        splitLogPane.filteredLogPanel.goToRowIndex(filteredTableModel.getRowIndexInAllPages(lineNumber))
+        splitLogPane.fullLogPanel.goToRowIndex(fullTableModel.getRowIndexInAllPages(lineNumber))
     }
 
     private inner class StatusTextField(text: String?) : JTextField(text) {

@@ -65,7 +65,7 @@ class FilteredLogPanel(
         val selectedLogNum = tableModel.getValueAt(table.selectedRow, 0).toString().trim().toInt()
         val baseSelectedLogNum = basePanel.tableModel.getValueAt(basePanel.table.selectedRow, 0).toString().trim().toInt()
         if (selectedLogNum != baseSelectedLogNum) {
-            val targetRow = basePanel.tableModel.getRowIndex(selectedLogNum)
+            val targetRow = basePanel.tableModel.getRowIndexInAllPages(selectedLogNum)
             basePanel.goToRowIndex(targetRow)
 
             if (table.isLastRowSelected()) {

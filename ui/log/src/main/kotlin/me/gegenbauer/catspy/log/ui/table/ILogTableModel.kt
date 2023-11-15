@@ -24,6 +24,6 @@ interface ILogTableModel {
 
     fun getLogFilter(): LogcatFilter
 
-    fun getRowIndex(lineNumber: Int): Int
+    fun getRowIndexInAllPages(lineNumber: Int): Int
 
 }
