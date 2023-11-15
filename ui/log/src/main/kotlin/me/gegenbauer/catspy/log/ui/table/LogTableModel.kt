@@ -249,9 +249,13 @@ open class LogTableModel(
         pageMetaData.updateValue(PageMetadata(currentPage, pageCount, pageSize, dataSize))
     }
 
-    override fun getRowIndex(lineNumber: Int): Int {
-        return (0 until rowCount).map { it to getItemInCurrentPage(it) }
-            .firstOrNull { it.second.num >= lineNumber }?.first ?: 0
+    override fun getRowIndexInAllPages(lineNumber: Int): Int {
+        for (logItem in logItems) {
+            if (logItem.num >= lineNumber) {
+                return logItems.indexOf(logItem)
+            }
+        }
+        return -1
     }
 
     override fun <R> accessPageData(page: Int, action: (List<LogcatItem>) -> R): R {

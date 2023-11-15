@@ -4,12 +4,13 @@ import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.script.executor.CommandExecutor
 import me.gegenbauer.catspy.task.PeriodicTask
 import me.gegenbauer.catspy.task.TaskManager
@@ -50,15 +51,18 @@ class DeviceInfoCard(
         get() = this
 
     override fun updateContent() {
-        scriptUIItems.forEachIndexed { index, item ->
-            scope.async {
-                val executor = CommandExecutor(taskManager, item.script, Dispatchers.GIO)
-                val response = executor.execute(device)
-                response.collect {
-                    val parsedResult = item.parseRule.parse(it.output)
-                    withContext(Dispatchers.UI) {
-                        val label = getComponent(index * 2 + 1) as JLabel
-                        label.text = parsedResult.firstOrNull() ?: ""
+        val deviceManager = ServiceManager.getContextService(AdamDeviceManager::class.java)
+        if (deviceManager.getDevices().isNotEmpty()) {
+            scriptUIItems.forEachIndexed { index, item ->
+                scope.async {
+                    val executor = CommandExecutor(taskManager, item.script, Dispatchers.GIO)
+                    val response = executor.execute(device)
+                    response.collect {
+                        val parsedResult = item.parseRule.parse(it.output)
+                        withContext(Dispatchers.UI) {
+                            val label = getComponent(index * 2 + 1) as JLabel
+                            label.text = parsedResult.firstOrNull() ?: ""
+                        }
                     }
                 }
             }

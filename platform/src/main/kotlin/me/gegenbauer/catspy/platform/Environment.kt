@@ -9,6 +9,9 @@ interface IPlatform {
     val adbCommand: String
         get() = "adb"
 
+    val osName: String
+        get() = System.getProperty("os.name")
+
     fun getFileDropAction(transferSupport: TransferSupport): Int {
         return transferSupport.sourceDropActions
     }
@@ -59,12 +62,26 @@ enum class Platform : IPlatform {
         }
 
         override fun showFileInExplorer(file: File) {
-            Runtime.getRuntime().exec("nautilus ${file.absolutePath}")
+            when {
+                osName.uppercase().contains("DEBIAN") -> {
+                    Runtime.getRuntime().exec("dolphin --select ${file.absolutePath}")
+                }
+                osName.uppercase().contains("THUNAR") -> {
+                    Runtime.getRuntime().exec("thunar ${file.absolutePath}")
+                }
+                else -> {
+                    Runtime.getRuntime().exec("nautilus --select ${file.absolutePath}")
+                }
+            }
         }
     },
     MAC {
         override fun getFilesDir(): String {
             return userHome.appendPath("Library").appendPath("Application Support").appendPath(GlobalProperties.APP_NAME)
+        }
+
+        override fun showFileInExplorer(file: File) {
+            Runtime.getRuntime().exec("osascript -e 'tell application \"Finder\" to reveal POSIX file \"${file.absolutePath}\"' -e 'tell application \"Finder\" to activate'")
         }
     },
     UNKNOWN {

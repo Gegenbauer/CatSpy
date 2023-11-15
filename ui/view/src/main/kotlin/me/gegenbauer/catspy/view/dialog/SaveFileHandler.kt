@@ -5,9 +5,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.context.Disposable
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
 import java.awt.Component
-import java.awt.Desktop
 import java.io.File
 import javax.swing.JFileChooser
 import javax.swing.JOptionPane
@@ -76,7 +76,7 @@ class FileSaveHandler private constructor(
             STRINGS.ui.showFileInFileManager
         )
         if (result == 0) {
-            Desktop.getDesktop().open(file.parentFile)
+            currentPlatform.showFileInExplorer(file)
         }
     }
 

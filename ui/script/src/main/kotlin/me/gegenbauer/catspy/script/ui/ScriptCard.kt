@@ -2,15 +2,16 @@ package me.gegenbauer.catspy.script.ui
 
 import com.malinskiy.adam.request.device.Device
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.withName
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.script.executor.CommandExecutor
 import me.gegenbauer.catspy.script.ui.ScriptTabPanel.Companion.defaultDevice
 import me.gegenbauer.catspy.task.PeriodicTask
@@ -56,8 +57,11 @@ class ScriptCard(
     }
 
     override fun updateContent() {
-        scope.launch {
-            updateContentInternal()
+        val deviceManager = ServiceManager.getContextService(AdamDeviceManager::class.java)
+        if (deviceManager.getDevices().isNotEmpty()) {
+            scope.launch {
+                updateContentInternal()
+            }
         }
     }
 
