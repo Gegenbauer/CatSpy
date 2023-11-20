@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import me.gegenbauer.catspy.concurrency.CoroutineSuspender
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ViewModelScope
+import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -21,6 +22,8 @@ import me.gegenbauer.catspy.log.model.LogcatFilter
 import me.gegenbauer.catspy.log.model.LogcatItem
 import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.panel.LogPanel
+import me.gegenbauer.catspy.view.filter.FilterCache
+import me.gegenbauer.catspy.view.filter.toFilterKey
 import me.gegenbauer.catspy.view.state.ListState
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -32,7 +35,7 @@ import kotlin.system.measureTimeMillis
 
 // TODO 增加过滤器提示，实时日志时，缓存 tag 作为 tag 输入提示
 // TODO 优化（读取设备日志时，如果最后一行不可见，则不刷新UI数据源）
-// TODO 全局消息管理l
+// TODO 全局消息管理
 open class LogViewModel(override val contexts: Contexts = Contexts.default) :
     Context, LogProducerManager<LogcatItem>, LogFilterable {
     override val eventFlow: StateFlow<Event>
@@ -310,6 +313,18 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
         }
     }
 
+    suspend fun preCacheFilters() {
+        withContext(Dispatchers.Default) {
+            val filterCache = ServiceManager.getContextService(FilterCache::class.java)
+            UIConfManager.uiConf.apply {
+                (logFilterHistory + tagFilterHistory + searchHistory + highlightHistory).forEach {
+                    filterCache[it.toFilterKey(true)]
+                    filterCache[it.toFilterKey(false)]
+                }
+            }
+        }
+    }
+
     override fun pause() {
         if (updateFilterCompanyJobs.any { it.isActive }) {
             Log.d(TAG, "[pause] has active updateFilterCompanyJobs")
@@ -452,7 +467,7 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
 
     companion object {
         private const val TAG = "LogViewModel"
-        private const val UPDATE_LOG_ITEMS_DELAY = 500L
+        private const val UPDATE_LOG_ITEMS_DELAY = 100L
 
         private val Job?.isActive: Boolean
             get() = this?.isActive == true

@@ -198,11 +198,13 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         registerEvent()
 
         observeViewModelValue()
-        scope.launch {
-            delay(50)
-            bind(logMainBinding)
-        }
+
         ThemeManager.registerThemeUpdateListener(logMainBinding)
+
+        scope.launch {
+            bind(logMainBinding)
+            logViewModel.preCacheFilters()
+        }
     }
 
     private fun bind(viewModel: LogMainBinding) {

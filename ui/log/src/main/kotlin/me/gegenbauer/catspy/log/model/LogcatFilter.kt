@@ -4,7 +4,7 @@ import me.gegenbauer.catspy.cache.isEmpty
 import me.gegenbauer.catspy.log.LogLevel
 import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.isEmpty
-import me.gegenbauer.catspy.view.filter.toFilterItem
+import me.gegenbauer.catspy.view.filter.getOrCreateFilterItem
 import java.util.regex.Pattern
 
 data class LogcatFilter(
@@ -24,10 +24,10 @@ data class LogcatFilter(
         filterLevel: LogLevel,
         matchCase: Boolean = false
     ) : this(
-        filterLog.toFilterItem(matchCase),
-        filterTag.toFilterItem(matchCase),
-        filterPid.toFilterItem(matchCase),
-        filterTid.toFilterItem(matchCase),
+        filterLog.getOrCreateFilterItem(matchCase),
+        filterTag.getOrCreateFilterItem(matchCase),
+        filterPid.getOrCreateFilterItem(matchCase),
+        filterTid.getOrCreateFilterItem(matchCase),
         filterLevel,
         matchCase
     )

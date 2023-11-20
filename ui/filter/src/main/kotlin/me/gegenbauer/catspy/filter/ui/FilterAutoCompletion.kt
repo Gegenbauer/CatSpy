@@ -2,33 +2,19 @@ package me.gegenbauer.catspy.filter.ui
 
 import me.gegenbauer.catspy.java.ext.getFieldDeeply
 import me.gegenbauer.catspy.java.ext.invokeMethod
-import me.gegenbauer.catspy.utils.DefaultDocumentListener
 import org.fife.ui.autocomplete.AutoCompletion
 import org.fife.ui.autocomplete.Completion
 import org.fife.ui.autocomplete.CompletionProvider
 import javax.swing.JWindow
-import javax.swing.event.DocumentEvent
-import javax.swing.text.JTextComponent
 
-class FilterAutoCompletion(provider: CompletionProvider) : AutoCompletion(provider) {
+class FilterAutoCompletion(
+    provider: CompletionProvider,
+    private var onCompletionsShow: (() -> Unit)?
+) : AutoCompletion(provider) {
 
     fun insertCurrentCompletion() {
         val completion = getCurrentSelectedCompletion()
         completion?.let { insertCompletion(it) }
-    }
-
-    override fun install(c: JTextComponent) {
-        super.install(c)
-        c.document.addDocumentListener(object : DefaultDocumentListener() {
-            override fun insertUpdate(e: DocumentEvent) {
-                if (isAutoCompleteEnabled && isAutoActivationEnabled) {
-                    refreshPopupWindow()
-                }
-                if (completionProvider.getCompletions(c).isEmpty()) {
-                    hidePopupWindow()
-                }
-            }
-        })
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -42,8 +28,20 @@ class FilterAutoCompletion(provider: CompletionProvider) : AutoCompletion(provid
         }
     }
 
+    override fun setPopupVisible(visible: Boolean) {
+        if (getPopupWindow()?.isVisible == false && visible) {
+            onCompletionsShow?.invoke()
+        }
+        super.setPopupVisible(visible)
+    }
+
+    override fun uninstall() {
+        super.uninstall()
+        onCompletionsShow = null
+    }
+
     private fun getPopupWindow(): JWindow? {
         val popupField = getFieldDeeply("popupWindow")
-        return popupField.get(this) as? JWindow
+        return popupField[this] as? JWindow
     }
 }

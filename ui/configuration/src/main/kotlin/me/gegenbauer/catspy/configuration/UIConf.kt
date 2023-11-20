@@ -34,7 +34,6 @@ data class  UIConf(
     val tagFilterHistory: MutableList<String> = mutableListOf(),
     val highlightHistory: MutableList<String> = mutableListOf(),
     val searchHistory: MutableList<String> = mutableListOf(),
-    val logCmdHistory: MutableList<String> = mutableListOf("logcat -v threadtime"),
     /** 输入历史 end **/
 
     /** 日志过滤项启用配置 start **/
@@ -53,15 +52,10 @@ data class  UIConf(
     var logFontName: String = "DialogInput",
     var logFontSize: Int = DEFAULT_FONT_SIZE,
     var logFontStyle: Int = 0,
-    val strColorList: MutableList<String> = mutableListOf(),
     /** 界面主题 end **/
 
     /** 日志命令配置 start **/
     var logLevel: String = LogLevel.VERBOSE.logName,
-    var adbLogSavePath: String = "",
-    var adbPrefix: String = "",
-    var logScrollBackCount: Int = 0,
-    var logScrollBackSplitFileEnabled: Boolean = false,
     /** 日志命令配置 end **/
 
     /** 搜索框配置 start **/

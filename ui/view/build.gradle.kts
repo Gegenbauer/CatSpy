@@ -12,6 +12,7 @@ dependencies {
     implementation(projects.ui.utils)
     implementation(projects.ui.databinding)
     implementation(projects.ui.configuration)
+    implementation(projects.ui.filter)
     implementation(projects.glog)
     implementation(projects.ddmlib)
     implementation(projects.resources)

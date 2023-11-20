@@ -101,6 +101,10 @@ open class LruCache<T, K>(private val initialMaxSize: Long): MemoryAware {
         trimToSize(maxSize)
     }
 
+    override fun toString(): String {
+        return "LruCache(currentSize=$currentSize, maxSize=$maxSize, count=$count, missedCount=$missedCount)"
+    }
+
     data class Entry<K>(
         val value: K,
         val size: Int

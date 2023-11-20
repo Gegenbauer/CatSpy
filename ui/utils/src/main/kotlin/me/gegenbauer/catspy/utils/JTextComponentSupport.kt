@@ -5,6 +5,8 @@ import me.gegenbauer.catspy.java.ext.getMethodDeeply
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.event.EventListenerList
+import javax.swing.text.AttributeSet
+import javax.swing.text.DocumentFilter
 import javax.swing.text.JTextComponent
 import javax.swing.text.PlainDocument
 
@@ -59,5 +61,35 @@ open class DefaultDocumentListener : DocumentListener {
 class DefaultDocument : PlainDocument() {
     fun getDocumentEvent(len: Int): DocumentEvent {
         return DefaultDocumentEvent(0, len, DocumentEvent.EventType.INSERT)
+    }
+}
+
+class ValidCharFilter(private val validCharRegex: Regex): DocumentFilter() {
+    override fun insertString(fb: FilterBypass, offset: Int, string: String?, attr: AttributeSet?) {
+        if (string == null) return
+        val sb = StringBuilder()
+        for (i in string.indices) {
+            val c = string[i]
+            if (c.isValidChar()) {
+                sb.append(c)
+            }
+        }
+        super.insertString(fb, offset, sb.toString(), attr)
+    }
+
+    override fun replace(fb: FilterBypass, offset: Int, length: Int, text: String?, attrs: AttributeSet?) {
+        if (text == null) return
+        val sb = StringBuilder()
+        for (i in text.indices) {
+            val c = text[i]
+            if (c.isValidChar()) {
+                sb.append(c)
+            }
+        }
+        super.replace(fb, offset, length, sb.toString(), attrs)
+    }
+
+    private fun Char.isValidChar(): Boolean {
+        return toString().matches(validCharRegex)
     }
 }
