@@ -18,18 +18,35 @@ private const val TAG = "KeySupport"
 /**
  * Intercepts a key event for a specific component and calls the callback if the key event matches.
  * @param source The component to intercept the key event for.
- * @param key The key code to intercept, eg: [KeyEvent.VK_ENTER].
- * @param action The action to intercept, eg: [KeyEvent.KEY_PRESSED].
+ * @param key The key event to be intercepted. see [Key]
  */
-fun interceptEvent(source: Component, key: Int, action: Int, callback: (KeyEvent) -> Unit) {
-    val manager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
-    manager.addKeyEventDispatcher { keyEvent ->
-        if (keyEvent.source == source && keyEvent.id == action && keyEvent.keyCode == key) {
-            callback(keyEvent)
-            keyEvent.consume()
-            return@addKeyEventDispatcher true
+class KeyEventInterceptor(
+    private val source: Component,
+    private val key: KeyEventInfo
+) {
+    private val manager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+    private var callback: ((KeyEvent) -> Unit)? = null
+    private var dispatcher: KeyEventDispatcher? = null
+
+    fun enable(callback: (KeyEvent) -> Unit) {
+        this.callback = callback
+
+        dispatcher = KeyEventDispatcher { keyEvent ->
+            if (keyEvent.source == source && keyEvent.keyEventInfo == key) {
+                callback(keyEvent)
+                keyEvent.consume()
+                return@KeyEventDispatcher true
+            }
+            false
         }
-        false
+
+        manager.addKeyEventDispatcher(dispatcher)
+    }
+
+    fun disable() {
+        manager.removeKeyEventDispatcher(dispatcher)
+        dispatcher = null
+        callback = null
     }
 }
 
@@ -79,6 +96,8 @@ object Key {
     val C_ENTER = getKeyEventInfo(KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK)
     val S_ENTER = getKeyEventInfo(KeyEvent.VK_ENTER, KeyEvent.SHIFT_DOWN_MASK)
 
+    val TAB = getKeyEventInfo(KeyEvent.VK_TAB)
+
     val C_END = getKeyEventInfo(KeyEvent.VK_END, KeyEvent.CTRL_DOWN_MASK)
     val C_HOME = getKeyEventInfo(KeyEvent.VK_HOME, KeyEvent.CTRL_DOWN_MASK)
 
@@ -115,12 +134,6 @@ fun KeyEventInfo.released(): KeyEventInfo {
 val KeyEvent.keyEventInfo: KeyEventInfo
     get() = KeyEventInfo(keyCode, modifiersEx, id)
 
-fun registerGlobalKeyEvent(action: KeyEventDispatcher) {
-    KeyboardFocusManager
-        .getCurrentKeyboardFocusManager()
-        .addKeyEventDispatcher(GcFreeKeyEventDispatcher(action))
-}
-
 fun JComponent.registerStroke(key: KeyEventInfo, strokeName: String, action: KeyStrokeAction) {
     getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
         KeyStroke.getKeyStroke(key.keyCode, key.modifiers),
@@ -135,11 +148,4 @@ fun JComponent.registerStroke(key: KeyEventInfo, strokeName: String, action: Key
 
 fun interface KeyStrokeAction {
     fun actionPerformed(e: ActionEvent)
-}
-
-private class GcFreeKeyEventDispatcher(dispatcher: KeyEventDispatcher) : KeyEventDispatcher {
-    private val weakRefDispatcher = WeakReference(dispatcher)
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        return weakRefDispatcher.get()?.dispatchKeyEvent(event) ?: false
-    }
 }

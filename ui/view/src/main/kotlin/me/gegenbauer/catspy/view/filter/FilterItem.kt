@@ -81,7 +81,16 @@ data class FilterItem(
 
 private const val PATTERN_SPLITTER = "|"
 private const val NEGATIVE_PATTERN_PREFIX = '-'
-fun String.toFilterItem(matchCase: Boolean = false): FilterItem {
+
+fun String.getOrCreateFilterItem(matchCase: Boolean = false): FilterItem {
+    if (this.isEmpty()) {
+        return FilterItem.EMPTY_ITEM
+    }
+    val filterCache = ServiceManager.getContextService(FilterCache::class.java)
+    return filterCache[toFilterKey(matchCase)]
+}
+
+internal fun String.toFilterItem(matchCase: Boolean = false): FilterItem {
     if (this.isEmpty()) {
         return FilterItem.EMPTY_ITEM
     }
@@ -101,7 +110,7 @@ fun String.toFilterItem(matchCase: Boolean = false): FilterItem {
     return FilterItem(positiveFilter, negativeFilter, errorMessage)
 }
 
-fun parsePattern(pattern: String): Pair<String, String> {
+internal fun parsePattern(pattern: String): Pair<String, String> {
     val positivePattern = StringBuilder()
     val negativePattern = StringBuilder()
     val splitStrings = pattern.split(PATTERN_SPLITTER)

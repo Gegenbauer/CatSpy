@@ -5,19 +5,18 @@ import com.github.weisj.darklaf.theme.Theme
 import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.databinding.bind.withName
+import me.gegenbauer.catspy.filter.ui.AutoCompleteHelper
 import me.gegenbauer.catspy.utils.DefaultDocumentListener
 import me.gegenbauer.catspy.utils.applyTooltip
 import me.gegenbauer.catspy.view.combobox.highlight.CustomEditorDarkComboBoxUI
 import me.gegenbauer.catspy.view.combobox.highlight.HighlighterEditor
 import me.gegenbauer.catspy.view.filter.FilterItem
-import me.gegenbauer.catspy.view.filter.toFilterItem
+import me.gegenbauer.catspy.view.filter.getOrCreateFilterItem
 import java.awt.event.KeyListener
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import javax.swing.JComponent
 import javax.swing.ToolTipManager
-import javax.swing.event.DocumentEvent
-import javax.swing.event.DocumentListener
 import javax.swing.plaf.ComboBoxUI
 import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.text.JTextComponent
@@ -40,6 +39,7 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
         }
     private val editorComponent: JTextComponent // create new instance when theme changed(setUI invoked)
         get() = getEditor().editorComponent as JTextComponent
+    private val autoCompleteHelper = AutoCompleteHelper()
 
     var enabledTfTooltip = false
         set(value) {
@@ -55,7 +55,7 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
         }
     private val currentContentChangeListener = object : DefaultDocumentListener() {
         override fun contentUpdate(content: String) {
-            filterItem = content.toFilterItem()
+            filterItem = content.getOrCreateFilterItem()
             errorMsg = filterItem.errorMessage
         }
     }
@@ -132,26 +132,15 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
         }
     }
 
-    private inner class DocumentHandler : DocumentListener {
-        override fun insertUpdate(e: DocumentEvent) {
+    private inner class DocumentHandler : DefaultDocumentListener() {
+        override fun contentUpdate(content: String) {
             if (enabledTfTooltip && !isPopupVisible) {
                 updateTooltip()
             }
         }
-
-        override fun removeUpdate(e: DocumentEvent) {
-            if (enabledTfTooltip && !isPopupVisible) {
-                updateTooltip()
-            }
-        }
-
-        override fun changedUpdate(e: DocumentEvent) {
-            // do nothing
-        }
-
     }
 
-    fun getAllItems(): List<HistoryItem<String>> {
+    private fun getAllItems(): List<HistoryItem<String>> {
         return mutableListOf<HistoryItem<String>>().apply {
             for (i in 0 until itemCount) {
                 add(getItemAt(i))
@@ -162,6 +151,9 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
     override fun addItem(item: HistoryItem<String>?) {
         if (item == null || item.content.isEmpty()) return
         super.addItem(item)
+        autoCompleteHelper.enableAutoComplete(editorComponent, getAllItems().map { it.content }) {
+            hidePopup()
+        }
     }
 
     fun addItem(item: String?) {

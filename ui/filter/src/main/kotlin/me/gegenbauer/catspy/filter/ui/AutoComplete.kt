@@ -1,35 +1,48 @@
 package me.gegenbauer.catspy.filter.ui
 
-import me.gegenbauer.catspy.utils.interceptEvent
+import me.gegenbauer.catspy.utils.Key
+import me.gegenbauer.catspy.utils.KeyEventInterceptor
 import org.fife.ui.autocomplete.BasicCompletion
 import org.fife.ui.autocomplete.CompletionProvider
-import java.awt.event.KeyEvent
+import org.fife.ui.autocomplete.DefaultCompletionProvider
 import javax.swing.text.JTextComponent
 
-fun JTextComponent.enableAutoComplete(suggestions: List<String>) {
-    val provider = createCompletionProvider(suggestions)
-    val ac = FilterAutoCompletion(provider)
+class AutoCompleteHelper {
+    private val suggestions = arrayListOf<String>()
+    private var textComponent: JTextComponent? = null
+    private var keyInterceptor: KeyEventInterceptor? = null
+    private var autoCompletion: FilterAutoCompletion? = null
 
-    // disable enter key
-    interceptEvent(this, KeyEvent.VK_ENTER, KeyEvent.KEY_PRESSED) {
-        ac.insertCurrentCompletion()
+    fun enableAutoComplete(
+        textComponent: JTextComponent,
+        suggestions: List<String>,
+        onCompletionsShown: (() -> Unit)? = null
+    ) {
+        disableAutoComplete()
+
+        this.suggestions.clear()
+        this.suggestions.addAll(suggestions)
+        this.textComponent = textComponent
+
+        autoCompletion = FilterAutoCompletion(createCompletionProvider(suggestions), onCompletionsShown).apply {
+            isAutoCompleteEnabled = true
+            isAutoActivationEnabled = true
+            autoCompleteSingleChoices = false
+            install(textComponent)
+        }
+
+        keyInterceptor = KeyEventInterceptor(textComponent, Key.TAB).also {
+            it.enable { autoCompletion?.insertCurrentCompletion() }
+        }
     }
-    // A CompletionProvider is what knows of all possible completions, and
-    // analyzes the contents of the text area at the caret position to
-    // determine what completion choices should be presented. Most instances
-    // of CompletionProvider (such as DefaultCompletionProvider) are designed
-    // so that they can be shared among multiple text components.
 
-
-    // An AutoCompletion acts as a "middle-man" between a text component
-    // and a CompletionProvider. It manages any options associated with
-    // the auto-completion (the popup trigger key, whether to display a
-    // documentation window along with completion choices, etc.). Unlike
-    // CompletionProviders, instances of AutoCompletion cannot be shared
-    // among multiple text components.
-    ac.isAutoCompleteEnabled = true
-    ac.isAutoActivationEnabled = true
-    ac.install(this)
+    fun disableAutoComplete() {
+        keyInterceptor?.disable()
+        keyInterceptor = null
+        autoCompletion?.uninstall()
+        autoCompletion = null
+        textComponent = null
+    }
 }
 
 /**
@@ -42,8 +55,8 @@ private fun createCompletionProvider(suggestions: List<String>): CompletionProvi
     // language semantics. It simply checks the text entered up to the
     // caret position for a match against known completions. This is all
     // that is needed in the majority of cases.
-    return FilterCompletionProvider().apply {
-        setAutoActivationRules(false, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    return DefaultCompletionProvider().apply {
+        setAutoActivationRules(false, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\n")
         addCompletions(suggestions.map { BasicCompletion(this, it) })
     }
 }

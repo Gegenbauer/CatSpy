@@ -42,7 +42,6 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
 
     override fun createEditorComponent(): JTextField {
         return super.createEditorComponent().apply {
-            //enableAutoComplete()
             putClientProperty("JTextField.showClear", true)
         }
     }
@@ -123,7 +122,7 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
 
     companion object {
         private const val TAG = "HighlighterEditor"
-        private const val SEPARATOR = "|"
-        private const val NEGATIVE_PREFIX = '-'
+        const val SEPARATOR = "|"
+        const val NEGATIVE_PREFIX = '-'
     }
 }
