@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.view.button
 
 import com.github.weisj.darklaf.iconset.AllIcons
+import me.gegenbauer.catspy.utils.setBorderless
 import java.awt.Dimension
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -12,9 +13,9 @@ class CloseButton(private val onClose: () -> Unit = {}): JButton() {
     init {
         icon = closeIconNormal
 
-        isRolloverEnabled = true
+        isRolloverEnabled = false
         isContentAreaFilled = false
-        border = null
+        setBorderless()
 
         preferredSize = Dimension(CLOSE_BUTTON_SIZE, CLOSE_BUTTON_SIZE)
 
