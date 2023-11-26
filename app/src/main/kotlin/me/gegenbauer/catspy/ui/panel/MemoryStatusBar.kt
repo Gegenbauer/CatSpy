@@ -41,8 +41,10 @@ class MemoryStatusBar(override val contexts: Contexts = Contexts.default) : JPro
         super.configureContext(context)
         getMainViewModel()?.let { vm ->
             scope.launch {
-                vm.memoryInfo.collect {
-                    setMemoryInfo(it)
+                vm.eventFlow.collect {
+                    if (it is Memory) {
+                        setMemoryInfo(it)
+                    }
                 }
             }
         }

@@ -30,6 +30,7 @@ include(
     "task",
     "cache",
     "context",
+    "network",
     "ui",
     "ui:log",
     "ui:script",

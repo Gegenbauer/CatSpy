@@ -85,6 +85,14 @@ object JavaXAnno {
     val annotationApi = Dependency(groupName, "javax.annotation-api", "1.3.2")
 }
 
+object Squareup {
+    val groupName = "com.squareup.okhttp3"
+    val version = "4.11.0"
+
+    val okhttp = Dependency(groupName, "okhttp", version)
+    val okhttpLoggingInterceptor = Dependency(groupName, "logging-interceptor", version)
+}
+
 data class Dependency(
     val group: String,
     val artifact: String,

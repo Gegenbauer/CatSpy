@@ -19,7 +19,7 @@ import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.platform.isInDebugMode
-import me.gegenbauer.catspy.strings.GlobalConstants
+import me.gegenbauer.catspy.strings.GlobalStrings
 import me.gegenbauer.catspy.strings.StringResourceManager
 import me.gegenbauer.catspy.ui.MainFrame
 import java.awt.Container
@@ -50,7 +50,7 @@ object Application : WindowAdapter() {
     fun main(args: Array<String>) {
         AppScope.launch(Dispatchers.UI) {
             withContext(Dispatchers.APP_LAUNCH) {
-                GLog.init(filesDir, GlobalConstants.LOG_NAME)
+                GLog.init(filesDir, GlobalStrings.LOG_NAME)
                 UIConfManager.init()
                 ThemeManager.init()
                 GlobalConfSync.init()

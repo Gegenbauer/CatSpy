@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.log.model
+package me.gegenbauer.catspy.view.table
 
 import me.gegenbauer.catspy.view.filter.parsePattern
 import kotlin.test.Test

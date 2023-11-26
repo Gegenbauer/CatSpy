@@ -5,8 +5,8 @@ plugins {
 }
 
 dependencies {
-    implementation(JavaXAnno.groupName, JavaXAnno.annotationApi.artifact, JavaXAnno.annotationApi.version)
-    implementation(Gson.groupName, Gson.gson.artifact, Gson.gson.version)
+    implementation(JavaXAnno.annotationApi)
+    implementation(Gson.gson)
     implementation(projects.file)
     implementation(projects.resources.common)
     implementation(projects.ui.utils)

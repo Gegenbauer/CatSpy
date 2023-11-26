@@ -14,14 +14,14 @@ import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-class AboutDialog(parent: JFrame) :JDialog(parent, STRINGS.ui.about, true), ActionListener {
+class AboutDialog(parent: JFrame) :JDialog(parent, STRINGS.ui.menuAbout, true), ActionListener {
     private var aboutLabel: JLabel
     private var closeBtn = GButton(STRINGS.ui.close)
 
     init {
         closeBtn.addActionListener(this)
 
-        aboutLabel = JLabel("<html><center><h1>${GlobalProperties.APP_NAME} ${GlobalProperties.APP_VERSION}</h1><br>https://github.com/Gegenbauer/CatSpy</center></html>")
+        aboutLabel = JLabel("<html><center><h1>${GlobalProperties.APP_NAME} ${GlobalProperties.APP_VERSION_NAME}</h1><br>https://github.com/Gegenbauer/CatSpy</center></html>")
 
         val aboutPanel = JPanel()
         aboutPanel.add(aboutLabel)

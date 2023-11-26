@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import me.gegenbauer.catspy.concurrency.GIO
+import me.gegenbauer.catspy.java.ext.Event
 import me.gegenbauer.catspy.file.GB
 import kotlin.math.min
 
@@ -21,7 +22,7 @@ data class Memory(
     val free: Float,
     val total: Float,
     val max: Float,
-) {
+): Event {
 
     fun isEmpty(): Boolean = this == EMPTY
 

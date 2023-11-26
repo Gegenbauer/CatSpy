@@ -4,7 +4,7 @@ import me.gegenbauer.catspy.configuration.Menu.MENU_ITEM_ICON_SIZE
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.iconset.GIcons
-import me.gegenbauer.catspy.strings.GlobalConstants
+import me.gegenbauer.catspy.strings.GlobalStrings
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.dialog.GThemeSettingsDialog
 import me.gegenbauer.catspy.utils.findFrameFromParent
@@ -17,7 +17,7 @@ import javax.swing.JMenu
 import javax.swing.JMenuItem
 
 class SettingsMenu(override val contexts: Contexts = Contexts.default) : GMenu(), Context {
-    private val itemThemeSettings = JMenuItem(STRINGS.ui.theme).apply {
+    private val itemThemeSettings = JMenuItem(STRINGS.ui.menuTheme).apply {
         icon = GIcons.Menu.Settings.get(MENU_ITEM_ICON_SIZE, MENU_ITEM_ICON_SIZE)
         addActionListener { _: ActionEvent ->
             val frame: JFrame = this@SettingsMenu.findFrameFromParent()
@@ -26,18 +26,18 @@ class SettingsMenu(override val contexts: Contexts = Contexts.default) : GMenu()
             dialog.isVisible = true
         }
     }
-    private val debugMenu = JMenu(STRINGS.ui.debug).apply {
+    private val debugMenu = JMenu(STRINGS.ui.menuDebug).apply {
         icon = GIcons.Menu.Debug.get(MENU_ITEM_ICON_SIZE, MENU_ITEM_ICON_SIZE)
     }
-    val globalDebug = JCheckBoxMenuItem(GlobalConstants.DEBUG_GLOBAL)
-    val bindingDebug = JCheckBoxMenuItem(GlobalConstants.DEBUG_DATA_BINDING)
-    val taskDebug = JCheckBoxMenuItem(GlobalConstants.DEBUG_TASK)
-    val ddmDebug = JCheckBoxMenuItem(GlobalConstants.DEBUG_DDM)
-    val cacheDebug = JCheckBoxMenuItem(GlobalConstants.DEBUG_CACHE)
-    val logDebug = JCheckBoxMenuItem(GlobalConstants.DEBUG_LOG)
+    val globalDebug = JCheckBoxMenuItem(GlobalStrings.DEBUG_GLOBAL)
+    val bindingDebug = JCheckBoxMenuItem(GlobalStrings.DEBUG_DATA_BINDING)
+    val taskDebug = JCheckBoxMenuItem(GlobalStrings.DEBUG_TASK)
+    val ddmDebug = JCheckBoxMenuItem(GlobalStrings.DEBUG_DDM)
+    val cacheDebug = JCheckBoxMenuItem(GlobalStrings.DEBUG_CACHE)
+    val logDebug = JCheckBoxMenuItem(GlobalStrings.DEBUG_LOG)
 
     init {
-        text = STRINGS.ui.setting
+        text = STRINGS.ui.menuSettings
         mnemonic = KeyEvent.VK_S
         add(itemThemeSettings)
         addSeparator()

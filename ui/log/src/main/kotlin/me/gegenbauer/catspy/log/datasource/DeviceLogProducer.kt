@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.file.ensureDir
@@ -37,6 +38,8 @@ class DeviceLogProducer(
                 suspender.checkSuspend()
                 LogcatItem.from(line, logNum.getAndIncrement())
             }
+        }.onCompletion {
+            moveToState(LogProducer.State.COMPLETE)
         }
     }
 

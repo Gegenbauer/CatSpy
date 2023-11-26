@@ -20,6 +20,7 @@ dependencies {
     implementation(projects.cache)
     implementation(projects.platform)
     implementation(projects.concurrency)
+    implementation(projects.network)
 
     api(TableLayout.tablelayout)
     api(Weisj.darklafCore)

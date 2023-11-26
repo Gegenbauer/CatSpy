@@ -13,20 +13,28 @@ import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.java.ext.FileSaveEvent
+import me.gegenbauer.catspy.java.ext.NormalEvent
+import me.gegenbauer.catspy.network.update.data.Release
+import me.gegenbauer.catspy.platform.currentPlatform
+import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.ui.dialog.UpdateDialog
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
 import me.gegenbauer.catspy.ui.panel.MemoryStatusBar
 import me.gegenbauer.catspy.ui.panel.TabManagerPane
+import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.tab.OnTabChangeListener
 import me.gegenbauer.catspy.view.tab.TabManager
 import java.awt.BorderLayout
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
-import javax.swing.*
+import java.io.File
+import javax.swing.JFrame
+import javax.swing.JMenuBar
+import javax.swing.JOptionPane
+import javax.swing.JTabbedPane
 
-/**
- *  TODO 将底部状态栏抽出，并增加进度条，显示某些任务进度
- */
 class MainFrame(
     title: String,
     override val contexts: Contexts = Contexts.default,
@@ -42,6 +50,7 @@ class MainFrame(
     }
     //endregion
 
+    private val globalStatus = ServiceManager.getContextService(StatusPanel::class.java)
     private val memoryStatusBar = MemoryStatusBar()
     private val mainViewModel = ServiceManager.getContextService(this, MainViewModel::class.java)
     private val scope = MainScope()
@@ -58,6 +67,7 @@ class MainFrame(
         GlobalContextManager.register(this)
 
         mainViewModel.startMemoryMonitor()
+        mainViewModel.checkUpdate()
     }
 
     private fun createUI() {
@@ -65,7 +75,9 @@ class MainFrame(
         layout = BorderLayout()
 
         add(tabbedPane, BorderLayout.CENTER)
-        add(memoryStatusBar, BorderLayout.SOUTH)
+        add(globalStatus, BorderLayout.SOUTH)
+
+        globalStatus.memoryMonitorBar = memoryStatusBar
 
         mainViewModel.startMemoryMonitor()
     }
@@ -104,16 +116,59 @@ class MainFrame(
                 getWindows().filter { it.type == Type.POPUP }.forEach { it.dispose() }
             }
         })
+        observeEventFlow()
+    }
+
+    private fun observeEventFlow() {
         scope.launch {
-            mainViewModel.messageDialog.collect {
-                it.takeIf { it.isNotBlank() }?.let { msg ->
-                    JOptionPane.showMessageDialog(
-                        this@MainFrame,
-                        msg,
-                        "",
-                        JOptionPane.INFORMATION_MESSAGE
-                    )
+            mainViewModel.eventFlow.collect {
+                when (it) {
+                    is NormalEvent -> {
+                        handleNormalEvent(it)
+                    }
+                    is Release -> {
+                        handleReleaseEvent(it)
+                    }
+                    is FileSaveEvent -> {
+                        handleFileSaveEvent(it)
+                    }
                 }
+            }
+        }
+    }
+
+    private fun handleNormalEvent(event: NormalEvent) {
+        event.takeIf { event.message.isNotBlank() }?.let { msg ->
+            JOptionPane.showMessageDialog(
+                this@MainFrame,
+                msg,
+                "",
+                JOptionPane.INFORMATION_MESSAGE
+            )
+        }
+    }
+
+    private fun handleReleaseEvent(release: Release) {
+        UpdateDialog(this@MainFrame, release) {
+            mainViewModel.startDownloadRelease(release)
+        }.show()
+    }
+
+    private fun handleFileSaveEvent(fileSaveEvent: FileSaveEvent) {
+        val result = JOptionPane.showOptionDialog(
+            this@MainFrame,
+            fileSaveEvent.message,
+            fileSaveEvent.title,
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.INFORMATION_MESSAGE,
+            null,
+            arrayOf(STRINGS.ui.showFileInFileManager, STRINGS.ui.cancel),
+            STRINGS.ui.showFileInFileManager
+        )
+        if (result == JOptionPane.OK_OPTION) {
+            val file = File(fileSaveEvent.fileAbsolutePath)
+            if (file.exists()) {
+                currentPlatform.showFileInExplorer(file)
             }
         }
     }

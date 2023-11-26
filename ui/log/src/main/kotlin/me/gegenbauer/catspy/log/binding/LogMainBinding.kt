@@ -92,11 +92,6 @@ class LogMainBinding : ContextService, GThemeChangeListener {
     val splitPanelDividerLocation = ObservableValueProperty(UIConfManager.uiConf.dividerLocation)
     //endregion
 
-    //region status bar
-    val status = ObservableValueProperty("")
-    val filePath = ObservableValueProperty(STRINGS.ui.none)
-    //endregion
-
     //region Style
     val logFont = ObservableValueProperty(UIConfManager.uiConf.getLogFont())
     //endregion

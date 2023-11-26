@@ -1,59 +1,12 @@
 package me.gegenbauer.catspy
 
+import me.gegenbauer.catspy.file.RandomFileAccessor
+import me.gegenbauer.catspy.log.model.LogcatItem
 import java.awt.BorderLayout
-import java.io.RandomAccessFile
 import javax.swing.*
-import kotlin.math.min
+import kotlin.system.measureTimeMillis
 
-data class LineInfo(val offset: Long, val length: Int)
-
-val lineInfos = mutableListOf<LineInfo>()
-var file: RandomAccessFile? = null
-
-fun parseFile(filePath: String) {
-    file = RandomAccessFile(filePath, "r")
-    var offset: Long = 0
-    var length: Int = 0
-    var byte = file?.read()
-    while (byte != null) {
-        length++
-        if (byte.toChar() == '\n') {
-            lineInfos.add(LineInfo(offset, length))
-            offset += length
-            length = 0
-        }
-        byte = file?.read()
-    }
-    // Add the last line if it doesn't end with a newline
-    if (length > 0) {
-        lineInfos.add(LineInfo(offset, length))
-    }
-}
-
-fun getLineContent(lineNumber: Int): String {
-    val lineInfo = lineInfos[lineNumber]
-    val bytes = ByteArray(lineInfo.length)
-    file?.seek(lineInfo.offset)
-    file?.read(bytes)
-    return String(bytes)
-}
-
-fun closeFile() {
-    file?.close()
-}
-
-fun getLineContent(startLineNumber: Int, endLineNumber: Int): String {
-    val content = StringBuilder()
-    val safeEndLineNumber = min(endLineNumber, lineInfos.size - 1)
-    for (lineNumber in startLineNumber..safeEndLineNumber) {
-        val lineInfo = lineInfos[lineNumber]
-        val bytes = ByteArray(lineInfo.length)
-        file?.seek(lineInfo.offset)
-        file?.read(bytes, 0, lineInfo.length)
-        content.append(String(bytes)).append("\n")
-    }
-    return content.toString()
-}
+private const val PAGE_SIZE = 20000
 
 fun createAndShowGUI() {
     val frame = JFrame("File Viewer")
@@ -62,20 +15,21 @@ fun createAndShowGUI() {
     val textArea = JTextArea(20, 400)
     val scrollPane = JScrollPane(textArea)
     var startLine = 0
-    var endLine = 99999
+    var endLine = PAGE_SIZE
 
     val statusLabel = JLabel()
     frame.add(statusLabel, BorderLayout.SOUTH)
 
     val prevButton = JButton("Previous Page")
+    val fileAccessor = RandomFileAccessor("/home/yingbin/temp_log.txt")
     prevButton.addActionListener {
         if (startLine > 0) {
-            startLine -= 100000
-            endLine -= 100000
+            startLine -= PAGE_SIZE
+            endLine -= PAGE_SIZE
             statusLabel.text = "Loading..."
             object : SwingWorker<String, Void>() {
                 override fun doInBackground(): String {
-                    return getLineContent(startLine, endLine)
+                    return fileAccessor.getLines(startLine, endLine).joinToString("\n")
                 }
 
                 override fun done() {
@@ -88,13 +42,13 @@ fun createAndShowGUI() {
 
     val nextButton = JButton("Next Page")
     nextButton.addActionListener {
-        if (endLine < lineInfos.size - 1) {
-            startLine += 100000
-            endLine += 100000
+        if (endLine < fileAccessor.linesCount - 1) {
+            startLine += PAGE_SIZE
+            endLine += PAGE_SIZE
             statusLabel.text = "Loading..."
             object : SwingWorker<String, Void>() {
                 override fun doInBackground(): String {
-                    return getLineContent(startLine, endLine)
+                    return fileAccessor.getLines(startLine, endLine).joinToString("\n")
                 }
 
                 override fun done() {
@@ -113,8 +67,8 @@ fun createAndShowGUI() {
     statusLabel.text = "Loading..."
     object : SwingWorker<String, Void>() {
         override fun doInBackground(): String {
-            parseFile("/home/yingbin/temp_log.txt")
-            return getLineContent(startLine, endLine)
+            fileAccessor.parseFile()
+            return fileAccessor.getLines(0, PAGE_SIZE).joinToString("\n")
         }
 
         override fun done() {
@@ -129,40 +83,18 @@ fun createAndShowGUI() {
 
 fun main() {
     //SwingUtilities.invokeLater(::createAndShowGUI)
-
-    // 使用示例
-    val (offsets, lengths) = getLineOffsets("/home/yingbin/temp_log.txt")
-    val lineContent = readLineAt("your_file.txt", offsets[5], lengths[5])  // 读取第6行的内容
-    println(lineContent)
-}
-
-fun getLineOffsets(filePath: String): Pair<List<Long>, List<Int>> {
-    val offsets = mutableListOf<Long>()
-    val lengths = mutableListOf<Int>()
-    RandomAccessFile(filePath, "r").use { file ->
-        var offset: Long = 0
-        var length = 0
-        var intChar: Int
-        while (file.read().also { intChar = it } != -1) {
-            length++
-            if (intChar.toChar() == '\n') {
-                offsets.add(offset)
-                lengths.add(length)
-                offset += length
-                length = 0
-            }
-        }
+    val fileAccessor = RandomFileAccessor("/home/yingbin/temp_log.txt")
+    measureTimeMillis {
+        fileAccessor.parseFile()
+    }.apply {
+        println("parseFile() took $this ms")
     }
-    return Pair(offsets, lengths)
-}
-
-fun readLineAt(filePath: String, offset: Long, length: Int): String {
-    RandomAccessFile(filePath, "r").use { file ->
-        val chars = CharArray(length)
-        file.seek(offset)
-        for (i in 0 until length) {
-            chars[i] = file.read().toChar()
+    measureTimeMillis {
+        fileAccessor.getLines(0, fileAccessor.linesCount).mapIndexed { index, s ->
+            LogcatItem.from(s, index)
         }
-        return String(chars)
+    }.apply {
+        println("getLines() took $this ms")
     }
+    println("end")
 }

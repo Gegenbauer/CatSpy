@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    implementation(JavaXAnno.groupName, JavaXAnno.annotationApi.artifact, JavaXAnno.annotationApi.version)
+    implementation(JavaXAnno.annotationApi)
     implementation(projects.resources)
     implementation(projects.file)
 }
