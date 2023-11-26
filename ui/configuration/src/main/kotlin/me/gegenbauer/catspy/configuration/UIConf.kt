@@ -67,7 +67,10 @@ data class  UIConf(
     /** 搜索框配置 start **/
     var searchMatchCaseEnabled: Boolean = false,
     /** 搜索框配置 end **/
-    var locale: Int = Locale.EN.ordinal
+    var locale: Int = Locale.EN.ordinal,
+
+    var lastFileSaveDir: String = "",
+    val ignoredRelease: MutableList<String> = mutableListOf(),
 ) {
     fun getLogFont(): Font {
         return Font(logFontName, logFontStyle, logFontSize)

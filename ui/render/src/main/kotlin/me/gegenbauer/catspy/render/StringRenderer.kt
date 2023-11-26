@@ -23,4 +23,10 @@ interface StringRenderer {
     fun renderWithoutTags(): String
 
     fun clear(type: HtmlStringRenderer.SpanType)
+
+    fun isComplexityLow(): Boolean
+
+    fun getForegroundColor(): Color
+
+    fun getBackgroundColor(): Color
 }

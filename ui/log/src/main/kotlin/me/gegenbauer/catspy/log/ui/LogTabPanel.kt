@@ -25,8 +25,10 @@ import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.*
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.ddmlib.device.DeviceListListener
+import me.gegenbauer.catspy.file.getFileName
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.java.ext.ErrorEvent
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.LogLevel
 import me.gegenbauer.catspy.log.binding.LogMainBinding
@@ -42,7 +44,7 @@ import me.gegenbauer.catspy.log.ui.popup.FileOpenPopupMenu
 import me.gegenbauer.catspy.log.ui.table.FilteredLogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.platform.GlobalProperties
-import me.gegenbauer.catspy.strings.GlobalConstants
+import me.gegenbauer.catspy.strings.GlobalStrings
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.*
 import me.gegenbauer.catspy.view.button.ColorToggleButton
@@ -51,10 +53,11 @@ import me.gegenbauer.catspy.view.combobox.*
 import me.gegenbauer.catspy.view.dialog.FileSaveHandler
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.EMPTY_ITEM
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.rebuild
+import me.gegenbauer.catspy.view.panel.StatusBar
+import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.state.StatefulPanel
 import me.gegenbauer.catspy.view.tab.TabPanel
 import java.awt.BorderLayout
-import java.awt.Color
 import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.event.*
@@ -93,17 +96,17 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     //region logPanel
     private val logPanel = JPanel()
 
-    private val showLogToggle = ColorToggleButton(GlobalConstants.LOG, STRINGS.toolTip.logToggle)
-    private val showLogCombo = filterComboBox(tooltip = STRINGS.toolTip.logCombo) withName GlobalConstants.LOG
+    private val showLogToggle = ColorToggleButton(GlobalStrings.LOG, STRINGS.toolTip.logToggle)
+    private val showLogCombo = filterComboBox(tooltip = STRINGS.toolTip.logCombo) withName GlobalStrings.LOG
 
-    private val showTagToggle = ColorToggleButton(GlobalConstants.TAG, STRINGS.toolTip.tagToggle)
-    private val showTagCombo = filterComboBox(tooltip = STRINGS.toolTip.tagCombo) withName GlobalConstants.TAG
+    private val showTagToggle = ColorToggleButton(GlobalStrings.TAG, STRINGS.toolTip.tagToggle)
+    private val showTagCombo = filterComboBox(tooltip = STRINGS.toolTip.tagCombo) withName GlobalStrings.TAG
 
-    private val showPidToggle = ColorToggleButton(GlobalConstants.PID, STRINGS.toolTip.pidToggle)
-    private val showPidCombo = filterComboBox(tooltip = STRINGS.toolTip.pidCombo) withName GlobalConstants.PID
+    private val showPidToggle = ColorToggleButton(GlobalStrings.PID, STRINGS.toolTip.pidToggle)
+    private val showPidCombo = filterComboBox(tooltip = STRINGS.toolTip.pidCombo) withName GlobalStrings.PID
 
-    private val showTidToggle = ColorToggleButton(GlobalConstants.TID, STRINGS.toolTip.tidToggle)
-    private val showTidCombo = filterComboBox(tooltip = STRINGS.toolTip.tidCombo) withName GlobalConstants.TID
+    private val showTidToggle = ColorToggleButton(GlobalStrings.TID, STRINGS.toolTip.tidToggle)
+    private val showTidCombo = filterComboBox(tooltip = STRINGS.toolTip.tidCombo) withName GlobalStrings.TID
 
     private val logLevelToggle = ColorToggleButton(STRINGS.ui.logLevel, STRINGS.toolTip.logLevelToggle)
     private val logLevelCombo = readOnlyComboBox(STRINGS.toolTip.logLevelCombo) withName STRINGS.ui.logLevel
@@ -111,7 +114,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     private val boldLogToggle = ColorToggleButton(STRINGS.ui.bold, STRINGS.toolTip.boldToggle)
     private val boldLogCombo = filterComboBox(tooltip = STRINGS.toolTip.boldCombo)
 
-    private val matchCaseToggle = ColorToggleButton(GlobalConstants.MATCH_CASE, STRINGS.toolTip.caseToggle)
+    private val matchCaseToggle = ColorToggleButton(GlobalStrings.MATCH_CASE, STRINGS.toolTip.caseToggle)
     //endregion
 
     //region toolBarPanel
@@ -156,10 +159,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     //endregion
 
     //region statusBar
-    private val statusBar = JPanel(BorderLayout())
-
-    private val statusMethod = JLabel()
-    private val logFilePath = StatusTextField(STRINGS.ui.none) applyTooltip STRINGS.toolTip.savedFileTf
+    private val statusBar = ServiceManager.getContextService(StatusPanel::class.java)
     //endregion
 
     //region menu
@@ -291,11 +291,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             dividerProperty(splitLogPane) bindDual splitPanelDividerLocation
             //endregion
 
-            //region status bar
-            textProperty(statusMethod) bindDual status
-            textProperty(logFilePath) bindDual filePath
-            //endregion
-
             logLevelFilterCurrentContent.addObserver {
                 logLevel.updateValue(nameToLogLevel[it] ?: LogLevel.VERBOSE)
             }
@@ -334,7 +329,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             boldEnabled.addObserver { updateLogFilter() }
             searchMatchCase.addObserver { filteredTableModel.searchMatchCase = it == true }
             searchMatchCase.addObserver { updateLogFilter() }
-            filePath.addObserver { updateTitleBar(status.value?.trim() ?: "") }
             logFont.addObserver {
                 it ?: return@addObserver
                 filteredTable.font = it
@@ -408,15 +402,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
         splitLogPane.isOneTouchExpandable = false
 
-        statusBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-        statusMethod.isOpaque = true
-        statusMethod.background = Color.DARK_GRAY
-        logFilePath.isEditable = false
-        logFilePath.border = BorderFactory.createEmptyBorder()
-
-        statusBar.add(statusMethod, BorderLayout.WEST)
-        statusBar.add(logFilePath, BorderLayout.CENTER)
-
         customFont = UIConfManager.uiConf.getLogFont()
         GLog.d(TAG, "[createUI] log font: $customFont")
         splitLogPane.filteredLogPanel.customFont = customFont
@@ -429,12 +414,13 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         splitLogWithStatefulPanel.setContent(splitLogPane)
         splitLogWithStatefulPanel.action = {
             SwingUtilities.updateComponentTreeUI(filePopupMenu)
-            filePopupMenu.show(it, it.width / 2, it.height / 2)
+            filePopupMenu.onClickFileOpen()
         }
 
         add(filterPanel, BorderLayout.NORTH)
         add(splitLogWithStatefulPanel, BorderLayout.CENTER)
-        add(statusBar, BorderLayout.SOUTH)
+
+        taskState = TaskIdle(this)
     }
 
     private fun registerEvent() {
@@ -454,33 +440,47 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
                 splitLogWithStatefulPanel.listState = it
             }
         }
+        observeEventFlow()
+    }
+
+    private fun observeEventFlow() {
         scope.launch(Dispatchers.UI) {
-            logViewModel.errorFlow.collect {
-                it ?: return@collect
-                GLog.e(TAG, "[registerEvent] error", it)
-                JOptionPane.showMessageDialog(
-                    this@LogTabPanel,
-                    it.message ?: "Unknown Error",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
-                )
-            }
-        }
-        scope.launch(Dispatchers.UI) {
-            logViewModel.taskState.collect {
-                taskState = when (it) {
-                    TaskState.IDLE -> {
-                        TaskIdle(this@LogTabPanel)
+            logViewModel.eventFlow.collect {
+                when(it) {
+                    is ErrorEvent -> {
+                        handleErrorEvent(it)
                     }
 
-                    TaskState.RUNNING -> {
-                        TaskStarted(this@LogTabPanel)
-                    }
-
-                    TaskState.PAUSED -> {
-                        TaskPaused(this@LogTabPanel)
+                    is TaskState -> {
+                        handleTaskStateEvent(it)
                     }
                 }
+            }
+        }
+    }
+
+    private fun handleErrorEvent(event: ErrorEvent) {
+        GLog.e(TAG, "[registerEvent] error", event.error)
+        JOptionPane.showMessageDialog(
+            this@LogTabPanel,
+            event.error.message ?: "Unknown Error",
+            "Error",
+            JOptionPane.ERROR_MESSAGE
+        )
+    }
+
+    private fun handleTaskStateEvent(taskState: TaskState) {
+        this.taskState = when (taskState) {
+            TaskState.IDLE -> {
+                TaskIdle(this@LogTabPanel)
+            }
+
+            TaskState.RUNNING -> {
+                TaskStarted(this@LogTabPanel)
+            }
+
+            TaskState.PAUSED -> {
+                TaskPaused(this@LogTabPanel)
             }
         }
     }
@@ -527,7 +527,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         val frame = DarkUIUtil.getParentOfType(JFrame::class.java, this)
         frame?.title = when (statusMethod) {
             STRINGS.ui.open, STRINGS.ui.follow, "${STRINGS.ui.follow} ${STRINGS.ui.stop}" -> {
-                val path: Path = Paths.get(logFilePath.text)
+                val path: Path = Paths.get(statusBar.logStatus.path)
                 path.fileName.toString()
             }
 
@@ -570,10 +570,9 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         logViewModel.startProduce(logProducer)
 
         GLog.d(TAG, "[openFile] Opening: $path")
-        logMainBinding.status.updateValue(" ${STRINGS.ui.open} ")
         updateLogFilter()
 
-        logMainBinding.filePath.updateValue(path)
+        statusBar.logStatus = StatusBar.LogStatusIdle(" ${STRINGS.ui.open} ", path)
     }
 
     fun startLogcat() {
@@ -586,14 +585,14 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
         GLog.d(TAG, "[startLogcat] Start Logcat: ${logMainBinding.currentDevice.value ?: ""}")
 
-        logMainBinding.status.updateValue(" ${STRINGS.ui.adb} ")
         updateLogFilter()
 
-        logMainBinding.filePath.updateValue(logProducer.tempFile.absolutePath ?: "")
+        statusBar.logStatus =
+            StatusBar.LogStatusRunning(" ${STRINGS.ui.adb} ", logProducer.tempFile.absolutePath ?: "")
     }
 
     fun stopAll() {
-        logMainBinding.status.updateValue(" ${STRINGS.ui.adb} ${STRINGS.ui.stop} ")
+        statusBar.logStatus = StatusBar.LogStatusIdle(" ${STRINGS.ui.adb} ${STRINGS.ui.stop} ")
         logViewModel.pause()
         logProducer.cancel()
     }
@@ -622,6 +621,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
                 saveBtn -> {
                     FileSaveHandler.Builder(this@LogTabPanel)
                         .onFileSpecified(logViewModel::saveLog)
+                        .setDefaultName(statusBar.logStatus.path.getFileName())
                         .build()
                         .show()
                 }
@@ -735,28 +735,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
         splitLogPane.filteredLogPanel.goToRowIndex(filteredTableModel.getRowIndexInAllPages(lineNumber))
         splitLogPane.fullLogPanel.goToRowIndex(fullTableModel.getRowIndexInAllPages(lineNumber))
-    }
-
-    private inner class StatusTextField(text: String?) : JTextField(text) {
-        private var prevText = ""
-        override fun getToolTipText(event: MouseEvent): String? {
-            val textTrimmed = text.trim()
-            if (prevText != textTrimmed && textTrimmed.isNotEmpty()) {
-                prevText = textTrimmed
-                val splitData = textTrimmed.split("|")
-
-                var tooltip = "<html>"
-                for (item in splitData) {
-                    val itemTrimmed = item.trim()
-                    if (itemTrimmed.isNotEmpty()) {
-                        tooltip += "$itemTrimmed<br>"
-                    }
-                }
-                tooltip += "</html>"
-                toolTipText = tooltip
-            }
-            return super.getToolTipText(event)
-        }
     }
 
     inner class SearchPanel : JPanel() {
@@ -935,7 +913,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     override fun onTabSelected() {
         logViewModel.resume()
-        updateTitleBar(logMainBinding.status.value?.trim() ?: "")
+        updateTitleBar(statusBar.logStatus.status)
     }
 
     override fun onTabUnselected() {

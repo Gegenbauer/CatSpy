@@ -40,7 +40,7 @@ class BookmarkManager: ContextService {
     }
 
     fun checkNewRow(rows: List<Int>): Boolean {
-        return bookmarksLock.read { rows.any { bookmarks.contains(it) } }
+        return bookmarksLock.read { rows.any { !bookmarks.contains(it) } }
     }
 
     fun addBookmark(bookmark: Int) {

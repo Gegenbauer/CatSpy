@@ -3,11 +3,12 @@ package me.gegenbauer.catspy.view.dialog
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import me.gegenbauer.catspy.configuration.UIConfManager
 import me.gegenbauer.catspy.context.Disposable
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
 import java.awt.Component
-import java.awt.Desktop
 import java.io.File
 import javax.swing.JFileChooser
 import javax.swing.JOptionPane
@@ -15,6 +16,7 @@ import javax.swing.JOptionPane
 class FileSaveHandler private constructor(
     private val onFileSpecified: suspend (File) -> Unit,
     private val onCancel: () -> Unit = {},
+    private val defaultName: String = "",
     private val parent: Component
 ): Disposable {
 
@@ -29,6 +31,7 @@ class FileSaveHandler private constructor(
     }
 
     fun show() {
+        checkAndSetDefaultFile()
         val result = fileChooser.showSaveDialog(parent)
         if (result == JFileChooser.APPROVE_OPTION) {
             val file = fileChooser.selectedFile
@@ -37,6 +40,18 @@ class FileSaveHandler private constructor(
             }
         } else {
             onCancel()
+        }
+    }
+
+    private fun checkAndSetDefaultFile() {
+        val lastFileSaveDir = UIConfManager.uiConf.lastFileSaveDir
+        if (lastFileSaveDir.isNotEmpty()) {
+            fileChooser.currentDirectory = File(lastFileSaveDir)
+        } else {
+            fileChooser.currentDirectory = null
+        }
+        if (defaultName.isNotEmpty()) {
+            fileChooser.selectedFile = File(fileChooser.currentDirectory, defaultName)
         }
     }
 
@@ -65,6 +80,7 @@ class FileSaveHandler private constructor(
 
     private fun onFileSaved(file: File) {
         GLog.d(TAG, "[onFileSaved] file=${file.absolutePath}")
+        UIConfManager.uiConf.lastFileSaveDir = file.parent
         val result = JOptionPane.showOptionDialog(
             parent,
             STRINGS.ui.fileSaveCompleteMessage,
@@ -75,8 +91,8 @@ class FileSaveHandler private constructor(
             arrayOf(STRINGS.ui.showFileInFileManager, STRINGS.ui.cancel),
             STRINGS.ui.showFileInFileManager
         )
-        if (result == 0) {
-            Desktop.getDesktop().open(file.parentFile)
+        if (result == JOptionPane.OK_OPTION) {
+            currentPlatform.showFileInExplorer(file)
         }
     }
 
@@ -87,6 +103,7 @@ class FileSaveHandler private constructor(
     class Builder(private val parent: Component) {
         private var onFileSpecified: suspend (File) -> Unit = {}
         private var onCancel: () -> Unit = {}
+        private var defaultName: String = ""
 
         fun onFileSpecified(onFileSpecified: suspend (File) -> Unit) = apply {
             this.onFileSpecified = onFileSpecified
@@ -96,7 +113,11 @@ class FileSaveHandler private constructor(
             this.onCancel = onCancel
         }
 
-        fun build() = FileSaveHandler(onFileSpecified, onCancel, parent)
+        fun setDefaultName(defaultPath: String) = apply {
+            this.defaultName = defaultPath
+        }
+
+        fun build() = FileSaveHandler(onFileSpecified, onCancel, defaultName, parent)
     }
 
     companion object {

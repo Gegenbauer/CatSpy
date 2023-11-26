@@ -28,13 +28,16 @@ internal val columnIndex = object : Column {
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
         return object : DefaultLogTableCellRenderer() {
+            private val border = LineNumBorder(LogColorScheme.numLogSeparatorBG, 1)
+
             init {
                 horizontalAlignment = JLabel.RIGHT
                 verticalAlignment = JLabel.CENTER
             }
 
             override fun render(table: LogTable, label: JLabel, row: Int, col: Int, content: String) {
-                label.border = LineNumBorder(LogColorScheme.numLogSeparatorBG, 1)
+                border.color = LogColorScheme.numLogSeparatorBG
+                label.border = border
                 foreground = LogColorScheme.lineNumFG
             }
         }
@@ -208,6 +211,17 @@ private open class HtmlLogCellRenderer : DefaultLogTableCellRenderer() {
         val foreground = logItem.fgColor
         renderer.foreground(0, content.length - 1, foreground)
         addRenderItem(logTable, row, renderer)
+
+        if (renderer.isComplexityLow()) {
+            if (renderer.getForegroundColor() != HtmlStringRenderer.INVALID_COLOR) {
+                this.foreground = renderer.getForegroundColor()
+            }
+            if (renderer.getBackgroundColor() != HtmlStringRenderer.INVALID_COLOR) {
+                this.background = renderer.getBackgroundColor()
+            }
+            return renderer.raw
+        }
+
         return renderer.render()
     }
 
@@ -224,6 +238,8 @@ private open class HtmlLogCellRenderer : DefaultLogTableCellRenderer() {
 }
 
 private abstract class DefaultLogTableCellRenderer : DefaultTableCellRenderer() {
+    private val emptyBorder = BorderFactory.createEmptyBorder(0, 5, 0, 0)
+
     override fun getTableCellRendererComponent(
         table: JTable?,
         value: Any?,
@@ -234,7 +250,7 @@ private abstract class DefaultLogTableCellRenderer : DefaultTableCellRenderer() 
     ): Component {
         val logTable = table as LogTable
         val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
-        label.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
+        label.border = emptyBorder
         val content = value as? String ?: ""
         val logItem = logTable.tableModel.getItemInCurrentPage(row)
         background = logTable.getColumnBackground(logItem.num, row)
@@ -247,7 +263,7 @@ private abstract class DefaultLogTableCellRenderer : DefaultTableCellRenderer() 
     }
 }
 
-private class LineNumBorder(val color: Color, private val thickness: Int) : AbstractBorder() {
+private class LineNumBorder(var color: Color, private val thickness: Int) : AbstractBorder() {
     override fun paintBorder(c: Component, g: Graphics, x: Int, y: Int, width: Int, height: Int) {
         if (width > 0) {
             g.color = color

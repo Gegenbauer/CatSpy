@@ -187,6 +187,40 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
         spans.removeAll { it.type == type }
     }
 
+    override fun isComplexityLow(): Boolean {
+        val foregroundSpans = spans.filter { it.type == SpanType.FOREGROUND }
+        val highlightSpans = spans.filter { it.type == SpanType.HIGHLIGHT }
+
+        val isForegroundLowComplexity = foregroundSpans.isEmpty() || (foregroundSpans.all { it.start == 0 && it.end == raw.length - 1 })
+        val isHighlightLowComplexity = highlightSpans.isEmpty() || (highlightSpans.all { it.start == 0 && it.end == raw.length - 1 })
+
+        return isForegroundLowComplexity && isHighlightLowComplexity
+    }
+
+    override fun getForegroundColor(): Color {
+        val foregroundSpans = spans.filter { it.type == SpanType.FOREGROUND }
+        return if (foregroundSpans.isEmpty()) {
+            INVALID_COLOR
+        } else {
+            if (foregroundSpans.size == 1) {
+                return foregroundSpans.first().color
+            }
+            averageColor(foregroundSpans.map { it.color })
+        }
+    }
+
+    override fun getBackgroundColor(): Color {
+        val highlightSpans = spans.filter { it.type == SpanType.HIGHLIGHT }
+        return if (highlightSpans.isEmpty()) {
+            INVALID_COLOR
+        } else {
+            if (highlightSpans.size == 1) {
+                return highlightSpans.first().color
+            }
+            averageColor(highlightSpans.map { it.color })
+        }
+    }
+
     private val String.formatted: String
         get() = replace("<", "&lt;").replace(">", "&gt;").replace(" ", "&nbsp;")
 
@@ -221,5 +255,9 @@ class HtmlStringRenderer(override val raw: String) : StringRenderer {
 
     private fun Span.isColorType(): Boolean {
         return this.type == SpanType.HIGHLIGHT || this.type == SpanType.FOREGROUND
+    }
+
+    companion object {
+        val INVALID_COLOR = Color(66, 66, 66, 66)
     }
 }

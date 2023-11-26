@@ -10,6 +10,9 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.Observer
+import me.gegenbauer.catspy.java.ext.EmptyEvent
+import me.gegenbauer.catspy.java.ext.ErrorEvent
+import me.gegenbauer.catspy.java.ext.Event
 import me.gegenbauer.catspy.java.ext.formatDuration
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.Log
@@ -32,22 +35,21 @@ import kotlin.system.measureTimeMillis
 // TODO 全局消息管理l
 open class LogViewModel(override val contexts: Contexts = Contexts.default) :
     Context, LogProducerManager<LogcatItem>, LogFilterable {
+    override val eventFlow: StateFlow<Event>
+        get() = _eventFlow
+
     override val fullLogItemsFlow: StateFlow<List<LogcatItem>>
         get() = fullLogRepo.logItemsFlow
 
     override val filteredLogItemsFlow: StateFlow<List<LogcatItem>>
         get() = filteredLogRepo.logItemsFlow
 
-    override val errorFlow: StateFlow<Throwable?>
-        get() = _errorFlow
-
     override val fullLogListState: StateFlow<ListState>
         get() = fullLogRepo.listState
 
     override val filteredLogListState: StateFlow<ListState>
         get() = filteredLogRepo.listState
-    override val taskState: StateFlow<TaskState>
-        get() = _taskState
+
 
     override var logcatFilter: LogcatFilter = LogcatFilter.EMPTY_FILTER
 
@@ -61,9 +63,7 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
 
     private var logProducer: LogProducer = EmptyLogProducer
 
-    private val _taskState = MutableStateFlow(TaskState.IDLE)
-    private val _errorFlow = MutableStateFlow<Throwable?>(null)
-
+    private val _eventFlow = MutableStateFlow<Event>(EmptyEvent)
     private val fullLogRepo = FullLogRepo()
     private val filteredLogRepo = FilteredLogRepo()
 
@@ -185,7 +185,7 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
         Log.d(TAG, "[observeLogProducerState]")
         producer.state.collect { state ->
             Log.d(TAG, "[observeLogProducerState] state=$state")
-            _taskState.value = state.toTaskState()
+            _eventFlow.value = state.toTaskState()
         }
     }
 
@@ -200,7 +200,7 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
 
     override fun onLogProduceError(error: Throwable) {
         Log.e(TAG, "[onLogProduceError]", error)
-        _errorFlow.value = error
+        _eventFlow.value = ErrorEvent(error)
     }
 
     override fun onLogItemReceived(logItem: LogcatItem) {
@@ -223,7 +223,6 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
                 item?.let { onLogItemReceived(it) }
             }
         }
-        logProducer.moveToState(LogProducer.State.COMPLETE)
         Log.d(TAG, "[startProduceInternal] end, cost=${formatDuration(cost)}")
     }
 

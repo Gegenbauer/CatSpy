@@ -16,7 +16,7 @@ import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTable
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModelListener
-import me.gegenbauer.catspy.strings.GlobalConstants
+import me.gegenbauer.catspy.strings.GlobalStrings
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.applyTooltip
 import me.gegenbauer.catspy.view.button.ColorToggleButton
@@ -53,9 +53,9 @@ abstract class LogPanel(
 
     private val topBtn = IconBarButton(GIcons.Action.Top.get()) applyTooltip STRINGS.toolTip.viewFirstBtn
     private val bottomBtn = IconBarButton(GIcons.Action.Bottom.get()) applyTooltip STRINGS.toolTip.viewLastBtn
-    private val tagBtn = ColorToggleButton(GlobalConstants.TAG) applyTooltip STRINGS.toolTip.viewTagToggle
-    private val pidBtn = ColorToggleButton(GlobalConstants.PID) applyTooltip STRINGS.toolTip.viewPidToggle
-    private val tidBtn = ColorToggleButton(GlobalConstants.TID) applyTooltip STRINGS.toolTip.viewTidToggle
+    private val tagBtn = ColorToggleButton(GlobalStrings.TAG) applyTooltip STRINGS.toolTip.viewTagToggle
+    private val pidBtn = ColorToggleButton(GlobalStrings.PID) applyTooltip STRINGS.toolTip.viewPidToggle
+    private val tidBtn = ColorToggleButton(GlobalStrings.TID) applyTooltip STRINGS.toolTip.viewTidToggle
     private val scrollToEndIcon = DayNightIcon(
         GIcons.State.ScrollEnd.get(24, 24),
         GIcons.State.ScrollEndDark.get(24, 24)

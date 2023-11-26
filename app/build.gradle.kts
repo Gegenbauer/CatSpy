@@ -24,6 +24,7 @@ dependencies {
     implementation(projects.resources)
     implementation(projects.javaext)
     implementation(projects.file)
+    implementation(projects.network)
 
     testImplementation(kotlinTestApi())
     testImplementation(projects.ui)
@@ -57,14 +58,14 @@ compose.desktop {
 
             linux {
                 iconFile.set(iconsRoot.resolve("icon-linux.png"))
-                appRelease = project.extra["app.version"].toString()
-                debPackageVersion = project.extra["app.version"].toString()
+                appRelease = project.extra["app.version.name"].toString()
+                debPackageVersion = project.extra["app.version.name"].toString()
             }
 
             windows {
                 dirChooser = true
                 upgradeUuid = "eff1902c-4e55-11ee-be56-0242ac120002"
-                msiPackageVersion = project.extra["app.version"].toString()
+                msiPackageVersion = project.extra["app.version.name"].toString()
             }
         }
     }

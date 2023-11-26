@@ -10,7 +10,7 @@ import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.*
 
-class HelpDialog(parent: JFrame) : JDialog(parent, STRINGS.ui.help, true), ActionListener {
+class HelpDialog(parent: JFrame) : JDialog(parent, STRINGS.ui.menuHelp, true), ActionListener {
     private var helpTextPane: JTextPane
     private var closeBtn = GButton(STRINGS.ui.close)
 

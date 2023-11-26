@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.view.button
 
-import com.github.weisj.darklaf.iconset.AllIcons
 import com.github.weisj.darklaf.ui.tabbedpane.DarkTabbedPaneUI
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.*
@@ -22,8 +21,7 @@ class ClosableTabHeader(
     var onCloseClicked: (() -> Unit)? = null
 
     private val title = JLabel(tabName, icon, SwingConstants.LEFT)
-    private val closeButton =
-        me.gegenbauer.catspy.view.button.IconBarButton(ClosableTabHeader.Companion.closeIconNormal)
+    private val closeButton = CloseButton(::closeTab)
     private val editor = JTextField()
     private var titleLen = 0
     private var editorMinDimen: Dimension = Dimension(0, 0)
@@ -42,13 +40,6 @@ class ClosableTabHeader(
         name = "Tab.header"
         closeButton.name = "Tab.close"
         closeButton.toolTipText = STRINGS.toolTip.tabCloseBtn
-        closeButton.isRolloverEnabled = false
-        closeButton.isContentAreaFilled = false
-        val d = Dimension(
-            CLOSE_BUTTON_SIZE,
-            CLOSE_BUTTON_SIZE
-        )
-        closeButton.preferredSize = d
         title.border = null
         title.isOpaque = false
         title.name = "Tab.name"
@@ -63,17 +54,6 @@ class ClosableTabHeader(
     }
 
     private fun registerEvent() {
-        closeButton.addActionListener { closeTab() }
-        closeButton.addMouseListener(object : MouseAdapter() {
-            override fun mouseEntered(e: MouseEvent) {
-                closeButton.icon = closeIconHover
-            }
-
-            override fun mouseExited(e: MouseEvent) {
-                closeButton.icon = closeIconNormal
-            }
-        })
-
         title.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 if (e.isLeftClick && e.isSingleClick) {
@@ -173,9 +153,6 @@ class ClosableTabHeader(
     }
 
     companion object {
-        private const val CLOSE_BUTTON_SIZE = 20
         private const val CLOSE_BUTTON_PADDING_LEFT = 4
-        private val closeIconNormal: Icon by lazy { AllIcons.Navigation.Close.get() }
-        private val closeIconHover: Icon by lazy { AllIcons.Navigation.Close.hovered() }
     }
 }
