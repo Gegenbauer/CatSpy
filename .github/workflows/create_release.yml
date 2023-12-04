@@ -27,7 +27,7 @@ jobs:
               id: create_release
               uses: actions/create-release@v1
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
               with:
                   tag_name: ${{ github.ref }}
                   release_name: Release ${{ github.ref }}
@@ -38,7 +38,7 @@ jobs:
               id: upload_linux_artifact
               uses: actions/upload-release-asset@v1
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
               with:
                   upload_url: ${{ steps.create_release.outputs.upload_url }}
                   asset_path: ./app/build/compose/binaries/main/deb/catspy_amd64.deb
@@ -66,7 +66,7 @@ jobs:
               id: create_release
               uses: actions/create-release@v1
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
               with:
                   tag_name: ${{ github.ref }}
                   release_name: Release ${{ github.ref }}
@@ -77,7 +77,7 @@ jobs:
               id: upload_windows_artifact
               uses: actions/upload-release-asset@v1
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
               with:
                   upload_url: ${{ steps.create_release.outputs.upload_url }}
                   asset_path: ./app/build/compose/binaries/main/msi/catspy_x64.msi
