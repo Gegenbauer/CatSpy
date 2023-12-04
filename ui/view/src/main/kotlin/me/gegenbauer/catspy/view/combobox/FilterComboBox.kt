@@ -12,14 +12,18 @@ import me.gegenbauer.catspy.view.combobox.highlight.CustomEditorDarkComboBoxUI
 import me.gegenbauer.catspy.view.combobox.highlight.HighlighterEditor
 import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.getOrCreateFilterItem
+import java.awt.event.ActionEvent
 import java.awt.event.KeyListener
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
+import javax.swing.AbstractAction
 import javax.swing.JComponent
+import javax.swing.KeyStroke
 import javax.swing.ToolTipManager
 import javax.swing.plaf.ComboBoxUI
 import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.text.JTextComponent
+import javax.swing.undo.UndoManager
 
 class FilterComboBox(private val enableHighlight: Boolean = true, private val tooltip: String? = null) :
     HistoryComboBox<String>() {
@@ -59,6 +63,7 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
             errorMsg = filterItem.errorMessage
         }
     }
+    private val undo = UndoManager()
 
     init {
         toolTipText = tooltip
@@ -87,6 +92,29 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
         editorComponent applyTooltip tooltip
         editorComponent withName this@FilterComboBox.componentName
         editorComponent.document.addDocumentListener(currentContentChangeListener)
+        editorComponent.document.addUndoableEditListener {
+            undo.addEdit(it.edit)
+        }
+        editorComponent.actionMap.put("Undo", object : AbstractAction("Undo") {
+            override fun actionPerformed(e: ActionEvent) {
+                runCatching {
+                    if (undo.canUndo()) {
+                        undo.undo()
+                    }
+                }
+            }
+        })
+        editorComponent.inputMap.put(KeyStroke.getKeyStroke("control Z"), "Undo")
+        editorComponent.actionMap.put("Redo", object : AbstractAction("Redo") {
+            override fun actionPerformed(e: ActionEvent) {
+                runCatching {
+                    if (undo.canRedo()) {
+                        undo.redo()
+                    }
+                }
+            }
+        })
+        editorComponent.inputMap.put(KeyStroke.getKeyStroke("control Y"), "Redo")
     }
 
     fun addTooltipUpdateListener() {

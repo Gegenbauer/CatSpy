@@ -9,24 +9,24 @@ class TaskManagerImpl: TaskManager {
     private val taskListeners = ConcurrentHashMap<TaskListener, (Task) -> Boolean>()
 
     override fun onStart(task: Task) {
-        TaskLog.i(TAG, "[onStart] $task")
+        TaskLog.d(TAG, "[onStart] $task")
     }
 
     override fun onStop(task: Task) {
-        TaskLog.i(TAG, "[onStop] $task")
+        TaskLog.d(TAG, "[onStop] $task")
         taskList.remove(task)
     }
 
     override fun onCancel(task: Task) {
-        TaskLog.i(TAG, "[onCancel] $task")
+        TaskLog.d(TAG, "[onCancel] $task")
     }
 
     override fun onResume(task: Task) {
-        TaskLog.i(TAG, "[onResume] $task")
+        TaskLog.d(TAG, "[onResume] $task")
     }
 
     override fun onPause(task: Task) {
-        TaskLog.i(TAG, "[onPause] $task")
+        TaskLog.d(TAG, "[onPause] $task")
     }
 
     override fun onError(task: Task, t: Throwable) {

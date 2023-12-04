@@ -16,8 +16,6 @@ object GlobalConfSync {
     val ddmDebug = ObservableValueProperty(UIConfManager.uiConf.ddmDebug)
     val cacheDebug = ObservableValueProperty(UIConfManager.uiConf.cacheDebug)
     val logDebug = ObservableValueProperty(UIConfManager.uiConf.logDebug)
-    val versionCode = ObservableValueProperty(UIConfManager.uiConf.versionCode)
-    val appHome = ObservableValueProperty(UIConfManager.uiConf.appHome)
 
     fun init() {
         // do nothing
@@ -49,7 +47,5 @@ object GlobalConfSync {
             UIConfManager.uiConf.logDebug = it ?: false
             Log.debug = it ?: false
         }
-        versionCode.addObserver { UIConfManager.uiConf.versionCode = it ?: 0 }
-        appHome.addObserver { UIConfManager.uiConf.appHome = it ?: "" }
     }
 }

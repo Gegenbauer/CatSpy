@@ -25,14 +25,14 @@ open class CommandTask(
     protected var workingDirectory: File? = null
 
     override suspend fun startInCoroutine() {
-        GLog.d(name, "[startInCoroutine] start")
+        TaskLog.d(name, "[startInCoroutine] start")
         runCatching {
             execute().collect {
                 addPausePoint()
                 onReceiveOutput(it)
             }
         }
-        GLog.d(name, "[startInCoroutine] end")
+        TaskLog.d(name, "[startInCoroutine] end")
         onProcessEnd()
     }
 
