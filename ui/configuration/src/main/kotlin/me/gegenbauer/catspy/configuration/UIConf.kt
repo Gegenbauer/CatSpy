@@ -8,8 +8,6 @@ import java.awt.Frame
 
 data class  UIConf(
     /** 应用配置 start **/
-    var versionCode: Int = 10000,
-    var versionName: String = "1.0.0",
     var appHome: String = filesDir, // 应用程序主目录, 用于存放配置文件, 以及日志等临时文件
     var globalDebug: Boolean = false,
     var dataBindingDebug: Boolean = false,

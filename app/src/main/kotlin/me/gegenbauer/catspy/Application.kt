@@ -22,6 +22,7 @@ import me.gegenbauer.catspy.platform.isInDebugMode
 import me.gegenbauer.catspy.strings.GlobalStrings
 import me.gegenbauer.catspy.strings.StringResourceManager
 import me.gegenbauer.catspy.ui.MainFrame
+import java.awt.Component
 import java.awt.Container
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -64,7 +65,7 @@ object Application : WindowAdapter() {
             ThemeManager.registerDefaultThemeUpdateListener()
             openMainFrame()
 
-            //takeIf { GLog.debug }?.let { addClickListenerForAllComponents(mainFrame.components) }
+            takeIf { GLog.debug }?.let { addClickListenerForAllComponents(mainFrame.components) }
         }
     }
 
@@ -111,7 +112,7 @@ object Application : WindowAdapter() {
         themeAwareControllers.forEach { it.onThemeChanged(theme, properties) }
     }
 
-    private fun addClickListenerForAllComponents(components: Array<java.awt.Component>) {
+    private fun addClickListenerForAllComponents(components: Array<Component>) {
         components.forEach { component ->
             component.addMouseListener(object : java.awt.event.MouseAdapter() {
                 override fun mouseClicked(e: java.awt.event.MouseEvent?) {
