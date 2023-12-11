@@ -1,9 +1,5 @@
 package me.gegenbauer.catspy.view.menu
 
-import com.github.weisj.darklaf.settings.ThemeSettings
-import me.gegenbauer.catspy.configuration.DEFAULT_FONT_SIZE
-import me.gegenbauer.catspy.configuration.newFont
-import me.gegenbauer.catspy.configuration.toFont
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import javax.swing.BorderFactory
@@ -12,7 +8,7 @@ import javax.swing.JMenu
 open class GMenu: JMenu() {
 
     init {
-        font = ThemeSettings.getInstance().theme.toFont().newFont(size = DEFAULT_FONT_SIZE)
+        //font = ThemeSettings.getInstance().theme.toFont().newFont(size = DEFAULT_FONT_SIZE)
         border = BorderFactory.createEmptyBorder(4, 6, 4, 6)
 
         addFocusListener(object : FocusAdapter() {

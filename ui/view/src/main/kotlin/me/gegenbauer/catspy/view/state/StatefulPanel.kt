@@ -26,7 +26,6 @@ class StatefulPanel : JPanel() {
 
     private val emptyImage = IconBarButton(GIcons.State.Empty.get(60, 60)).apply {
         preferredSize = Dimension(120, 120)
-        background = EmptyStatePanelTheme.iconBackground
         isBorderPainted = false
     }
     private val loadingProgress = JProgressBar().apply {

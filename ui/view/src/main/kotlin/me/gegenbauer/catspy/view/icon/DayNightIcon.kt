@@ -1,16 +1,16 @@
 package me.gegenbauer.catspy.view.icon
 
+import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.github.weisj.darklaf.properties.icons.ThemedSVGIcon
 import me.gegenbauer.catspy.configuration.ThemeManager
-import me.gegenbauer.catspy.configuration.isDark
 import java.awt.Component
 import java.awt.Graphics
 import javax.swing.Icon
 import javax.swing.ImageIcon
 
 class DayNightIcon(lightIcon: Icon, darkIcon: Icon? = lightIcon) : ImageIcon() {
-    private val lightImage = (lightIcon as? ThemedSVGIcon)?.createImage(lightIcon.iconWidth, lightIcon.iconHeight)
-    private val darkImage = (darkIcon as? ThemedSVGIcon)?.createImage(darkIcon.iconWidth, darkIcon.iconHeight)
+    private val lightImage = (lightIcon as? FlatSVGIcon)?.image
+    private val darkImage = (darkIcon as? FlatSVGIcon)?.image
 
     init {
         image = lightImage

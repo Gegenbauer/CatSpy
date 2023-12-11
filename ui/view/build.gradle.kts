@@ -7,7 +7,6 @@ plugins {
 }
 
 dependencies {
-    api(files(FileDependency.flatlaf))
     api(files(FileDependency.swingx))
     implementation(projects.ui.utils)
     implementation(projects.ui.databinding)
@@ -21,12 +20,13 @@ dependencies {
     implementation(projects.platform)
     implementation(projects.concurrency)
     implementation(projects.network)
+    implementation(projects.file)
 
     api(TableLayout.tablelayout)
     api(Weisj.darklafCore)
     api(FormDev.flatLaf)
+    api(FormDev.extra)
     api(Weisj.darklafVisualPadding)
-    implementation(Gson.gson)
     implementation(Fifesoft.autocomplete)
 
     testImplementation(Weisj.darklafCore)

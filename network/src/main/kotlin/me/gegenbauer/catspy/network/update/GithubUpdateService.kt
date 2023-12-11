@@ -2,10 +2,10 @@ package me.gegenbauer.catspy.network.update
 
 import kotlinx.coroutines.*
 import me.gegenbauer.catspy.concurrency.GIO
+import me.gegenbauer.catspy.file.gson
 import me.gegenbauer.catspy.network.DownloadListener
 import me.gegenbauer.catspy.network.NetworkClient
 import me.gegenbauer.catspy.network.ProgressResponseBody
-import me.gegenbauer.catspy.network.gson
 import me.gegenbauer.catspy.network.update.data.Asset
 import me.gegenbauer.catspy.network.update.data.Release
 import okhttp3.Call

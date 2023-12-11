@@ -34,23 +34,27 @@ class VStatusPanel(override val contexts: Contexts = Contexts.default) : JPanel(
     }
 
     override fun updateUI() {
-        setUI(VStatusPanelUI())
+        if (ui != null) {
+            setUI(VStatusPanelUI().apply { setParent(this@VStatusPanel) })
+        } else {
+            setUI(VStatusPanelUI())
+        }
     }
 
     internal inner class MouseHandler : MouseAdapter() {
         override fun mouseClicked(event: MouseEvent) {
-            val logTable = contexts.getContext(LogTable::class.java)
+            val logTable = contexts.getContext(LogPanel::class.java)?.table
             logTable ?: return
-            val row = event.point.y * logTable.rowCount / height
-            require(row >= 0 && row < logTable.rowCount) { "Row must be between 0 and ${logTable.rowCount}" }
-            logTable.scrollRectToVisible(Rectangle(logTable.getCellRect(row, 0, true)))
+            val row = event.point.y * logTable.tableModel.dataSize / height
+            require(row >= 0 && row < logTable.tableModel.dataSize) { "Row must be between 0 and ${logTable.tableModel.dataSize}" }
+            logTable.moveRowToCenter(row, false)
             super.mouseClicked(event)
         }
     }
 
     companion object {
         private const val TAG = "VStatusPanel"
-        const val VIEW_RECT_WIDTH = 20
+        const val VIEW_RECT_WIDTH = 14
         const val VIEW_RECT_HEIGHT = 5
     }
 }

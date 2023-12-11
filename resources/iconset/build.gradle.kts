@@ -7,6 +7,7 @@ plugins {
 dependencies {
     implementation(JavaXAnno.annotationApi)
     implementation(Weisj.darklafCore)
+    implementation(FormDev.extra)
 }
 
 val generateIconAccessor by tasks.registering {

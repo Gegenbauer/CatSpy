@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import me.gegenbauer.catspy.concurrency.CoroutineSuspender
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ViewModelScope
-import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -315,7 +315,7 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
     suspend fun preCacheFilters() {
         withContext(Dispatchers.Default) {
             val filterCache = ServiceManager.getContextService(FilterCache::class.java)
-            UIConfManager.uiConf.apply {
+            SettingsManager.settings.apply {
                 (logFilterHistory + tagFilterHistory + searchHistory + highlightHistory).forEach {
                     filterCache[it.toFilterKey(true)]
                     filterCache[it.toFilterKey(false)]

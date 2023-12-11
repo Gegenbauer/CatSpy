@@ -1,11 +1,12 @@
 package me.gegenbauer.catspy.ui
 
+import com.formdev.flatlaf.extras.FlatSVGUtils
 import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.conf.GlobalConfSync
-import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.GlobalContextManager
@@ -13,6 +14,7 @@ import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.iconset.appIcons
 import me.gegenbauer.catspy.java.ext.FileSaveEvent
 import me.gegenbauer.catspy.java.ext.NormalEvent
 import me.gegenbauer.catspy.network.update.data.Release
@@ -174,9 +176,9 @@ class MainFrame(
     }
 
     private fun configureWindow() {
-        iconImage = (GIcons.Logo.get(200, 200) as DerivableImageIcon).image
+        iconImages = appIcons
 
-        UIConfManager.uiConf.run {
+        SettingsManager.updateSettings {
             extendedState = if (frameX == 0 || frameY == 0 || frameWidth == 0 || frameHeight == 0) {
                 MAXIMIZED_BOTH
             } else {
@@ -195,17 +197,19 @@ class MainFrame(
         super.destroy()
         scope.cancel()
         ServiceManager.dispose(this)
+        ServiceManager.dispose(Context.process)
         saveConfigOnDestroy()
         dispose()
     }
 
     private fun saveConfigOnDestroy() {
-        UIConfManager.uiConf.frameX = location.x
-        UIConfManager.uiConf.frameY = location.y
-        UIConfManager.uiConf.frameWidth = size.width
-        UIConfManager.uiConf.frameHeight = size.height
-        UIConfManager.uiConf.frameExtendedState = extendedState
-        UIConfManager.saveUI()
+        SettingsManager.updateSettings {
+            frameX = location.x
+            frameY = location.y
+            frameWidth = size.width
+            frameHeight = size.height
+            frameExtendedState = extendedState
+        }
     }
 }
 

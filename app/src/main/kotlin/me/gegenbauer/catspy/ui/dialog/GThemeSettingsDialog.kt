@@ -1,111 +1,162 @@
 package me.gegenbauer.catspy.ui.dialog
 
-import com.github.weisj.darklaf.components.DefaultButton
-import com.github.weisj.darklaf.components.DynamicUI
-import com.github.weisj.darklaf.properties.icons.IconLoader
-import com.github.weisj.darklaf.settings.ThemeSettings
-import info.clearthought.layout.TableLayout
-import info.clearthought.layout.TableLayoutConstants
-import me.gegenbauer.catspy.configuration.UIConfManager
-import me.gegenbauer.catspy.configuration.newFont
-import me.gegenbauer.catspy.configuration.toFont
-import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
-import me.gegenbauer.catspy.databinding.bind.bindDual
-import me.gegenbauer.catspy.databinding.property.support.listProperty
-import me.gegenbauer.catspy.databinding.property.support.selectedIndexProperty
+import me.gegenbauer.catspy.configuration.*
+import me.gegenbauer.catspy.file.gson
+import me.gegenbauer.catspy.java.ext.copyFields
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.globalLocale
 import me.gegenbauer.catspy.strings.supportLocales
-import java.awt.BorderLayout
-import java.awt.Component
-import java.awt.Dimension
-import java.awt.Window
-import java.awt.event.WindowEvent
+import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
+import say.swing.JFontChooser
+import java.awt.*
+import java.awt.datatransfer.StringSelection
+import java.awt.event.ActionEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.*
 
 /**
  * 从上至下添加设置项
  */
 class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELESS) {
-    private val darklafThemeSettingsPanel = ThemeSettings.getInstance().settingsPanel
-    private val languageSettingsPanel = LanSettingsPanel()
+
+    private var tree = SettingsTree()
+
+    private val startSettings = SettingsManager.string
 
     init {
-        setIconImage(IconLoader.createFrameIcon(ThemeSettings.getIcon(), this))
-        setTitle(ThemeSettings.getInstance().title)
+        title = STRINGS.ui.preferences
 
-        val contentPane = JPanel(BorderLayout())
-        val settingsContentPanel = JPanel(BorderLayout())
-        settingsContentPanel.layout = BoxLayout(settingsContentPanel, BoxLayout.Y_AXIS)
+        initUI()
 
-        settingsContentPanel.add(darklafThemeSettingsPanel)
-        // 添加分割线
-        settingsContentPanel.add(JPanel().apply {
-            border = BorderFactory.createEmptyBorder(10, 0, 10, 0)
-        })
-        settingsContentPanel.add(languageSettingsPanel)
-        // 添加确认按钮
-        contentPane.add(settingsContentPanel, BorderLayout.CENTER)
-        contentPane.add(createButtonPanel(), BorderLayout.SOUTH)
-        setContentPane(contentPane)
-
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+        defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
+        modalityType = ModalityType.APPLICATION_MODAL
         pack()
+
+        setLocationRelativeTo(null)
     }
 
-    private fun createButtonPanel(): Component {
-        val ok: JButton = DynamicUI.withLocalizedText(DefaultButton(""), "settings.dialog_ok")
-        ok.setDefaultCapable(true)
-        ok.addActionListener {
-            UIConfManager.uiConf.locale = languageSettingsPanel.binding.currentSelectIndex.value ?: 0
-            ThemeSettings.getInstance().apply()
-            dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
-        }
-        val cancel = DynamicUI.withLocalizedText(JButton(), "settings.dialog_cancel")
-        cancel.addActionListener {
-            ThemeSettings.getInstance().revert()
-            dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
-        }
-        val apply = DynamicUI.withLocalizedText(JButton(), "settings.dialog_apply")
-        apply.addActionListener { ThemeSettings.getInstance().apply() }
-        val box = Box.createHorizontalBox()
-        box.add(Box.createHorizontalGlue())
-        box.add(ok)
-        box.add(cancel)
-        box.add(apply)
-        box.setBorder(darklafThemeSettingsPanel.border)
-        return box
+    private fun initUI() {
+        val wrapGroupPanel = JPanel(BorderLayout(10, 10))
+        val groups = ArrayList<ISettingsGroup>()
+        groups.add(makeAppearanceGroup())
+
+        tree.init(wrapGroupPanel, groups)
+
+        val rightPane = JScrollPane(wrapGroupPanel)
+        rightPane.verticalScrollBar.unitIncrement = 16
+        rightPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+        rightPane.border = BorderFactory.createEmptyBorder(10, 3, 3, 10)
+
+        val leftPane = JScrollPane(tree)
+        leftPane.border = BorderFactory.createEmptyBorder(10, 10, 3, 3)
+
+        val splitPane = JSplitPane()
+        splitPane.resizeWeight = 0.2
+        splitPane.leftComponent = leftPane
+        splitPane.rightComponent = rightPane
+
+        contentPane = JPanel(BorderLayout())
+        contentPane.add(splitPane, BorderLayout.CENTER)
+        contentPane.add(buildButtonsPane(), BorderLayout.PAGE_END)
+
+        installKeyStrokeEscClosing(this)
     }
 
-    class LanSettingsPanel : JPanel() {
-        val binding = LanBinding()
-        private val lanSelectCombo = JComboBox<String>().apply {
-            maximumSize = Dimension(400, 30)
+    private fun makeAppearanceGroup(): SettingsGroup {
+        val languageCbx = JComboBox(supportLocales.map { it.displayName }.toTypedArray())
+        languageCbx.addActionListener {
+            val locale = supportLocales[languageCbx.selectedIndex]
+            if (locale == globalLocale) return@addActionListener
+            SettingsManager.updateSettings { this.locale = locale.ordinal }
         }
-        private val hint = JLabel(STRINGS.ui.languageSettingHint).apply {
-            font = ThemeSettings.getInstance().theme.toFont().newFont(baseFontSize = 10)
-            isEnabled = false
-            border = BorderFactory.createEmptyBorder(2, 8, 0, 0)
+        languageCbx.selectedItem = globalLocale.displayName
+
+        val lafCbx = JComboBox(ThemeManager.getThemes())
+        lafCbx.selectedItem = ThemeManager.currentTheme.name
+        lafCbx.addActionListener {
+            SettingsManager.updateSettings { theme = lafCbx.selectedItem as String }
         }
 
-        init {
-            layout = TableLayout(
-                doubleArrayOf(TableLayoutConstants.PREFERRED),
-                doubleArrayOf(TableLayoutConstants.PREFERRED, TableLayoutConstants.PREFERRED)
-            )
-            add(lanSelectCombo, "0, 0")
-            add(hint, "0, 1")
-            border = BorderFactory.createEmptyBorder(0, 10, 0, 10)
-            listProperty(lanSelectCombo) bindDual binding.lans
-            selectedIndexProperty(lanSelectCombo) bindDual binding.currentSelectIndex
+        val changeFontBtn = JButton(STRINGS.ui.change)
 
-            binding.lans.updateValue(supportLocales.map { it.displayName })
-            binding.currentSelectIndex.updateValue(globalLocale.ordinal)
-        }
+        val group = SettingsGroup(STRINGS.ui.appearance)
+        group.addRow(STRINGS.ui.language, languageCbx)
+        group.addRow(STRINGS.ui.menuTheme, lafCbx)
+        val fontLabel = group.addRow(getFontLabelStr(), changeFontBtn)
+        group.end()
 
-        inner class LanBinding {
-            val lans = ObservableValueProperty<List<String>>()
-            val currentSelectIndex = ObservableValueProperty<Int>()
+        changeFontBtn.addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent) {
+                val fontChooser = JFontChooser()
+                fontChooser.selectedFont = SettingsManager.settings.font
+                val result: Int = fontChooser.showDialog(this@GThemeSettingsDialog)
+                if (result == JFontChooser.OK_OPTION) {
+                    val font: Font = fontChooser.selectedFont
+                    SettingsManager.settings.font = font
+                    updateUIWithAnim { FontSupport.setUIFont(font) }
+                    fontLabel.text = getFontLabelStr()
+                }
+            }
+        })
+
+        return group
+    }
+
+    private fun getFontLabelStr(): String {
+        val font = SettingsManager.settings.font
+        val fontStyleName = FontSupport.convertFontStyleToString(font.style)
+        return "${STRINGS.ui.font}: ${font.fontName} $fontStyleName ${font.size}"
+    }
+
+    private fun buildButtonsPane(): JPanel {
+        val saveBtn = JButton(STRINGS.ui.save)
+        saveBtn.addActionListener { save() }
+
+        val cancelButton = JButton(STRINGS.ui.cancel)
+        cancelButton.addActionListener { cancel() }
+
+        val resetBtn = JButton(STRINGS.ui.reset)
+        resetBtn.addActionListener { reset() }
+
+        val copyBtn = JButton(STRINGS.ui.copyToClipboard)
+        copyBtn.addActionListener { copySettings() }
+
+        val buttonPane = JPanel()
+        buttonPane.layout = BoxLayout(buttonPane, BoxLayout.LINE_AXIS)
+        buttonPane.border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        buttonPane.add(resetBtn)
+        buttonPane.add(copyBtn)
+        buttonPane.add(Box.createHorizontalGlue())
+        buttonPane.add(saveBtn)
+        buttonPane.add(Box.createRigidArea(Dimension(10, 0)))
+        buttonPane.add(cancelButton)
+
+        getRootPane().defaultButton = saveBtn
+        return buttonPane
+    }
+
+    private fun save() {
+        dispose()
+        SettingsManager.checkAndUpdateLocale(startSettings)
+    }
+
+    private fun reset() {
+        SettingsManager.updateSettings {
+            val originalSettings = gson.fromJson(startSettings, GSettings::class.java)
+            copyFields(originalSettings, SettingsManager.settings)
         }
+    }
+
+    private fun cancel() {
+        reset()
+        dispose()
+    }
+
+    private fun copySettings() {
+        val settings = SettingsManager.settings
+        val json = gson.toJson(settings)
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        clipboard.setContents(StringSelection(json), null)
     }
 }

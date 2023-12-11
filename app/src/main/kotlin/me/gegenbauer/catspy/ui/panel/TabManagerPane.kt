@@ -1,15 +1,20 @@
 package me.gegenbauer.catspy.ui.panel
 
-import com.github.weisj.darklaf.ui.tabbedpane.DarkTabbedPaneUI
 import kotlinx.coroutines.*
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.log.ui.LogTabPanel
+import me.gegenbauer.catspy.script.ui.ScriptTabPanel
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.menu.TabSelectorPopupMenu
-import me.gegenbauer.catspy.ui.supportedTabs
 import me.gegenbauer.catspy.utils.Key
+import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
 import me.gegenbauer.catspy.utils.registerStroke
 import me.gegenbauer.catspy.view.button.ClosableTabHeader
+import me.gegenbauer.catspy.view.tab.TabInfo
 import me.gegenbauer.catspy.view.tab.TabManager
 import me.gegenbauer.catspy.view.tab.TabPanel
 import java.awt.event.ActionEvent
@@ -17,15 +22,33 @@ import java.awt.event.KeyEvent
 import javax.swing.*
 
 class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabManager, JTabbedPane() {
+
+    override val supportedTabs = listOf(
+        TabInfo(
+            STRINGS.ui.logFile,
+            GIcons.Tab.FileLog.get(TAB_ICON_SIZE, TAB_ICON_SIZE),
+            LogTabPanel::class.java,
+            STRINGS.toolTip.tabLog
+        ),
+
+        TabInfo(
+            STRINGS.ui.script,
+            GIcons.Tab.Script.get(TAB_ICON_SIZE, TAB_ICON_SIZE),
+            ScriptTabPanel::class.java,
+            STRINGS.toolTip.tabScript
+        ),
+    )
+
     private val tabHeaders = mutableMapOf<Int, ClosableTabHeader>()
     private val selectMenu = TabSelectorPopupMenu()
+    private val homePanel = HomePanel()
     private val scope = MainScope()
 
     init {
         // Work-around. If we add the home tab immediately, the tab header will not be rendered correctly.
         scope.launch(Dispatchers.UI.immediate) {
             delay(HOME_TAB_ADD_DELAY)
-            addTab(HomePanel())
+            addTab(homePanel)
         }
 
         model.addChangeListener {
@@ -40,9 +63,6 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
 
         tabLayoutPolicy = SCROLL_TAB_LAYOUT
         tabPlacement = BOTTOM
-        putClientProperty(DarkTabbedPaneUI.KEY_NEW_TAB_ACTION, createNewTabAction())
-        putClientProperty(DarkTabbedPaneUI.KEY_DND, true)
-        putClientProperty(DarkTabbedPaneUI.KEY_SHOW_NEW_TAB_BUTTON, true)
         putClientProperty("TabbedPane.tabsOpaque", false)
 
         addTabSelectStroke()

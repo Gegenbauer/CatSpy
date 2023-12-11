@@ -1,12 +1,19 @@
 package me.gegenbauer.catspy.configuration
 
-import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.log.LogLevel
+import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.strings.Locale
 import java.awt.Font
 import java.awt.Frame
 
-data class  UIConf(
+const val DEFAULT_FONT_SIZE = 14
+const val DEFAULT_LOG_FONT_SIZE = 13
+const val DEFAULT_FONT_STYLE = 0
+const val DEFAULT_FONT_FAMILY = "Dialog"
+const val DEFAULT_FONT_SCALE_PERCENTAGE = 100
+const val DEFAULT_THEME = "One Dark"
+
+data class GSettings(
     /** 应用配置 start **/
     var appHome: String = filesDir, // 应用程序主目录, 用于存放配置文件, 以及日志等临时文件
     var globalDebug: Boolean = false,
@@ -16,6 +23,13 @@ data class  UIConf(
     var cacheDebug: Boolean = false,
     var logDebug: Boolean = false,
     /** 应用配置 end **/
+
+    /** 主题相关 start **/
+    var theme: String = DEFAULT_THEME,
+    var fontFamily: String = DEFAULT_FONT_FAMILY,
+    var fontStyle: Int = DEFAULT_FONT_STYLE,
+    var fontSize: Int = DEFAULT_FONT_SIZE,
+    /** 主题相关 end **/
 
     /** 主窗口配置 start **/
     var frameX: Int = 0,
@@ -64,7 +78,19 @@ data class  UIConf(
     var lastFileSaveDir: String = "",
     val ignoredRelease: MutableList<String> = mutableListOf(),
 ) {
-    fun getLogFont(): Font {
-        return Font(logFontName, logFontStyle, logFontSize)
-    }
+    var font: Font
+        get() = Font(fontFamily, fontStyle, fontSize)
+        set(value) {
+            fontFamily = value.family
+            fontStyle = value.style
+            fontSize = value.size
+        }
+
+    var logFont: Font
+        get() = Font(logFontName, logFontStyle, logFontSize)
+        set(value) {
+            logFontName = value.family
+            logFontStyle = value.style
+            logFontSize = value.size
+        }
 }

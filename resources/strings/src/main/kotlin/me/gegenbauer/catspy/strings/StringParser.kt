@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.strings
 
-import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
 import me.gegenbauer.catspy.common.Resources.loadResourceAsStream
 import me.gegenbauer.catspy.file.appendPath
+import me.gegenbauer.catspy.file.gson
 import me.gegenbauer.catspy.java.ext.replaceNullStringProperties
 import java.io.InputStreamReader
 
@@ -19,10 +19,10 @@ object StringResourceManager {
     }
     internal var strings: Strings = DEFAULT_STRINGS
 
-    fun parse(locale: Locale): Strings {
+    private fun parse(locale: Locale): Strings {
         val inStream = loadResourceAsStream(STRING_RES_DIR.appendPath(locale.stringFile))
         JsonReader(InputStreamReader(inStream)).use {
-            return Gson().fromJson(it, Strings::class.java)
+            return gson.fromJson(it, Strings::class.java)
         }
     }
 

@@ -43,7 +43,7 @@ class SplitLogPane(
     private val scope = MainScope()
 
     init {
-        continuousLayout = false
+        continuousLayout = true
         orientation = HORIZONTAL_SPLIT
 
         filterStatefulPanel.setContent(filteredLogPanel)

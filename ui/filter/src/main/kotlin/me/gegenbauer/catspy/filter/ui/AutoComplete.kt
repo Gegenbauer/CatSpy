@@ -7,7 +7,17 @@ import org.fife.ui.autocomplete.CompletionProvider
 import org.fife.ui.autocomplete.DefaultCompletionProvider
 import javax.swing.text.JTextComponent
 
-class AutoCompleteHelper {
+private const val CLIENT_PROPERTY_AUTO_COMPLETE_HELPER = "AutoCompleteHelper"
+
+fun JTextComponent.enableAutoComplete(suggestions: List<String>, onCompletionsShown: (() -> Unit)? = null) {
+    val autoCompleteHelper = getClientProperty(CLIENT_PROPERTY_AUTO_COMPLETE_HELPER) as? AutoCompleteHelper
+        ?: AutoCompleteHelper()
+    autoCompleteHelper.disableAutoComplete()
+    autoCompleteHelper.enableAutoComplete(this, suggestions, onCompletionsShown)
+    putClientProperty(CLIENT_PROPERTY_AUTO_COMPLETE_HELPER, autoCompleteHelper)
+}
+
+internal class AutoCompleteHelper {
     private val suggestions = arrayListOf<String>()
     private var textComponent: JTextComponent? = null
     private var keyInterceptor: KeyEventInterceptor? = null
@@ -32,7 +42,9 @@ class AutoCompleteHelper {
         }
 
         keyInterceptor = KeyEventInterceptor(textComponent, Key.TAB).also {
-            it.enable { autoCompletion?.insertCurrentCompletion() }
+            it.enable {
+                autoCompletion?.insertCurrentCompletion()
+            }
         }
     }
 

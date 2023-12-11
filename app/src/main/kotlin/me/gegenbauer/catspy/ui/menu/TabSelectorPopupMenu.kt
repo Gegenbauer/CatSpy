@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.ui.menu
 
-import me.gegenbauer.catspy.ui.panel.TabInfo
+import me.gegenbauer.catspy.view.tab.TabInfo
 import javax.swing.JComponent
 import javax.swing.JMenuItem
 import javax.swing.JPopupMenu

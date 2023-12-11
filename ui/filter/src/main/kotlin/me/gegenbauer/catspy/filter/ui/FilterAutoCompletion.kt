@@ -21,8 +21,8 @@ class FilterAutoCompletion(
     private fun getCurrentSelectedCompletion(): Completion? {
         val popupWindow = getPopupWindow()
         return if (popupWindow != null && popupWindow.isVisible) {
-            val result = popupWindow.invokeMethod("getSelection") as? Result<Completion>
-            result?.getOrNull()
+            val result = popupWindow.invokeMethod("getSelection") as? Completion
+            result
         } else {
             null
         }

@@ -8,9 +8,6 @@ import java.awt.Window
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.WindowEvent
-import java.lang.ref.WeakReference
-import java.util.function.Consumer
-import java.util.function.Function
 import javax.swing.*
 
 private const val TAG = "KeySupport"

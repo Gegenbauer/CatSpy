@@ -1,11 +1,10 @@
 package me.gegenbauer.catspy.view.combobox
 
-import com.github.weisj.darklaf.settings.ThemeSettings
-import com.github.weisj.darklaf.theme.Theme
+import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.databinding.bind.withName
-import me.gegenbauer.catspy.filter.ui.AutoCompleteHelper
+import me.gegenbauer.catspy.filter.ui.enableAutoComplete
 import me.gegenbauer.catspy.utils.DefaultDocumentListener
 import me.gegenbauer.catspy.utils.applyTooltip
 import me.gegenbauer.catspy.view.combobox.highlight.CustomEditorDarkComboBoxUI
@@ -25,8 +24,8 @@ import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.text.JTextComponent
 import javax.swing.undo.UndoManager
 
-class FilterComboBox(private val enableHighlight: Boolean = true, private val tooltip: String? = null) :
-    HistoryComboBox<String>() {
+class FilterComboBox(items: List<String>, private val enableHighlight: Boolean = true, private val tooltip: String? = null) :
+    HistoryComboBox<String>(items) {
 
     var filterItem: FilterItem = FilterItem.EMPTY_ITEM
     var keyListener: KeyListener? = null
@@ -43,7 +42,6 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
         }
     private val editorComponent: JTextComponent // create new instance when theme changed(setUI invoked)
         get() = getEditor().editorComponent as JTextComponent
-    private val autoCompleteHelper = AutoCompleteHelper()
 
     var enabledTfTooltip = false
         set(value) {
@@ -115,6 +113,9 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
             }
         })
         editorComponent.inputMap.put(KeyStroke.getKeyStroke("control Y"), "Redo")
+        editorComponent.enableAutoComplete(getAllItems().map { it.content }) {
+            hidePopup()
+        }
     }
 
     fun addTooltipUpdateListener() {
@@ -132,7 +133,7 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
 
         if (errorMsg.isNotEmpty()) {
             var tooltip = "<html><b>"
-            tooltip += if (Theme.isDark(ThemeSettings.getInstance().theme)) {
+            tooltip += if (ThemeManager.currentTheme.isDark) {
                 "<font size=5 color=#C07070>$errorMsg</font>"
             } else {
                 "<font size=5 color=#FF0000>$errorMsg</font>"
@@ -144,7 +145,7 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
             val excludeStr = updateToolTipStrToHtml(filterItem.negativeFilter.pattern())
 
             var tooltip = "<html><b>$toolTipText</b><br>"
-            if (Theme.isDark(ThemeSettings.getInstance().theme)) {
+            if (ThemeManager.currentTheme.isDark) {
                 tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#7070C0>$includeStr</font>\"<br>"
                 tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#C07070>$excludeStr</font>\"<br>"
             } else {
@@ -179,7 +180,7 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
     override fun addItem(item: HistoryItem<String>?) {
         if (item == null || item.content.isEmpty()) return
         super.addItem(item)
-        autoCompleteHelper.enableAutoComplete(editorComponent, getAllItems().map { it.content }) {
+        editorComponent.enableAutoComplete(getAllItems().map { it.content }) {
             hidePopup()
         }
     }
@@ -202,17 +203,17 @@ class FilterComboBox(private val enableHighlight: Boolean = true, private val to
     }
 }
 
-fun filterComboBox(enableHighlight: Boolean = true, tooltip: String? = null): FilterComboBox {
-    val comboBox = FilterComboBox(enableHighlight, tooltip)
+fun filterComboBox(items: List<String> = emptyList(), enableHighlight: Boolean = true, tooltip: String? = null): FilterComboBox {
+    val comboBox = FilterComboBox(items, enableHighlight, tooltip)
     comboBox.isEditable = true
     comboBox.addTooltipUpdateListener()
     return comboBox
 }
 
 fun darkComboBox(tooltip: String? = null): FilterComboBox {
-    return filterComboBox(enableHighlight = false, tooltip)
+    return filterComboBox(enableHighlight = false, tooltip = tooltip)
 }
 
-fun readOnlyComboBox(tooltip: String? = null): FilterComboBox {
-    return filterComboBox(enableHighlight = false, tooltip).apply { isEditable = false }
+fun readOnlyComboBox(tooltip: String? = null, items: List<String> = emptyList()): FilterComboBox {
+    return filterComboBox(items, enableHighlight = false, tooltip = tooltip).apply { isEditable = false }
 }

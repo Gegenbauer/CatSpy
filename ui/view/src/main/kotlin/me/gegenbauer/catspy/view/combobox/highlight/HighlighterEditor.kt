@@ -16,7 +16,7 @@ import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.Highlighter.HighlightPainter
 import javax.swing.text.JTextComponent
 
-class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
+class HighlighterEditor : BasicComboBoxEditor.UIResource(), Highlightable, UIResource {
 
     override val painterInclude: HighlightPainter
         get() = DefaultHighlightPainter(fontBackgroundInclude)
@@ -42,7 +42,7 @@ class HighlighterEditor : BasicComboBoxEditor(), Highlightable, UIResource {
 
     override fun createEditorComponent(): JTextField {
         return super.createEditorComponent().apply {
-            putClientProperty("JTextField.showClear", true)
+            putClientProperty("JTextField.showClearButton", true)
         }
     }
 

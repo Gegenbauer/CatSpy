@@ -8,7 +8,7 @@ import java.awt.event.ActionListener
 import javax.swing.*
 import javax.swing.text.JTextComponent
 
-const val PROPERTY_KEY_BUTTON_VARIANT = "JButton.variant"
+const val PROPERTY_KEY_BUTTON_VARIANT = "JButton.buttonType"
 const val BORDER_TYPE_BORDERLESS = "borderless"
 const val BORDER_TYPE_NONE = "none"
 

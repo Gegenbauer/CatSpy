@@ -3,3 +3,7 @@ plugins {
     `java-library`
     `module-info-compile`
 }
+
+dependencies {
+    api(Gson.gson)
+}

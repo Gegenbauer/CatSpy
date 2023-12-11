@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.view.dialog
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.context.Disposable
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.platform.currentPlatform
@@ -44,7 +44,7 @@ class FileSaveHandler private constructor(
     }
 
     private fun checkAndSetDefaultFile() {
-        val lastFileSaveDir = UIConfManager.uiConf.lastFileSaveDir
+        val lastFileSaveDir = SettingsManager.settings.lastFileSaveDir
         if (lastFileSaveDir.isNotEmpty()) {
             fileChooser.currentDirectory = File(lastFileSaveDir)
         } else {
@@ -80,7 +80,7 @@ class FileSaveHandler private constructor(
 
     private fun onFileSaved(file: File) {
         GLog.d(TAG, "[onFileSaved] file=${file.absolutePath}")
-        UIConfManager.uiConf.lastFileSaveDir = file.parent
+        SettingsManager.settings.lastFileSaveDir = file.parent
         val result = JOptionPane.showOptionDialog(
             parent,
             STRINGS.ui.fileSaveCompleteMessage,

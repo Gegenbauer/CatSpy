@@ -3,6 +3,8 @@ package me.gegenbauer.catspy.platform
 import me.gegenbauer.catspy.file.appendPath
 import java.io.File
 import java.lang.management.ManagementFactory
+import javax.swing.JDialog
+import javax.swing.JFrame
 import javax.swing.TransferHandler.TransferSupport
 
 interface IPlatform {
@@ -27,6 +29,16 @@ interface IPlatform {
     }
 
     fun showFileInExplorer(file: File) {}
+
+    fun configureUIProperties() {
+        if (isInDebugMode()) {
+            // ubuntu 调试会拦截所有事件导致无法操作
+            System.setProperty("Dsun.awt.disablegrab", "true")
+        }
+        // 启用系统抗锯齿，极大提升字体渲染速度
+        System.setProperty("awt.useSystemAAFontSettings", "on")
+        System.setProperty("swing.aatext", "true")
+    }
 }
 
 fun isInDebugMode(): Boolean {
@@ -74,6 +86,13 @@ enum class Platform : IPlatform {
                 }
             }
         }
+
+        override fun configureUIProperties() {
+            super.configureUIProperties()
+            // enable custom window decorations
+            JFrame.setDefaultLookAndFeelDecorated(true)
+            JDialog.setDefaultLookAndFeelDecorated(true)
+        }
     },
     MAC {
         override fun getFilesDir(): String {
@@ -82,6 +101,26 @@ enum class Platform : IPlatform {
 
         override fun showFileInExplorer(file: File) {
             Runtime.getRuntime().exec("osascript -e 'tell application \"Finder\" to reveal POSIX file \"${file.absolutePath}\"' -e 'tell application \"Finder\" to activate'")
+        }
+
+        override fun configureUIProperties() {
+            super.configureUIProperties()
+            // enable screen menu bar
+            // (moves menu bar from JFrame window to top of screen)
+            System.setProperty("apple.laf.useScreenMenuBar", "true")
+
+            // application name used in screen menu bar
+            // (in first menu after the "apple" menu)
+            System.setProperty("apple.awt.application.name", "FlatLaf Demo")
+
+            // appearance of window title bars
+            // possible values:
+            //   - "system": use current macOS appearance (light or dark)
+            //   - "NSAppearanceNameAqua": use light appearance
+            //   - "NSAppearanceNameDarkAqua": use dark appearance
+            // (must be set on main thread and before AWT/Swing is initialized;
+            //  setting it on AWT thread does not work)
+            System.setProperty("apple.awt.application.appearance", "system")
         }
     },
     UNKNOWN {

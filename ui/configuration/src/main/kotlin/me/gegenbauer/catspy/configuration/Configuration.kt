@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.configuration
 
-import com.github.weisj.darklaf.theme.Theme
+import com.formdev.flatlaf.FlatLaf
 import me.gegenbauer.catspy.iconset.GIcons
 import java.awt.Color
 import java.util.*
@@ -17,7 +17,7 @@ object ToggleButtonTheme {
 
 object FilterComboBoxTheme {
     val fontBackgroundInclude: Color
-        get() = properties.getColor("ComboBox.editBackground") ?: Color(255, 255, 255, 255)
+        get() = properties.getColor("ComboBox.editableBackground") ?: Color(255, 255, 255, 255)
     val fontBackgroundExclude = properties.getColor("ComboBox.selectionBackground") ?: Color(38F, 117F, 191F)
 }
 
@@ -34,14 +34,14 @@ object VStatusPanelTheme: ThemeAware {
     val currentPositionDark: Color = Color(0xA0, 0xA0, 0xA0, 0x50)
     val currentPositionLight: Color = Color(0xC0, 0xC0, 0xC0, 0x50)
 
-    override fun onThemeChanged(theme: Theme, properties: Hashtable<Any, Any>) {
-        properties["VStatusPanel.background"] = if (Theme.isDark(theme)) ColorUIResource(backgroundDark) else ColorUIResource(
+    override fun onThemeChanged(theme: FlatLaf, properties: Hashtable<Any, Any>) {
+        properties["VStatusPanel.background"] = if (theme.isDark) ColorUIResource(backgroundDark) else ColorUIResource(
             backgroundLight
         )
-        properties["VStatusPanel.bookmark"] = if (Theme.isDark(theme)) ColorUIResource(bookmarkDark) else ColorUIResource(
+        properties["VStatusPanel.bookmark"] = if (theme.isDark) ColorUIResource(bookmarkDark) else ColorUIResource(
             bookmarkLight
         )
-        properties["VStatusPanel.currentPosition"] = if (Theme.isDark(theme)) ColorUIResource(currentPositionDark) else ColorUIResource(
+        properties["VStatusPanel.currentPosition"] = if (theme.isDark) ColorUIResource(currentPositionDark) else ColorUIResource(
             currentPositionLight
         )
     }
@@ -245,8 +245,8 @@ object LogColorScheme: ThemeAware {
     var filterStyleExclude: Color = DEFAULT_COLOR
     var filterStyleSeparator: Color = DEFAULT_COLOR
 
-    override fun onThemeChanged(theme: Theme, properties: Hashtable<Any, Any>) {
-        updateColorScheme(if (Theme.isDark(theme)) colorArrayDark else colorArrayLight)
+    override fun onThemeChanged(theme: FlatLaf, properties: Hashtable<Any, Any>) {
+        updateColorScheme(if (theme.isDark) colorArrayDark else colorArrayLight)
     }
 
     private fun updateColorScheme(colorArray: Array<ColorItem>) {
@@ -297,5 +297,5 @@ object Menu {
 }
 
 fun interface ThemeAware {
-    fun onThemeChanged(theme: Theme, properties: Hashtable<Any, Any>)
+    fun onThemeChanged(theme: FlatLaf, properties: Hashtable<Any, Any>)
 }

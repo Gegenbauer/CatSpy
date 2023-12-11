@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy
 
-import com.github.weisj.darklaf.theme.Theme
+import com.formdev.flatlaf.FlatLaf
+import com.formdev.flatlaf.extras.FlatInspector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -10,7 +11,10 @@ import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.conf.GlobalConfSync
-import me.gegenbauer.catspy.configuration.*
+import me.gegenbauer.catspy.configuration.LogColorScheme
+import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.ThemeManager
+import me.gegenbauer.catspy.configuration.VStatusPanelTheme
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
@@ -18,9 +22,9 @@ import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
-import me.gegenbauer.catspy.platform.isInDebugMode
 import me.gegenbauer.catspy.strings.GlobalStrings
 import me.gegenbauer.catspy.strings.StringResourceManager
+import me.gegenbauer.catspy.strings.registerLocaleChangeListener
 import me.gegenbauer.catspy.ui.MainFrame
 import java.awt.Component
 import java.awt.Container
@@ -28,7 +32,7 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.util.*
 import javax.swing.JComponent
-import javax.swing.UIDefaults
+import javax.swing.UIManager
 import kotlin.system.exitProcess
 
 object Application : WindowAdapter() {
@@ -38,32 +42,32 @@ object Application : WindowAdapter() {
 
     init {
         Locale.setDefault(Locale.CHINA)
-        if (isInDebugMode()) {
-            // ubuntu 调试会拦截所有事件导致无法操作
-            System.setProperty("Dsun.awt.disablegrab", "true")
-        }
-        // 启用系统抗锯齿，极大提升字体渲染速度
-        System.setProperty("awt.useSystemAAFontSettings", "on")
-        System.setProperty("swing.aatext", "true")
+        currentPlatform.configureUIProperties()
     }
 
     @JvmStatic
     fun main(args: Array<String>) {
         AppScope.launch(Dispatchers.UI) {
+
+            ThemeManager.registerThemeUpdateListener { theme ->
+                themeAwareControllers.forEach { it.onThemeChanged(theme, UIManager.getDefaults()) }
+            }
+
             withContext(Dispatchers.APP_LAUNCH) {
                 GLog.init(filesDir, GlobalStrings.LOG_NAME)
-                UIConfManager.init()
-                ThemeManager.init()
+                SettingsManager.init()
                 GlobalConfSync.init()
                 GLog.i(TAG, "[currentPlatform] $currentPlatform")
                 registerGlobalService()
             }
-            ThemeManager.registerDefaultsAdjustmentTask(::adjustAfterThemeLoaded)
-            ThemeManager.registerInitTask(::adjustBeforeThemeLoaded)
-            ThemeManager.installTheme()
-            ThemeManager.applyTempTheme()
-            ThemeManager.registerDefaultThemeUpdateListener()
-            openMainFrame()
+            FlatInspector.install("ctrl shift alt X")
+            createMainFrame()
+
+            registerLocaleChangeListener { old, new ->
+                GLog.i(TAG, "[registerLocaleChangeListener] $old -> $new")
+                StringResourceManager.loadStrings()
+                createMainFrame()
+            }
 
             takeIf { GLog.debug }?.let { addClickListenerForAllComponents(mainFrame.components) }
         }
@@ -80,14 +84,16 @@ object Application : WindowAdapter() {
         }
     }
 
-    private fun openMainFrame() {
+    private fun createMainFrame() {
         if (::mainFrame.isInitialized) {
+            //FlatAnimatedLafChange.showSnapshot()
             mainFrame.destroy()
         }
         StringResourceManager.loadStrings()
         mainFrame = MainFrame(GlobalProperties.APP_NAME)
         mainFrame.configureContext(mainFrame)
         mainFrame.isVisible = true
+        //FlatAnimatedLafChange.hideSnapshotWithAnimation()
         mainFrame.addWindowListener(this@Application)
     }
 
@@ -103,14 +109,6 @@ object Application : WindowAdapter() {
         VStatusPanelTheme,
         LogColorScheme,
     )
-
-    private fun adjustBeforeThemeLoaded(theme: Theme, defaults: UIDefaults) {
-        themeAwareControllers.forEach { it.onThemeChanged(theme, defaults) }
-    }
-
-    private fun adjustAfterThemeLoaded(theme: Theme, properties: Properties) {
-        themeAwareControllers.forEach { it.onThemeChanged(theme, properties) }
-    }
 
     private fun addClickListenerForAllComponents(components: Array<Component>) {
         components.forEach { component ->

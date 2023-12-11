@@ -1,11 +1,41 @@
 package me.gegenbauer.catspy.strings
 
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
+import java.beans.PropertyChangeSupport
+
+private const val PROPERTY_KEY_LOCALE = "locale"
+
 // load when application launched
 var globalLocale: Locale = Locale.EN
     set(value) {
+        val oldLocale = field
         field = value
-        java.util.Locale.setDefault(value.locale)
+        if (oldLocale != value) {
+            java.util.Locale.setDefault(value.locale)
+            propertyChangeSupport.firePropertyChange(PROPERTY_KEY_LOCALE, oldLocale, value)
+        }
     }
+
+private val propertyChangeSupport = PropertyChangeSupport(globalLocale)
+
+fun registerLocaleChangeListener(listener: LocaleChangeListener) {
+    propertyChangeSupport.addPropertyChangeListener(listener)
+}
+
+fun unregisterLocaleChangeListener(listener: LocaleChangeListener) {
+    propertyChangeSupport.removePropertyChangeListener(listener)
+}
+
+fun interface LocaleChangeListener: PropertyChangeListener {
+    fun onLocaleChanged(oldLocale: Locale, newLocale: Locale)
+
+    override fun propertyChange(evt: PropertyChangeEvent) {
+        if (evt.propertyName == PROPERTY_KEY_LOCALE) {
+            onLocaleChanged(evt.oldValue as Locale, evt.newValue as Locale)
+        }
+    }
+}
 
 interface ILocale {
     val displayName: String

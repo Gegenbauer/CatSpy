@@ -59,7 +59,7 @@ class LogViewDialog(
         super.configureContext(context)
         val logMainUI = contexts.getContext(LogTabPanel::class.java)
         logMainUI ?: return
-        textArea.font = logMainUI.customFont
+        textArea.font = logMainUI.logFont
     }
 
     internal inner class KeyHandler : KeyAdapter() {

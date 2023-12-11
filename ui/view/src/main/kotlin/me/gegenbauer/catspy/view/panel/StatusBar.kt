@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.view.panel
 
+import me.gegenbauer.catspy.strings.STRINGS
 import java.awt.Color
 import javax.swing.JComponent
 
@@ -8,7 +9,7 @@ interface StatusBar: TaskMonitor {
 
     var memoryMonitorBar: JComponent
 
-    var statusIcons: List<JComponent>
+    var statusIcons: StatusIconsBar
 
     open class LogStatus(
         val backgroundColor: Color,
@@ -17,7 +18,7 @@ interface StatusBar: TaskMonitor {
         val path: String
     ) {
         companion object {
-            val NONE = LogStatus(Color.WHITE, Color.BLACK, "", "")
+            val NONE = LogStatus(Color.DARK_GRAY, Color.BLACK, "", STRINGS.ui.none)
         }
     }
 

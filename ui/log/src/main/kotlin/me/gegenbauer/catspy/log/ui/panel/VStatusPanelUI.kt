@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.log.ui.panel
 
-import com.github.weisj.darklaf.ui.panel.DarkPanelUI
+import com.formdev.flatlaf.ui.FlatPanelUI
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -13,7 +13,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.UIManager
 
-open class VStatusPanelUI(override val contexts: Contexts = Contexts.default) : DarkPanelUI(), Context {
+open class VStatusPanelUI(override val contexts: Contexts = Contexts.default) : FlatPanelUI(true), Context {
 
     private var bookmarkColor = Color(0x000000)
     private var currentPositionColor = Color(0x000000)
@@ -23,7 +23,7 @@ open class VStatusPanelUI(override val contexts: Contexts = Contexts.default) : 
         installBackgroundAndBookMarkColor(p)
     }
 
-    protected fun installBackgroundAndBookMarkColor(p: JPanel) {
+    private fun installBackgroundAndBookMarkColor(p: JPanel) {
         p.background = UIManager.getColor("VStatusPanel.background") ?: Color.GRAY
         bookmarkColor = UIManager.getColor("VStatusPanel.bookmark") ?: Color.GRAY
         currentPositionColor = UIManager.getColor("VStatusPanel.currentPosition") ?: Color.GRAY
@@ -31,7 +31,7 @@ open class VStatusPanelUI(override val contexts: Contexts = Contexts.default) : 
 
     override fun paint(g: Graphics, c: JComponent) {
         super.paint(g, c)
-        val logTable = contexts.getContext(LogTable::class.java) ?: return
+        val logTable = contexts.getContext(LogPanel::class.java)?.table ?: return
         paintBookmarks(logTable, g, c)
         paintCurrentPosition(logTable, g, c)
     }
@@ -51,8 +51,8 @@ open class VStatusPanelUI(override val contexts: Contexts = Contexts.default) : 
 
     private fun paintCurrentPosition(logTable: LogTable, g: Graphics, c: JComponent) {
         val visibleY: Long = (logTable.visibleRect.y).toLong()
-        val totalHeight: Long = (logTable.rowHeight * logTable.rowCount).toLong()
-        if (logTable.rowCount != 0 && c.height != 0) {
+        val totalHeight: Long = (logTable.rowHeight * logTable.tableModel.dataSize).toLong()
+        if (logTable.tableModel.dataSize != 0 && c.height != 0) {
             g.color = currentPositionColor
             var viewHeight = logTable.visibleRect.height * c.height / totalHeight
             if (viewHeight < VStatusPanel.VIEW_RECT_HEIGHT) {

@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.view.card
 
-import com.github.weisj.darklaf.theme.Theme
+import com.formdev.flatlaf.FlatLaf
 import me.gegenbauer.catspy.configuration.GThemeChangeListener
 import java.awt.*
 import javax.swing.BorderFactory
@@ -39,8 +39,8 @@ open class RoundedCard @JvmOverloads constructor(
         g2.dispose()
     }
 
-    override fun onThemeChange(theme: Theme) {
-        if (Theme.isDark(theme)) {
+    override fun onThemeChange(theme: FlatLaf) {
+        if (theme.isDark) {
             background = Color(0x2B2B2B)
         } else {
             background = Color(0xFFFFFF)

@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.log.ui.panel
 
 import me.gegenbauer.catspy.configuration.LogColorScheme
-import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -196,9 +196,9 @@ abstract class LogPanel(
     }
 
     var customFont: Font = Font(
-        UIConfManager.uiConf.logFontName,
-        UIConfManager.uiConf.logFontStyle,
-        UIConfManager.uiConf.logFontSize
+        SettingsManager.settings.logFontName,
+        SettingsManager.settings.logFontStyle,
+        SettingsManager.settings.logFontSize
     )
         set(value) {
             field = value

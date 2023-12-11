@@ -4,6 +4,7 @@ import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.java.ext.capitalize
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
 import me.gegenbauer.catspy.view.icon.IconComponent
 import me.gegenbauer.catspy.view.icon.ScaledIcon
 import java.awt.*
@@ -54,6 +55,7 @@ class AboutDialog(parent: JFrame) : JDialog(parent, STRINGS.ui.menuAbout, true) 
         panel.add(Box.createRigidArea(Dimension(0, 20)), constraints)
 
         contentPane.add(panel)
+        installKeyStrokeEscClosing(this)
         pack()
         setLocationRelativeTo(parent)
     }

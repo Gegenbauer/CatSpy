@@ -1,19 +1,19 @@
 package me.gegenbauer.catspy.view.combobox.highlight
 
-import com.github.weisj.darklaf.ui.combobox.DarkComboBoxUI
+import com.formdev.flatlaf.ui.FlatComboBoxUI
 import me.gegenbauer.catspy.utils.DefaultFocusListener
 import java.awt.event.FocusEvent
 import javax.swing.ComboBoxEditor
 
-class CustomEditorDarkComboBoxUI(private val customEditor: ComboBoxEditor): DarkComboBoxUI() {
+class CustomEditorDarkComboBoxUI(private val customEditor: ComboBoxEditor): FlatComboBoxUI() {
 
     override fun createEditor(): ComboBoxEditor {
         val comboBoxEditor = customEditor
         val comp = comboBoxEditor.editorComponent
         comp.addFocusListener(object : DefaultFocusListener() {
             override fun focusChanged(e: FocusEvent) {
-                comboBox.revalidate()
-                comboBox.repaint()
+                comboBox?.revalidate()
+                comboBox?.repaint()
             }
         })
         return comboBoxEditor

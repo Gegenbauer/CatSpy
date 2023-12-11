@@ -71,3 +71,17 @@ fun Any.getMethodDeeply(methodName: String, vararg args: Class<*>?): Method? {
     }
     throw NoSuchMethodException("no such method: $methodName")
 }
+
+fun copyFields(from: Any, to: Any) {
+    require(from::class.java == to::class.java) { "target and default must be the same class" }
+    val fromFields = from::class.java.declaredFields
+    val toFields = to::class.java.declaredFields
+    fromFields.forEach { field ->
+        field.isAccessible = true
+        val toField = toFields.firstOrNull { it.name == field.name }
+        if (toField != null) {
+            toField.isAccessible = true
+            toField[to] = field[from]
+        }
+    }
+}

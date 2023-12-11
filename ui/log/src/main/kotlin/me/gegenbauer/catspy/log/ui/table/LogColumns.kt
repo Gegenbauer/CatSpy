@@ -23,7 +23,7 @@ import javax.swing.table.TableColumn
 
 internal val columnIndex = object : Column {
     override val name: String = "index"
-    override val maxCharCount: Int = 7
+    override val maxCharCount: Int = 8
     override val index: Int = 0
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
@@ -46,7 +46,7 @@ internal val columnIndex = object : Column {
 
 private val columnTime = object : Column {
     override val name: String = "time"
-    override val maxCharCount: Int = 15
+    override val maxCharCount: Int = 20
     override val index: Int = 1
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
@@ -56,7 +56,7 @@ private val columnTime = object : Column {
 
 private val columnPid = object : Column {
     override val name: String = "pid"
-    override val maxCharCount: Int = 7
+    override val maxCharCount: Int = 8
     override val index: Int = 2
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
@@ -74,7 +74,7 @@ private val columnPid = object : Column {
 
 private val columnTid = object : Column {
     override val name: String = "tid"
-    override val maxCharCount: Int = 7
+    override val maxCharCount: Int = 8
     override val index: Int = 3
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
@@ -92,7 +92,7 @@ private val columnTid = object : Column {
 
 private val columnLevel = object : Column {
     override val name: String = "level"
-    override val maxCharCount: Int = 4
+    override val maxCharCount: Int = 5
     override val index: Int = 4
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
@@ -102,7 +102,7 @@ private val columnLevel = object : Column {
 
 private val columnTag = object : Column {
     override val name: String = "tag"
-    override val maxCharCount: Int = 21
+    override val maxCharCount: Int = 25
     override val index: Int = 5
 
     override fun getCellRenderer(): DefaultTableCellRenderer {
@@ -129,7 +129,7 @@ private val columnTag = object : Column {
 
 private val columnMessage = object : Column {
     override val name: String = "message"
-    override val maxCharCount: Int = 250
+    override val maxCharCount: Int = 270
     override val index: Int = 6
 
     override fun getCellRenderer(): DefaultTableCellRenderer {

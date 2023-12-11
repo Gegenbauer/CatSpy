@@ -1,146 +1,126 @@
 package me.gegenbauer.catspy.configuration
 
-import com.github.weisj.darklaf.LafManager
-import com.github.weisj.darklaf.settings.SettingsConfiguration
-import com.github.weisj.darklaf.settings.ThemeSettings
-import com.github.weisj.darklaf.theme.Theme
-import com.github.weisj.darklaf.theme.event.ThemeChangeEvent
-import com.github.weisj.darklaf.theme.event.ThemeChangeListener
-import com.google.gson.Gson
-import com.google.gson.stream.JsonReader
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import me.gegenbauer.catspy.concurrency.APP_LAUNCH
-import me.gegenbauer.catspy.concurrency.ModelScope
-import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.platform.currentPlatform
-import me.gegenbauer.catspy.utils.toArgb
-import java.io.File
-import java.util.*
-import javax.swing.UIDefaults
+import com.formdev.flatlaf.*
+import com.formdev.flatlaf.extras.FlatAnimatedLafChange
+import com.formdev.flatlaf.fonts.inter.FlatInterFont
+import com.formdev.flatlaf.fonts.jetbrains_mono.FlatJetBrainsMonoFont
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont
+import com.formdev.flatlaf.fonts.roboto_mono.FlatRobotoMonoFont
+import com.formdev.flatlaf.intellijthemes.FlatAllIJThemes
+import com.formdev.flatlaf.themes.FlatMacDarkLaf
+import com.formdev.flatlaf.themes.FlatMacLightLaf
+import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.java.ext.getEnum
+import me.gegenbauer.catspy.strings.globalLocale
+import javax.swing.UIManager
 
-// TODO 升级增删字段兼容
 object ThemeManager {
-    private const val THEME_FILENAME = "global.json"
-    private val themeFile = File(currentPlatform.getFilesDir(), THEME_FILENAME)
-    private val settingsConfiguration: SettingsConfiguration = loadThemeSettings()
-    private val scope = ModelScope()
+    private const val TAG = "ThemeManager"
+    private const val SYSTEM_THEME_NAME = "default"
 
-    var currentTheme: Theme = settingsConfiguration.theme
+    val currentTheme: FlatLaf
+        get() = UIManager.getLookAndFeel() as FlatLaf
 
-    suspend fun init() {
-        withContext(Dispatchers.APP_LAUNCH) {
-            ensureThemeFile()
+    private val themesMap = hashMapOf<String, String>()
+
+    fun init(settings: GSettings) {
+        installFonts()
+        if (!setupLaf(getThemeClass(settings))) {
+            setupLaf(SYSTEM_THEME_NAME)
+            settings.theme = SYSTEM_THEME_NAME
         }
+        applyLocale(settings)
+        applyFont(settings)
     }
 
-    private fun ensureThemeFile() {
-        if (!themeFile.exists()) {
-            createThemeFile()
-            themeFile.writeText(Gson().toJson(GTheme()))
-        }
-    }
-
-    fun registerDefaultThemeUpdateListener() {
-        LafManager.registerDefaultsAdjustmentTask { t: Theme, _: Properties ->
-            updateTheme(t)
-            currentTheme = t
-            scope.launch {
-                saveThemeSettings()
+    fun update(originalSettings: GSettings, settings: GSettings) {
+        val themeChanged = originalSettings.theme != settings.theme
+        val fontChanged = originalSettings.font != settings.font
+        if (themeChanged || fontChanged) {
+            updateUIWithAnim {
+                updateLaf(settings)
+                applyFont(settings)
             }
         }
     }
 
-    fun registerThemeUpdateListener(listener: ThemeChangeListener) {
-        LafManager.addThemeChangeListener(listener)
-        listener.onEvent(ThemeChangeEvent(ThemeSettings.getInstance().theme, ThemeSettings.getInstance().theme))
+    private fun installFonts() {
+        // install fonts for lazy loading
+        FlatInterFont.installLazy()
+        FlatJetBrainsMonoFont.installLazy()
+        FlatRobotoFont.installLazy()
+        FlatRobotoMonoFont.installLazy()
+        FontSupport.registerBundledFonts()
+    }
+
+    init {
+        themesMap.clear()
+        themesMap.putAll(initThemesMap())
+    }
+
+    fun getThemes(): Array<String> {
+        return themesMap.keys.sorted().toTypedArray()
+    }
+
+    private fun updateLaf(settings: GSettings): Boolean {
+        return setupLaf(getThemeClass(settings))
+    }
+
+    fun applyLocale(settings: GSettings) {
+        globalLocale = getEnum(settings.locale)
+    }
+
+    private fun applyFont(settings: GSettings) {
+        FontSupport.setUIFont(settings.font)
+    }
+
+    private fun applyLaf(theme: String): Boolean {
+        return runCatching {
+            UIManager.setLookAndFeel(theme)
+            true
+        }.onFailure {
+            GLog.e(TAG, "[applyLaf] failed to set theme: $theme", it)
+        }.getOrDefault(false)
+    }
+
+    private fun initThemesMap(): Map<String, String> {
+        val map = linkedMapOf<String, String>()
+        map[SYSTEM_THEME_NAME] = SYSTEM_THEME_NAME
+
+        // default flatlaf themes
+        map[FlatLightLaf.NAME] = FlatLightLaf::class.java.name
+        map[FlatDarkLaf.NAME] = FlatDarkLaf::class.java.name
+        map[FlatMacLightLaf.NAME] = FlatMacLightLaf::class.java.name
+        map[FlatMacDarkLaf.NAME] = FlatMacDarkLaf::class.java.name
+        map[FlatIntelliJLaf.NAME] = FlatIntelliJLaf::class.java.name
+        map[FlatDarculaLaf.NAME] = FlatDarculaLaf::class.java.name
+
+        // themes from flatlaf-intellij-themes
+        for (themeInfo in FlatAllIJThemes.INFOS) {
+            map[themeInfo.name] = themeInfo.className
+        }
+        return map
+    }
+
+    private fun getThemeClass(settings: GSettings): String {
+        return themesMap[settings.theme] ?: ""
+    }
+
+    private fun setupLaf(themeClass: String?): Boolean {
+        if (SYSTEM_THEME_NAME == themeClass) {
+            return applyLaf(UIManager.getSystemLookAndFeelClassName())
+        }
+        if (!themeClass.isNullOrEmpty()) {
+            return applyLaf(themeClass)
+        }
+        return false
+    }
+
+    fun registerThemeUpdateListener(listener: GThemeChangeListener) {
+        UIManager.addPropertyChangeListener(listener)
     }
 
     fun unregisterThemeUpdateListener(listener: GThemeChangeListener) {
-        LafManager.removeThemeChangeListener(listener)
-    }
-
-    fun registerDefaultsAdjustmentTask(listener: (Theme, Properties) -> Unit) {
-        LafManager.registerDefaultsAdjustmentTask(listener)
-    }
-
-    fun unregisterDefaultsAdjustmentTask(listener: (Theme, Properties) -> Unit) {
-        LafManager.removeDefaultsAdjustmentTask(listener)
-    }
-
-    fun registerInitTask(listener: (Theme, UIDefaults) -> Unit) {
-        LafManager.registerInitTask(listener)
-    }
-
-    fun unregisterInitTask(listener: (Theme, UIDefaults) -> Unit) {
-        LafManager.removeInitTask(listener)
-    }
-
-    suspend fun installTheme() {
-        withContext(Dispatchers.UI) {
-            LafManager.install()
-        }
-    }
-
-    private fun createThemeFile() {
-        themeFile.createNewFile()
-    }
-
-    suspend fun applyTempTheme() {
-        withContext(Dispatchers.UI) {
-            ThemeSettings.getInstance().setConfiguration(settingsConfiguration)
-            ThemeSettings.getInstance().apply()
-        }
-    }
-
-    private fun loadTheme(): GTheme {
-        ensureThemeFile()
-        JsonReader(themeFile.reader()).use {
-            return Gson().fromJson(it, GTheme::class.java)
-        }
-    }
-
-    private fun loadThemeSettings(): SettingsConfiguration {
-        val gTheme = loadTheme()
-        return SettingsConfiguration().apply {
-            theme = getTheme(gTheme.theme)
-            fontSizeRule = gTheme.fontSizeRule()
-            fontPrototype = gTheme.fontPrototype()
-            accentColorRule = gTheme.accentColorRule()
-            isSystemPreferencesEnabled = gTheme.isSystemPreferencesEnabled
-            isAccentColorFollowsSystem = gTheme.isAccentColorFollowsSystem
-            isSelectionColorFollowsSystem = gTheme.isSelectionColorFollowsSystem
-            isThemeFollowsSystem = gTheme.isThemeFollowsSystem
-        }
-    }
-
-    private fun saveThemeSettings(settingsConfiguration: SettingsConfiguration = ThemeManager.settingsConfiguration) {
-        val gTheme = GTheme(
-            settingsConfiguration.theme.name,
-            settingsConfiguration.fontSizeRule.percentage,
-            settingsConfiguration.fontPrototype.family() ?: DEFAULT_FONT_FAMILY,
-            settingsConfiguration.accentColorRule.accentColor.toArgb(),
-            settingsConfiguration.accentColorRule.selectionColor.toArgb(),
-            settingsConfiguration.isSystemPreferencesEnabled,
-            settingsConfiguration.isAccentColorFollowsSystem,
-            settingsConfiguration.isSelectionColorFollowsSystem,
-            settingsConfiguration.isThemeFollowsSystem,
-        )
-        themeFile.writeText(Gson().toJson(gTheme))
-    }
-
-    private fun updateTheme(theme: Theme) {
-        settingsConfiguration.theme = theme
-        settingsConfiguration.fontSizeRule = theme.fontSizeRule
-        settingsConfiguration.fontPrototype = theme.fontPrototype
-        settingsConfiguration.accentColorRule = theme.accentColorRule
-        settingsConfiguration.isSystemPreferencesEnabled = ThemeSettings.getInstance().isSystemPreferencesEnabled
-        settingsConfiguration.isAccentColorFollowsSystem = ThemeSettings.getInstance().isAccentColorFollowsSystem
-        settingsConfiguration.isSelectionColorFollowsSystem = ThemeSettings.getInstance().isSelectionColorFollowsSystem
-        settingsConfiguration.isThemeFollowsSystem = ThemeSettings.getInstance().isThemeFollowsSystem
+        UIManager.removePropertyChangeListener(listener)
     }
 }
-
-inline val Theme.isDark: Boolean
-    get() = Theme.isDark(this)

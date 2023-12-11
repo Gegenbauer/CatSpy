@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.configuration.ThemeManager
-import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.GlobalContextManager
@@ -158,6 +158,12 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     //endregion
 
     //region statusBar
+    private var logStatus: StatusBar.LogStatus = StatusBar.LogStatus.NONE
+        set(value) {
+            field = value
+            statusBar.logStatus = value
+            updateTitleBar(value.status)
+        }
     private val statusBar = ServiceManager.getContextService(StatusPanel::class.java)
     //endregion
 
@@ -174,10 +180,10 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     private val actionHandler = ActionHandler()
     //endregion
 
-    var customFont: Font = Font(
-        UIConfManager.uiConf.logFontName,
-        UIConfManager.uiConf.logFontStyle,
-        UIConfManager.uiConf.logFontSize
+    var logFont: Font = Font(
+        SettingsManager.settings.logFontName,
+        SettingsManager.settings.logFontStyle,
+        SettingsManager.settings.logFontSize
     )
         set(value) {
             field = value
@@ -345,10 +351,11 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     }
 
     private fun saveConfiguration() {
-        UIConfManager.uiConf.logFontSize = customFont.size
-        UIConfManager.uiConf.logFontName = customFont.name
-        UIConfManager.uiConf.logFontStyle = customFont.style
-        UIConfManager.saveUI()
+        SettingsManager.updateSettings {
+            logFontSize = this@LogTabPanel.logFont.size
+            logFontName = this@LogTabPanel.logFont.name
+            logFontStyle = this@LogTabPanel.logFont.style
+        }
     }
 
     private fun createUI() {
@@ -403,14 +410,14 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
         splitLogPane.isOneTouchExpandable = false
 
-        customFont = UIConfManager.uiConf.getLogFont()
-        GLog.d(TAG, "[createUI] log font: $customFont")
-        splitLogPane.filteredLogPanel.customFont = customFont
-        splitLogPane.fullLogPanel.customFont = customFont
+        logFont = SettingsManager.settings.logFont
+        GLog.d(TAG, "[createUI] log font: $logFont")
+        splitLogPane.filteredLogPanel.customFont = logFont
+        splitLogPane.fullLogPanel.customFont = logFont
 
-        searchPanel.searchMatchCaseToggle.isSelected = UIConfManager.uiConf.searchMatchCaseEnabled
-        filteredTableModel.searchMatchCase = UIConfManager.uiConf.searchMatchCaseEnabled
-        fullTableModel.searchMatchCase = UIConfManager.uiConf.searchMatchCaseEnabled
+        searchPanel.searchMatchCaseToggle.isSelected = SettingsManager.settings.searchMatchCaseEnabled
+        filteredTableModel.searchMatchCase = SettingsManager.settings.searchMatchCaseEnabled
+        fullTableModel.searchMatchCase = SettingsManager.settings.searchMatchCaseEnabled
 
         splitLogWithStatefulPanel.setContent(splitLogPane)
         splitLogWithStatefulPanel.action = {
@@ -528,7 +535,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         val frame = DarkUIUtil.getParentOfType(JFrame::class.java, this)
         frame?.title = when (statusMethod) {
             STRINGS.ui.open, STRINGS.ui.follow, "${STRINGS.ui.follow} ${STRINGS.ui.stop}" -> {
-                val path: Path = Paths.get(statusBar.logStatus.path)
+                val path: Path = Paths.get(logStatus.path)
                 path.fileName.toString()
             }
 
@@ -573,7 +580,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         GLog.d(TAG, "[openFile] Opening: $path")
         updateLogFilter()
 
-        statusBar.logStatus = StatusBar.LogStatusIdle(" ${STRINGS.ui.open} ", path)
+        logStatus = StatusBar.LogStatusIdle(" ${STRINGS.ui.open} ", path)
     }
 
     fun startLogcat() {
@@ -588,12 +595,12 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
         updateLogFilter()
 
-        statusBar.logStatus =
+        logStatus =
             StatusBar.LogStatusRunning(" ${STRINGS.ui.adb} ", logProducer.tempFile.absolutePath ?: "")
     }
 
     fun stopAll() {
-        statusBar.logStatus = StatusBar.LogStatusIdle(" ${STRINGS.ui.adb} ${STRINGS.ui.stop} ")
+        logStatus = StatusBar.LogStatusIdle(" ${STRINGS.ui.adb} ${STRINGS.ui.stop} ")
         logViewModel.pause()
         logProducer.cancel()
     }
@@ -622,7 +629,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
                 saveBtn -> {
                     FileSaveHandler.Builder(this@LogTabPanel)
                         .onFileSpecified(logViewModel::saveLog)
-                        .setDefaultName(statusBar.logStatus.path.getFileName())
+                        .setDefaultName(logStatus.path.getFileName())
                         .build()
                         .show()
                 }
@@ -887,7 +894,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
                 when (event.source) {
                     searchMatchCaseToggle -> {
                         filteredTableModel.searchMatchCase = searchMatchCaseToggle.isSelected
-                        UIConfManager.uiConf.searchMatchCaseEnabled = searchMatchCaseToggle.isSelected
+                        SettingsManager.settings.searchMatchCaseEnabled = searchMatchCaseToggle.isSelected
                     }
                 }
             }
@@ -914,11 +921,13 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     override fun onTabSelected() {
         logViewModel.resume()
-        updateTitleBar(statusBar.logStatus.status)
+        updateTitleBar(logStatus.status)
+        statusBar.logStatus = logStatus
     }
 
     override fun onTabUnselected() {
         logViewModel.pause()
+        statusBar.logStatus = StatusBar.LogStatus.NONE
     }
 
     override fun destroy() {

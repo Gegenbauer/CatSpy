@@ -4,11 +4,14 @@ import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants
 import me.gegenbauer.catspy.context.ContextService
-import javax.swing.JComponent
-import javax.swing.JFrame
-import javax.swing.JPanel
+import java.awt.Component
+import java.awt.Container
+import java.awt.event.MouseAdapter
+import javax.swing.*
 
-class StatusPanel : JPanel(), StatusBar, ContextService, TaskMonitor {
+class StatusPanel(
+    private val backgroundTasksContainer: TaskMonitorPanel = TaskMonitorPanel()
+) : JPanel(), StatusBar, ContextService, TaskMonitor by backgroundTasksContainer {
 
     override var logStatus: StatusBar.LogStatus = StatusBar.LogStatus.NONE
         set(value) {
@@ -24,37 +27,53 @@ class StatusPanel : JPanel(), StatusBar, ContextService, TaskMonitor {
             memoryMonitorContainer.add(value)
         }
 
-    override var statusIcons: List<JComponent> = mutableListOf()
-        set(value) {
-            field = value
-            statusIconsContainer.removeAll()
-            for (icon in value) {
-                statusIconsContainer.add(icon)
-            }
-        }
+    override var statusIcons: StatusIconsBar = StatusIconsBar()
 
     private val logStatusContainer = LogStatusBar()
-    private val backgroundTasksContainer = TaskMonitorPanel()
-    private val statusIconsContainer = JPanel()
     private val memoryMonitorContainer = JPanel()
 
     init {
+        border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
+
         val p = TableLayoutConstants.PREFERRED
         layout = TableLayout(
             doubleArrayOf(TableLayoutConstants.FILL, p, p, p),
-            doubleArrayOf(p)
+            doubleArrayOf(TableLayoutConstants.FILL)
         )
-        add(logStatusContainer, "0,0")
-        add(backgroundTasksContainer, "1,0")
-        add(statusIconsContainer, "2,0")
-        add(memoryMonitorContainer, "3,0")
+        add(logStatusContainer, "0,0,f,c")
+        add(backgroundTasksContainer, "1,0,f,c")
+        add(statusIcons, "2,0,f,c")
+        add(memoryMonitorContainer, "3,0,f,c")
+
+        statusIcons.addStatusIcon(DeviceIcon())
+
+        getChildByClassRecursively(this, JTextField::class.java)?.addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: java.awt.event.MouseEvent) {
+                if (e.clickCount == 2) {
+                    println()
+                }
+            }
+        })
     }
 
-    override fun addTask(task: ITask) {
-        backgroundTasksContainer.addTask(task)
-    }
-
-    override fun removeTask(task: ITask) {
-        backgroundTasksContainer.removeTask(task)
+    private fun getChildByClassRecursively(component: Component, clazz: Class<*>): Component? {
+        if (clazz.isInstance(component)) {
+            return component
+        }
+        if (component !is Container) {
+            return null
+        }
+        component.components.forEach {
+            if (clazz.isInstance(it)) {
+                return it
+            }
+            if (it is JComponent) {
+                val child = getChildByClassRecursively(it, clazz)
+                if (child != null) {
+                    return child
+                }
+            }
+        }
+        return null
     }
 }

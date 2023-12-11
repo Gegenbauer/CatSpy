@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.view.button
 
-import com.github.weisj.darklaf.ui.tabbedpane.DarkTabbedPaneUI
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.*
 import java.awt.Dimension
@@ -139,7 +138,7 @@ class ClosableTabHeader(
     }
 
     private fun setTabHovered(isHovered: Boolean) {
-        (parent.ui as? DarkTabbedPaneUI)?.setRolloverTab(if (isHovered) parent.indexOfTabComponent(this) else -1)
+        //(parent.ui as? DarkTabbedPaneUI)?.setRolloverTab(if (isHovered) parent.indexOfTabComponent(this) else -1)
     }
 
     private fun renameTabTitle() {

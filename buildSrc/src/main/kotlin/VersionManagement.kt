@@ -1,5 +1,4 @@
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.kotlin.dsl.DependencyHandlerScope
 import org.gradle.kotlin.dsl.kotlin
 
 object Kotlin {
@@ -39,8 +38,12 @@ object JGoodies {
 
 object FormDev {
     val groupName = "com.formdev"
+    val version = "3.2.5"
+    val fontVersion = "3.1.19"
 
-    val flatLaf = Dependency(groupName, "flatlaf", "3.0")
+    val flatLaf = Dependency(groupName, "flatlaf", version)
+    val extra = Dependency(groupName, "flatlaf-extras", version)
+    val intelliJTheme = Dependency(groupName, "flatlaf-intellij-themes", version)
 }
 
 object Adam {
@@ -124,6 +127,10 @@ fun DependencyHandler.kotlinReflectApi(): Any {
 }
 
 object FileDependency {
-    const val flatlaf = "libs/flatlaf-2.1.jar"
     const val swingx = "libs/swingx-1.6.1.jar"
+    const val innerFont = "libs/flatlaf-fonts-inter-3.19.jar"
+    const val jetbrainsMonoFont = "libs/flatlaf-fonts-jetbrains-mono-2.304.jar"
+    const val robotoFont = "libs/flatlaf-fonts-roboto-2.137.jar"
+    const val robotoMonoFont = "libs/flatlaf-fonts-roboto-mono-3.000.jar"
+    const val jFontChooser = "libs/jfontchooser-1.0.5.jar"
 }

@@ -6,9 +6,9 @@ import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.menu.TabSelectorPopupMenu
-import me.gegenbauer.catspy.ui.supportedTabs
 import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
 import me.gegenbauer.catspy.view.button.GButton
+import me.gegenbauer.catspy.view.tab.TabInfo
 import me.gegenbauer.catspy.view.tab.TabPanel
 import java.awt.GridBagLayout
 import javax.swing.Icon
@@ -22,6 +22,9 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     private val tabSelector = GButton(STRINGS.ui.selectTab)
     private val selectMenu = TabSelectorPopupMenu()
+
+    private val supportedTabs: List<TabInfo>
+        get() = contexts.getContext(MainFrame::class.java)?.supportedTabs ?: emptyList()
 
     init {
         componentName = this::class.java.simpleName
@@ -53,10 +56,3 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
     }
 
 }
-
-data class TabInfo(
-    val tabName: String,
-    val tabIcon: Icon?,
-    val tabClazz: Class<out TabPanel>,
-    val tooltip: String? = null
-)

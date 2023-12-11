@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ViewModelScope
-import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.context.Contexts
@@ -63,7 +63,7 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
         scope.launch {
             val latestRelease = updateService.getLatestRelease()
             if (updateService.checkForUpdate(latestRelease, Release(APP_VERSION_NAME))) {
-                if (force || UIConfManager.uiConf.ignoredRelease.contains(latestRelease.name).not()) {
+                if (force || SettingsManager.settings.ignoredRelease.contains(latestRelease.name).not()) {
                     _eventFlow.value = latestRelease
                 }
             }

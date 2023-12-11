@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.log.binding
 
+import com.formdev.flatlaf.FlatLaf
 import com.github.weisj.darklaf.theme.Theme
 import me.gegenbauer.catspy.configuration.*
 import me.gegenbauer.catspy.context.ContextService
@@ -11,7 +12,6 @@ import me.gegenbauer.catspy.java.ext.getEnum
 import me.gegenbauer.catspy.log.LogLevel
 import me.gegenbauer.catspy.log.getLevelFromName
 import me.gegenbauer.catspy.log.nameToLogLevel
-import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.editorComponent
 import me.gegenbauer.catspy.view.combobox.HistoryComboBox
 import me.gegenbauer.catspy.view.combobox.HistoryItem
@@ -23,44 +23,44 @@ class LogMainBinding : ContextService, GThemeChangeListener {
 
     //region Toolbar
     //region Filter
-    val logFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.logFilterEnabled)
-    val logFilterHistory = ObservableValueProperty(UIConfManager.uiConf.logFilterHistory.toStrHistoryList())
+    val logFilterEnabled = ObservableValueProperty(SettingsManager.settings.logFilterEnabled)
+    val logFilterHistory = ObservableValueProperty(SettingsManager.settings.logFilterHistory.toStrHistoryList())
     val logFilterSelectedIndex = ObservableValueProperty<Int>()
     val logFilterCurrentContent = ObservableValueProperty<String>()
     val logFilterErrorMessage = ObservableValueProperty<String>()
 
-    val tagFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.tagFilterEnabled)
-    val tagFilterHistory = ObservableValueProperty(UIConfManager.uiConf.tagFilterHistory.toStrHistoryList())
+    val tagFilterEnabled = ObservableValueProperty(SettingsManager.settings.tagFilterEnabled)
+    val tagFilterHistory = ObservableValueProperty(SettingsManager.settings.tagFilterHistory.toStrHistoryList())
     val tagFilterSelectedIndex = ObservableValueProperty<Int>()
     val tagFilterCurrentContent = ObservableValueProperty<String>()
     val tagFilterErrorMessage = ObservableValueProperty<String>()
 
-    val pidFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.pidFilterEnabled)
+    val pidFilterEnabled = ObservableValueProperty(SettingsManager.settings.pidFilterEnabled)
     val pidFilterHistory = ObservableValueProperty(arrayListOf<String>().toStrHistoryList())
     val pidFilterSelectedIndex = ObservableValueProperty<Int>()
     val pidFilterCurrentContent = ObservableValueProperty<String>()
     val pidFilterErrorMessage = ObservableValueProperty<String>()
 
-    val tidFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.tidFilterEnabled)
+    val tidFilterEnabled = ObservableValueProperty(SettingsManager.settings.tidFilterEnabled)
     val tidFilterHistory = ObservableValueProperty(arrayListOf<String>().toStrHistoryList())
     val tidFilterSelectedIndex = ObservableValueProperty<Int>()
     val tidFilterCurrentContent = ObservableValueProperty<String>()
     val tidFilterErrorMessage = ObservableValueProperty<String>()
 
-    val logLevelFilterEnabled = ObservableValueProperty(UIConfManager.uiConf.logLevelFilterEnabled)
+    val logLevelFilterEnabled = ObservableValueProperty(SettingsManager.settings.logLevelFilterEnabled)
     private val sortedLogLevels = nameToLogLevel.toList().sortedBy { it.second.logLevel }.map { it.second.logName }
     val logLevelFilterHistory = ObservableValueProperty(sortedLogLevels.toStrHistoryList())
-    val logLevelFilterCurrentContent = ObservableValueProperty(UIConfManager.uiConf.logLevel)
+    val logLevelFilterCurrentContent = ObservableValueProperty(SettingsManager.settings.logLevel)
     val logLevelFilterSelectedIndex =
-        ObservableValueProperty(sortedLogLevels.indexOf(UIConfManager.uiConf.logLevel))
+        ObservableValueProperty(sortedLogLevels.indexOf(SettingsManager.settings.logLevel))
 
-    val boldEnabled = ObservableValueProperty(UIConfManager.uiConf.boldEnabled)
-    val boldHistory = ObservableValueProperty(UIConfManager.uiConf.highlightHistory.toStrHistoryList())
+    val boldEnabled = ObservableValueProperty(SettingsManager.settings.boldEnabled)
+    val boldHistory = ObservableValueProperty(SettingsManager.settings.highlightHistory.toStrHistoryList())
     val boldSelectedIndex = ObservableValueProperty<Int>()
     val boldCurrentContent = ObservableValueProperty<String>()
     val boldErrorMessage = ObservableValueProperty<String>()
 
-    val filterMatchCaseEnabled = ObservableValueProperty(UIConfManager.uiConf.filterMatchCaseEnabled)
+    val filterMatchCaseEnabled = ObservableValueProperty(SettingsManager.settings.filterMatchCaseEnabled)
     //endregion
 
     //region ADB
@@ -74,26 +74,26 @@ class LogMainBinding : ContextService, GThemeChangeListener {
     //endregion
 
     //region Menu
-    val rotation = ObservableValueProperty(getEnum<Rotation>(UIConfManager.uiConf.rotation))
-    val logLevel = ObservableValueProperty(getLevelFromName(UIConfManager.uiConf.logLevel))
+    val rotation = ObservableValueProperty(getEnum<Rotation>(SettingsManager.settings.rotation))
+    val logLevel = ObservableValueProperty(getLevelFromName(SettingsManager.settings.logLevel))
     //endregion
 
     //endregion
 
     //region SearchBar
-    val searchHistory = ObservableValueProperty(UIConfManager.uiConf.searchHistory.toStrHistoryList())
+    val searchHistory = ObservableValueProperty(SettingsManager.settings.searchHistory.toStrHistoryList())
     val searchSelectedIndex = ObservableValueProperty<Int>()
     val searchCurrentContent = ObservableValueProperty<String>()
-    val searchMatchCase = ObservableValueProperty(UIConfManager.uiConf.searchMatchCaseEnabled)
+    val searchMatchCase = ObservableValueProperty(SettingsManager.settings.searchMatchCaseEnabled)
     val searchErrorMessage = ObservableValueProperty<String>()
     //endregion
 
     //region LogPanel
-    val splitPanelDividerLocation = ObservableValueProperty(UIConfManager.uiConf.dividerLocation)
+    val splitPanelDividerLocation = ObservableValueProperty(SettingsManager.settings.dividerLocation)
     //endregion
 
     //region Style
-    val logFont = ObservableValueProperty(UIConfManager.uiConf.getLogFont())
+    val logFont = ObservableValueProperty(SettingsManager.settings.logFont)
     //endregion
 
     fun bindLogFilter(
@@ -126,64 +126,96 @@ class LogMainBinding : ContextService, GThemeChangeListener {
 
     fun syncGlobalConfWithMainBindings() {
         searchHistory.addObserver {
-            UIConfManager.uiConf.searchHistory.clear()
-            UIConfManager.uiConf.searchHistory.addAll(it!!.toStrContentList())
+            SettingsManager.updateSettings {
+                searchHistory.clear()
+                searchHistory.addAll(it!!.toStrContentList())
+            }
         }
         logFilterHistory.addObserver {
-            UIConfManager.uiConf.logFilterHistory.clear()
-            UIConfManager.uiConf.logFilterHistory.addAll(it!!.toStrContentList())
+            SettingsManager.updateSettings {
+                logFilterHistory.clear()
+                logFilterHistory.addAll(it!!.toStrContentList())
+            }
         }
         tagFilterHistory.addObserver {
-            UIConfManager.uiConf.tagFilterHistory.clear()
-            UIConfManager.uiConf.tagFilterHistory.addAll(it!!.toStrContentList())
+            SettingsManager.updateSettings {
+                tagFilterHistory.clear()
+                tagFilterHistory.addAll(it!!.toStrContentList())
+            }
         }
         boldHistory.addObserver {
-            UIConfManager.uiConf.highlightHistory.clear()
-            UIConfManager.uiConf.highlightHistory.addAll(it!!.toStrContentList())
+            SettingsManager.updateSettings {
+                highlightHistory.clear()
+                highlightHistory.addAll(it!!.toStrContentList())
+            }
         }
         rotation.addObserver {
-            UIConfManager.uiConf.rotation = it?.ordinal ?: Rotation.ROTATION_LEFT_RIGHT.ordinal
+            SettingsManager.updateSettings {
+                rotation = it?.ordinal ?: Rotation.ROTATION_LEFT_RIGHT.ordinal
+            }
         }
         logLevel.addObserver {
-            UIConfManager.uiConf.logLevel = it?.logName ?: LogLevel.WARN.logName
+            SettingsManager.updateSettings {
+                logLevel = it?.logName ?: LogLevel.WARN.logName
+            }
         }
         splitPanelDividerLocation.addObserver {
-            UIConfManager.uiConf.dividerLocation = it ?: 500
+            SettingsManager.updateSettings {
+                dividerLocation = it ?: 500
+            }
         }
         logFilterEnabled.addObserver {
-            UIConfManager.uiConf.logFilterEnabled = it ?: false
+            SettingsManager.updateSettings {
+                logFilterEnabled = it ?: false
+            }
         }
         tagFilterEnabled.addObserver {
-            UIConfManager.uiConf.tagFilterEnabled = it ?: false
+            SettingsManager.updateSettings {
+                tagFilterEnabled = it ?: false
+            }
         }
         pidFilterEnabled.addObserver {
-            UIConfManager.uiConf.pidFilterEnabled = it ?: false
+            SettingsManager.updateSettings {
+                pidFilterEnabled = it ?: false
+            }
         }
         tidFilterEnabled.addObserver {
-            UIConfManager.uiConf.tidFilterEnabled = it ?: false
+            SettingsManager.updateSettings {
+                tidFilterEnabled = it ?: false
+            }
         }
         logLevelFilterEnabled.addObserver {
-            UIConfManager.uiConf.logLevelFilterEnabled = it ?: false
+            SettingsManager.updateSettings {
+                logLevelFilterEnabled = it ?: false
+            }
         }
         boldEnabled.addObserver {
-            UIConfManager.uiConf.boldEnabled = it ?: false
+            SettingsManager.updateSettings {
+                boldEnabled = it ?: false
+            }
         }
         filterMatchCaseEnabled.addObserver {
-            UIConfManager.uiConf.filterMatchCaseEnabled = it ?: false
+            SettingsManager.updateSettings {
+                filterMatchCaseEnabled = it ?: false
+            }
         }
         searchMatchCase.addObserver {
-            UIConfManager.uiConf.searchMatchCaseEnabled = it ?: false
+            SettingsManager.updateSettings {
+                searchMatchCaseEnabled = it ?: false
+            }
         }
         logFont.addObserver {
-            UIConfManager.uiConf.logFontName = it?.fontName ?: "DialogInput"
-            UIConfManager.uiConf.logFontSize = it?.size ?: DEFAULT_FONT_SIZE
-            UIConfManager.uiConf.logFontStyle = it?.style ?: 0
+            SettingsManager.updateSettings {
+                logFontName = it?.fontName ?: "DialogInput"
+                logFontSize = it?.size ?: DEFAULT_FONT_SIZE
+                logFontStyle = it?.style ?: 0
+            }
         }
     }
 
-    override fun onThemeChange(theme: Theme) {
+    override fun onThemeChange(theme: FlatLaf) {
         logFont.value?.let {
-            logFont.updateValue(it.newFont(theme, DEFAULT_LOG_FONT_SIZE))
+            //logFont.updateValue(it.newFont(theme, DEFAULT_LOG_FONT_SIZE))
         }
     }
 }

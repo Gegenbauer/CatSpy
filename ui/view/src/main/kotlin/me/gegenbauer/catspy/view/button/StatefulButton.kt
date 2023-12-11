@@ -13,21 +13,21 @@ class StatefulButton(
     tooltip: String? = null
 ) : GButton(originalText, originalIcon),
     StatefulActionComponent {
-    override var buttonDisplayMode: me.gegenbauer.catspy.view.button.ButtonDisplayMode? =
-        me.gegenbauer.catspy.view.button.ButtonDisplayMode.ALL
+    override var buttonDisplayMode: ButtonDisplayMode? =
+        ButtonDisplayMode.ALL
         set(value) {
             field = value
             setDisplayMode(value)
         }
 
-    override fun setDisplayMode(mode: me.gegenbauer.catspy.view.button.ButtonDisplayMode?) {
+    override fun setDisplayMode(mode: ButtonDisplayMode?) {
         when (mode) {
-            me.gegenbauer.catspy.view.button.ButtonDisplayMode.TEXT -> {
+            ButtonDisplayMode.TEXT -> {
                 text = originalText
                 icon = null
             }
 
-            me.gegenbauer.catspy.view.button.ButtonDisplayMode.ICON -> {
+            ButtonDisplayMode.ICON -> {
                 text = null
                 icon = originalIcon
             }
@@ -40,7 +40,7 @@ class StatefulButton(
 
         putClientProperty(
             PROPERTY_KEY_BUTTON_VARIANT,
-            if (mode == me.gegenbauer.catspy.view.button.ButtonDisplayMode.ICON) BORDER_TYPE_BORDERLESS else BORDER_TYPE_NONE
+            if (mode == ButtonDisplayMode.ICON) BORDER_TYPE_BORDERLESS else BORDER_TYPE_NONE
         )
     }
 

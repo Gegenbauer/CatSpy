@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.ui.dialog
 
-import me.gegenbauer.catspy.configuration.UIConfManager
+import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.network.update.data.Release
 import me.gegenbauer.catspy.strings.STRINGS
 import javax.swing.JFrame
@@ -25,7 +25,7 @@ class UpdateDialog(
             onDownloadConfirm(newRelease)
         }
         if (result == JOptionPane.OK_OPTION || result == JOptionPane.NO_OPTION) {
-            UIConfManager.uiConf.ignoredRelease.add(newRelease.name)
+            SettingsManager.settings.ignoredRelease.add(newRelease.name)
         }
     }
 }
