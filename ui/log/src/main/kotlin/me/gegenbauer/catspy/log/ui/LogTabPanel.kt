@@ -6,13 +6,11 @@ import com.malinskiy.adam.request.device.Device
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.Rotation
-import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.GlobalContextManager
@@ -52,6 +50,7 @@ import me.gegenbauer.catspy.view.combobox.*
 import me.gegenbauer.catspy.view.dialog.FileSaveHandler
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.EMPTY_ITEM
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.rebuild
+import me.gegenbauer.catspy.view.filter.getOrCreateFilterItem
 import me.gegenbauer.catspy.view.panel.StatusBar
 import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.state.StatefulPanel
@@ -195,6 +194,8 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         refreshDevices(it)
     }
 
+    private var updateFilterJob: Job? = null
+
     init {
         GlobalContextManager.register(this)
 
@@ -326,21 +327,24 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
                     logViewModel.resume()
                 }
             }
-            filterMatchCaseEnabled.addObserver { updateLogFilter() }
-            logLevel.addObserver { updateLogFilter() }
-            logFilterEnabled.addObserver { updateLogFilter() }
-            tagFilterEnabled.addObserver { updateLogFilter() }
-            pidFilterEnabled.addObserver { updateLogFilter() }
-            tidFilterEnabled.addObserver { updateLogFilter() }
-            logLevelFilterEnabled.addObserver { updateLogFilter() }
-            boldEnabled.addObserver { updateLogFilter() }
+            configureUpdateLogFilterTriggers(
+                filterMatchCaseEnabled, logLevel, logFilterEnabled, logFilterCurrentContent,
+                tagFilterEnabled, tagFilterCurrentContent, pidFilterEnabled, pidFilterCurrentContent, tidFilterEnabled,
+                tidFilterCurrentContent, logLevelFilterEnabled, boldEnabled, searchMatchCase, boldCurrentContent
+            )
             searchMatchCase.addObserver { filteredTableModel.searchMatchCase = it == true }
-            searchMatchCase.addObserver { updateLogFilter() }
+            searchCurrentContent.addObserver { updateSearchFilter(it) }
             logFont.addObserver {
                 it ?: return@addObserver
                 filteredTable.font = it
                 fullTable.font = it
             }
+        }
+    }
+
+    private fun configureUpdateLogFilterTriggers(vararg observableValueProperty: ObservableValueProperty<*>) {
+        observableValueProperty.forEach {
+            (it as? ObservableValueProperty<Any>)?.addObserver { updateLogFilter() }
         }
     }
 
@@ -686,7 +690,10 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     }
 
     private fun updateLogFilter() {
-        scope.launch {
+        val lastUpdateJob = updateFilterJob
+        updateFilterJob = scope.launch {
+            lastUpdateJob?.cancelAndJoin()
+            delay(10)
             logMainBinding.apply {
                 val matchCase = filterMatchCaseEnabled.getValueNonNull()
                 LogcatFilter(
@@ -708,9 +715,9 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         }
     }
 
-    private fun updateSearchFilter() {
-        filteredTableModel.searchFilterItem = searchPanel.searchCombo.filterItem
-        fullTableModel.searchFilterItem = searchPanel.searchCombo.filterItem
+    private fun updateSearchFilter(content: String?) {
+        filteredTableModel.searchFilterItem = content?.getOrCreateFilterItem() ?: EMPTY_ITEM
+        fullTableModel.searchFilterItem = content?.getOrCreateFilterItem() ?: EMPTY_ITEM
     }
 
     private fun resetComboItem(
@@ -757,7 +764,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         } else {
             JLabel("${STRINGS.ui.full} ${STRINGS.ui.log}")
         } applyTooltip STRINGS.toolTip.searchTargetLabel
-        private val upBtn = IconBarButton(GIcons.Action.Up.get()) applyTooltip STRINGS.toolTip.searchPrevBtn //△ ▲ ▽ ▼
+        private val upBtn = IconBarButton(GIcons.Action.Up.get()) applyTooltip STRINGS.toolTip.searchPrevBtn
         private val downBtn = IconBarButton(GIcons.Action.Down.get()) applyTooltip STRINGS.toolTip.searchNextBtn
         private val contentPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
         private val statusPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 5, 2))
@@ -774,6 +781,7 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         private fun configureUI() {
             searchCombo.enabledTfTooltip = false
             searchCombo.isEditable = true
+            searchCombo.setWidth(400)
 
             contentPanel.add(searchCombo)
             contentPanel.add(searchMatchCaseToggle)
@@ -807,6 +815,9 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             if (aFlag) {
                 searchCombo.requestFocus()
                 searchCombo.editor.selectAll()
+            } else {
+                searchCombo.editorComponent.text = ""
+                searchCombo.hidePopup()
             }
         }
 
@@ -857,7 +868,6 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             override fun keyReleased(event: KeyEvent) {
                 if (event.keyEventInfo == Key.ENTER.released() || event.keyEventInfo == Key.S_ENTER.released()) {
                     resetComboItem(logMainBinding.searchHistory, logMainBinding.searchCurrentContent.value ?: "")
-                    updateSearchFilter()
                     this@SearchPanel::moveToPrev
                         .takeIf { KeyEvent.SHIFT_DOWN_MASK == event.modifiersEx }
                         ?.invoke() ?: this@SearchPanel::moveToNext.invoke()

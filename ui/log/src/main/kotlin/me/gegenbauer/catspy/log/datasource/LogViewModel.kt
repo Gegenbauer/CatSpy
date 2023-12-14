@@ -294,9 +294,11 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
 
     private suspend fun updateFilterInternal(filter: LogFilter<LogcatItem>) {
         withContext(Dispatchers.Default) {
-            fullLogRepo.logItems.forEach { item ->
-                ensureActive()
-                filteredLogRepo.onReceiveLogItem(item, filter)
+            fullLogRepo.readLogItems {
+                it.forEach { item ->
+                    ensureActive()
+                    filteredLogRepo.onReceiveLogItem(item, filter)
+                }
             }
         }
     }
