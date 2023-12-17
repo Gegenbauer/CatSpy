@@ -1,10 +1,9 @@
 package me.gegenbauer.catspy.view.card
 
-import com.formdev.flatlaf.FlatLaf
-import me.gegenbauer.catspy.configuration.GThemeChangeListener
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JPanel
+import javax.swing.UIManager
 
 /**
  * 带圆角背景容器
@@ -13,12 +12,17 @@ open class RoundedCard @JvmOverloads constructor(
     private val radius: Int = 30,
     layout: LayoutManager = FlowLayout(),
     private val shadowSize: Int = 8
-) : JPanel(layout), GThemeChangeListener {
+) : JPanel(layout) {
     private val padding = shadowSize + 8
 
     init {
         isOpaque = false
         border = BorderFactory.createEmptyBorder(padding, padding, padding, padding)
+    }
+
+    override fun updateUI() {
+        super.updateUI()
+        background = UIManager.getColor("Script.card.background")
     }
 
     override fun paintComponent(g: Graphics) {
@@ -37,13 +41,5 @@ open class RoundedCard @JvmOverloads constructor(
 
         super.paintComponent(g)
         g2.dispose()
-    }
-
-    override fun onThemeChange(theme: FlatLaf) {
-        if (theme.isDark) {
-            background = Color(0x2B2B2B)
-        } else {
-            background = Color(0xFFFFFF)
-        }
     }
 }

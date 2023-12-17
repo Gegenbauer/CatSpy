@@ -39,6 +39,10 @@ class BookmarkManager: ContextService {
         }
     }
 
+    fun getAllBookmarks(): List<Int> {
+        return bookmarksLock.read { bookmarks.toList() }
+    }
+
     fun checkNewRow(rows: List<Int>): Boolean {
         return bookmarksLock.read { rows.any { !bookmarks.contains(it) } }
     }

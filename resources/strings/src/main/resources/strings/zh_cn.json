@@ -47,6 +47,7 @@
     "viewWindowedModeBtn": "将视图移动至新窗口"
   },
   "ui": {
+    "accentColor": "强调色",
     "adb": "ADB",
     "adbPath": "ADB 路径",
     "addCmd": "添加命令",
@@ -65,6 +66,8 @@
     "change": "更改",
     "clear": "清除",
     "close": "关闭",
+    "closeTabConfirmMessage": "你真的要关闭 \\\"%s\\\" 吗？",
+    "closeTabConfirmTitle": "你确定吗？",
     "cmd": "命令",
     "color": "颜色",
     "connect": "连接",
@@ -92,6 +95,7 @@
     "full": "全部",
     "fullLogDialogTitle": "完整日志",
     "goToLineDialogTitle": "跳转到行",
+    "hintConfirm": "我知道了！",
     "language": "语言",
     "languageSettingHint": "修改语言需要重启应用才能生效",
     "loading": "加载中...",
@@ -129,6 +133,7 @@
     "select": "选择",
     "selectAll": "全选",
     "selectFont": "字体",
+    "selectFunctionTab": "点击选择功能标签",
     "selectLog": "选择日志",
     "selectTab": "选择标签",
     "setSearch": "设置搜索",

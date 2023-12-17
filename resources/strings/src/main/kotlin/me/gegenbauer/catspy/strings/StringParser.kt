@@ -13,10 +13,7 @@ val STRINGS: Strings
 object StringResourceManager {
     private const val STRING_RES_DIR = "strings"
 
-    private val DEFAULT_STRINGS = Strings().apply {
-        ui = Strings.Ui()
-        toolTip = Strings.ToolTip()
-    }
+    private val DEFAULT_STRINGS = Strings()
     internal var strings: Strings = DEFAULT_STRINGS
 
     private fun parse(locale: Locale): Strings {

@@ -28,6 +28,7 @@ dependencies {
     api(FormDev.extra)
     api(Weisj.darklafVisualPadding)
     implementation(Fifesoft.autocomplete)
+    implementation(MigLayout.swing)
 
     testImplementation(Weisj.darklafCore)
     testImplementation(kotlinTestApi())

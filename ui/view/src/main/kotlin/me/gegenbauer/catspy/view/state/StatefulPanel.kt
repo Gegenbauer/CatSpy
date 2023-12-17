@@ -1,7 +1,5 @@
 package me.gegenbauer.catspy.view.state
 
-import me.gegenbauer.catspy.configuration.EmptyStatePanelTheme
-import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.view.button.IconBarButton

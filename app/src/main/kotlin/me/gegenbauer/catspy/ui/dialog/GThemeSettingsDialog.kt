@@ -1,5 +1,11 @@
 package me.gegenbauer.catspy.ui.dialog
 
+import com.formdev.flatlaf.FlatLaf
+import com.formdev.flatlaf.icons.FlatAbstractIcon
+import com.formdev.flatlaf.util.ColorFunctions
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.configuration.*
 import me.gegenbauer.catspy.file.gson
 import me.gegenbauer.catspy.java.ext.copyFields
@@ -10,7 +16,6 @@ import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
 import say.swing.JFontChooser
 import java.awt.*
 import java.awt.datatransfer.StringSelection
-import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.*
@@ -23,6 +28,7 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
     private var tree = SettingsTree()
 
     private val startSettings = SettingsManager.string
+    private val scope = MainScope()
 
     init {
         title = STRINGS.ui.preferences
@@ -41,6 +47,7 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         val groups = ArrayList<ISettingsGroup>()
         groups.add(makeAppearanceGroup())
 
+        tree = SettingsTree()
         tree.init(wrapGroupPanel, groups)
 
         val rightPane = JScrollPane(wrapGroupPanel)
@@ -75,7 +82,12 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         val lafCbx = JComboBox(ThemeManager.getThemes())
         lafCbx.selectedItem = ThemeManager.currentTheme.name
         lafCbx.addActionListener {
-            SettingsManager.updateSettings { theme = lafCbx.selectedItem as String }
+            scope.launch {
+                SettingsManager.suspendUpdateSettings {
+                    theme = lafCbx.selectedItem as String
+                }
+                reloadUI()
+            }
         }
 
         val changeFontBtn = JButton(STRINGS.ui.change)
@@ -84,6 +96,9 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         group.addRow(STRINGS.ui.language, languageCbx)
         group.addRow(STRINGS.ui.menuTheme, lafCbx)
         val fontLabel = group.addRow(getFontLabelStr(), changeFontBtn)
+        if (ThemeManager.isAccentColorSupported) {
+            group.addRow(STRINGS.ui.accentColor, createColorChoosePanel())
+        }
         group.end()
 
         changeFontBtn.addMouseListener(object : MouseAdapter() {
@@ -101,6 +116,42 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         })
 
         return group
+    }
+
+    private fun createColorChoosePanel(): JToolBar {
+        return JToolBar().apply {
+            val group = ButtonGroup()
+            val colors = accentColors.map { UIManager.getColor(it.first) ?: Color.lightGray }
+            accentColors.forEachIndexed { index, color ->
+                val colorButton = JToggleButton(AccentColorIcon(color.first))
+                colorButton.isSelected = SettingsManager.settings.getAccentColor() == colors[index]
+                colorButton.toolTipText = color.second
+                colorButton.addActionListener {
+                    scope.launch {
+                        SettingsManager.suspendUpdateSettings {
+                            setAccentColor(UIManager.getColor(color.first) ?: Color.lightGray)
+                        }
+                    }
+                }
+                add(colorButton)
+                group.add(colorButton)
+            }
+        }
+    }
+
+    private class AccentColorIcon(private val colorKey: String) : FlatAbstractIcon(16, 16, null) {
+        override fun paintIcon(c: Component, g: Graphics2D) {
+            var color = UIManager.getColor(colorKey)
+            if (color == null) color = Color.lightGray
+            else if (!c.isEnabled) {
+                color = if (FlatLaf.isLafDark()
+                ) ColorFunctions.shade(color, 0.5f)
+                else ColorFunctions.tint(color, 0.6f)
+            }
+
+            g.color = color
+            g.fillRoundRect(1, 1, width - 2, height - 2, 5, 5)
+        }
     }
 
     private fun getFontLabelStr(): String {
@@ -142,10 +193,21 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
     }
 
     private fun reset() {
-        SettingsManager.updateSettings {
-            val originalSettings = gson.fromJson(startSettings, GSettings::class.java)
-            copyFields(originalSettings, SettingsManager.settings)
+        scope.launch {
+            SettingsManager.suspendUpdateSettings {
+                val originalSettings = gson.fromJson(startSettings, GSettings::class.java)
+                copyFields(originalSettings, SettingsManager.settings)
+            }
+            reloadUI()
         }
+    }
+
+    private fun reloadUI() {
+        val selection = tree.selectionRows
+        contentPane.removeAll()
+        initUI()
+        tree.selectionRows = selection
+        SwingUtilities.updateComponentTreeUI(this)
     }
 
     private fun cancel() {
@@ -153,10 +215,21 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         dispose()
     }
 
+    override fun dispose() {
+        super.dispose()
+        scope.cancel()
+    }
+
     private fun copySettings() {
         val settings = SettingsManager.settings
         val json = gson.toJson(settings)
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
         clipboard.setContents(StringSelection(json), null)
+    }
+
+    companion object {
+        private val accentColors = listOf("CatSpy.accent.default" to "Default", "CatSpy.accent.blue" to "Blue",
+            "CatSpy.accent.purple" to "Purple", "CatSpy.accent.red" to "Red", "CatSpy.accent.orange" to "Orange",
+            "CatSpy.accent.yellow" to "Yellow", "CatSpy.accent.green" to "Green")
     }
 }

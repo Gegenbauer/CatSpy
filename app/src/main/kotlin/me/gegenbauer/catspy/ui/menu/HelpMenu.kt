@@ -42,7 +42,6 @@ class HelpMenu(override val contexts: Contexts = Contexts.default) : GMenu(), Co
         text = STRINGS.ui.menuHelp
         mnemonic = KeyEvent.VK_H
 
-        add(itemHelp)
         add(itemExportLog)
         addSeparator()
         add(itemCheckUpdates)

@@ -1,13 +1,13 @@
-# CatSpy
+# CatSpy_source
 
-[![Build status](https://github.com/Gegenbauer/CatSpy/workflows/Build/badge.svg)](https://github.com/Gegenbauer/CatSpy/actions?query=workflow%3ABuild)
-![GitHub contributors](https://img.shields.io/github/contributors/Gegenbauer/CatSpy)
-![GitHub all releases](https://img.shields.io/github/downloads/Gegenbauer/CatSpy/total)
-![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/Gegenbauer/CatSpy/latest/total)
-![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy.svg)
+[![Build status](https://github.com/Gegenbauer/CatSpy_source/workflows/Build/badge.svg)](https://github.com/Gegenbauer/CatSpy_source/actions?query=workflow%3ABuild)
+![GitHub contributors](https://img.shields.io/github/contributors/Gegenbauer/CatSpy_source)
+![GitHub all releases](https://img.shields.io/github/downloads/Gegenbauer/CatSpy_source/total)
+![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/Gegenbauer/CatSpy_source/latest/total)
+![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy_source.svg)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
-**CatSpy** - A tool for browsing logs.
+**CatSpy_source** - A tool for browsing logs.
 
 **Main Features:**
 - Can filter logs based on various parts
@@ -21,6 +21,13 @@
 
 **Features to be implemented**
 - Extend log format, support custom log format and filter
+
+## Interface
+### Log main interface
+![log_main_interface.png](pic%2Flog_main_interface.png)
+
+### Theme Settings
+![theme_configuration.png](pic%2Ftheme_configuration.png)
 
 ## References
 The project was initially based on [lognote](https://github.com/cdcsgit/lognote), and was completely refactored, with optimizations made to the log loading and rendering process,

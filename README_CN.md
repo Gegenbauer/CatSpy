@@ -1,10 +1,10 @@
 # CatSpy
 
-[![Build status](https://github.com/Gegenbauer/CatSpy/workflows/Build/badge.svg)](https://github.com/Gegenbauer/CatSpy/actions?query=workflow%3ABuild)
-![GitHub contributors](https://img.shields.io/github/contributors/Gegenbauer/CatSpy)
-![GitHub all releases](https://img.shields.io/github/downloads/Gegenbauer/CatSpy/total)
-![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/Gegenbauer/CatSpy/latest/total)
-![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy.svg)
+[![Build status](https://github.com/Gegenbauer/CatSpy_source/workflows/Build/badge.svg)](https://github.com/Gegenbauer/CatSpy_source/actions?query=workflow%3ABuild)
+![GitHub contributors](https://img.shields.io/github/contributors/Gegenbauer/CatSpy_source)
+![GitHub all releases](https://img.shields.io/github/downloads/Gegenbauer/CatSpy_source/total)
+![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/Gegenbauer/CatSpy_source/latest/total)
+![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy_source.svg)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 **CatSpy** - 一个用于浏览日志的工具。
@@ -21,6 +21,13 @@
 
 **待实现的特性**
 - 扩展日志格式，支持自定义日志格式及过滤器
+
+## 界面
+### 日志
+![log_main_interface.png](pic%2Flog_main_interface.png)
+
+### 主题设置
+![theme_configuration.png](pic%2Ftheme_configuration.png)
 
 ## 参考
 项目最初基于[lognote](https://github.com/cdcsgit/lognote)，对其进行了完全重构，对日志加载和渲染流程进行了优化，

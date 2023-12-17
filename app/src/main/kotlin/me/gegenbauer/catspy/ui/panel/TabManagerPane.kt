@@ -1,5 +1,7 @@
 package me.gegenbauer.catspy.ui.panel
 
+import com.formdev.flatlaf.FlatClientProperties
+import com.github.weisj.darklaf.iconset.AllIcons
 import kotlinx.coroutines.*
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.context.Context
@@ -14,6 +16,7 @@ import me.gegenbauer.catspy.utils.Key
 import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
 import me.gegenbauer.catspy.utils.registerStroke
 import me.gegenbauer.catspy.view.button.ClosableTabHeader
+import me.gegenbauer.catspy.view.hint.HintManager
 import me.gegenbauer.catspy.view.tab.TabInfo
 import me.gegenbauer.catspy.view.tab.TabManager
 import me.gegenbauer.catspy.view.tab.TabPanel
@@ -43,13 +46,13 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
     private val selectMenu = TabSelectorPopupMenu()
     private val homePanel = HomePanel()
     private val scope = MainScope()
+    private val addTabButton = JButton().apply {
+        icon = AllIcons.Action.Add.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
+        addActionListener(createNewTabAction())
+    }
 
     init {
-        // Work-around. If we add the home tab immediately, the tab header will not be rendered correctly.
-        scope.launch(Dispatchers.UI.immediate) {
-            delay(HOME_TAB_ADD_DELAY)
-            addTab(homePanel)
-        }
+        addTab(homePanel)
 
         model.addChangeListener {
             val selectedTab = getSelectedTab()
@@ -60,6 +63,13 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
         selectMenu.onTabSelected = { tab ->
             contexts.getContext(MainFrame::class.java)?.addTab(tab.tabClazz.getConstructor().newInstance())
         }
+
+        val trailingComponent = JToolBar().apply {
+            isFloatable = false
+            border = null
+            add(addTabButton)
+        }
+        putClientProperty(FlatClientProperties.TABBED_PANE_TRAILING_COMPONENT, trailingComponent)
 
         tabLayoutPolicy = SCROLL_TAB_LAYOUT
         tabPlacement = BOTTOM
@@ -81,7 +91,7 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
             override fun actionPerformed(e: ActionEvent) {
                 selectMenu.isVisible = false
                 SwingUtilities.updateComponentTreeUI(selectMenu)
-                selectMenu.show(supportedTabs, e.source as JComponent)
+                selectMenu.show(supportedTabs, addTabButton)
             }
         }
     }
@@ -117,8 +127,8 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
     }
 
     override fun removeTab(tabPanel: TabPanel) {
-        remove(tabPanel.getTabContent())
         tabPanel.destroy()
+        remove(tabPanel.getTabContent())
     }
 
     override fun getTab(index: Int): TabPanel {
@@ -141,9 +151,5 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
         super.destroy()
         scope.cancel()
         getAllTabs().forEach { it.destroy() }
-    }
-
-    companion object {
-        private const val HOME_TAB_ADD_DELAY = 50L
     }
 }
