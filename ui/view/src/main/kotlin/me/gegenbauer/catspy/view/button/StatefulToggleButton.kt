@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.view.button
 
-import me.gegenbauer.catspy.configuration.ToggleButtonTheme
 import me.gegenbauer.catspy.databinding.bind.componentName
+import me.gegenbauer.catspy.iconset.GIcons
 import javax.swing.Icon
 import javax.swing.JToggleButton
 
@@ -14,8 +14,8 @@ class StatefulToggleButton(
     tooltip: String? = null
 ) : JToggleButton(originalText, originalIcon), StatefulActionComponent {
 
-    override var buttonDisplayMode: me.gegenbauer.catspy.view.button.ButtonDisplayMode? =
-        me.gegenbauer.catspy.view.button.ButtonDisplayMode.ALL
+    override var buttonDisplayMode: ButtonDisplayMode? =
+        ButtonDisplayMode.ALL
         set(value) {
             field = value
             setDisplayMode(value)
@@ -27,15 +27,15 @@ class StatefulToggleButton(
         isRolloverEnabled = true
     }
 
-    override fun setDisplayMode(mode: me.gegenbauer.catspy.view.button.ButtonDisplayMode?) {
+    override fun setDisplayMode(mode: ButtonDisplayMode?) {
         when (mode) {
-            me.gegenbauer.catspy.view.button.ButtonDisplayMode.TEXT -> {
+            ButtonDisplayMode.TEXT -> {
                 text = originalText
-                icon = overrideDefaultToggleIcon ?: ToggleButtonTheme.defaultIconUnselected
-                selectedIcon = overrideDefaultToggleSelectedIcon ?: ToggleButtonTheme.defaultIconSelected
+                icon = overrideDefaultToggleIcon ?: GIcons.State.ToggleOff.get()
+                selectedIcon = overrideDefaultToggleSelectedIcon ?: GIcons.State.ToggleOn.get()
             }
 
-            me.gegenbauer.catspy.view.button.ButtonDisplayMode.ICON -> {
+            ButtonDisplayMode.ICON -> {
                 text = null
                 icon = originalIcon
                 selectedIcon = originalSelectedIcon

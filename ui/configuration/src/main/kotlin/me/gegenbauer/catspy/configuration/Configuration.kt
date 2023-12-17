@@ -1,51 +1,8 @@
 package me.gegenbauer.catspy.configuration
 
 import com.formdev.flatlaf.FlatLaf
-import me.gegenbauer.catspy.iconset.GIcons
 import java.awt.Color
 import java.util.*
-import javax.swing.Icon
-import javax.swing.UIManager
-import javax.swing.plaf.ColorUIResource
-
-private val properties = UIManager.getDefaults()
-
-object ToggleButtonTheme {
-    val defaultIconUnselected: Icon = GIcons.State.ToggleOff.get()
-    val defaultIconSelected: Icon = GIcons.State.ToggleOn.get()
-}
-
-object FilterComboBoxTheme {
-    val fontBackgroundInclude: Color
-        get() = properties.getColor("ComboBox.editableBackground") ?: Color(255, 255, 255, 255)
-    val fontBackgroundExclude = properties.getColor("ComboBox.selectionBackground") ?: Color(38F, 117F, 191F)
-}
-
-object EmptyStatePanelTheme {
-    val iconBackground: Color
-        get() = properties.getColor("Button.borderless.hover") ?: Color(242, 242, 242, 242)
-}
-
-object VStatusPanelTheme: ThemeAware {
-    val backgroundDark: Color = Color(0x46494B)
-    val backgroundLight: Color = Color(0xFFFFFF)
-    val bookmarkLight: Color = Color(0x000000)
-    val bookmarkDark: Color = Color(0xFFFFFF)
-    val currentPositionDark: Color = Color(0xA0, 0xA0, 0xA0, 0x50)
-    val currentPositionLight: Color = Color(0xC0, 0xC0, 0xC0, 0x50)
-
-    override fun onThemeChanged(theme: FlatLaf, properties: Hashtable<Any, Any>) {
-        properties["VStatusPanel.background"] = if (theme.isDark) ColorUIResource(backgroundDark) else ColorUIResource(
-            backgroundLight
-        )
-        properties["VStatusPanel.bookmark"] = if (theme.isDark) ColorUIResource(bookmarkDark) else ColorUIResource(
-            bookmarkLight
-        )
-        properties["VStatusPanel.currentPosition"] = if (theme.isDark) ColorUIResource(currentPositionDark) else ColorUIResource(
-            currentPositionLight
-        )
-    }
-}
 
 object LogColorScheme: ThemeAware {
     private val DEFAULT_COLOR = Color(0x000000)

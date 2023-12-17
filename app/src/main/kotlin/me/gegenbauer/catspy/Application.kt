@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy
 
-import com.formdev.flatlaf.FlatLaf
 import com.formdev.flatlaf.extras.FlatInspector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -14,7 +13,6 @@ import me.gegenbauer.catspy.conf.GlobalConfSync
 import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.configuration.ThemeManager
-import me.gegenbauer.catspy.configuration.VStatusPanelTheme
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
@@ -86,14 +84,12 @@ object Application : WindowAdapter() {
 
     private fun createMainFrame() {
         if (::mainFrame.isInitialized) {
-            //FlatAnimatedLafChange.showSnapshot()
             mainFrame.destroy()
         }
         StringResourceManager.loadStrings()
         mainFrame = MainFrame(GlobalProperties.APP_NAME)
         mainFrame.configureContext(mainFrame)
         mainFrame.isVisible = true
-        //FlatAnimatedLafChange.hideSnapshotWithAnimation()
         mainFrame.addWindowListener(this@Application)
     }
 
@@ -106,7 +102,6 @@ object Application : WindowAdapter() {
     }
 
     private val themeAwareControllers = listOf(
-        VStatusPanelTheme,
         LogColorScheme,
     )
 

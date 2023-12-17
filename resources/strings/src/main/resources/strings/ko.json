@@ -47,6 +47,7 @@
     "viewWindowedModeBtn": "뷰를 새 창으로 이동"
   },
   "ui": {
+    "accentColor": "강조 색상",
     "adb": "ADB",
     "adbPath": "ADB 경로",
     "addCmd": "명령어 추가",
@@ -65,6 +66,8 @@
     "change": "변경",
     "clear": "임",
     "close": "닫기",
+    "closeTabConfirmMessage": "\\\"%s\\\"를 정말로 닫으시겠습니까?",
+    "closeTabConfirmTitle": "확실합니까?",
     "cmd": "명령어",
     "color": "색상",
     "connect": "연결",
@@ -93,6 +96,7 @@
     "full": "전체",
     "fullLogDialogTitle": "전체 로그",
     "goToLineDialogTitle": "줄로 이동",
+    "hintConfirm": "알았어요!",
     "language": "언어",
     "languageSettingHint": "언어를 변경하려면 애플리케이션을 다시 시작해야 합니다.",
     "loading": "로딩 중...",
@@ -129,6 +133,7 @@
     "select": "선택",
     "selectAll": "전체 선택",
     "selectFont": "폰트",
+    "selectFunctionTab": "기능 탭을 선택하려면 클릭하세요",
     "selectLog": "로그 선택",
     "selectTab": "탭 선택",
     "setSearch": "검색 설정",

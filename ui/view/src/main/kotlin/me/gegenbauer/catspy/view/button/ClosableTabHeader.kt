@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.view.button
 
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.get
 import me.gegenbauer.catspy.utils.*
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -66,10 +67,6 @@ class ClosableTabHeader(
                     renameTabTitle()
                 }
             }
-
-            override fun mouseEntered(e: MouseEvent?) {
-                setTabHovered(true)
-            }
         })
 
         editor.addFocusListener(object : FocusAdapter() {
@@ -105,7 +102,8 @@ class ClosableTabHeader(
 
     private fun closeTab() {
         val showConfirmDialog = JOptionPane.showConfirmDialog(
-            parent, "Do you really want to close \"" + title.text + "\"?", "Are you sure?",
+            parent, STRINGS.ui.closeTabConfirmMessage.get(title.text),
+            STRINGS.ui.closeTabConfirmTitle,
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE
         )
         if (showConfirmDialog == JOptionPane.OK_OPTION) {
@@ -135,10 +133,6 @@ class ClosableTabHeader(
             add(title, 0)
             revalidate()
         }
-    }
-
-    private fun setTabHovered(isHovered: Boolean) {
-        //(parent.ui as? DarkTabbedPaneUI)?.setRolloverTab(if (isHovered) parent.indexOfTabComponent(this) else -1)
     }
 
     private fun renameTabTitle() {

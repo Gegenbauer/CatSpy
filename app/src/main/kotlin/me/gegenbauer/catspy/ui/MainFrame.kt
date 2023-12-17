@@ -1,7 +1,5 @@
 package me.gegenbauer.catspy.ui
 
-import com.formdev.flatlaf.extras.FlatSVGUtils
-import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -13,7 +11,6 @@ import me.gegenbauer.catspy.context.GlobalContextManager
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
-import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.iconset.appIcons
 import me.gegenbauer.catspy.java.ext.FileSaveEvent
 import me.gegenbauer.catspy.java.ext.NormalEvent

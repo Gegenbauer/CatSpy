@@ -7,7 +7,6 @@ import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.withName
@@ -52,8 +51,6 @@ class ScriptCard(
         add(actionBar)
         add(titleLabel)
         add(contentLabel)
-
-        ThemeManager.registerThemeUpdateListener(this)
     }
 
     override fun updateContent() {
@@ -91,11 +88,6 @@ class ScriptCard(
 
     override fun resumeAutomaticallyUpdate() {
         periodUpdateTask.resume()
-    }
-
-    override fun destroy() {
-        super.destroy()
-        ThemeManager.unregisterThemeUpdateListener(this)
     }
 
     override fun setPeriod(period: Long) {

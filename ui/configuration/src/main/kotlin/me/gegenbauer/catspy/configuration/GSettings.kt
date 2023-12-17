@@ -3,8 +3,11 @@ package me.gegenbauer.catspy.configuration
 import me.gegenbauer.catspy.log.LogLevel
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.strings.Locale
+import me.gegenbauer.catspy.utils.toArgb
+import java.awt.Color
 import java.awt.Font
 import java.awt.Frame
+import javax.swing.UIManager
 
 const val DEFAULT_FONT_SIZE = 14
 const val DEFAULT_LOG_FONT_SIZE = 13
@@ -64,6 +67,7 @@ data class GSettings(
     var logFontName: String = "DialogInput",
     var logFontSize: Int = DEFAULT_FONT_SIZE,
     var logFontStyle: Int = 0,
+    private var accentColor: Int = 0,
     /** 界面主题 end **/
 
     /** 日志命令配置 start **/
@@ -77,6 +81,7 @@ data class GSettings(
 
     var lastFileSaveDir: String = "",
     val ignoredRelease: MutableList<String> = mutableListOf(),
+    private val shownHints: MutableSet<String> = mutableSetOf()
 ) {
     var font: Font
         get() = Font(fontFamily, fontStyle, fontSize)
@@ -93,4 +98,23 @@ data class GSettings(
             logFontStyle = value.style
             logFontSize = value.size
         }
+
+    fun isHintShown(hintId: String): Boolean {
+        return shownHints.contains(hintId)
+    }
+
+    fun setHintShown(hintId: String) {
+        shownHints.add(hintId)
+    }
+
+    fun setAccentColor(color: Color) {
+        accentColor = color.toArgb()
+    }
+
+    fun getAccentColor(): Color {
+        if (accentColor == 0) {
+            return UIManager.getColor("CatSpy.accent.default") ?: Color.lightGray
+        }
+        return accentColor.toArgb()
+    }
 }

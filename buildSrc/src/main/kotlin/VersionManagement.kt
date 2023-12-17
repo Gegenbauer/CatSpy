@@ -96,6 +96,12 @@ object Squareup {
     val okhttpLoggingInterceptor = Dependency(groupName, "logging-interceptor", version)
 }
 
+object MigLayout {
+    val groupName = "com.miglayout"
+
+    val swing = Dependency(groupName, "miglayout-swing", "5.3")
+}
+
 data class Dependency(
     val group: String,
     val artifact: String,

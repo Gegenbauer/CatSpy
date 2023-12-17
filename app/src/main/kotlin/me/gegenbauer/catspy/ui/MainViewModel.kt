@@ -23,6 +23,7 @@ import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.strings.GlobalStrings
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.get
 import me.gegenbauer.catspy.utils.copyWithProgress
 import me.gegenbauer.catspy.view.panel.DownloadListenerTaskWrapper
 import me.gegenbauer.catspy.view.panel.StatusPanel
@@ -76,7 +77,7 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
             asset?.let {
                 val downloadFileName = "${APP_NAME.lowercase(Locale.getDefault())}_${release.name}"
                 val downloadPath = filesDir.appendPath(downloadFileName)
-                val taskName = String.format(STRINGS.ui.downloadTaskTitle, release.name)
+                val taskName = STRINGS.ui.downloadTaskTitle.get(release.name)
                 val task = Task(taskName, object : TaskHandle {
                     override fun cancel() {
                         updateService.cancelDownload()
@@ -103,7 +104,7 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
             logFile?.let { sourceFile ->
                 GLog.d(TAG, "[exportLog] targetLogFile=${targetFile.absolutePath}, sourceLogFile=${sourceFile.absolutePath}")
 
-                val taskName = String.format(STRINGS.ui.exportFileTaskTitle, targetFile.absolutePath)
+                val taskName = STRINGS.ui.exportFileTaskTitle.get(targetFile.absolutePath)
                 val task = Task(taskName, object : TaskHandle {
                     override fun cancel() {
                         coroutineContext.job.cancel()

@@ -3,10 +3,8 @@ package me.gegenbauer.catspy.log.ui.panel
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.glog.GLog
-import me.gegenbauer.catspy.log.ui.table.LogTable
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.Rectangle
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
@@ -18,7 +16,7 @@ class VStatusPanel(override val contexts: Contexts = Contexts.default) : JPanel(
 
     init {
         minimumSize = Dimension(0, 0)
-        preferredSize = Dimension(VIEW_RECT_WIDTH, VIEW_RECT_HEIGHT)
+        preferredSize = Dimension(STATUS_PANEL_WIDTH, CURRENT_POSITION_MARK_MIN_HEIGHT)
         border = BorderFactory.createLineBorder(Color.DARK_GRAY)
         addMouseListener(MouseHandler())
     }
@@ -45,8 +43,12 @@ class VStatusPanel(override val contexts: Contexts = Contexts.default) : JPanel(
         override fun mouseClicked(event: MouseEvent) {
             val logTable = contexts.getContext(LogPanel::class.java)?.table
             logTable ?: return
-            val row = event.point.y * logTable.tableModel.dataSize / height
-            require(row >= 0 && row < logTable.tableModel.dataSize) { "Row must be between 0 and ${logTable.tableModel.dataSize}" }
+            val row = (event.point.y.toLong() * logTable.tableModel.dataSize / height).toInt()
+            if (row !in 0 until logTable.tableModel.dataSize) {
+                GLog.w(TAG, "[mouseClicked] row is out of range: $row")
+                super.mouseClicked(event)
+                return
+            }
             logTable.moveRowToCenter(row, false)
             super.mouseClicked(event)
         }
@@ -54,7 +56,7 @@ class VStatusPanel(override val contexts: Contexts = Contexts.default) : JPanel(
 
     companion object {
         private const val TAG = "VStatusPanel"
-        const val VIEW_RECT_WIDTH = 14
-        const val VIEW_RECT_HEIGHT = 5
+        const val STATUS_PANEL_WIDTH = 14
+        const val CURRENT_POSITION_MARK_MIN_HEIGHT = 5
     }
 }

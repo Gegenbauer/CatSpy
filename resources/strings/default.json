@@ -1,4 +1,7 @@
 {
+  "hints": {
+    "selectFunctionTab": "Click to select function tab"
+  },
   "toolTip": {
     "boldCombo": "bold keyword in message column\nRegex support ex text1|text2",
     "boldToggle": "Bold keyword",
@@ -47,6 +50,7 @@
     "viewWindowedModeBtn": "Move the view to a new window"
   },
   "ui": {
+    "accentColor": "Accent Color",
     "adb": "ADB",
     "adbPath": "ADB Path",
     "addCmd": "Add Command",
@@ -65,6 +69,8 @@
     "change": "Change",
     "clear": "Clear",
     "close": "Close",
+    "closeTabConfirmMessage": "Do you really want to close \\\"%s\\\"",
+    "closeTabConfirmTitle": "Are you sure?",
     "cmd": "Command",
     "color": "Color",
     "connect": "Connect",
@@ -77,7 +83,7 @@
     "downloadReleaseCompleteDialogMessage": "The new version has been downloaded. Would you like to view the file and proceed with the installation?",
     "downloadReleaseCompleteDialogTitle": "Download Complete",
     "downloadTaskTitle": "Downloading %s",
-    "dragLogFileWarning": "打开文件将会清空当前日志，是否继续",
+    "dragLogFileWarning": "Opening the file will clear the current log. Do you wish to continue?",
     "edit": "Edit",
     "exportFileSuccess": "File exported successfully",
     "exportFileTaskTitle": "Exporting file to %s",
@@ -92,6 +98,7 @@
     "full": "Full",
     "fullLogDialogTitle": "Full log",
     "goToLineDialogTitle": "Go to line",
+    "hintConfirm": "Got it!",
     "language": "Language",
     "languageSettingHint": "The language change will take effect after restarting the application.",
     "loading": "Loading...",

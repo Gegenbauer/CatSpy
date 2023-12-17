@@ -197,18 +197,18 @@ class LogTabPanel(override val contexts: Contexts = Contexts.default) : JPanel()
     private var updateFilterJob: Job? = null
 
     init {
+        isVisible = false
         GlobalContextManager.register(this)
-
-        createUI()
-
-        registerEvent()
-
-        observeViewModelValue()
-
-        ThemeManager.registerThemeUpdateListener(logMainBinding)
-
         scope.launch {
+            createUI()
+
+            registerEvent()
+
+            observeViewModelValue()
+
+            ThemeManager.registerThemeUpdateListener(logMainBinding)
             bind(logMainBinding)
+            isVisible = true
             logViewModel.preCacheFilters()
         }
     }

@@ -22,6 +22,13 @@
 **Features to be implemented**
 - Extend log format, support custom log format and filter
 
+## Interface
+### Log main interface
+![log_main_interface.png](pic%2Flog_main_interface.png)
+
+### Theme Settings
+![theme_configuration.png](pic%2Ftheme_configuration.png)
+
 ## References
 The project was initially based on [lognote](https://github.com/cdcsgit/lognote), and was completely refactored, with optimizations made to the log loading and rendering process,
 Added the ability to build artifacts for various platforms, added software update functionality, added paginated display of logs.

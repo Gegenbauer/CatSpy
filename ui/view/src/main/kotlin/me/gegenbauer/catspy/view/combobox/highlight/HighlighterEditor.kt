@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.view.combobox.highlight
 
-import me.gegenbauer.catspy.configuration.FilterComboBoxTheme.fontBackgroundInclude
 import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.utils.DefaultDocumentListener
@@ -10,6 +9,7 @@ import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JTextField
+import javax.swing.UIManager
 import javax.swing.plaf.UIResource
 import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
@@ -19,7 +19,7 @@ import javax.swing.text.JTextComponent
 class HighlighterEditor : BasicComboBoxEditor.UIResource(), Highlightable, UIResource {
 
     override val painterInclude: HighlightPainter
-        get() = DefaultHighlightPainter(fontBackgroundInclude)
+        get() = DefaultHighlightPainter(UIManager.getColor("ComboBox.editableBackground"))
     override val painterExclude: HighlightPainter
         get() = DefaultHighlightPainter(LogColorScheme.filterStyleExclude)
     override val painterSeparator: HighlightPainter

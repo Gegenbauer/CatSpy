@@ -63,6 +63,15 @@ object SettingsManager {
         }
     }
 
+    suspend fun suspendUpdateSettings(editAction: suspend GSettings.() -> Unit) {
+        val originalSettings = settings.copy()
+        settings.editAction()
+        withContext(Dispatchers.UI) {
+            ThemeManager.update(originalSettings, settings)
+        }
+        saveInternal()
+    }
+
     fun checkAndUpdateLocale(originalSettings: String) {
         scope.launch {
             val oriSettings = gson.fromJson(originalSettings, GSettings::class.java)
@@ -75,7 +84,7 @@ object SettingsManager {
         }
     }
 
-    private suspend fun saveInternal() {
+    suspend fun saveInternal() {
         withContext(Dispatchers.GIO) {
             settingsFile.writeText(gson.toJson(settings))
         }

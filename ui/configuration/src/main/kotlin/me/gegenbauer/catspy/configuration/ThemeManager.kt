@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.configuration
 
 import com.formdev.flatlaf.*
-import com.formdev.flatlaf.extras.FlatAnimatedLafChange
 import com.formdev.flatlaf.fonts.inter.FlatInterFont
 import com.formdev.flatlaf.fonts.jetbrains_mono.FlatJetBrainsMonoFont
 import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont
@@ -11,7 +10,9 @@ import com.formdev.flatlaf.themes.FlatMacDarkLaf
 import com.formdev.flatlaf.themes.FlatMacLightLaf
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.getEnum
+import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.strings.globalLocale
+import javax.swing.LookAndFeel
 import javax.swing.UIManager
 
 object ThemeManager {
@@ -21,10 +22,22 @@ object ThemeManager {
     val currentTheme: FlatLaf
         get() = UIManager.getLookAndFeel() as FlatLaf
 
+    val isAccentColorSupported: Boolean
+        get() = listOf(
+            FlatLightLaf::class.java,
+            FlatDarkLaf::class.java,
+            FlatIntelliJLaf::class.java,
+            FlatDarculaLaf::class.java,
+            FlatMacLightLaf::class.java,
+            FlatMacDarkLaf::class.java
+        ).contains<Class<out LookAndFeel>>(UIManager.getLookAndFeel().javaClass)
+
     private val themesMap = hashMapOf<String, String>()
 
     fun init(settings: GSettings) {
         installFonts()
+        setSystemColorGetter()
+        FlatLaf.registerCustomDefaultsSource(GlobalProperties.APP_ID)
         if (!setupLaf(getThemeClass(settings))) {
             setupLaf(SYSTEM_THEME_NAME)
             settings.theme = SYSTEM_THEME_NAME
@@ -33,10 +46,15 @@ object ThemeManager {
         applyFont(settings)
     }
 
+    private fun setSystemColorGetter() {
+        FlatLaf.setSystemColorGetter { SettingsManager.settings.getAccentColor() }
+    }
+
     fun update(originalSettings: GSettings, settings: GSettings) {
         val themeChanged = originalSettings.theme != settings.theme
         val fontChanged = originalSettings.font != settings.font
-        if (themeChanged || fontChanged) {
+        val ifAccentColorChanged = originalSettings.getAccentColor() != settings.getAccentColor()
+        if (themeChanged || fontChanged || ifAccentColorChanged) {
             updateUIWithAnim {
                 updateLaf(settings)
                 applyFont(settings)

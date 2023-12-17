@@ -8,6 +8,7 @@ import me.gegenbauer.catspy.context.Disposable
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.get
 import java.awt.Component
 import java.io.File
 import javax.swing.JFileChooser
@@ -60,7 +61,7 @@ class FileSaveHandler private constructor(
             if (file.exists()) {
                 val result = JOptionPane.showConfirmDialog(
                     parent,
-                    String.format(STRINGS.ui.fileExistsMessage, file.absolutePath),
+                    STRINGS.ui.fileExistsMessage.get(file.absolutePath),
                     STRINGS.ui.fileExistsTitle,
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE

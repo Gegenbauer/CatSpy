@@ -24,7 +24,7 @@ fun createStringAccessor(jsonFile: File, packageName: String, className: String)
             val value = entry.value
 
             if (value.isJsonObject) {
-                result.appendLine("${newDepth.indent}public ${key.toClassName()} $key;")
+                result.appendLine("${newDepth.indent}public ${key.toClassName()} $key = new ${key.toClassName()}();")
                 parseJson(key, value.asJsonObject, newDepth)
             } else {
                 result.appendLine(
