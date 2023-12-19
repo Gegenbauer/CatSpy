@@ -13,7 +13,7 @@ fun interface BookmarkChangeListener {
 class BookmarkManager: ContextService {
 
     private val bookmarks = HashSet<Int>()
-    private val eventListeners = ArrayList<BookmarkChangeListener>()
+    private val eventListeners = mutableSetOf<BookmarkChangeListener>()
     private val listenerLock = ReentrantReadWriteLock()
     private val bookmarksLock = ReentrantReadWriteLock()
 

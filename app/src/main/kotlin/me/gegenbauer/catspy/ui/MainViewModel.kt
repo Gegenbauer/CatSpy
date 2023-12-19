@@ -63,6 +63,7 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
     fun checkUpdate(force: Boolean = false) {
         scope.launch {
             val latestRelease = updateService.getLatestRelease()
+            GLog.i(TAG, "[checkUpdate] latestRelease=$latestRelease, currentRelease=${Release(APP_VERSION_NAME)}")
             if (updateService.checkForUpdate(latestRelease, Release(APP_VERSION_NAME))) {
                 if (force || SettingsManager.settings.ignoredRelease.contains(latestRelease.name).not()) {
                     _eventFlow.value = latestRelease

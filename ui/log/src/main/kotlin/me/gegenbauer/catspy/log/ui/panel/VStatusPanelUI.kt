@@ -44,6 +44,9 @@ open class VStatusPanelUI(override val contexts: Contexts = Contexts.default) : 
         g.color = bookmarkColor
         val tableModel = logTable.tableModel
         val dataCount = tableModel.dataSize
+        if (dataCount <= 0) {
+            return
+        }
         bookmarkManager.getAllBookmarks().forEach {
             val row = tableModel.getRowIndexInAllPages(it)
             if (row > 0) {
@@ -58,6 +61,9 @@ open class VStatusPanelUI(override val contexts: Contexts = Contexts.default) : 
 
         val tableVisibleY = (logTable.visibleRect.y).toLong()
         val tableTotalHeight = (logTable.rowHeight * tableModel.dataSize).toLong()
+        if (tableTotalHeight <= 0L) {
+            return
+        }
         var positionMarkHeight = logTable.visibleRect.height * c.height / tableTotalHeight
         if (positionMarkHeight < VStatusPanel.CURRENT_POSITION_MARK_MIN_HEIGHT) {
             positionMarkHeight = VStatusPanel.CURRENT_POSITION_MARK_MIN_HEIGHT.toLong()

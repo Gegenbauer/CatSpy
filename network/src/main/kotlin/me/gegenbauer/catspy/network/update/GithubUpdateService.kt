@@ -7,6 +7,7 @@ import me.gegenbauer.catspy.network.DownloadListener
 import me.gegenbauer.catspy.network.NetworkClient
 import me.gegenbauer.catspy.network.ProgressResponseBody
 import me.gegenbauer.catspy.network.update.data.Asset
+import me.gegenbauer.catspy.network.update.data.ErrorMessage
 import me.gegenbauer.catspy.network.update.data.Release
 import okhttp3.Call
 import okhttp3.Request
@@ -53,7 +54,13 @@ class GithubUpdateServiceImpl(override val user: String, override val repo: Stri
                 throw Exception("Failed to get latest release $url, code: ${response.code}")
             }
             val body = response.body?.string() ?: throw Exception("Failed to get latest release, body is null")
-            parseRelease(body)
+            val release = parseRelease(body)
+            if (release == null) {
+                val errorMessage = parseErrorMessage(body)
+                throw Exception("Failed to parse latest release, error: $errorMessage")
+            } else {
+                release
+            }
         }
     }
 
@@ -113,8 +120,16 @@ class GithubUpdateServiceImpl(override val user: String, override val repo: Stri
         currentDownloadCall?.cancel()
     }
 
-    private fun parseRelease(json: String): Release {
-        return gson.fromJson(json, Release::class.java)
+    private fun parseRelease(json: String): Release? {
+        return kotlin.runCatching {
+            gson.fromJson(json, Release::class.java)
+        }.getOrNull()
+    }
+
+    private fun parseErrorMessage(json: String): ErrorMessage? {
+        return kotlin.runCatching {
+            gson.fromJson(json, ErrorMessage::class.java)
+        }.getOrNull()
     }
 
     companion object {

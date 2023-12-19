@@ -27,7 +27,7 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
 
     private var tree = SettingsTree()
 
-    private val startSettings = SettingsManager.string
+    private var startSettings = SettingsManager.string
     private val scope = MainScope()
 
     init {
@@ -67,7 +67,7 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         contentPane.add(splitPane, BorderLayout.CENTER)
         contentPane.add(buildButtonsPane(), BorderLayout.PAGE_END)
 
-        installKeyStrokeEscClosing(this)
+        installKeyStrokeEscClosing(this) { cancel() }
     }
 
     private fun makeAppearanceGroup(): SettingsGroup {
@@ -190,16 +190,19 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
     private fun save() {
         dispose()
         SettingsManager.checkAndUpdateLocale(startSettings)
+        startSettings = SettingsManager.string
     }
 
     private fun reset() {
-        scope.launch {
-            SettingsManager.suspendUpdateSettings {
-                val originalSettings = gson.fromJson(startSettings, GSettings::class.java)
-                copyFields(originalSettings, SettingsManager.settings)
-            }
-            reloadUI()
+        scope.launch { resetSuspend() }
+    }
+
+    private suspend fun resetSuspend() {
+        SettingsManager.suspendUpdateSettings {
+            val originalSettings = gson.fromJson(startSettings, GSettings::class.java)
+            copyFields(originalSettings, SettingsManager.settings)
         }
+        reloadUI()
     }
 
     private fun reloadUI() {
@@ -211,8 +214,10 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
     }
 
     private fun cancel() {
-        reset()
-        dispose()
+        scope.launch {
+            resetSuspend()
+            dispose()
+        }
     }
 
     override fun dispose() {

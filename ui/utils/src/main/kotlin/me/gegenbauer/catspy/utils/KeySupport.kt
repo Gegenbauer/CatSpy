@@ -53,7 +53,7 @@ fun installKeyStroke(container: RootPaneContainer, stroke: KeyStroke?, actionMap
     rootPane.actionMap.put(actionMapKey, action)
 }
 
-fun installKeyStrokeEscClosing(container: RootPaneContainer) {
+fun installKeyStrokeEscClosing(container: RootPaneContainer, action: () -> Unit) {
     if (container !is Window) {
         GLog.w(TAG, "container is not java.awt.Window")
         return
@@ -63,13 +63,23 @@ fun installKeyStrokeEscClosing(container: RootPaneContainer) {
     val actionMapKey = container.javaClass.name + ":WINDOW_CLOSING"
     val closingAction: Action = object : AbstractAction() {
         override fun actionPerformed(event: ActionEvent) {
-            container.dispatchEvent(WindowEvent(container, WindowEvent.WINDOW_CLOSING))
+            action()
         }
     }
 
     val rootPane = container.rootPane
     rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escStroke, actionMapKey)
     rootPane.actionMap.put(actionMapKey, closingAction)
+}
+
+fun installKeyStrokeEscClosing(container: RootPaneContainer) {
+    if (container !is Window) {
+        GLog.w(TAG, "container is not java.awt.Window")
+        return
+    }
+    installKeyStrokeEscClosing(container) {
+        container.dispatchEvent(WindowEvent(container, WindowEvent.WINDOW_CLOSING))
+    }
 }
 
 object Key {
