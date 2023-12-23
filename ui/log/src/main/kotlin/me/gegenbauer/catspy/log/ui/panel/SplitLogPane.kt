@@ -9,7 +9,6 @@ import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.glog.GLog
-import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
@@ -130,7 +129,7 @@ class SplitLogPane(
             val os = currentPlatform
             GLog.d(TAG, "os:$os, drop:${info.dropAction},sourceDrop:${info.sourceDropActions},userDrop:${info.userDropAction}")
 
-            val logMainUI = contexts.getContext(LogTabPanel::class.java)
+            val logMainUI = contexts.getContext(BaseLogPanel::class.java)
             logMainUI ?: return false
 
             val options = listOf<Pair<String, (List<File>) -> Unit>>(

@@ -2,8 +2,6 @@ package me.gegenbauer.catspy.ui.panel
 
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.componentName
@@ -39,7 +37,7 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
     private val statusBar = ServiceManager.getContextService(StatusPanel::class.java)
     private val scope = MainScope()
 
-    init {
+    override fun setup() {
         componentName = this::class.java.simpleName
 
         layout = GridBagLayout()

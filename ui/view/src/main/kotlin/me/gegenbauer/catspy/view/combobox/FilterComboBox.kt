@@ -5,6 +5,7 @@ import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.filter.ui.enableAutoComplete
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.DefaultDocumentListener
 import me.gegenbauer.catspy.utils.applyTooltip
 import me.gegenbauer.catspy.view.combobox.highlight.CustomEditorDarkComboBoxUI
@@ -204,7 +205,7 @@ class FilterComboBox(items: List<String>, private val enableHighlight: Boolean =
 }
 
 fun filterComboBox(items: List<String> = emptyList(), enableHighlight: Boolean = true, tooltip: String? = null): FilterComboBox {
-    val comboBox = FilterComboBox(items, enableHighlight, tooltip)
+    val comboBox = FilterComboBox(items, enableHighlight, "$tooltip\n${STRINGS.toolTip.comboFilter}")
     comboBox.isEditable = true
     comboBox.addTooltipUpdateListener()
     return comboBox

@@ -15,7 +15,7 @@ import me.gegenbauer.catspy.log.datasource.LogViewModel
 import me.gegenbauer.catspy.log.flag
 import me.gegenbauer.catspy.log.model.LogcatFilter
 import me.gegenbauer.catspy.log.model.LogcatItem
-import me.gegenbauer.catspy.log.ui.LogTabPanel
+import me.gegenbauer.catspy.log.ui.panel.BaseLogPanel
 import me.gegenbauer.catspy.log.ui.panel.LogPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.view.filter.FilterItem
@@ -33,6 +33,7 @@ fun interface LogTableModelListener {
 
 open class LogTableModel(
     val viewModel: LogViewModel,
+    val deviceMode: Boolean = false,
     override val contexts: Contexts = Contexts.default
 ) : AbstractTableModel(), Context, Searchable, Pageable<LogcatItem>, ILogTableModel {
     override var highlightFilterItem: FilterItem = FilterItem.EMPTY_ITEM
@@ -115,7 +116,7 @@ open class LogTableModel(
     }
 
     private fun clearBookmark() {
-        val mainUI = contexts.getContext(LogTabPanel::class.java)
+        val mainUI = contexts.getContext(BaseLogPanel::class.java)
         mainUI ?: return
         val bookmarkManager = ServiceManager.getContextService(mainUI, BookmarkManager::class.java)
         bookmarkManager.clear()
@@ -135,7 +136,7 @@ open class LogTableModel(
                 getLogTable()?.setRowSelectionInterval(selectedRowStart, selectedRowEnd)
             }.onFailure {
                 GLog.e(
-                    "LogTableModel", "[collectLogItems] selectedRows=$selectedLogRows, " +
+                    TAG, "[collectLogItems] selectedRows=$selectedLogRows, " +
                             "rowCount=$rowCount, itemsSize=${logItems.size}", it
                 )
             }
@@ -164,7 +165,11 @@ open class LogTableModel(
     }
 
     override fun getColumnCount(): Int {
-        return columns.size
+        return if (deviceMode) {
+            deviceLogColumns.size
+        } else {
+            fileLogColumns.size
+        }
     }
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
@@ -174,7 +179,7 @@ open class LogTableModel(
                 return@accessPageData when (columnIndex) {
                     COLUMN_NUM -> logItem.num
                     COLUMN_TIME -> logItem.time
-                    COLUMN_PID -> logItem.pid
+                    COLUMN_PID -> viewModel.processValueExtractor(logItem)
                     COLUMN_TID -> logItem.tid
                     COLUMN_LEVEL -> logItem.level.flag
                     COLUMN_TAG -> logItem.tag
@@ -188,7 +193,11 @@ open class LogTableModel(
     }
 
     override fun getColumnName(column: Int): String {
-        return columns[column].name
+        return if (deviceMode) {
+            deviceLogColumns[column].name
+        } else {
+            fileLogColumns[column].name
+        }
     }
 
     override fun moveToNextSearchResult() {
@@ -203,7 +212,7 @@ open class LogTableModel(
         if (searchFilterItem.isEmpty()) return
 
         val selectedRow = viewModel.fullTableSelectedRows.firstOrNull() ?: -1
-        val mainUI = contexts.getContext(LogTabPanel::class.java)
+        val mainUI = contexts.getContext(BaseLogPanel::class.java)
         mainUI ?: return
         val table = getLogTable()
         table ?: return
@@ -309,6 +318,8 @@ open class LogTableModel(
         const val COLUMN_TAG = 5
         const val COLUMN_MESSAGE = 6
         private const val DEFAULT_PAGE_SIZE = 10 * 10000
+
+        private const val TAG = "LogTableModel"
     }
 
 }

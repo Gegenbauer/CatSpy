@@ -1,10 +1,10 @@
 # CatSpy
 
-[![Build status](https://github.com/Gegenbauer/CatSpy_source/workflows/Build/badge.svg)](https://github.com/Gegenbauer/CatSpy_source/actions?query=workflow%3ABuild)
-![GitHub contributors](https://img.shields.io/github/contributors/Gegenbauer/CatSpy_source)
-![GitHub all releases](https://img.shields.io/github/downloads/Gegenbauer/CatSpy_source/total)
-![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/Gegenbauer/CatSpy_source/latest/total)
-![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy_source.svg)
+[![Build status](https://github.com/Gegenbauer/CatSpy/workflows/Build/badge.svg)](https://github.com/Gegenbauer/CatSpy/actions?query=workflow%3ABuild)
+![GitHub contributors](https://img.shields.io/github/contributors/Gegenbauer/CatSpy)
+![GitHub all releases](https://img.shields.io/github/downloads/Gegenbauer/CatSpy/total)
+![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/Gegenbauer/CatSpy/latest/total)
+![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy.svg)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 **CatSpy** - 一个用于浏览日志的工具。

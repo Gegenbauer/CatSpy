@@ -14,11 +14,16 @@ data class LogcatItem(
     val tid: String = "",
     val level: LogLevel = LogLevel.VERBOSE,
     val tag: String = "",
-    override val message: String = ""
+    override val message: String = "",
+    val packageName: String = "",
 ) : LogItem {
 
     fun toLogLine(): String {
-        return "$time\t$pid\t$tid\t${level.flag}\t$tag\t$message"
+        return if (packageName.isEmpty()) {
+            "$time\t$pid\t$tid\t${level.flag}\t$tag\t$message"
+        } else {
+            "$time\t$packageName\t$tid\t${level.flag}\t$tag\t$message"
+        }
     }
 
     companion object {
@@ -30,7 +35,7 @@ data class LogcatItem(
         private const val TAG_INDEX = 5
         private const val MESSAGE_INDEX = 6
 
-        fun from(line: String, num: Int): LogcatItem {
+        fun from(line: String, num: Int, pidToPackageMap: Map<String, String> = emptyMap()): LogcatItem {
             val items = splitLineIntoParts(line)
             return runCatching {
                 if (items.size > TAG_INDEX) {
@@ -40,7 +45,7 @@ data class LogcatItem(
                     val level = getLevelFromFlag(items[LEVEL_INDEX])
                     val tag = items[TAG_INDEX]
                     val message = items[MESSAGE_INDEX]
-                    LogcatItem(num, time, pid, tid, level, tag, message)
+                    LogcatItem(num, time, pid, tid, level, tag, message, pidToPackageMap[pid] ?: "")
                 } else {
                     val level = if (line.startsWith(GlobalProperties.APP_NAME)) {
                         LogLevel.ERROR

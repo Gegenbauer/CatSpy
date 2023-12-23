@@ -24,6 +24,8 @@ interface TabPanel: Disposable, Context {
     val closeable: Boolean
         get() = true
 
+    fun setup()
+
     fun onTabSelected()
 
     fun onTabUnselected()

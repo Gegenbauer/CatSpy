@@ -57,6 +57,10 @@ class StatefulPanel : JPanel() {
         listState = ListState.EMPTY
     }
 
+    fun hideEmptyImage() {
+        emptyImage.isVisible = false
+    }
+
     private fun setStateInternal(listState: ListState) {
         when (listState) {
             ListState.NORMAL -> {

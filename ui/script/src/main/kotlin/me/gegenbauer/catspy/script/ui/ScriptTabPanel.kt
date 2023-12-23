@@ -84,7 +84,7 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
             focusedActivityCard.device = value
         }
 
-    init {
+    override fun setup() {
         componentName = "ScriptMainUI"
         layout = BorderLayout()
         add(cardContainer.container, BorderLayout.NORTH)

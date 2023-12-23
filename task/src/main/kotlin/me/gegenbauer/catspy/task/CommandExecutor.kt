@@ -1,9 +1,6 @@
 package me.gegenbauer.catspy.task
 
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -40,6 +37,9 @@ class CommandExecutorImpl(
         return startProcess()
     }
 
+    private val job = Job()
+    private val readJobs = mutableListOf<Job>()
+
     private fun startProcess(): Flow<Result<String>> {
         return channelFlow {
             runCatching {
@@ -48,15 +48,17 @@ class CommandExecutorImpl(
                     readError(it)
                     process = it
                 }
+                readJobs.forEach { it.join() }
             }.onFailure {
                 TaskLog.e(name, "[startProcess] $it")
+                send(Result.failure(it))
                 close(it)
             }
         }.flowOn(dispatcher)
     }
 
     private fun ProducerScope<Result<String>>.readOutput(process: Process) {
-        async {
+        launch(job) {
             Scanner(BufferedInputStream(process.inputStream)).use {
                 while (it.hasNextLine()) {
                     val line = it.nextLine()
@@ -64,26 +66,29 @@ class CommandExecutorImpl(
                 }
             }
             TaskLog.d(name, "[readOutput] $process normally exit")
-            close()
+        }.apply {
+            readJobs.add(this)
         }
     }
 
     private fun ProducerScope<Result<String>>.readError(process: Process) {
-        async {
+        launch(job) {
             val errorMessage = StringBuilder()
             process.errorStream.use { inputSteam ->
                 inputSteam.readAllBytes().also { errorMessage.append(it.toString(Charsets.UTF_8)) }
             }
-            if (errorMessage.isBlank()) return@async
+            if (errorMessage.isBlank()) return@launch
             TaskLog.e(name, "[readError] $errorMessage")
             send(Result.failure(LogProduceProcessExecuteException(errorMessage.toString())))
-            close()
+        }.apply {
+            readJobs.add(this)
         }
     }
 
     override fun cancel() {
         TaskLog.d(name, "[cancel]")
         process?.destroyForcibly()
+        job.cancel()
     }
 }
 

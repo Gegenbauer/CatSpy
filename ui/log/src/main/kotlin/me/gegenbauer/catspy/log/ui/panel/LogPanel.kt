@@ -12,7 +12,6 @@ import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.BookmarkChangeListener
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.ui.LogTabPanel
 import me.gegenbauer.catspy.log.ui.table.LogTable
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModelListener
@@ -147,7 +146,7 @@ abstract class LogPanel(
     }
 
     private fun getBookmarkManager(): BookmarkManager? {
-        return contexts.getContext(LogTabPanel::class.java)?.let {
+        return contexts.getContext(BaseLogPanel::class.java)?.let {
             ServiceManager.getContextService(it, BookmarkManager::class.java)
         }
     }

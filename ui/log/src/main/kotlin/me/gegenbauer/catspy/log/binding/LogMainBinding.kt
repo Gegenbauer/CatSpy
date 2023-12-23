@@ -41,6 +41,12 @@ class LogMainBinding : ContextService, GThemeChangeListener {
     val pidFilterCurrentContent = ObservableValueProperty<String>()
     val pidFilterErrorMessage = ObservableValueProperty<String>()
 
+    val packageFilterEnabled = ObservableValueProperty(SettingsManager.settings.packageFilterEnabled)
+    val packageFilterHistory = ObservableValueProperty(SettingsManager.settings.packageFilterHistory.toStrHistoryList())
+    val packageFilterSelectedIndex = ObservableValueProperty<Int>()
+    val packageFilterCurrentContent = ObservableValueProperty<String>()
+    val packageFilterErrorMessage = ObservableValueProperty<String>()
+
     val tidFilterEnabled = ObservableValueProperty(SettingsManager.settings.tidFilterEnabled)
     val tidFilterHistory = ObservableValueProperty(arrayListOf<String>().toStrHistoryList())
     val tidFilterSelectedIndex = ObservableValueProperty<Int>()
@@ -137,6 +143,12 @@ class LogMainBinding : ContextService, GThemeChangeListener {
                 logFilterHistory.addAll(it!!.toStrContentList())
             }
         }
+        packageFilterHistory.addObserver {
+            SettingsManager.updateSettings {
+                packageFilterHistory.clear()
+                packageFilterHistory.addAll(it!!.toStrContentList())
+            }
+        }
         tagFilterHistory.addObserver {
             SettingsManager.updateSettings {
                 tagFilterHistory.clear()
@@ -177,6 +189,11 @@ class LogMainBinding : ContextService, GThemeChangeListener {
         pidFilterEnabled.addObserver {
             SettingsManager.updateSettings {
                 pidFilterEnabled = it ?: false
+            }
+        }
+        packageFilterEnabled.addObserver {
+            SettingsManager.updateSettings {
+                packageFilterEnabled = it ?: false
             }
         }
         tidFilterEnabled.addObserver {

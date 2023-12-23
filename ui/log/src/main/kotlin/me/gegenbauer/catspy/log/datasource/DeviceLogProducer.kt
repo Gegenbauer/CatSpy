@@ -20,23 +20,23 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class DeviceLogProducer(
-    private val device: String,
+    val device: String,
+    private val processFetcher: AndroidProcessFetcher,
     override val dispatcher: CoroutineDispatcher = Dispatchers.GIO
 ) : BaseLogProducer() {
+    override val tempFile: File = getTempLogFile()
+
     private val commandExecutor by lazy {
         val logcatCommand = "adb${" -s $device".takeIf { device.isNotBlank() } ?: ""} logcat"
         CommandExecutorImpl(CommandProcessBuilder(logcatCommand.toCommandArray()))
     }
 
-    override val tempFile: File = getTempLogFile()
-
     override fun start(): Flow<Result<LogcatItem>> {
         val logcatOutput = commandExecutor.execute()
-        moveToState(LogProducer.State.RUNNING)
         return logcatOutput.map { result ->
             result.map { line ->
                 suspender.checkSuspend()
-                LogcatItem.from(line, logNum.getAndIncrement())
+                LogcatItem.from(line, logNum.getAndIncrement(), processFetcher.getPidToPackageMap())
             }
         }.onCompletion {
             moveToState(LogProducer.State.COMPLETE)

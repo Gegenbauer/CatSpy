@@ -5,7 +5,7 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.ui.LogTabPanel
+import me.gegenbauer.catspy.log.ui.panel.BaseLogPanel
 import me.gegenbauer.catspy.log.ui.dialog.LogViewDialog
 import me.gegenbauer.catspy.log.ui.table.LogTableModel.Companion.COLUMN_NUM
 import me.gegenbauer.catspy.strings.STRINGS
@@ -44,6 +44,11 @@ class LogTable(
         setRowSelectionAllowed(true)
         columnSelectionAllowed = false
 
+        val columns = if (tableModel.deviceMode) {
+            deviceLogColumns
+        } else {
+            fileLogColumns
+        }
         columns.forEach { it.configureColumn(this) }
 
         updateRowHeight()
@@ -222,7 +227,7 @@ class LogTable(
     }
 
     private fun updateBookmark(rows: List<Int>) {
-        val context = contexts.getContext(LogTabPanel::class.java) ?: return
+        val context = contexts.getContext(BaseLogPanel::class.java) ?: return
         val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
         if (bookmarkManager.checkNewRow(rows)) {
             rows.forEach(bookmarkManager::addBookmark)
@@ -232,7 +237,7 @@ class LogTable(
     }
 
     private fun deleteBookmark(rows: List<Int>) {
-        val context = contexts.getContext(LogTabPanel::class.java) ?: return
+        val context = contexts.getContext(BaseLogPanel::class.java) ?: return
         val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
         rows.forEach(bookmarkManager::removeBookmark)
     }
@@ -272,7 +277,7 @@ class LogTable(
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
-                val logTabPanel = DarkUIUtil.getParentOfType(this@LogTable, LogTabPanel::class.java)
+                val logTabPanel = DarkUIUtil.getParentOfType(this@LogTable, BaseLogPanel::class.java)
                 when (event.source) {
                     copyItem -> {
                         copySelectedRows()
@@ -342,7 +347,14 @@ class LogTable(
     override fun updateUI() {
         super.updateUI()
         updateRowHeight()
-        columns?.forEach { it.configureColumn(this) }
+        if (tableModel != null) {
+            val columns = if (tableModel.deviceMode) {
+                deviceLogColumns
+            } else {
+                fileLogColumns
+            }
+            columns.forEach { it.configureColumn(this) }
+        }
     }
 
     internal inner class TableKeyHandler : KeyAdapter() {

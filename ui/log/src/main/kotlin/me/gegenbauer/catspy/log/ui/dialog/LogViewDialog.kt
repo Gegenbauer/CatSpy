@@ -4,7 +4,7 @@ import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.log.ui.LogTabPanel
+import me.gegenbauer.catspy.log.ui.panel.BaseLogPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.Key
 import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
@@ -57,7 +57,7 @@ class LogViewDialog(
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        val logMainUI = contexts.getContext(LogTabPanel::class.java)
+        val logMainUI = contexts.getContext(BaseLogPanel::class.java)
         logMainUI ?: return
         textArea.font = logMainUI.logFont
     }
@@ -107,7 +107,7 @@ class LogViewDialog(
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
-                val logTabPanel = DarkUIUtil.getParentOfType(this@LogViewDialog, LogTabPanel::class.java)
+                val logTabPanel = DarkUIUtil.getParentOfType(this@LogViewDialog, BaseLogPanel::class.java)
                 val logMainBinding = logTabPanel.logMainBinding
                 when (event.source) {
                     includeItem -> {

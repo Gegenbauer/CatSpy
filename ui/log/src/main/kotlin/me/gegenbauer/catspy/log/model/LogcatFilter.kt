@@ -11,6 +11,7 @@ data class LogcatFilter(
     val filterLog: FilterItem,
     val filterTag: FilterItem,
     val filterPid: FilterItem,
+    val filterPackage: FilterItem,
     val filterTid: FilterItem,
     val filterLevel: LogLevel,
     val matchCase: Boolean = false
@@ -20,6 +21,7 @@ data class LogcatFilter(
         filterLog: String,
         filterTag: String,
         filterPid: String,
+        filterPackage: String,
         filterTid: String,
         filterLevel: LogLevel,
         matchCase: Boolean = false
@@ -27,6 +29,7 @@ data class LogcatFilter(
         filterLog.getOrCreateFilterItem(matchCase),
         filterTag.getOrCreateFilterItem(matchCase),
         filterPid.getOrCreateFilterItem(matchCase),
+        filterPackage.getOrCreateFilterItem(matchCase),
         filterTid.getOrCreateFilterItem(matchCase),
         filterLevel,
         matchCase
@@ -43,6 +46,7 @@ data class LogcatFilter(
         val tag = item.tag
         val pid = item.pid
         val tid = item.tid
+        val packageName = item.packageName
 
         val logLineMatches = matchHidePattern(filterLog.negativeFilter, message) &&
                 matchShowPattern(filterLog.positiveFilter, message)
@@ -53,10 +57,13 @@ data class LogcatFilter(
         val pidMatches = matchHidePattern(filterPid.negativeFilter, pid) &&
                 matchShowPattern(filterPid.positiveFilter, pid)
 
+        val packageMatches = matchHidePattern(filterPackage.negativeFilter, packageName) &&
+                matchShowPattern(filterPackage.positiveFilter, packageName)
+
         val tidMatches = matchHidePattern(filterTid.negativeFilter, tid) &&
                 matchShowPattern(filterTid.positiveFilter, tid)
 
-        return logLineMatches && tagMatches && pidMatches && tidMatches
+        return logLineMatches && tagMatches && pidMatches && packageMatches && tidMatches
     }
 
     private fun matchShowPattern(pattern: Pattern, text: String): Boolean {
@@ -76,6 +83,7 @@ data class LogcatFilter(
         if (filterLog.isEmpty() && other.filterLog.isEmpty() &&
             filterTag.isEmpty() && other.filterTag.isEmpty() &&
             filterPid.isEmpty() && other.filterPid.isEmpty() &&
+            filterPackage.isEmpty() && other.filterPackage.isEmpty() &&
             filterTid.isEmpty() && other.filterTid.isEmpty() &&
             filterLevel == other.filterLevel
         ) {
@@ -84,6 +92,7 @@ data class LogcatFilter(
         return this.filterLog == other.filterLog &&
                 this.filterTag == other.filterTag &&
                 this.filterPid == other.filterPid &&
+                this.filterPackage == other.filterPackage &&
                 this.filterTid == other.filterTid &&
                 this.filterLevel == other.filterLevel &&
                 this.matchCase == other.matchCase
@@ -94,6 +103,6 @@ data class LogcatFilter(
     }
 
     companion object {
-        val EMPTY_FILTER = LogcatFilter("", "", "", "", LogLevel.NONE)
+        val EMPTY_FILTER = LogcatFilter("", "", "", "", "", LogLevel.NONE)
     }
 }

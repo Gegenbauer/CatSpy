@@ -4,7 +4,7 @@ import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.model.LogcatItem.Companion.fgColor
-import me.gegenbauer.catspy.log.ui.LogTabPanel
+import me.gegenbauer.catspy.log.ui.panel.BaseLogPanel
 import me.gegenbauer.catspy.render.HtmlStringRenderer
 import me.gegenbauer.catspy.render.Tag
 import me.gegenbauer.catspy.render.TaggedStringBuilder
@@ -44,7 +44,7 @@ internal val columnIndex = object : Column {
     }
 }
 
-private val columnTime = object : Column {
+internal val columnTime = object : Column {
     override val name: String = "time"
     override val maxCharCount: Int = 20
     override val index: Int = 1
@@ -54,7 +54,7 @@ private val columnTime = object : Column {
     }
 }
 
-private val columnPid = object : Column {
+internal val columnPid = object : Column {
     override val name: String = "pid"
     override val maxCharCount: Int = 8
     override val index: Int = 2
@@ -72,7 +72,34 @@ private val columnPid = object : Column {
     }
 }
 
-private val columnTid = object : Column {
+internal val columnPackage = object : Column {
+    override val name: String = "package"
+    override val maxCharCount: Int = 35
+    override val index: Int = 2
+
+    override fun getCellRenderer(): DefaultTableCellRenderer {
+        return object : SearchableCellRenderer() {
+
+            override fun addRenderItem(logTable: LogTable, row: Int, renderer: HtmlStringRenderer) {
+                super.addRenderItem(logTable, row, renderer)
+                logTable.tableModel.getLogFilter().filterPackage.getMatchedList(renderer.raw).forEach {
+                    renderer.highlight(it.first, it.second, LogColorScheme.filteredBGs[0])
+                    renderer.foreground(it.first, it.second, LogColorScheme.filteredFGs[0])
+                }
+            }
+
+            override fun shouldBold(table: LogTable): Boolean {
+                return table.tableModel.boldPid
+            }
+
+            override fun getBoldColor(): Color {
+                return LogColorScheme.pidFG
+            }
+        }
+    }
+}
+
+internal val columnTid = object : Column {
     override val name: String = "tid"
     override val maxCharCount: Int = 8
     override val index: Int = 3
@@ -90,7 +117,7 @@ private val columnTid = object : Column {
     }
 }
 
-private val columnLevel = object : Column {
+internal val columnLevel = object : Column {
     override val name: String = "level"
     override val maxCharCount: Int = 5
     override val index: Int = 4
@@ -100,7 +127,7 @@ private val columnLevel = object : Column {
     }
 }
 
-private val columnTag = object : Column {
+internal val columnTag = object : Column {
     override val name: String = "tag"
     override val maxCharCount: Int = 25
     override val index: Int = 5
@@ -127,7 +154,7 @@ private val columnTag = object : Column {
     }
 }
 
-private val columnMessage = object : Column {
+internal val columnMessage = object : Column {
     override val name: String = "message"
     override val maxCharCount: Int = 270
     override val index: Int = 6
@@ -313,7 +340,7 @@ fun LogTable.getRenderedContent(rows: List<Int>): String {
 }
 
 private fun LogTable.getColumnBackground(num: Int, row: Int): Color {
-    val context = contexts.getContext(LogTabPanel::class.java) ?: return LogColorScheme.logBG
+    val context = contexts.getContext(BaseLogPanel::class.java) ?: return LogColorScheme.logBG
     val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
     val isRowSelected = tableModel.selectedLogRows.contains(row)
     return if (bookmarkManager.isBookmark(num)) {
@@ -330,5 +357,8 @@ private fun LogTable.getColumnBackground(num: Int, row: Int): Color {
 }
 
 // TODO support generating columns from custom configuration
-internal val columns =
+internal val fileLogColumns =
     listOf(columnIndex, columnTime, columnPid, columnTid, columnLevel, columnTag, columnMessage)
+
+internal val deviceLogColumns =
+    listOf(columnIndex, columnTime, columnPackage, columnTid, columnLevel, columnTag, columnMessage)

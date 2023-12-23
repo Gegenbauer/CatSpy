@@ -2,7 +2,6 @@ package me.gegenbauer.catspy.network
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
 object NetworkClient {
@@ -11,7 +10,6 @@ object NetworkClient {
         .connectTimeout(60, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
-        .proxy(Proxy(Proxy.Type.HTTP, java.net.InetSocketAddress("127.0.0.1",7890)))
 
     var debug: Boolean = false
         set(value) {

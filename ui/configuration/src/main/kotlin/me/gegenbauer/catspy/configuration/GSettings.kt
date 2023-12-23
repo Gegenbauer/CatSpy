@@ -47,6 +47,7 @@ data class GSettings(
     /** 输入历史 start **/
     val logFilterHistory: MutableList<String> = mutableListOf(),
     val tagFilterHistory: MutableList<String> = mutableListOf(),
+    val packageFilterHistory: MutableList<String> = mutableListOf(),
     val highlightHistory: MutableList<String> = mutableListOf(),
     val searchHistory: MutableList<String> = mutableListOf(),
     /** 输入历史 end **/
@@ -55,6 +56,7 @@ data class GSettings(
     var logFilterEnabled: Boolean = true,
     var tagFilterEnabled: Boolean = true,
     var pidFilterEnabled: Boolean = true,
+    var packageFilterEnabled: Boolean = true,
     var tidFilterEnabled: Boolean = true,
     var logLevelFilterEnabled: Boolean = true,
     var boldEnabled: Boolean = true,

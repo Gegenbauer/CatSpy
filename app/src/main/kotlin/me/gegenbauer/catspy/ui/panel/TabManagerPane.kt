@@ -3,11 +3,10 @@ package me.gegenbauer.catspy.ui.panel
 import com.formdev.flatlaf.FlatClientProperties
 import com.github.weisj.darklaf.iconset.AllIcons
 import kotlinx.coroutines.*
-import me.gegenbauer.catspy.concurrency.UI
-import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.iconset.GIcons
-import me.gegenbauer.catspy.log.ui.LogTabPanel
+import me.gegenbauer.catspy.log.ui.panel.DeviceLogPanel
+import me.gegenbauer.catspy.log.ui.panel.FileLogPanel
 import me.gegenbauer.catspy.script.ui.ScriptTabPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainFrame
@@ -16,7 +15,6 @@ import me.gegenbauer.catspy.utils.Key
 import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
 import me.gegenbauer.catspy.utils.registerStroke
 import me.gegenbauer.catspy.view.button.ClosableTabHeader
-import me.gegenbauer.catspy.view.hint.HintManager
 import me.gegenbauer.catspy.view.tab.TabInfo
 import me.gegenbauer.catspy.view.tab.TabManager
 import me.gegenbauer.catspy.view.tab.TabPanel
@@ -30,8 +28,15 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
         TabInfo(
             STRINGS.ui.logFile,
             GIcons.Tab.FileLog.get(TAB_ICON_SIZE, TAB_ICON_SIZE),
-            LogTabPanel::class.java,
-            STRINGS.toolTip.tabLog
+            FileLogPanel::class.java,
+            STRINGS.toolTip.tabLogFile
+        ),
+
+        TabInfo(
+            STRINGS.ui.deviceLog,
+            GIcons.Tab.DeviceLog.get(TAB_ICON_SIZE, TAB_ICON_SIZE),
+            DeviceLogPanel::class.java,
+            STRINGS.toolTip.tabDeviceLog
         ),
 
         TabInfo(
@@ -107,6 +112,7 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
     }
 
     override fun addTab(tabPanel: TabPanel) {
+        tabPanel.setup()
         add(tabPanel.tabName, tabPanel.getTabContent())
         tabPanel.setParent(this)
         selectTab(tabPanel)

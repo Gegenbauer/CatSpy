@@ -11,6 +11,7 @@ object GlobalStrings {
     const val LOG = "Log"
     const val MATCH_CASE = "Aa"
     const val PID = "PID"
+    const val PACKAGE = "Package"
     const val TAG = "Tag"
     const val TID = "TID"
 }
