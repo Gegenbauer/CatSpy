@@ -14,7 +14,7 @@ import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.iconset.appIcons
 import me.gegenbauer.catspy.java.ext.FileSaveEvent
 import me.gegenbauer.catspy.java.ext.NormalEvent
-import me.gegenbauer.catspy.network.update.data.Release
+import me.gegenbauer.catspy.network.update.ReleaseEvent
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.dialog.UpdateDialog
@@ -125,7 +125,7 @@ class MainFrame(
                     is NormalEvent -> {
                         handleNormalEvent(it)
                     }
-                    is Release -> {
+                    is ReleaseEvent -> {
                         handleReleaseEvent(it)
                     }
                     is FileSaveEvent -> {
@@ -147,27 +147,61 @@ class MainFrame(
         }
     }
 
-    private fun handleReleaseEvent(release: Release) {
-        UpdateDialog(this@MainFrame, release) {
-            mainViewModel.startDownloadRelease(release)
-        }.show()
+    private fun handleReleaseEvent(event: ReleaseEvent) {
+        when (event) {
+            is ReleaseEvent.NewReleaseEvent -> {
+                UpdateDialog(this@MainFrame, event.release) {
+                    mainViewModel.startDownloadRelease(event.release)
+                }.show()
+            }
+            is ReleaseEvent.ErrorEvent -> {
+                val errorMsg = event.error?.message ?: STRINGS.ui.unknownError
+                JOptionPane.showMessageDialog(
+                    this@MainFrame,
+                    STRINGS.ui.checkUpdateFailedMessage.format(errorMsg),
+                    STRINGS.ui.checkUpdateTitle,
+                    JOptionPane.ERROR_MESSAGE
+                )
+            }
+            is ReleaseEvent.NoNewReleaseEvent -> {
+                JOptionPane.showMessageDialog(
+                    this@MainFrame,
+                    STRINGS.ui.noUpdateAvailable,
+                    STRINGS.ui.checkUpdateTitle,
+                    JOptionPane.INFORMATION_MESSAGE
+                )
+            }
+        }
     }
 
     private fun handleFileSaveEvent(fileSaveEvent: FileSaveEvent) {
-        val result = JOptionPane.showOptionDialog(
-            this@MainFrame,
-            fileSaveEvent.message,
-            fileSaveEvent.title,
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.INFORMATION_MESSAGE,
-            null,
-            arrayOf(STRINGS.ui.showFileInFileManager, STRINGS.ui.cancel),
-            STRINGS.ui.showFileInFileManager
-        )
-        if (result == JOptionPane.OK_OPTION) {
-            val file = File(fileSaveEvent.fileAbsolutePath)
-            if (file.exists()) {
-                currentPlatform.showFileInExplorer(file)
+        when (fileSaveEvent) {
+            is FileSaveEvent.FileSaveSuccess -> {
+                val result = JOptionPane.showOptionDialog(
+                    this@MainFrame,
+                    fileSaveEvent.message,
+                    fileSaveEvent.title,
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null,
+                    arrayOf(STRINGS.ui.showFileInFileManager, STRINGS.ui.cancel),
+                    STRINGS.ui.showFileInFileManager
+                )
+                if (result == JOptionPane.OK_OPTION) {
+                    val file = File(fileSaveEvent.fileAbsolutePath)
+                    if (file.exists()) {
+                        currentPlatform.showFileInExplorer(file)
+                    }
+                }
+            }
+            is FileSaveEvent.FileSaveError -> {
+                val errorMsg = fileSaveEvent.error.message ?: STRINGS.ui.unknownError
+                JOptionPane.showMessageDialog(
+                    this@MainFrame,
+                    fileSaveEvent.message.format(errorMsg),
+                    fileSaveEvent.title,
+                    JOptionPane.ERROR_MESSAGE
+                )
             }
         }
     }

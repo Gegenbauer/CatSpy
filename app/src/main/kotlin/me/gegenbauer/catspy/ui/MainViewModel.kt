@@ -16,6 +16,7 @@ import me.gegenbauer.catspy.java.ext.EmptyEvent
 import me.gegenbauer.catspy.java.ext.Event
 import me.gegenbauer.catspy.java.ext.FileSaveEvent
 import me.gegenbauer.catspy.network.update.GithubUpdateServiceFactory
+import me.gegenbauer.catspy.network.update.ReleaseEvent
 import me.gegenbauer.catspy.network.update.data.Release
 import me.gegenbauer.catspy.platform.GlobalProperties.*
 import me.gegenbauer.catspy.platform.Platform
@@ -62,12 +63,25 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
 
     fun checkUpdate(force: Boolean = false) {
         scope.launch {
-            val latestRelease = updateService.getLatestRelease()
-            GLog.i(TAG, "[checkUpdate] latestRelease=$latestRelease, currentRelease=${Release(APP_VERSION_NAME)}")
-            if (updateService.checkForUpdate(latestRelease, Release(APP_VERSION_NAME))) {
-                if (force || SettingsManager.settings.ignoredRelease.contains(latestRelease.name).not()) {
-                    _eventFlow.value = latestRelease
+            val latestReleaseResult = updateService.getLatestRelease()
+            if (latestReleaseResult.isFailure) {
+                GLog.w(TAG, "[checkUpdate] failed to get latest release, error=${latestReleaseResult.exceptionOrNull()}")
+                if (force) {
+                    _eventFlow.value = ReleaseEvent.ErrorEvent(latestReleaseResult.exceptionOrNull())
                 }
+                return@launch
+            }
+            val latestRelease = latestReleaseResult.getOrThrow()
+            GLog.d(TAG, "[checkUpdate] latestRelease=$latestRelease, currentRelease=${Release(APP_VERSION_NAME)}")
+            if (updateService.checkForUpdate(latestRelease, Release(APP_VERSION_NAME))) {
+                val releaseIgnored = SettingsManager.settings.ignoredRelease.contains(latestRelease.name)
+                GLog.i(TAG, "[checkUpdate] releaseIgnored=$releaseIgnored")
+                if (force || releaseIgnored.not()) {
+                    _eventFlow.value = ReleaseEvent.NewReleaseEvent(latestRelease)
+                }
+            } else if (force) {
+                GLog.i(TAG, "[checkUpdate] no new release")
+                _eventFlow.value = ReleaseEvent.NoNewReleaseEvent
             }
         }
     }
@@ -88,10 +102,19 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
                 updateService.downloadAsset(it, downloadPath, object : DownloadListenerTaskWrapper(task) {
                     override fun onDownloadComplete(file: File) {
                         super.onDownloadComplete(file)
-                        _eventFlow.value = FileSaveEvent(
+                        _eventFlow.value = FileSaveEvent.FileSaveSuccess(
                             file.absolutePath,
                             STRINGS.ui.downloadReleaseCompleteDialogTitle,
                             STRINGS.ui.downloadReleaseCompleteDialogMessage
+                        )
+                    }
+
+                    override fun onDownloadFailed(e: Throwable) {
+                        super.onDownloadFailed(e)
+                        _eventFlow.value = FileSaveEvent.FileSaveError(
+                            STRINGS.ui.downloadReleaseTitle,
+                            STRINGS.ui.downloadReleaseFailedMessage,
+                            e
                         )
                     }
                 })

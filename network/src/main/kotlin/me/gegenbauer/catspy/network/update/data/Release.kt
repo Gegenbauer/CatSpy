@@ -1,12 +1,10 @@
 package me.gegenbauer.catspy.network.update.data
 
-import me.gegenbauer.catspy.java.ext.Event
-
 data class Release(
     val id: Int,
     val name: String,
     val assets: List<Asset>,
-): Event {
+) {
 
     constructor(versionName: String): this(0, versionName, emptyList())
 
@@ -54,11 +52,17 @@ data class Release(
         return matchResult?.value ?: ""
     }
 
+    fun isEmpty(): Boolean {
+        return this == emptyRelease
+    }
+
     companion object {
         private const val VERSION_APPENDIX_ALPHA = "alpha"
         private const val VERSION_APPENDIX_BETA = "beta"
         private const val VERSION_APPENDIX_RC = "rc"
         private const val VERSION_APPENDIX_SPLITTER = "-"
         private const val VERSION_SPLITTER = "."
+
+        val emptyRelease = Release(0, "", emptyList())
     }
 }

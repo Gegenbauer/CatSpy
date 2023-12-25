@@ -21,7 +21,7 @@ interface GithubUpdateService {
 
     val repo: String
 
-    suspend fun getLatestRelease(): Release
+    suspend fun getLatestRelease(): Result<Release>
 
     suspend fun checkForUpdate(latestRelease: Release, currentRelease: Release): Boolean
 
@@ -43,7 +43,7 @@ class GithubUpdateServiceImpl(override val user: String, override val repo: Stri
     private var currentDownloadCall: Call? = null
     private var downloadJob: Job? = null
 
-    override suspend fun getLatestRelease(): Release {
+    override suspend fun getLatestRelease(): Result<Release> {
         return withContext(Dispatchers.GIO) {
             val request = Request.Builder()
                 .url(url)
@@ -51,15 +51,18 @@ class GithubUpdateServiceImpl(override val user: String, override val repo: Stri
             val response = NetworkClient.client.newCall(request).execute()
             if (response.code != 200) {
                 response.close()
-                throw Exception("Failed to get latest release $url, code: ${response.code}")
+                return@withContext Result.failure(Exception("Failed to get latest release $url, code: ${response.code}"))
             }
-            val body = response.body?.string() ?: throw Exception("Failed to get latest release, body is null")
+            val body = response.body?.string() ?: return@withContext Result.failure(Exception("Failed to get latest release, body is null"))
             val release = parseRelease(body)
             if (release == null) {
                 val errorMessage = parseErrorMessage(body)
-                throw Exception("Failed to parse latest release, error: $errorMessage")
+                if (errorMessage != null) { Result.failure(Exception("Failed to parse latest release, error: $errorMessage"))
+                } else {
+                    Result.failure(Exception("Failed to parse latest release"))
+                }
             } else {
-                release
+                Result.success(release)
             }
         }
     }

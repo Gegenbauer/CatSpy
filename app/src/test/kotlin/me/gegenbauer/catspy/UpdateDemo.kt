@@ -11,9 +11,13 @@ fun main() {
     runBlocking {
         val latestRelease = updateService.getLatestRelease()
         println(latestRelease)
-        val updateAvailable = updateService.checkForUpdate(latestRelease, Release("1.4.6"))
+        if (latestRelease.isFailure) {
+            println("Failed to get latest release")
+            return@runBlocking
+        }
+        val updateAvailable = updateService.checkForUpdate(latestRelease.getOrThrow(), Release("1.4.6"))
         println("Update available: $updateAvailable")
-        val asset = latestRelease.assets.firstOrNull()
+        val asset = latestRelease.getOrThrow().assets.firstOrNull()
         asset?.let {
             println("Downloading asset: $it")
             updateService.downloadAsset(it, "/home/yingbin/build.zip", object : DownloadListener {
