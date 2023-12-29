@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.log.ui.dialog
 
-import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
@@ -107,7 +106,8 @@ class LogViewDialog(
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
-                val logTabPanel = DarkUIUtil.getParentOfType(this@LogViewDialog, BaseLogPanel::class.java)
+                val logTabPanel = contexts.getContext(BaseLogPanel::class.java)
+                logTabPanel ?: return
                 val logMainBinding = logTabPanel.logMainBinding
                 when (event.source) {
                     includeItem -> {
@@ -128,6 +128,7 @@ class LogViewDialog(
 
                     searchAddItem -> {
                         if (textArea.selectedText.isNullOrEmpty()) return
+                        logMainBinding.searchPanelVisible.updateValue(true)
                         var text = logMainBinding.searchCurrentContent.getValueNonNull()
                         text += "|" + textArea.selectedText
                         logMainBinding.searchCurrentContent.updateValue(text)

@@ -26,6 +26,10 @@ data class LogcatItem(
         }
     }
 
+    fun toFileLogLine(): String {
+        return "$time\t$pid\t$tid\t${level.flag}\t$tag\t$message"
+    }
+
     companion object {
         private const val DATE_INDEX = 0
         private const val TIME_INDEX = 1

@@ -1,11 +1,14 @@
 package me.gegenbauer.catspy.task
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import me.gegenbauer.catspy.concurrency.GIO
+import me.gegenbauer.catspy.file.MB
 import java.io.BufferedInputStream
 import java.io.File
 import java.util.*
@@ -54,7 +57,7 @@ class CommandExecutorImpl(
                 send(Result.failure(it))
                 close(it)
             }
-        }.flowOn(dispatcher)
+        }.buffer((MB * 100).toInt(), BufferOverflow.DROP_OLDEST).flowOn(dispatcher)
     }
 
     private fun ProducerScope<Result<String>>.readOutput(process: Process) {

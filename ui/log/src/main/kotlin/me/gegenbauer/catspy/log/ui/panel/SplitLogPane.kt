@@ -47,7 +47,7 @@ class SplitLogPane(
 
         filterStatefulPanel.setContent(filteredLogPanel)
         filterStatefulPanel.listState = ListState.NORMAL
-        scope.launch(Dispatchers.UI) {
+        scope.launch {
             filteredTableModel.viewModel.filteredLogListState.collect {
                 filterStatefulPanel.listState =
                     if (it == ListState.LOADING) ListState.LOADING else ListState.NORMAL
@@ -107,7 +107,7 @@ class SplitLogPane(
 
     internal inner class TableTransferHandler : TransferHandler() {
         override fun canImport(info: TransferSupport): Boolean {
-            return info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
+            return info.isDataFlavorSupported(DataFlavor.javaFileListFlavor) && !fullLogPanel.tableModel.deviceMode
         }
 
         override fun importData(info: TransferSupport): Boolean {

@@ -23,8 +23,14 @@ import me.gegenbauer.catspy.log.model.LogcatFilter
 import me.gegenbauer.catspy.log.model.LogcatItem
 import me.gegenbauer.catspy.log.ui.panel.BaseLogPanel
 import me.gegenbauer.catspy.log.ui.panel.LogPanel
+import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.get
+import me.gegenbauer.catspy.utils.writeLinesWithProgress
 import me.gegenbauer.catspy.view.filter.FilterCache
 import me.gegenbauer.catspy.view.filter.toFilterKey
+import me.gegenbauer.catspy.view.panel.StatusPanel
+import me.gegenbauer.catspy.view.panel.Task
+import me.gegenbauer.catspy.view.panel.TaskHandle
 import me.gegenbauer.catspy.view.state.ListState
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -99,6 +105,7 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
     private val updateFullLogTaskSuspender = CoroutineSuspender("updateFullLogTaskSuspender")
     private val updateFilteredLogTaskSuspender = CoroutineSuspender("updateFilteredLogTaskSuspender")
     private val processFetcher = AndroidProcessFetcher("")
+    private val globalStatus = ServiceManager.getContextService(StatusPanel::class.java)
 
     private val updatingFullLogTriggerCount = MutableStateFlow(0)
     private val updatingFilteredLogTriggerCount = MutableStateFlow(0)
@@ -315,16 +322,37 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
     /**
      * save full log to file
      */
-    suspend fun saveLog(file: File) {
-        withContext(Dispatchers.GIO) {
-            coroutineContext.job.invokeOnCompletion { t ->
-                if (t != null) {
-                    Log.e(TAG, "[saveLog] error", t)
+    suspend fun saveLog(targetFile: File): Result<File?> {
+        return withContext(Dispatchers.GIO) {
+            val logs = fullLogRepo.readLogItems { it.toList() }
+            Log.d(TAG, "[saveLog] targetLogFile=${targetFile.absolutePath}, logSize=${logs.size}")
+            val taskName = STRINGS.ui.exportFileTaskTitle.get(targetFile.absolutePath)
+            val task = Task(taskName, object : TaskHandle {
+                override fun cancel() {
+                    coroutineContext.job.cancel()
                 }
-            }
-            fullLogRepo.readLogItems { fullLogItems ->
-                file.writeText(fullLogItems.joinToString("\n") { it.toLogLine() })
-            }
+            })
+
+            globalStatus.addTask(task)
+
+            task.notifyTaskStarted()
+            runCatching {
+                writeLinesWithProgress(targetFile, logs.size, { index: Int -> logs[index].toFileLogLine() }) {
+                    task.notifyProgressChanged(it)
+                }
+                task.notifyTaskFinished()
+                Log.d(TAG, "[saveLog] task finished")
+                Result.success(targetFile)
+            }.onFailure {
+                if (it is CancellationException) {
+                    Log.d(TAG, "[saveLog] task canceled")
+                    task.notifyTaskCancelled()
+                } else {
+                    Log.e(TAG, "[saveLog] task failed", it)
+                    task.notifyTaskFailed(it)
+                }
+                Result.failure<File>(it)
+            }.getOrDefault(Result.failure(Exception(STRINGS.ui.unknownError)))
         }
     }
 

@@ -218,6 +218,7 @@ class LogTable(
         }
         val frame = findFrameFromParent<JFrame>()
         val logViewDialog = LogViewDialog(frame, displayContent.trim())
+        logViewDialog.setParent(this)
         logViewDialog.setLocationRelativeTo(frame)
         logViewDialog.isVisible = true
     }

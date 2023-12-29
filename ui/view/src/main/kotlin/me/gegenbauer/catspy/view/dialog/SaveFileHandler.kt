@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.view.dialog
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -15,7 +16,7 @@ import javax.swing.JFileChooser
 import javax.swing.JOptionPane
 
 class FileSaveHandler private constructor(
-    private val onFileSpecified: suspend (File) -> Unit,
+    private val onFileSpecified: suspend (File) -> Result<File?>,
     private val onCancel: () -> Unit = {},
     private val defaultName: String = "",
     private val parent: Component
@@ -67,25 +68,40 @@ class FileSaveHandler private constructor(
                     JOptionPane.WARNING_MESSAGE
                 )
                 if (result == JOptionPane.YES_OPTION) {
-                    onFileSpecified.invoke(file)
-                    onFileSaved(file)
+                    val saveResult = onFileSpecified.invoke(file)
+                    handleSaveResult(saveResult)
                 } else {
                     onCancel()
                 }
             } else {
                 onFileSpecified.invoke(file)
-                onFileSaved(file)
+                onFileSavedSuccess(file)
             }
         }
     }
 
-    private fun onFileSaved(file: File) {
+    private fun handleSaveResult(result: Result<File?>) {
+        when {
+            result.exceptionOrNull() is CancellationException -> {
+                onCancel()
+            }
+            result.isSuccess -> {
+                onFileSavedSuccess(result.getOrNull())
+            }
+            result.isFailure -> {
+                onFileSaveFailed(result.getOrNull(), result.exceptionOrNull()!!)
+            }
+        }
+    }
+
+    private fun onFileSavedSuccess(file: File?) {
+        file ?: return
         GLog.d(TAG, "[onFileSaved] file=${file.absolutePath}")
         SettingsManager.settings.lastFileSaveDir = file.parent
         val result = JOptionPane.showOptionDialog(
             parent,
-            STRINGS.ui.fileSaveCompleteMessage,
-            STRINGS.ui.fileSaveCompleteTitle,
+            STRINGS.ui.fileSaveSuccessMessage.get(file.absolutePath),
+            STRINGS.ui.fileSaveTitle,
             JOptionPane.YES_NO_OPTION,
             JOptionPane.INFORMATION_MESSAGE,
             null,
@@ -97,16 +113,28 @@ class FileSaveHandler private constructor(
         }
     }
 
+    private fun onFileSaveFailed(file: File?, throwable: Throwable) {
+        file ?: return
+        GLog.d(TAG, "[onFileSaveFailed] file=${file.absolutePath}")
+        val errorMsg = throwable.message ?: STRINGS.ui.unknownError
+        JOptionPane.showMessageDialog(
+            parent,
+            STRINGS.ui.fileSaveErrorMessage.get(file.absolutePath, errorMsg),
+            STRINGS.ui.saveFileTitle,
+            JOptionPane.ERROR_MESSAGE
+        )
+    }
+
     override fun destroy() {
         scope.cancel()
     }
 
     class Builder(private val parent: Component) {
-        private var onFileSpecified: suspend (File) -> Unit = {}
+        private var onFileSpecified: suspend (File) -> Result<File?> = { Result.success(null) }
         private var onCancel: () -> Unit = {}
         private var defaultName: String = ""
 
-        fun onFileSpecified(onFileSpecified: suspend (File) -> Unit) = apply {
+        fun onFileSpecified(onFileSpecified: suspend (File) -> Result<File?>) = apply {
             this.onFileSpecified = onFileSpecified
         }
 

@@ -59,7 +59,7 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
     }
 
     override fun onTabUnselected() {
-
+        // no-op
     }
 
     override fun getTabContent(): JPanel {

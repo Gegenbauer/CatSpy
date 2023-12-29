@@ -25,7 +25,7 @@ import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.strings.GlobalStrings
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
-import me.gegenbauer.catspy.utils.copyWithProgress
+import me.gegenbauer.catspy.utils.copyFileWithProgress
 import me.gegenbauer.catspy.view.panel.DownloadListenerTaskWrapper
 import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.panel.Task
@@ -122,8 +122,8 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
         }
     }
 
-    suspend fun exportLog(targetFile: File) {
-        withContext(Dispatchers.GIO) {
+    suspend fun exportLog(targetFile: File): Result<File?> {
+        return withContext(Dispatchers.GIO) {
             val logFile = getLastModifiedLog()
             logFile?.let { sourceFile ->
                 GLog.d(TAG, "[exportLog] targetLogFile=${targetFile.absolutePath}, sourceLogFile=${sourceFile.absolutePath}")
@@ -139,19 +139,21 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
 
                 task.notifyTaskStarted()
                 runCatching {
-                    copyWithProgress(sourceFile, targetFile) { progress ->
+                    copyFileWithProgress(sourceFile, targetFile) { progress ->
                         task.notifyProgressChanged(progress)
                     }
-                }.onSuccess {
+                    GLog.d(TAG, "[exportLog] copyFileWithProgress success")
                     task.notifyTaskFinished()
+                    Result.success(targetFile)
                 }.onFailure {
                     if (it is CancellationException) {
                         task.notifyTaskCancelled()
                     } else {
                         task.notifyTaskFailed(it)
                     }
-                }
-            }
+                    Result.failure<String>(it)
+                }.getOrDefault(Result.failure(Exception(STRINGS.ui.unknownError)))
+            } ?: Result.success(null)
         }
     }
 

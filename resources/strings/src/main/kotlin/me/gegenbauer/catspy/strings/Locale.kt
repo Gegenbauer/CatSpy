@@ -6,8 +6,10 @@ import java.beans.PropertyChangeSupport
 
 private const val PROPERTY_KEY_LOCALE = "locale"
 
+val supportLocales = arrayOf(Locale.CN, Locale.EN, Locale.KO)
+
 // load when application launched
-var globalLocale: Locale = Locale.EN
+var globalLocale: Locale = java.util.Locale.getDefault().toLocale()
     set(value) {
         val oldLocale = field
         field = value
@@ -47,7 +49,9 @@ interface ILocale {
     val locale: java.util.Locale
 }
 
-val supportLocales = arrayOf(Locale.CN, Locale.EN, Locale.KO)
+fun java.util.Locale.toLocale(): Locale {
+    return supportLocales.firstOrNull { it.locale == this } ?: Locale.CN
+}
 
 enum class Locale: ILocale {
     CN {

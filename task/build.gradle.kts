@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     implementation(projects.glog)
+    implementation(projects.file)
     implementation(projects.concurrency)
 }
 

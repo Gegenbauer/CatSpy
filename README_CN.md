@@ -1,6 +1,6 @@
 # CatSpy
 
-[![Build status](https://github.com/Gegenbauer/CatSpy/workflows/Build/badge.svg)](https://github.com/Gegenbauer/CatSpy/actions?query=workflow%3ABuild)
+[![Build status](https://github.com/Gegenbauer/CatSpy/workflows/Build%20Artifacts/badge.svg)](https://github.com/Gegenbauer/CatSpy/actions/workflows/build_artifacts.yml?query=workflow%3ABuild)
 ![GitHub contributors](https://img.shields.io/github/contributors/Gegenbauer/CatSpy)
 ![GitHub all releases](https://img.shields.io/github/downloads/Gegenbauer/CatSpy/total)
 ![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/Gegenbauer/CatSpy/latest/total)

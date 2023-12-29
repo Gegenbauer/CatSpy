@@ -6,6 +6,8 @@ import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import kotlinx.coroutines.*
+import me.gegenbauer.catspy.concurrency.IgnoreFastCallbackScheduler
+import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.configuration.ThemeManager
@@ -119,6 +121,7 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
     protected val boldLogCombo = filterComboBox(tooltip = STRINGS.toolTip.boldToggle)
 
     private val matchCaseToggle = ColorToggleButton(GlobalStrings.MATCH_CASE, STRINGS.toolTip.caseToggle)
+    private val saveFilterToHistoryScheduler = IgnoreFastCallbackScheduler(Dispatchers.UI, 5 * 1000)
     //endregion
 
     //region toolBarPanel
@@ -337,6 +340,15 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
                 packageFilterEnabled, packageFilterCurrentContent, tidFilterEnabled,
                 tidFilterCurrentContent, logLevelFilterEnabled, boldEnabled, searchMatchCase, boldCurrentContent
             )
+            setAutoSaveToHistory(
+                logFilterHistory to logFilterCurrentContent,
+                tagFilterHistory to tagFilterCurrentContent,
+                pidFilterHistory to pidFilterCurrentContent,
+                packageFilterHistory to packageFilterCurrentContent,
+                tidFilterHistory to tidFilterCurrentContent,
+                boldHistory to boldCurrentContent,
+                searchHistory to searchCurrentContent
+            )
             searchMatchCase.addObserver { filteredTableModel.searchMatchCase = it == true }
             searchCurrentContent.addObserver { updateSearchFilter(it) }
             logFont.addObserver {
@@ -350,6 +362,18 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
     private fun configureUpdateLogFilterTriggers(vararg observableValueProperty: ObservableValueProperty<*>) {
         observableValueProperty.forEach {
             (it as? ObservableValueProperty<Any>)?.addObserver { updateLogFilter() }
+        }
+    }
+
+    private fun setAutoSaveToHistory(
+        vararg comboBoxPropertyPair: Pair<ObservableValueProperty<List<HistoryItem<String>>>, ObservableValueProperty<String>>
+    ) {
+        comboBoxPropertyPair.forEach { (history, currentContent) ->
+            currentContent.addObserver { content ->
+                saveFilterToHistoryScheduler.schedule {
+                    resetComboItem(history, content ?: "")
+                }
+            }
         }
     }
 

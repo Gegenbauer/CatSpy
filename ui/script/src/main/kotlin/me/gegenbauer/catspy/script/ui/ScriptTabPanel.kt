@@ -13,6 +13,7 @@ import me.gegenbauer.catspy.script.model.ScriptType
 import me.gegenbauer.catspy.script.parser.DirectRule
 import me.gegenbauer.catspy.script.parser.RegexRule
 import me.gegenbauer.catspy.script.task.ScriptTaskManager
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
 import me.gegenbauer.catspy.view.tab.TabPanel
 import java.awt.BorderLayout
@@ -22,7 +23,7 @@ import javax.swing.JPanel
 
 class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
 
-    override val tabName: String = TAB_NAME
+    override val tabName: String = STRINGS.ui.tabScript
     override val tabIcon: Icon = GIcons.Tab.Script.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
 
     private val taskManager = ServiceManager.getContextService(ScriptTaskManager::class.java)
@@ -126,6 +127,5 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
 
     companion object {
         val defaultDevice = Device("", DeviceState.DEVICE)
-        private const val TAB_NAME = "Script"
     }
 }
