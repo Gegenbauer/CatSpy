@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.log.ui.dialog
 
-import com.github.weisj.darklaf.properties.icons.DerivableImageIcon
 import me.gegenbauer.catspy.glog.GLog
-import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.iconset.appIcons
 import me.gegenbauer.catspy.log.ui.panel.FullLogPanel
+import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
 import java.awt.BorderLayout
 import java.awt.event.WindowAdapter
@@ -14,15 +14,14 @@ import javax.swing.JPanel
 class LogTableDialog(
     private val logPanel: FullLogPanel,
     private val onWindowClosing: () -> Unit = {}
-) : JFrame("FullLog") {
+) : JFrame(STRINGS.ui.fullLogDialogTitle) {
     private var frameX = 0
     private var frameY = 0
     private var frameWidth = 1280
     private var frameHeight = 720
 
     init {
-        val img = GIcons.Logo.get() as DerivableImageIcon
-        iconImage = img.image
+        iconImages = appIcons
 
         defaultCloseOperation = DISPOSE_ON_CLOSE
         setLocation(frameX, frameY)
