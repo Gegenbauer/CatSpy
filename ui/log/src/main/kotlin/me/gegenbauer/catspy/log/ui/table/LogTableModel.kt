@@ -211,14 +211,14 @@ open class LogTableModel(
     private fun moveToSearch(isNext: Boolean) {
         if (searchFilterItem.isEmpty()) return
 
-        val selectedRow = viewModel.fullTableSelectedRows.firstOrNull() ?: -1
+        val selectedRow = selectedLogRows.firstOrNull() ?: -1
         val mainUI = contexts.getContext(BaseLogPanel::class.java)
         mainUI ?: return
         val table = getLogTable()
         table ?: return
 
         val targetRow = selectedRow.run { if (isNext) this + 1 else this - 1 }
-        val shouldReturn = targetRow.run { if (isNext) this >= rowCount - 1 else this < 0 }
+        val shouldReturn = targetRow.run { if (isNext) this >= rowCount else this < 0 }
 
         if (shouldReturn) {
             mainUI.showSearchResultTooltip(isNext, "\"$searchFilterItem\" ${STRINGS.ui.notFound}")
@@ -227,11 +227,11 @@ open class LogTableModel(
 
         val idxFound = if (isNext) {
             (targetRow until rowCount).firstOrNull {
-                searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).message).find()
+                searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).toLogLine()).find()
             } ?: -1
         } else {
             (targetRow downTo 0).firstOrNull {
-                searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).message).find()
+                searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).toLogLine()).find()
             } ?: -1
         }
 
