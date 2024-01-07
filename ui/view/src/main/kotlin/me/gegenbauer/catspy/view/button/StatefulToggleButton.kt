@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.view.button
 
-import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.iconset.GIcons
 import javax.swing.Icon
 import javax.swing.JToggleButton
@@ -22,7 +21,6 @@ class StatefulToggleButton(
         }
 
     init {
-        componentName = originalText ?: ""
         toolTipText = tooltip
         isRolloverEnabled = true
     }

@@ -2,7 +2,6 @@ package me.gegenbauer.catspy.script.ui
 
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.view.card.Card
 import java.awt.GridLayout
@@ -15,7 +14,6 @@ import javax.swing.JPanel
 class ScriptCardContainer(override val contexts: Contexts = Contexts.default) : CardContainer, Context {
     override val container: JPanel = JPanel().apply {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
-        componentName = "ScriptCardContainer"
     }
 
     private val cards = PriorityQueue<Card> { c1, c2 -> c1.id - c2.id }
@@ -33,9 +31,7 @@ class ScriptCardContainer(override val contexts: Contexts = Contexts.default) : 
         container.border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
     }
 
-    private fun createRowPanel(): JPanel = JPanel(GridLayout(0, span)).apply {
-        componentName = "RowPanel"
-    }
+    private fun createRowPanel(): JPanel = JPanel(GridLayout(0, span))
 
     override fun addCard(card: Card) {
         cards.add(card)

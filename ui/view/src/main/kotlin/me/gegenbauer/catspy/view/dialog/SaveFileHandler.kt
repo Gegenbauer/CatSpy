@@ -2,10 +2,8 @@ package me.gegenbauer.catspy.view.dialog
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.configuration.SettingsManager
-import me.gegenbauer.catspy.context.Disposable
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
@@ -20,7 +18,7 @@ class FileSaveHandler private constructor(
     private val onCancel: () -> Unit = {},
     private val defaultName: String = "",
     private val parent: Component
-): Disposable {
+) {
 
     private val fileChooser = JFileChooser()
     private val scope = MainScope()
@@ -85,9 +83,11 @@ class FileSaveHandler private constructor(
             result.exceptionOrNull() is CancellationException -> {
                 onCancel()
             }
+
             result.isSuccess -> {
                 onFileSavedSuccess(result.getOrNull())
             }
+
             result.isFailure -> {
                 onFileSaveFailed(result.getOrNull(), result.exceptionOrNull()!!)
             }
@@ -123,10 +123,6 @@ class FileSaveHandler private constructor(
             STRINGS.ui.saveFileTitle,
             JOptionPane.ERROR_MESSAGE
         )
-    }
-
-    override fun destroy() {
-        scope.cancel()
     }
 
     class Builder(private val parent: Component) {

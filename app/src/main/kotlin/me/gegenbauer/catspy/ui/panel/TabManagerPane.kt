@@ -5,8 +5,8 @@ import com.github.weisj.darklaf.iconset.AllIcons
 import kotlinx.coroutines.*
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.iconset.GIcons
-import me.gegenbauer.catspy.log.ui.panel.DeviceLogPanel
-import me.gegenbauer.catspy.log.ui.panel.FileLogPanel
+import me.gegenbauer.catspy.log.ui.panel.DeviceLogMainPanel
+import me.gegenbauer.catspy.log.ui.panel.FileLogMainPanel
 import me.gegenbauer.catspy.script.ui.ScriptTabPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainFrame
@@ -28,14 +28,14 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
         TabInfo(
             STRINGS.ui.logFile,
             GIcons.Tab.FileLog.get(TAB_ICON_SIZE, TAB_ICON_SIZE),
-            FileLogPanel::class.java,
+            FileLogMainPanel::class.java,
             STRINGS.toolTip.tabLogFile
         ),
 
         TabInfo(
             STRINGS.ui.deviceLog,
             GIcons.Tab.DeviceLog.get(TAB_ICON_SIZE, TAB_ICON_SIZE),
-            DeviceLogPanel::class.java,
+            DeviceLogMainPanel::class.java,
             STRINGS.toolTip.tabDeviceLog
         ),
 
@@ -135,6 +135,7 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
     override fun removeTab(tabPanel: TabPanel) {
         tabPanel.destroy()
         remove(tabPanel.getTabContent())
+        tabHeaders.remove(tabPanel.hashCode())
     }
 
     override fun getTab(index: Int): TabPanel {

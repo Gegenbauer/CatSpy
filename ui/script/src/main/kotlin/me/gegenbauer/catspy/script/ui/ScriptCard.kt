@@ -9,7 +9,6 @@ import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.script.executor.CommandExecutor
 import me.gegenbauer.catspy.script.ui.ScriptTabPanel.Companion.defaultDevice
@@ -29,7 +28,7 @@ class ScriptCard(
     override val component: RoundedCard = this
 
     private val scope = ModelScope()
-    private val titleLabel = JLabel() withName "titleLabel"
+    private val titleLabel = JLabel()
     private val contentLabel = BorderedTextArea()
     private val actionBar = ScriptActionBar()
 
@@ -44,7 +43,6 @@ class ScriptCard(
      * titleLabel 和 contentLabel 分两行
      */
     init {
-        withName("ScriptCard")
         layout = GridLayout(3, 0)
         titleLabel.text = scriptUIItem.script.name
         contentLabel.text = "No output yet"

@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.log.ui.panel
 
-import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.strings.GlobalStrings
 import me.gegenbauer.catspy.strings.STRINGS
@@ -9,14 +8,14 @@ import me.gegenbauer.catspy.view.combobox.filterComboBox
 import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.rebuild
 
-class FileLogPanel: BaseLogPanel() {
-    override val tag: String = "FileLogPanel"
-    override val showProcessToggle = ColorToggleButton(GlobalStrings.PID, STRINGS.toolTip.pidToggle)
-    override val showProcessCombo = filterComboBox(tooltip = STRINGS.toolTip.pidToggle) withName GlobalStrings.PID
+class FileLogMainPanel: BaseLogMainPanel() {
+    override val tag: String = "FileLogMainPanel"
+    override val processFilterToggle = ColorToggleButton(GlobalStrings.PID, STRINGS.toolTip.pidToggle)
+    override val processFilterCombo = filterComboBox(tooltip = STRINGS.toolTip.pidToggle)
 
     override val currentPidFilter: FilterItem
         get() = if (logMainBinding.pidFilterEnabled.getValueNonNull()) {
-            showProcessCombo.filterItem.rebuild(logMainBinding.filterMatchCaseEnabled.getValueNonNull())
+            processFilterCombo.filterItem.rebuild(logMainBinding.filterMatchCaseEnabled.getValueNonNull())
         } else {
             FilterItem.EMPTY_ITEM
         }
@@ -25,8 +24,8 @@ class FileLogPanel: BaseLogPanel() {
     override fun bindProcessComponents(mainBinding: LogMainBinding) {
         mainBinding.apply {
             bindLogFilter(
-                showProcessCombo,
-                showProcessToggle,
+                processFilterCombo,
+                processFilterToggle,
                 pidFilterSelectedIndex,
                 pidFilterHistory,
                 pidFilterEnabled,

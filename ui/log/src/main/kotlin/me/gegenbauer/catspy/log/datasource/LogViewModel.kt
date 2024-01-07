@@ -21,7 +21,7 @@ import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.model.LogFilter
 import me.gegenbauer.catspy.log.model.LogcatFilter
 import me.gegenbauer.catspy.log.model.LogcatItem
-import me.gegenbauer.catspy.log.ui.panel.BaseLogPanel
+import me.gegenbauer.catspy.log.ui.panel.BaseLogMainPanel
 import me.gegenbauer.catspy.log.ui.panel.LogPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
@@ -156,7 +156,7 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
         super.configureContext(context)
         getBindings()?.fullMode?.addObserver(fullModeObserver)
         getBindings()?.bookmarkMode?.addObserver(bookmarkModeObserver)
-        val logTabPanel = contexts.getContext(BaseLogPanel::class.java)
+        val logTabPanel = contexts.getContext(BaseLogMainPanel::class.java)
         logTabPanel?.let {
             bookmarkManager = ServiceManager.getContextService(logTabPanel, BookmarkManager::class.java)
         }

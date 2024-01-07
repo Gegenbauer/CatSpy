@@ -90,13 +90,7 @@ class ClosableTabHeader(
         })
 
         if (editable) {
-            parent.getInputMap(JComponent.WHEN_FOCUSED)
-                .put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "start-editing")
-            parent.actionMap.put("start-editing", object : AbstractAction() {
-                override fun actionPerformed(e: ActionEvent) {
-                    startEditing()
-                }
-            })
+            parent.registerStrokeWhenFocused(Key.ENTER, "Rename Tab") { startEditing() }
         }
     }
 

@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.view.button
 
-import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.utils.BORDER_TYPE_BORDERLESS
 import me.gegenbauer.catspy.utils.BORDER_TYPE_NONE
 import me.gegenbauer.catspy.utils.PROPERTY_KEY_BUTTON_VARIANT
@@ -45,7 +44,6 @@ class StatefulButton(
     }
 
     init {
-        componentName = originalText ?: ""
         toolTipText = tooltip
 
         configureHeight()

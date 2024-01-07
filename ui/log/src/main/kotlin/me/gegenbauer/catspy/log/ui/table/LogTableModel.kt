@@ -15,7 +15,7 @@ import me.gegenbauer.catspy.log.datasource.LogViewModel
 import me.gegenbauer.catspy.log.flag
 import me.gegenbauer.catspy.log.model.LogcatFilter
 import me.gegenbauer.catspy.log.model.LogcatItem
-import me.gegenbauer.catspy.log.ui.panel.BaseLogPanel
+import me.gegenbauer.catspy.log.ui.panel.BaseLogMainPanel
 import me.gegenbauer.catspy.log.ui.panel.LogPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.view.filter.FilterItem
@@ -44,8 +44,6 @@ open class LogTableModel(
         set(value) {
             field = value.takeIf { it != field }?.also { contexts.getContext(LogTable::class.java)?.repaint() } ?: value
         }
-
-    override var searchMatchCase: Boolean = false
 
     override val pageMetaData: ObservableValueProperty<PageMetadata> = ObservableValueProperty()
 
@@ -116,7 +114,7 @@ open class LogTableModel(
     }
 
     private fun clearBookmark() {
-        val mainUI = contexts.getContext(BaseLogPanel::class.java)
+        val mainUI = contexts.getContext(BaseLogMainPanel::class.java)
         mainUI ?: return
         val bookmarkManager = ServiceManager.getContextService(mainUI, BookmarkManager::class.java)
         bookmarkManager.clear()
@@ -212,7 +210,7 @@ open class LogTableModel(
         if (searchFilterItem.isEmpty()) return
 
         val selectedRow = selectedLogRows.firstOrNull() ?: -1
-        val mainUI = contexts.getContext(BaseLogPanel::class.java)
+        val mainUI = contexts.getContext(BaseLogMainPanel::class.java)
         mainUI ?: return
         val table = getLogTable()
         table ?: return

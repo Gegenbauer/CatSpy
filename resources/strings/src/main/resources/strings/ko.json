@@ -86,6 +86,7 @@
     "downloadTaskTitle": "다운로드 중 %s",
     "dragLogFileWarning": "파일을 열면 현재 로그가 지워집니다. 계속하시겠습니까?",
     "edit": "편집",
+    "error": "오류",
     "exportFileSuccess": "파일 내보내기 성공",
     "exportFileTaskTitle": "%s(으)로 파일을 내보내는 중",
     "file": "파일",

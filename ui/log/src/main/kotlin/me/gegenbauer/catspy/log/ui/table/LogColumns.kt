@@ -4,7 +4,7 @@ import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.model.LogcatItem.Companion.fgColor
-import me.gegenbauer.catspy.log.ui.panel.BaseLogPanel
+import me.gegenbauer.catspy.log.ui.panel.BaseLogMainPanel
 import me.gegenbauer.catspy.render.HtmlStringRenderer
 import me.gegenbauer.catspy.render.Tag
 import me.gegenbauer.catspy.render.TaggedStringBuilder
@@ -340,7 +340,7 @@ fun LogTable.getRenderedContent(rows: List<Int>): String {
 }
 
 private fun LogTable.getColumnBackground(num: Int, row: Int): Color {
-    val context = contexts.getContext(BaseLogPanel::class.java) ?: return LogColorScheme.logBG
+    val context = contexts.getContext(BaseLogMainPanel::class.java) ?: return LogColorScheme.logBG
     val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
     val isRowSelected = tableModel.selectedLogRows.contains(row)
     return if (bookmarkManager.isBookmark(num)) {

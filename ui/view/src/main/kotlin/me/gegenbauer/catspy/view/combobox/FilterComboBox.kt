@@ -2,23 +2,20 @@ package me.gegenbauer.catspy.view.combobox
 
 import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.databinding.bind.Bindings
-import me.gegenbauer.catspy.databinding.bind.componentName
-import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.filter.ui.enableAutoComplete
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.DefaultDocumentListener
+import me.gegenbauer.catspy.utils.Key
 import me.gegenbauer.catspy.utils.applyTooltip
+import me.gegenbauer.catspy.utils.registerStrokeWhenFocused
 import me.gegenbauer.catspy.view.combobox.highlight.CustomEditorDarkComboBoxUI
 import me.gegenbauer.catspy.view.combobox.highlight.HighlighterEditor
 import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.getOrCreateFilterItem
-import java.awt.event.ActionEvent
 import java.awt.event.KeyListener
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
-import javax.swing.AbstractAction
 import javax.swing.JComponent
-import javax.swing.KeyStroke
 import javax.swing.ToolTipManager
 import javax.swing.plaf.ComboBoxUI
 import javax.swing.plaf.basic.BasicComboBoxEditor
@@ -56,18 +53,18 @@ class FilterComboBox(items: List<String>, private val enableHighlight: Boolean =
             field = value
             updateTooltip(value.isNotEmpty())
         }
-    private val currentContentChangeListener = object : DefaultDocumentListener() {
-        override fun contentUpdate(content: String) {
-            filterItem = content.getOrCreateFilterItem()
-            errorMsg = filterItem.errorMessage
-        }
-    }
     private val undo = UndoManager()
 
     init {
         toolTipText = tooltip
         configureEditorComponent(editorComponent)
         updateUI()
+    }
+
+    fun buildFilterItem() {
+        val currentContent = editorComponent.text
+        filterItem = currentContent.getOrCreateFilterItem()
+        errorMsg = filterItem.errorMessage
     }
 
     override fun setUI(ui: ComboBoxUI?) {
@@ -89,31 +86,23 @@ class FilterComboBox(items: List<String>, private val enableHighlight: Boolean =
 
     private fun configureEditorComponent(editorComponent: JTextComponent) {
         editorComponent applyTooltip tooltip
-        editorComponent withName this@FilterComboBox.componentName
-        editorComponent.document.addDocumentListener(currentContentChangeListener)
         editorComponent.document.addUndoableEditListener {
             undo.addEdit(it.edit)
         }
-        editorComponent.actionMap.put("Undo", object : AbstractAction("Undo") {
-            override fun actionPerformed(e: ActionEvent) {
-                runCatching {
-                    if (undo.canUndo()) {
-                        undo.undo()
-                    }
+        editorComponent.registerStrokeWhenFocused(Key.C_Z, "Undo") {
+            runCatching {
+                if (undo.canUndo()) {
+                    undo.undo()
                 }
             }
-        })
-        editorComponent.inputMap.put(KeyStroke.getKeyStroke("control Z"), "Undo")
-        editorComponent.actionMap.put("Redo", object : AbstractAction("Redo") {
-            override fun actionPerformed(e: ActionEvent) {
-                runCatching {
-                    if (undo.canRedo()) {
-                        undo.redo()
-                    }
+        }
+        editorComponent.registerStrokeWhenFocused(Key.C_Y, "Redo") {
+            runCatching {
+                if (undo.canRedo()) {
+                    undo.redo()
                 }
             }
-        })
-        editorComponent.inputMap.put(KeyStroke.getKeyStroke("control Y"), "Redo")
+        }
         editorComponent.enableAutoComplete(getAllItems().map { it.content }) {
             hidePopup()
         }
@@ -184,11 +173,6 @@ class FilterComboBox(items: List<String>, private val enableHighlight: Boolean =
         editorComponent.enableAutoComplete(getAllItems().map { it.content }) {
             hidePopup()
         }
-    }
-
-    fun addItem(item: String?) {
-        if (item.isNullOrEmpty()) return
-        super.addItem(HistoryItem(item))
     }
 
     companion object {

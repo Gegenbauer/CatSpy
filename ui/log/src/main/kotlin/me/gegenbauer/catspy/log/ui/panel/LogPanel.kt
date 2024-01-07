@@ -7,7 +7,6 @@ import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
-import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.BookmarkChangeListener
@@ -48,7 +47,7 @@ abstract class LogPanel(
 ) : JPanel(), Context, ListSelectionListener, RowNavigation by table {
 
     val binding = LogPanelBinding()
-    protected val ctrlMainPanel: WrapablePanel = WrapablePanel() withName "ctrlMainPanel"
+    protected val ctrlMainPanel: WrapablePanel = WrapablePanel()
 
     private val topBtn = IconBarButton(GIcons.Action.Top.get()) applyTooltip STRINGS.toolTip.viewFirstBtn
     private val bottomBtn = IconBarButton(GIcons.Action.Bottom.get()) applyTooltip STRINGS.toolTip.viewLastBtn
@@ -146,7 +145,7 @@ abstract class LogPanel(
     }
 
     private fun getBookmarkManager(): BookmarkManager? {
-        return contexts.getContext(BaseLogPanel::class.java)?.let {
+        return contexts.getContext(BaseLogMainPanel::class.java)?.let {
             ServiceManager.getContextService(it, BookmarkManager::class.java)
         }
     }

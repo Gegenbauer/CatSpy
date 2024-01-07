@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.filter.ui
 
-import me.gegenbauer.catspy.utils.Key
 import me.gegenbauer.catspy.utils.KeyEventInterceptor
 import org.fife.ui.autocomplete.BasicCompletion
 import org.fife.ui.autocomplete.CompletionProvider
@@ -40,12 +39,6 @@ internal class AutoCompleteHelper {
             autoCompleteSingleChoices = false
             install(textComponent)
         }
-
-        keyInterceptor = KeyEventInterceptor(textComponent, Key.TAB).also {
-            it.enable {
-                autoCompletion?.insertCurrentCompletion()
-            }
-        }
     }
 
     fun disableAutoComplete() {
@@ -68,7 +61,7 @@ private fun createCompletionProvider(suggestions: List<String>): CompletionProvi
     // caret position for a match against known completions. This is all
     // that is needed in the majority of cases.
     return DefaultCompletionProvider().apply {
-        setAutoActivationRules(false, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\n")
+        setAutoActivationRules(true, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\n")
         addCompletions(suggestions.map { BasicCompletion(this, it) })
     }
 }

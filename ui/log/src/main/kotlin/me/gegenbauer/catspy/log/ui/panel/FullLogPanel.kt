@@ -50,10 +50,10 @@ class FullLogPanel(
 
     private inner class ActionHandler : ActionListener {
         override fun actionPerformed(event: ActionEvent) {
-            val mainUI = DarkUIUtil.getParentOfType(this@FullLogPanel, BaseLogPanel::class.java)
+            val mainUI = DarkUIUtil.getParentOfType(this@FullLogPanel, BaseLogMainPanel::class.java)
             when (event.source) {
                 windowedModeBtn -> {
-                    mainUI.windowedModeLogPanel(this@FullLogPanel)
+                    mainUI.showLogPanelInWindow(this@FullLogPanel)
                 }
             }
         }

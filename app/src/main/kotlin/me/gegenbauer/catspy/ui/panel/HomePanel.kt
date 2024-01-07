@@ -4,7 +4,6 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainFrame
@@ -38,8 +37,6 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
     private val scope = MainScope()
 
     override fun setup() {
-        componentName = this::class.java.simpleName
-
         layout = GridBagLayout()
         tabSelector.toolTipText = STRINGS.toolTip.selectTabBtn
         add(tabSelector)

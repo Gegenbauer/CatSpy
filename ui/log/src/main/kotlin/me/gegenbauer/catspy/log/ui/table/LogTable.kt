@@ -5,7 +5,7 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.ui.panel.BaseLogPanel
+import me.gegenbauer.catspy.log.ui.panel.BaseLogMainPanel
 import me.gegenbauer.catspy.log.ui.dialog.LogViewDialog
 import me.gegenbauer.catspy.log.ui.table.LogTableModel.Companion.COLUMN_NUM
 import me.gegenbauer.catspy.strings.STRINGS
@@ -228,7 +228,7 @@ class LogTable(
     }
 
     private fun updateBookmark(rows: List<Int>) {
-        val context = contexts.getContext(BaseLogPanel::class.java) ?: return
+        val context = contexts.getContext(BaseLogMainPanel::class.java) ?: return
         val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
         if (bookmarkManager.checkNewRow(rows)) {
             rows.forEach(bookmarkManager::addBookmark)
@@ -238,7 +238,7 @@ class LogTable(
     }
 
     private fun deleteBookmark(rows: List<Int>) {
-        val context = contexts.getContext(BaseLogPanel::class.java) ?: return
+        val context = contexts.getContext(BaseLogMainPanel::class.java) ?: return
         val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
         rows.forEach(bookmarkManager::removeBookmark)
     }
@@ -278,7 +278,7 @@ class LogTable(
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
-                val logTabPanel = DarkUIUtil.getParentOfType(this@LogTable, BaseLogPanel::class.java)
+                val logTabPanel = DarkUIUtil.getParentOfType(this@LogTable, BaseLogMainPanel::class.java)
                 when (event.source) {
                     copyItem -> {
                         copySelectedRows()

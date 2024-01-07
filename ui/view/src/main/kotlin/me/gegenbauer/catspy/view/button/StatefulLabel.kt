@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.view.button
 
-import me.gegenbauer.catspy.databinding.bind.componentName
 import javax.swing.Icon
 import javax.swing.JLabel
 
@@ -32,9 +31,5 @@ class StatefulLabel(
                 icon = originalIcon
             }
         }
-    }
-
-    init {
-        componentName = originalText ?: ""
     }
 }

@@ -108,12 +108,20 @@ object Key {
     val C_END = getKeyEventInfo(KeyEvent.VK_END, KeyEvent.CTRL_DOWN_MASK)
     val C_HOME = getKeyEventInfo(KeyEvent.VK_HOME, KeyEvent.CTRL_DOWN_MASK)
 
+    val C_F = getKeyEventInfo(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK)
     val C_L = getKeyEventInfo(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK)
     val C_G = getKeyEventInfo(KeyEvent.VK_G, KeyEvent.CTRL_DOWN_MASK)
     val C_K = getKeyEventInfo(KeyEvent.VK_K, KeyEvent.CTRL_DOWN_MASK)
     val C_P = getKeyEventInfo(KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK)
     val C_O = getKeyEventInfo(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK)
+    val C_S = getKeyEventInfo(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK)
+    val C_Y = getKeyEventInfo(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK)
+    val C_Z = getKeyEventInfo(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK)
+
+    val C_M = getKeyEventInfo(KeyEvent.VK_M, KeyEvent.CTRL_DOWN_MASK)
     val ESCAPE = getKeyEventInfo(KeyEvent.VK_ESCAPE)
+    val F3 = getKeyEventInfo(KeyEvent.VK_F3)
+    val F4 = getKeyEventInfo(KeyEvent.VK_F4)
 
     fun getKeyEventInfo(
         keyCode: Int,
@@ -128,7 +136,11 @@ data class KeyEventInfo(
     val keyCode: Int,
     val modifiers: Int = 0,
     var action: Int = KeyEvent.KEY_PRESSED,
-)
+) {
+    override fun toString(): String {
+        return "${KeyEvent.getModifiersExText(modifiers)} ${KeyEvent.getKeyText(keyCode)}"
+    }
+}
 
 fun KeyEventInfo.pressed(): KeyEventInfo {
     return copy(action = KeyEvent.KEY_PRESSED)
@@ -142,7 +154,18 @@ val KeyEvent.keyEventInfo: KeyEventInfo
     get() = KeyEventInfo(keyCode, modifiersEx, id)
 
 fun JComponent.registerStroke(key: KeyEventInfo, strokeName: String, action: KeyStrokeAction) {
-    getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+    registerStroke(key, strokeName, JComponent.WHEN_IN_FOCUSED_WINDOW, action)
+}
+
+fun JComponent.registerStrokeWhenFocused(key: KeyEventInfo, strokeName: String, action: KeyStrokeAction) {
+    registerStroke(key, strokeName, JComponent.WHEN_FOCUSED, action)
+}
+
+val customKeyStrokes = mutableListOf<Pair<String, KeyEventInfo>>()
+
+fun JComponent.registerStroke(key: KeyEventInfo, strokeName: String, focusedCondition: Int, action: KeyStrokeAction) {
+    customKeyStrokes.add(strokeName to key)
+    getInputMap(focusedCondition).put(
         KeyStroke.getKeyStroke(key.keyCode, key.modifiers),
         strokeName
     )

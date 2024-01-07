@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.log.ui.panel
 
-import com.github.weisj.darklaf.iconset.AllIcons
 import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants.FILL
@@ -18,7 +17,6 @@ import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.bind.bindLeft
-import me.gegenbauer.catspy.databinding.bind.withName
 import me.gegenbauer.catspy.databinding.property.support.*
 import me.gegenbauer.catspy.file.getFileName
 import me.gegenbauer.catspy.glog.GLog
@@ -50,7 +48,6 @@ import me.gegenbauer.catspy.view.dialog.FileSaveHandler
 import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.EMPTY_ITEM
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.rebuild
-import me.gegenbauer.catspy.view.filter.getOrCreateFilterItem
 import me.gegenbauer.catspy.view.panel.StatusBar
 import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.state.StatefulPanel
@@ -62,18 +59,16 @@ import java.awt.event.*
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.swing.*
-import javax.swing.event.PopupMenuEvent
-import javax.swing.event.PopupMenuListener
 
-abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
+abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
 
     abstract val tag: String
     override val tabName: String = STRINGS.ui.tabLogFile
     override val tabIcon: Icon = GIcons.Tab.FileLog.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
 
-    protected abstract val showProcessToggle: ColorToggleButton
+    protected abstract val processFilterToggle: ColorToggleButton
 
-    protected abstract val showProcessCombo: FilterComboBox
+    protected abstract val processFilterCombo: FilterComboBox
 
     protected abstract val currentPidFilter: FilterItem
 
@@ -105,17 +100,17 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
     //region logPanel
     private val logPanel = JPanel()
 
-    private val showLogToggle = ColorToggleButton(GlobalStrings.LOG, STRINGS.toolTip.logToggle)
-    protected val showLogCombo = filterComboBox(tooltip = STRINGS.toolTip.logToggle) withName GlobalStrings.LOG
+    private val messageFilterToggle = ColorToggleButton(GlobalStrings.LOG, STRINGS.toolTip.logToggle)
+    protected val messageFilterCombo = filterComboBox(tooltip = STRINGS.toolTip.logToggle)
 
-    private val showTagToggle = ColorToggleButton(GlobalStrings.TAG, STRINGS.toolTip.tagToggle)
-    protected val showTagCombo = filterComboBox(tooltip = STRINGS.toolTip.tagToggle) withName GlobalStrings.TAG
+    private val tagFilterToggle = ColorToggleButton(GlobalStrings.TAG, STRINGS.toolTip.tagToggle)
+    protected val tagFilterCombo = filterComboBox(tooltip = STRINGS.toolTip.tagToggle)
 
-    private val showTidToggle = ColorToggleButton(GlobalStrings.TID, STRINGS.toolTip.tidToggle)
-    protected val showTidCombo = filterComboBox(tooltip = STRINGS.toolTip.tidToggle) withName GlobalStrings.TID
+    private val tidFilterToggle = ColorToggleButton(GlobalStrings.TID, STRINGS.toolTip.tidToggle)
+    protected val tidFilterCombo = filterComboBox(tooltip = STRINGS.toolTip.tidToggle)
 
-    private val logLevelToggle = ColorToggleButton(STRINGS.ui.logLevel, STRINGS.toolTip.logLevelToggle)
-    private val logLevelCombo = readOnlyComboBox(STRINGS.toolTip.logLevelCombo) withName STRINGS.ui.logLevel
+    private val logLevelFilterToggle = ColorToggleButton(STRINGS.ui.logLevel, STRINGS.toolTip.logLevelToggle)
+    private val logLevelFilterCombo = readOnlyComboBox(STRINGS.toolTip.logLevelCombo)
 
     private val boldLogToggle = ColorToggleButton(STRINGS.ui.bold, STRINGS.toolTip.boldToggle)
     protected val boldLogCombo = filterComboBox(tooltip = STRINGS.toolTip.boldToggle)
@@ -128,7 +123,7 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
     private val toolBarPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 0, 0))
 
     //region logToolBar
-    private val logToolBar = JPanel(FlowLayout(FlowLayout.LEFT)) withName "logToolBar"
+    private val logToolBar = JPanel(FlowLayout(FlowLayout.LEFT))
 
     protected val startBtn = IconBarButton(
         GIcons.Action.Start.get(),
@@ -148,7 +143,7 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
     //endregion
 
     //region searchPanel
-    private val searchPanel by lazy { SearchPanel() }
+    private val searchPanel by lazy { SearchPanel(filteredTableModel) }
     //endregion
     //endregion
 
@@ -157,11 +152,9 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
     protected open val fullTableModel = LogTableModel(logViewModel)
     protected open val filteredTableModel = FilteredLogTableModel(logViewModel)
     private val splitLogPane by lazy {
-        SplitLogPane(fullTableModel, filteredTableModel).apply {
-            onFocusGained = {
-                searchPanel.setTargetView(it)
-            }
-        }
+        SplitLogPane(fullTableModel, filteredTableModel, onFocusGained = {
+            searchPanel.currentLogTableModel = if (it) filteredTableModel else fullTableModel
+        })
     }
     private val fullTable by lazy { splitLogPane.fullLogPanel.table }
     private val filteredTable by lazy { splitLogPane.filteredLogPanel.table }
@@ -202,6 +195,7 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
         }
 
     private var updateFilterJob: Job? = null
+    private var updateSearchFilterJob: Job? = null
 
     init {
         isVisible = false
@@ -228,8 +222,8 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
             //region Toolbar
             //region Filter
             bindLogFilter(
-                showLogCombo,
-                showLogToggle,
+                messageFilterCombo,
+                messageFilterToggle,
                 logFilterSelectedIndex,
                 logFilterHistory,
                 logFilterEnabled,
@@ -237,8 +231,8 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
                 logFilterErrorMessage
             )
             bindLogFilter(
-                showTagCombo,
-                showTagToggle,
+                tagFilterCombo,
+                tagFilterToggle,
                 tagFilterSelectedIndex,
                 tagFilterHistory,
                 tagFilterEnabled,
@@ -249,8 +243,8 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
             bindProcessComponents(this)
 
             bindLogFilter(
-                showTidCombo,
-                showTidToggle,
+                tidFilterCombo,
+                tidFilterToggle,
                 tidFilterSelectedIndex,
                 tidFilterHistory,
                 tidFilterEnabled,
@@ -258,8 +252,8 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
                 tidFilterErrorMessage
             )
             bindLogFilter(
-                logLevelCombo,
-                logLevelToggle,
+                logLevelFilterCombo,
+                logLevelFilterToggle,
                 logLevelFilterSelectedIndex,
                 logLevelFilterHistory,
                 logLevelFilterEnabled,
@@ -323,10 +317,10 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
         super.configureContext(context)
 
         ServiceManager.getContextService(this, BookmarkManager::class.java)
-        registerSearchStroke()
 
         splitLogPane.setParent(this)
         filePopupMenu.setParent(this)
+        searchPanel.setParent(this)
     }
 
     private fun observeViewModelValue() {
@@ -349,8 +343,7 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
                 boldHistory to boldCurrentContent,
                 searchHistory to searchCurrentContent
             )
-            searchMatchCase.addObserver { filteredTableModel.searchMatchCase = it == true }
-            searchCurrentContent.addObserver { updateSearchFilter(it) }
+            searchCurrentContent.addObserver { updateSearchFilter() }
             logFont.addObserver {
                 it ?: return@addObserver
                 filteredTable.font = it
@@ -371,7 +364,9 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
         comboBoxPropertyPair.forEach { (history, currentContent) ->
             currentContent.addObserver { content ->
                 saveFilterToHistoryScheduler.schedule {
-                    resetComboItem(history, content ?: "")
+                    if ((content?.length ?: 0) > 1) {
+                        saveFilter(history, content ?: "")
+                    }
                 }
             }
         }
@@ -379,9 +374,9 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
 
     private fun saveConfiguration() {
         SettingsManager.updateSettings {
-            logFontSize = this@BaseLogPanel.logFont.size
-            logFontName = this@BaseLogPanel.logFont.name
-            logFontStyle = this@BaseLogPanel.logFont.style
+            logFontSize = this@BaseLogMainPanel.logFont.size
+            logFontName = this@BaseLogMainPanel.logFont.name
+            logFontStyle = this@BaseLogMainPanel.logFont.style
         }
     }
 
@@ -396,16 +391,16 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
             doubleArrayOf(p)
         )
         logPanel.border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
-        logPanel.add(showLogToggle, "0, 0")
-        logPanel.add(showLogCombo, "1, 0")
-        logPanel.add(showTagToggle, "2, 0")
-        logPanel.add(showTagCombo, "3, 0")
-        logPanel.add(showProcessToggle, "4, 0")
-        logPanel.add(showProcessCombo, "5, 0")
-        logPanel.add(showTidToggle, "6, 0")
-        logPanel.add(showTidCombo, "7, 0")
-        logPanel.add(logLevelToggle, "8, 0")
-        logPanel.add(logLevelCombo, "9, 0")
+        logPanel.add(messageFilterToggle, "0, 0")
+        logPanel.add(messageFilterCombo, "1, 0")
+        logPanel.add(tagFilterToggle, "2, 0")
+        logPanel.add(tagFilterCombo, "3, 0")
+        logPanel.add(processFilterToggle, "4, 0")
+        logPanel.add(processFilterCombo, "5, 0")
+        logPanel.add(tidFilterToggle, "6, 0")
+        logPanel.add(tidFilterCombo, "7, 0")
+        logPanel.add(logLevelFilterToggle, "8, 0")
+        logPanel.add(logLevelFilterCombo, "9, 0")
         logPanel.add(boldLogToggle, "10, 0")
         logPanel.add(boldLogCombo, "11, 0")
         logPanel.add(matchCaseToggle, "12, 0")
@@ -443,8 +438,6 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
         splitLogPane.fullLogPanel.customFont = logFont
 
         searchPanel.searchMatchCaseToggle.isSelected = SettingsManager.settings.searchMatchCaseEnabled
-        filteredTableModel.searchMatchCase = SettingsManager.settings.searchMatchCaseEnabled
-        fullTableModel.searchMatchCase = SettingsManager.settings.searchMatchCaseEnabled
 
         splitLogWithStatefulPanel.setContent(splitLogPane)
         splitLogWithStatefulPanel.action = {
@@ -461,7 +454,6 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
     protected open fun registerEvent() {
         registerStrokes()
 
-        // fix bug: event registered for editor in ComboBox will be removed when ComboBoxUI changed
         registerComboBoxEditorEvent()
 
         startBtn.addActionListener(actionHandler)
@@ -501,9 +493,9 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
     private fun handleErrorEvent(event: ErrorEvent) {
         GLog.e(tag, "[handleErrorEvent] error", event.error)
         JOptionPane.showMessageDialog(
-            this@BaseLogPanel,
-            event.error.message ?: "Unknown Error",
-            "Error",
+            this@BaseLogMainPanel,
+            event.error.message ?: STRINGS.ui.unknownError,
+            STRINGS.ui.error,
             JOptionPane.ERROR_MESSAGE
         )
     }
@@ -511,15 +503,15 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
     private fun handleTaskStateEvent(taskState: TaskState) {
         this.taskState = when (taskState) {
             TaskState.IDLE -> {
-                TaskIdle(this@BaseLogPanel)
+                TaskIdle(this@BaseLogMainPanel)
             }
 
             TaskState.RUNNING -> {
-                TaskStarted(this@BaseLogPanel)
+                TaskStarted(this@BaseLogMainPanel)
             }
 
             TaskState.PAUSED -> {
-                TaskPaused(this@BaseLogPanel)
+                TaskPaused(this@BaseLogMainPanel)
             }
         }
     }
@@ -536,7 +528,7 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
         registerStroke(Key.C_L, "Device Combo Request Focus") { deviceCombo.requestFocus() }
         registerStroke(Key.C_G, "Go To Target Log Line") {
             val goToDialog = GoToDialog(findFrameFromParent())
-            goToDialog.setLocationRelativeTo(this@BaseLogPanel)
+            goToDialog.setLocationRelativeTo(this@BaseLogMainPanel)
             goToDialog.isVisible = true
             if (goToDialog.line > 0) {
                 GLog.d(tag, "[KeyEventDispatcher] Cancel Goto Line ${goToDialog.line}")
@@ -549,15 +541,28 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
         registerStroke(Key.C_P, "Start Logcat") { startBtn.doClick() }
         registerStroke(Key.C_O, "Select Log File") { filePopupMenu.onClickFileOpen() }
         registerStroke(Key.C_DELETE, "Clear All Logs") { clearAllLogs() }
+        registerStroke(Key.ESCAPE, "Close Search Panel") { logMainBinding.searchPanelVisible.updateValue(false) }
+        registerStroke(Key.C_F, "Open Search Panel") { logMainBinding.searchPanelVisible.updateValue(true) }
+        registerStroke(Key.F3, "Move To Previous Search Result") {
+            if (searchPanel.isVisible) {
+                searchPanel.moveToPrev()
+            }
+        }
+        registerStroke(Key.F4, "Move To Next Search Result") {
+            if (searchPanel.isVisible) {
+                searchPanel.moveToNext()
+            }
+        }
+        registerStroke(Key.C_S, "Save Log") { saveLog() }
     }
 
     private fun registerComboBoxEditorEvent() {
-        showLogCombo.keyListener = keyHandler
-        showLogCombo.keyListener = keyHandler
+        messageFilterCombo.keyListener = keyHandler
+        messageFilterCombo.keyListener = keyHandler
         boldLogCombo.keyListener = keyHandler
-        showTagCombo.keyListener = keyHandler
-        showProcessCombo.keyListener = keyHandler
-        showTidCombo.keyListener = keyHandler
+        tagFilterCombo.keyListener = keyHandler
+        processFilterCombo.keyListener = keyHandler
+        tidFilterCombo.keyListener = keyHandler
         deviceCombo.keyListener = keyHandler
         searchPanel.registerComboBoxEditorEvent()
     }
@@ -588,7 +593,7 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
         }
     }
 
-    fun windowedModeLogPanel(logPanel: FullLogPanel) {
+    internal fun showLogPanelInWindow(logPanel: FullLogPanel) {
         detachLogPanel(logPanel)
         val logTableDialog = LogTableDialog(logPanel) {
             attachLogPanel(logPanel)
@@ -655,14 +660,18 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
                 }
 
                 saveBtn -> {
-                    FileSaveHandler.Builder(this@BaseLogPanel)
-                        .onFileSpecified(logViewModel::saveLog)
-                        .setDefaultName(logStatus.path.getFileName())
-                        .build()
-                        .show()
+                    saveLog()
                 }
             }
         }
+    }
+
+    private fun saveLog() {
+        FileSaveHandler.Builder(this@BaseLogMainPanel)
+            .onFileSpecified(logViewModel::saveLog)
+            .setDefaultName(logStatus.path.getFileName())
+            .build()
+            .show()
     }
 
     fun clearAllLogs() {
@@ -670,63 +679,60 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
     }
 
     fun getTextShowLogCombo(): String {
-        if (showLogCombo.selectedItem == null) {
+        if (messageFilterCombo.selectedItem == null) {
             return ""
         }
-        return showLogCombo.selectedItem!!.toString()
+        return messageFilterCombo.selectedItem!!.toString()
     }
 
-    fun setTextShowLogCombo(text: String) {
-        showLogCombo.selectedItem = text
-        showLogCombo.updateTooltip()
-    }
-
-    fun applyShowLogCombo() {
-        resetComboItem(logMainBinding.logFilterHistory, logMainBinding.logFilterCurrentContent.value ?: "")
+    fun updateMessageFilter(text: String) {
+        messageFilterCombo.selectedItem = text
+        messageFilterCombo.updateTooltip()
+        saveFilter(logMainBinding.logFilterHistory, logMainBinding.logFilterCurrentContent.value ?: "")
     }
 
     private inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(event: KeyEvent) {
             if (event.keyEventInfo == Key.C_ENTER.released()) {
                 val receivedTargets = listOf(
-                    showLogCombo.editorComponent,
+                    messageFilterCombo.editorComponent,
                     boldLogCombo.editorComponent,
-                    showTagCombo.editorComponent,
-                    showProcessCombo.editorComponent,
-                    showTidCombo.editorComponent,
+                    tagFilterCombo.editorComponent,
+                    processFilterCombo.editorComponent,
+                    tidFilterCombo.editorComponent,
                     boldLogCombo.editorComponent,
                 )
                 if (event.source in receivedTargets) {
                     updateComboBox()
                     updateLogFilter()
+                    event.consume()
                 }
             }
-            super.keyReleased(event)
         }
     }
 
     private fun updateComboBox() {
-        resetComboItem(logMainBinding.logFilterHistory, logMainBinding.logFilterCurrentContent.value ?: "")
-        resetComboItem(logMainBinding.tagFilterHistory, logMainBinding.tagFilterCurrentContent.value ?: "")
-        resetComboItem(logMainBinding.pidFilterHistory, logMainBinding.pidFilterCurrentContent.value ?: "")
-        resetComboItem(logMainBinding.packageFilterHistory, logMainBinding.packageFilterCurrentContent.value ?: "")
-        resetComboItem(logMainBinding.tidFilterHistory, logMainBinding.tidFilterCurrentContent.value ?: "")
-        resetComboItem(logMainBinding.boldHistory, logMainBinding.boldCurrentContent.value ?: "")
+        saveFilter(logMainBinding.logFilterHistory, logMainBinding.logFilterCurrentContent.value ?: "")
+        saveFilter(logMainBinding.tagFilterHistory, logMainBinding.tagFilterCurrentContent.value ?: "")
+        saveFilter(logMainBinding.pidFilterHistory, logMainBinding.pidFilterCurrentContent.value ?: "")
+        saveFilter(logMainBinding.packageFilterHistory, logMainBinding.packageFilterCurrentContent.value ?: "")
+        saveFilter(logMainBinding.tidFilterHistory, logMainBinding.tidFilterCurrentContent.value ?: "")
+        saveFilter(logMainBinding.boldHistory, logMainBinding.boldCurrentContent.value ?: "")
     }
 
     private fun updateLogFilter() {
         val lastUpdateJob = updateFilterJob
         updateFilterJob = scope.launch {
             lastUpdateJob?.cancelAndJoin()
-            delay(10)
+            updateFilterComboBoxFilterItems(messageFilterCombo, tagFilterCombo, processFilterCombo, tidFilterCombo, boldLogCombo)
             logMainBinding.apply {
                 val matchCase = filterMatchCaseEnabled.getValueNonNull()
                 LogcatFilter(
-                    if (logFilterEnabled.getValueNonNull()) showLogCombo.filterItem.rebuild(matchCase) else EMPTY_ITEM,
-                    if (tagFilterEnabled.getValueNonNull()) showTagCombo.filterItem.rebuild(matchCase) else EMPTY_ITEM,
+                    if (logFilterEnabled.getValueNonNull()) messageFilterCombo.filterItem.rebuild(matchCase) else EMPTY_ITEM,
+                    if (tagFilterEnabled.getValueNonNull()) tagFilterCombo.filterItem.rebuild(matchCase) else EMPTY_ITEM,
                     currentPidFilter,
                     currentPackageFilter,
-                    if (tidFilterEnabled.getValueNonNull()) showTidCombo.filterItem.rebuild(matchCase) else EMPTY_ITEM,
+                    if (tidFilterEnabled.getValueNonNull()) tidFilterCombo.filterItem.rebuild(matchCase) else EMPTY_ITEM,
                     if (logLevelFilterEnabled.getValueNonNull()) logMainBinding.logLevel.getValueNonNull() else LogLevel.NONE,
                     logMainBinding.filterMatchCaseEnabled.getValueNonNull()
                 ).apply {
@@ -741,12 +747,23 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
         }
     }
 
-    private fun updateSearchFilter(content: String?) {
-        filteredTableModel.searchFilterItem = content?.getOrCreateFilterItem() ?: EMPTY_ITEM
-        fullTableModel.searchFilterItem = content?.getOrCreateFilterItem() ?: EMPTY_ITEM
+    private fun updateFilterComboBoxFilterItems(vararg filterComboBox: FilterComboBox) {
+        filterComboBox.forEach(FilterComboBox::buildFilterItem)
     }
 
-    private fun resetComboItem(
+    private fun updateSearchFilter() {
+        val lastUpdateJob = updateSearchFilterJob
+        updateSearchFilterJob = scope.launch {
+            lastUpdateJob?.cancelAndJoin()
+            updateFilterComboBoxFilterItems(searchPanel.searchCombo)
+            val searchItem = EMPTY_ITEM.takeUnless { logMainBinding.searchPanelVisible.getValueNonNull() } ?:
+            searchPanel.searchCombo.filterItem.rebuild(logMainBinding.searchMatchCase.getValueNonNull())
+            filteredTableModel.searchFilterItem = searchItem
+            fullTableModel.searchFilterItem = searchItem
+        }
+    }
+
+    private fun saveFilter(
         viewModelProperty: ObservableValueProperty<List<HistoryItem<String>>>,
         item: String
     ) {
@@ -778,167 +795,8 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
         splitLogPane.fullLogPanel.goToRowIndex(fullTableModel.getRowIndexInAllPages(lineNumber))
     }
 
-    inner class SearchPanel : JPanel() {
-        val closeBtn = IconBarButton(AllIcons.Navigation.Close.get()) applyTooltip STRINGS.toolTip.searchCloseBtn
-        val searchCombo: FilterComboBox = filterComboBox() applyTooltip STRINGS.toolTip.searchCombo
-        val searchMatchCaseToggle: ColorToggleButton =
-            ColorToggleButton("Aa") applyTooltip STRINGS.toolTip.searchCaseToggle
-        var isInternalTargetView = true  // true : filter view, false : full view
-
-        private var targetLabel: JLabel = if (isInternalTargetView) {
-            JLabel("${STRINGS.ui.filter} ${STRINGS.ui.log}")
-        } else {
-            JLabel("${STRINGS.ui.full} ${STRINGS.ui.log}")
-        } applyTooltip STRINGS.toolTip.searchTargetLabel
-        private val upBtn = IconBarButton(GIcons.Action.Up.get()) applyTooltip STRINGS.toolTip.searchPrevBtn
-        private val downBtn = IconBarButton(GIcons.Action.Down.get()) applyTooltip STRINGS.toolTip.searchNextBtn
-        private val contentPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
-        private val statusPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 5, 2))
-
-        private val searchActionHandler = SearchActionHandler()
-        private val searchKeyHandler = SearchKeyHandler()
-        private val searchPopupMenuHandler = SearchPopupMenuHandler()
-
-        init {
-            configureUI()
-            registerEvent()
-        }
-
-        private fun configureUI() {
-            searchCombo.enabledTfTooltip = false
-            searchCombo.isEditable = true
-            searchCombo.setWidth(400)
-
-            contentPanel.add(searchCombo)
-            contentPanel.add(searchMatchCaseToggle)
-            contentPanel.add(upBtn)
-            contentPanel.add(downBtn)
-
-            statusPanel.add(targetLabel)
-            statusPanel.add(closeBtn)
-
-            layout = BorderLayout()
-            add(contentPanel, BorderLayout.WEST)
-            add(statusPanel, BorderLayout.EAST)
-        }
-
-        private fun registerEvent() {
-            registerComboBoxEditorEvent()
-            searchCombo.addPopupMenuListener(searchPopupMenuHandler)
-            searchMatchCaseToggle.addItemListener(SearchItemHandler())
-            upBtn.addActionListener(searchActionHandler)
-            downBtn.addActionListener(searchActionHandler)
-            closeBtn.addActionListener(searchActionHandler)
-        }
-
-        fun registerComboBoxEditorEvent() {
-            searchCombo.keyListener = searchKeyHandler
-        }
-
-        override fun setVisible(aFlag: Boolean) {
-            super.setVisible(aFlag)
-
-            if (aFlag) {
-                searchCombo.requestFocus()
-                searchCombo.editor.selectAll()
-            } else {
-                searchCombo.editorComponent.text = ""
-                searchCombo.hidePopup()
-            }
-        }
-
-        fun setTargetView(aFlag: Boolean) {
-            isInternalTargetView = aFlag
-            if (isInternalTargetView) {
-                targetLabel.text = "${STRINGS.ui.filter} ${STRINGS.ui.log}"
-            } else {
-                targetLabel.text = "${STRINGS.ui.full} ${STRINGS.ui.log}"
-            }
-        }
-
-        fun moveToNext() {
-            if (isInternalTargetView) {
-                filteredTableModel.moveToNextSearchResult()
-            } else {
-                fullTableModel.moveToNextSearchResult()
-            }
-        }
-
-        fun moveToPrev() {
-            if (isInternalTargetView) {
-                filteredTableModel.moveToPreviousSearchResult()
-            } else {
-                fullTableModel.moveToPreviousSearchResult()
-            }
-        }
-
-        private inner class SearchActionHandler : ActionListener {
-            override fun actionPerformed(event: ActionEvent) {
-                when (event.source) {
-                    upBtn -> {
-                        moveToPrev()
-                    }
-
-                    downBtn -> {
-                        moveToNext()
-                    }
-
-                    closeBtn -> {
-                        logMainBinding.searchPanelVisible.updateValue(false)
-                    }
-                }
-            }
-        }
-
-        private inner class SearchKeyHandler : KeyAdapter() {
-            override fun keyReleased(event: KeyEvent) {
-                if (event.keyEventInfo == Key.ENTER.released() || event.keyEventInfo == Key.S_ENTER.released()) {
-                    resetComboItem(logMainBinding.searchHistory, logMainBinding.searchCurrentContent.value ?: "")
-                    this@SearchPanel::moveToPrev
-                        .takeIf { KeyEvent.SHIFT_DOWN_MASK == event.modifiersEx }
-                        ?.invoke() ?: this@SearchPanel::moveToNext.invoke()
-                }
-            }
-        }
-
-        private inner class SearchPopupMenuHandler : PopupMenuListener {
-            private var isCanceled = false
-            override fun popupMenuWillBecomeInvisible(event: PopupMenuEvent) {
-                if (isCanceled) {
-                    isCanceled = false
-                    return
-                }
-                when (event.source) {
-                    searchCombo -> {
-                        searchCombo.selectedIndex.takeIf { it > 0 } ?: return
-                        resetComboItem(logMainBinding.searchHistory, logMainBinding.searchCurrentContent.value ?: "")
-                    }
-                }
-            }
-
-            override fun popupMenuCanceled(event: PopupMenuEvent) {
-                isCanceled = true
-            }
-
-            override fun popupMenuWillBecomeVisible(event: PopupMenuEvent) {
-                isCanceled = false
-            }
-        }
-
-        private inner class SearchItemHandler : ItemListener {
-            override fun itemStateChanged(event: ItemEvent) {
-                when (event.source) {
-                    searchMatchCaseToggle -> {
-                        filteredTableModel.searchMatchCase = searchMatchCaseToggle.isSelected
-                        SettingsManager.settings.searchMatchCaseEnabled = searchMatchCaseToggle.isSelected
-                    }
-                }
-            }
-        }
-    }
-
     fun showSearchResultTooltip(isNext: Boolean, result: String) {
-        val targetPanel = if (searchPanel.isInternalTargetView) {
+        val targetPanel = if (searchPanel.currentLogTableModel is FilteredLogTableModel) {
             splitLogPane.filteredLogPanel
         } else {
             splitLogPane.fullLogPanel
@@ -985,69 +843,29 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
         return this
     }
 
-    private fun registerSearchStroke() {
-        var stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)
-        var actionMapKey = javaClass.name + ":SEARCH_CLOSING"
-        var action: Action = object : AbstractAction() {
-            override fun actionPerformed(event: ActionEvent) {
-                logMainBinding.searchPanelVisible.updateValue(false)
-            }
-        }
-        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
-        rootPane.actionMap.put(actionMapKey, action)
-
-        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK)
-        actionMapKey = javaClass.name + ":SEARCH_OPENING"
-        action = object : AbstractAction() {
-            override fun actionPerformed(event: ActionEvent) {
-                logMainBinding.searchPanelVisible.updateValue(true)
-            }
-        }
-        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
-        rootPane.actionMap.put(actionMapKey, action)
-
-        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0)
-        actionMapKey = javaClass.name + ":SEARCH_MOVE_PREV"
-        action = object : AbstractAction() {
-            override fun actionPerformed(event: ActionEvent) {
-                if (searchPanel.isVisible) {
-                    searchPanel.moveToPrev()
-                }
-            }
-        }
-        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
-        rootPane.actionMap.put(actionMapKey, action)
-
-        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0)
-        actionMapKey = javaClass.name + ":SEARCH_MOVE_NEXT"
-        action = object : AbstractAction() {
-            override fun actionPerformed(event: ActionEvent) {
-                if (searchPanel.isVisible) {
-                    searchPanel.moveToNext()
-                }
-            }
-        }
-        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
-        rootPane.actionMap.put(actionMapKey, action)
+    protected open fun afterTaskStateChanged(state: TaskUIState) {
+        // no-op
     }
 
-    protected open fun afterTaskStateChanged(state: TaskUIState) {}
-
-    abstract class TaskUIState(protected val ui: BaseLogPanel?) {
+    abstract class TaskUIState(protected val ui: BaseLogMainPanel?) {
         abstract fun updateUI()
 
-        open fun onStartClicked() {}
+        open fun onStartClicked() {
+            // no-op
+        }
     }
 
     internal class TaskNone : TaskUIState(null) {
         override fun updateUI() {
+            // no-op
         }
 
         override fun onStartClicked() {
+            // no-op
         }
     }
 
-    internal open class TaskStarted(ui: BaseLogPanel) : TaskUIState(ui) {
+    internal open class TaskStarted(ui: BaseLogMainPanel) : TaskUIState(ui) {
         override fun updateUI() {
             ui ?: return
             ui.startBtn.icon = GIcons.Action.Pause.get()
@@ -1064,7 +882,7 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
         }
     }
 
-    internal class TaskIdle(ui: BaseLogPanel) : TaskUIState(ui) {
+    internal class TaskIdle(ui: BaseLogMainPanel) : TaskUIState(ui) {
         override fun updateUI() {
             ui ?: return
             ui.startBtn.isEnabled = ui.logMainBinding.connectedDevices.value.isNullOrEmpty().not()
@@ -1081,7 +899,7 @@ abstract class BaseLogPanel(override val contexts: Contexts = Contexts.default) 
         }
     }
 
-    internal class TaskPaused(ui: BaseLogPanel) : TaskUIState(ui) {
+    internal class TaskPaused(ui: BaseLogMainPanel) : TaskUIState(ui) {
         override fun updateUI() {
             ui ?: return
             ui.startBtn.icon = GIcons.Action.Start.get()

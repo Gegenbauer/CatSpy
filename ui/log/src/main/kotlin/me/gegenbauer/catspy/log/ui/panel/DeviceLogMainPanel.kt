@@ -20,20 +20,20 @@ import me.gegenbauer.catspy.view.filter.FilterItem.Companion.EMPTY_ITEM
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.rebuild
 import javax.swing.Icon
 
-class DeviceLogPanel: BaseLogPanel() {
+class DeviceLogMainPanel: BaseLogMainPanel() {
 
-    override val tag: String = "DeviceLogPanel"
+    override val tag: String = "DeviceLogMainPanel"
 
     override val tabName: String = STRINGS.ui.tabDeviceLog
     override val tabIcon: Icon = GIcons.Tab.DeviceLog.get()
 
-    override val showProcessToggle = ColorToggleButton(GlobalStrings.PACKAGE, STRINGS.toolTip.packageToggle)
-    override val showProcessCombo = filterComboBox(tooltip = STRINGS.toolTip.packageToggle)
+    override val processFilterToggle = ColorToggleButton(GlobalStrings.PACKAGE, STRINGS.toolTip.packageToggle)
+    override val processFilterCombo = filterComboBox(tooltip = STRINGS.toolTip.packageToggle)
 
     override val currentPidFilter: FilterItem = EMPTY_ITEM
     override val currentPackageFilter: FilterItem
         get() = if (logMainBinding.packageFilterEnabled.getValueNonNull()) {
-            showProcessCombo.filterItem.rebuild(logMainBinding.filterMatchCaseEnabled.getValueNonNull())
+            processFilterCombo.filterItem.rebuild(logMainBinding.filterMatchCaseEnabled.getValueNonNull())
         } else {
             EMPTY_ITEM
         }
@@ -46,8 +46,8 @@ class DeviceLogPanel: BaseLogPanel() {
     override fun bindProcessComponents(mainBinding: LogMainBinding) {
         mainBinding.apply {
             bindLogFilter(
-                showProcessCombo,
-                showProcessToggle,
+                processFilterCombo,
+                processFilterToggle,
                 packageFilterSelectedIndex,
                 packageFilterHistory,
                 packageFilterEnabled,

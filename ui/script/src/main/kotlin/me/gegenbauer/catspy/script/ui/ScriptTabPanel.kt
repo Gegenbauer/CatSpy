@@ -5,7 +5,6 @@ import com.malinskiy.adam.request.device.DeviceState
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.databinding.bind.componentName
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.script.model.Script
@@ -86,7 +85,6 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
         }
 
     override fun setup() {
-        componentName = "ScriptMainUI"
         layout = BorderLayout()
         add(cardContainer.container, BorderLayout.NORTH)
 

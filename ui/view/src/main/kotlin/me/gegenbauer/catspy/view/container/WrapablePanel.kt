@@ -2,10 +2,11 @@ package me.gegenbauer.catspy.view.container
 
 import me.gegenbauer.catspy.configuration.GThemeChangeListener
 import me.gegenbauer.catspy.configuration.ThemeManager
-import me.gegenbauer.catspy.context.Disposable
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.Contexts
 import javax.swing.JPanel
 
-class WrapablePanel : JPanel(), Disposable {
+class WrapablePanel(override val contexts: Contexts = Contexts.default) : JPanel(), Context {
 
     private val onThemeChangeListener = GThemeChangeListener {
         (layout as WrapableLayout).resizeComponent(this)
@@ -17,6 +18,7 @@ class WrapablePanel : JPanel(), Disposable {
     }
 
     override fun destroy() {
+        super.destroy()
         ThemeManager.unregisterThemeUpdateListener(onThemeChangeListener)
     }
 

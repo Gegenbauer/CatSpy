@@ -1,9 +1,8 @@
 package me.gegenbauer.catspy.view.tab
 
 import me.gegenbauer.catspy.context.Context
-import me.gegenbauer.catspy.context.Disposable
 
-interface TabManager: Disposable, Context {
+interface TabManager : Context {
     val supportedTabs: List<TabInfo>
 
     fun selectTab(tabPanel: TabPanel)

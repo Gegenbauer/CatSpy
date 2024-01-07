@@ -85,6 +85,7 @@
     "downloadTaskTitle": "正在下载 %s",
     "dragLogFileWarning": "打开文件将会清空当前日志，是否继续",
     "edit": "编辑",
+    "error": "错误",
     "exportFileSuccess": "导出文件成功",
     "exportFileTaskTitle": "正在导出文件至 %s",
     "file": "文件",

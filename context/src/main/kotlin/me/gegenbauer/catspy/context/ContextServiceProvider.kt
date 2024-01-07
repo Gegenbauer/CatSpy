@@ -4,6 +4,9 @@ interface ContextServiceProvider {
 
     fun <T : ContextService> getContextService(contextId: Long, serviceClazz: Class<out T>): T?
 
+    /**
+     * Returns the service for the target context.
+     */
     fun <T : ContextService> getContextService(context: Context, serviceClazz: Class<out T>): T
 
     /**

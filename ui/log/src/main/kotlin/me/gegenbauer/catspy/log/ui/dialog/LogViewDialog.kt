@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.log.ui.dialog
 import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.log.ui.panel.BaseLogPanel
+import me.gegenbauer.catspy.log.ui.panel.BaseLogMainPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.Key
 import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
@@ -56,7 +56,7 @@ class LogViewDialog(
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        val logMainUI = contexts.getContext(BaseLogPanel::class.java)
+        val logMainUI = contexts.getContext(BaseLogMainPanel::class.java)
         logMainUI ?: return
         textArea.font = logMainUI.logFont
     }
@@ -106,7 +106,7 @@ class LogViewDialog(
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
-                val logTabPanel = contexts.getContext(BaseLogPanel::class.java)
+                val logTabPanel = contexts.getContext(BaseLogMainPanel::class.java)
                 logTabPanel ?: return
                 val logMainBinding = logTabPanel.logMainBinding
                 when (event.source) {
@@ -114,16 +114,14 @@ class LogViewDialog(
                         if (textArea.selectedText.isNullOrEmpty()) return
                         var text = logTabPanel.getTextShowLogCombo()
                         text += "|" + textArea.selectedText
-                        logTabPanel.setTextShowLogCombo(text)
-                        logTabPanel.applyShowLogCombo()
+                        logTabPanel.updateMessageFilter(text)
                     }
 
                     excludeItem -> {
                         if (textArea.selectedText.isNullOrEmpty()) return
                         var text = logTabPanel.getTextShowLogCombo()
                         text += "|-" + textArea.selectedText
-                        logTabPanel.setTextShowLogCombo(text)
-                        logTabPanel.applyShowLogCombo()
+                        logTabPanel.updateMessageFilter(text)
                     }
 
                     searchAddItem -> {

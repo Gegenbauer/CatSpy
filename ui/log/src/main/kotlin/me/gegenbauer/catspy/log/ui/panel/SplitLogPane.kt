@@ -1,10 +1,8 @@
 package me.gegenbauer.catspy.log.ui.panel
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
@@ -26,10 +24,9 @@ import javax.swing.TransferHandler
 class SplitLogPane(
     fullTableModel: LogTableModel,
     filteredTableModel: LogTableModel,
+    val onFocusGained: (Boolean) -> Unit = {},
     override val contexts: Contexts = Contexts.default
 ) : JSplitPane(), FocusListener, Context {
-
-    var onFocusGained: (Boolean) -> Unit = {}
 
     val fullLogPanel = FullLogPanel(fullTableModel, this)
     val filteredLogPanel = FilteredLogPanel(filteredTableModel, this, fullLogPanel)
@@ -129,7 +126,7 @@ class SplitLogPane(
             val os = currentPlatform
             GLog.d(TAG, "os:$os, drop:${info.dropAction},sourceDrop:${info.sourceDropActions},userDrop:${info.userDropAction}")
 
-            val logMainUI = contexts.getContext(BaseLogPanel::class.java)
+            val logMainUI = contexts.getContext(BaseLogMainPanel::class.java)
             logMainUI ?: return false
 
             val options = listOf<Pair<String, (List<File>) -> Unit>>(
