@@ -143,6 +143,8 @@
     "selectFont": "Select Font",
     "selectLog": "Select Log",
     "selectTab": "Select Tab",
+    "selectedTooMuchLogWarningMessage": "You have selected %s logs, which may take a long time to load. Only the first %s logs will be loaded.",
+    "selectedTooMuchLogWarningTitle": "Too much logs selected",
     "setSearch": "Set Search",
     "showEntireLine": "Show Entire Line",
     "showFileInFileManager": "Show in Files",

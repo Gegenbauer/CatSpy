@@ -142,6 +142,8 @@
     "selectFunctionTab": "기능 탭을 선택하려면 클릭하세요",
     "selectLog": "로그 선택",
     "selectTab": "탭 선택",
+    "selectedTooMuchLogWarningMessage": "%s 로그를 선택했는데, 로딩하는 데 시간이 오래 걸릴 수 있습니다. 처음 %s 로그만 로드됩니다.",
+    "selectedTooMuchLogWarningTitle": "너무 많은 로그 선택됨",
     "setSearch": "검색 설정",
     "showEntireLine": "전체 줄 표시",
     "showFileInFileManager": "파일에서 보기",

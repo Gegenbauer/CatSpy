@@ -36,9 +36,9 @@ fun List<HistoryItem<String>>.toStrContentList(): List<String> {
 }
 
 fun <T> List<T>.toHistoryItemList(): List<HistoryItem<T>> {
-    return map { HistoryItem(it) }
+    return map { HistoryItem(it) }.filter { it.content.toString().length > 1 }
 }
 
 fun List<String>.toStrHistoryList(): List<HistoryItem<String>> {
-    return map { HistoryItem(it) }.toMutableList().also { it.add(0, HistoryItem("")) }
+    return map { HistoryItem(it) }.filter { it.content.length > 1 }.toMutableList().also { it.add(0, HistoryItem("")) }
 }

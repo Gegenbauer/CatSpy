@@ -5,10 +5,11 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.ui.panel.BaseLogMainPanel
 import me.gegenbauer.catspy.log.ui.dialog.LogViewDialog
+import me.gegenbauer.catspy.log.ui.panel.BaseLogMainPanel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel.Companion.COLUMN_NUM
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.get
 import me.gegenbauer.catspy.utils.Key
 import me.gegenbauer.catspy.utils.findFrameFromParent
 import me.gegenbauer.catspy.utils.isDoubleClick
@@ -208,19 +209,45 @@ class LogTable(
         if (rows.isEmpty()) {
             return
         }
-        val displayContent = if (rows.size > 1) {
-            getRenderedContent(rows.toList())
-        } else {
-            getRenderedContent(
-                ((rows[0] - 2).coerceAtLeast(0)..(rows[0] + 3)
-                    .coerceAtMost(rowCount - 1)).toList()
-            )
+
+        fun realShowSelected(rows: IntArray) {
+            val displayContent = if (rows.size > 1) {
+                getRenderedContent(rows.toList())
+            } else {
+                getRenderedContent(
+                    ((rows[0] - 2).coerceAtLeast(0)..(rows[0] + 3)
+                        .coerceAtMost(rowCount - 1)).toList()
+                )
+            }
+            val frame = findFrameFromParent<JFrame>()
+            val logViewDialog = LogViewDialog(frame, displayContent.trim())
+            logViewDialog.setParent(this)
+            logViewDialog.setLocationRelativeTo(frame)
+            logViewDialog.isVisible = true
         }
+
+        if (rows.size > MAX_LOG_COUNT_SHOWS_IN_DIALOG) {
+            showExceedMaxLogCount(rows.size, MAX_LOG_COUNT_SHOWS_IN_DIALOG) {
+                realShowSelected(rows.take(MAX_LOG_COUNT_SHOWS_IN_DIALOG).toIntArray())
+            }
+            return
+        } else {
+            realShowSelected(rows)
+        }
+    }
+
+    private fun showExceedMaxLogCount(selected: Int, threshold: Int, afterShow: () -> Unit) {
         val frame = findFrameFromParent<JFrame>()
-        val logViewDialog = LogViewDialog(frame, displayContent.trim())
-        logViewDialog.setParent(this)
-        logViewDialog.setLocationRelativeTo(frame)
-        logViewDialog.isVisible = true
+        val result = JOptionPane.showConfirmDialog(
+            frame,
+            STRINGS.ui.selectedTooMuchLogWarningMessage.get(selected, threshold),
+            STRINGS.ui.selectedTooMuchLogWarningTitle,
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        )
+        if (result == JOptionPane.OK_OPTION) {
+            afterShow()
+        }
     }
 
     private fun getRowsContent(rows: List<Int>): String {
@@ -244,10 +271,23 @@ class LogTable(
     }
 
     private fun copySelectedRows() {
-        toolkit.systemClipboard.setContents(
-            StringSelection(getRowsContent(selectedRows.toList())),
-            null
-        )
+
+        fun realCopyRow(rows: IntArray) {
+            toolkit.systemClipboard.setContents(
+                StringSelection(getRowsContent(rows.toList())),
+                null
+            )
+        }
+
+        val rows = selectedRows
+        if (rows.size > MAX_LOG_COUNT_CAN_BE_COPIED) {
+            showExceedMaxLogCount(rows.size, MAX_LOG_COUNT_CAN_BE_COPIED) {
+                realCopyRow(rows.take(MAX_LOG_COUNT_CAN_BE_COPIED).toIntArray())
+            }
+            return
+        } else {
+            realCopyRow(rows)
+        }
     }
 
     internal inner class PopUp : JPopupMenu() {
@@ -360,7 +400,7 @@ class LogTable(
 
     internal inner class TableKeyHandler : KeyAdapter() {
         override fun keyPressed(event: KeyEvent) {
-            when(event.keyEventInfo) {
+            when (event.keyEventInfo) {
                 KEY_UPDATE_BOOKMARK -> updateBookmark(selectedNums())
                 KEY_PAGE_DOWN -> moveToNextSeveralRows()
                 KEY_PAGE_UP -> moveToPreviousSeveralRows()
@@ -379,6 +419,8 @@ class LogTable(
     companion object {
         private const val THRESHOLD = 10
         private const val BATCH_ROW_COUNT_TO_SCROLL = 100
+        private const val MAX_LOG_COUNT_SHOWS_IN_DIALOG = 500
+        private const val MAX_LOG_COUNT_CAN_BE_COPIED = 500
         private val KEY_UPDATE_BOOKMARK = Key.C_B
         private val KEY_DELETE_BOOKMARK = Key.DELETE
         private val KEY_PREVIOUS_ROW = Key.UP

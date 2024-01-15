@@ -22,6 +22,8 @@ import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
 import me.gegenbauer.catspy.ui.panel.MemoryStatusBar
 import me.gegenbauer.catspy.ui.panel.TabManagerPane
+import me.gegenbauer.catspy.utils.dismissOnClickOutsideWindows
+import me.gegenbauer.catspy.utils.registerDismissOnClickOutsideListener
 import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.tab.OnTabChangeListener
 import me.gegenbauer.catspy.view.tab.TabManager
@@ -116,6 +118,7 @@ class MainFrame(
             }
         })
         observeEventFlow()
+        registerDismissOnClickOutsideListener { it.javaClass.simpleName in dismissOnClickOutsideWindows }
     }
 
     private fun observeEventFlow() {

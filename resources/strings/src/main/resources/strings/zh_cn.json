@@ -142,6 +142,8 @@
     "selectFunctionTab": "点击选择功能标签",
     "selectLog": "选择日志",
     "selectTab": "选择标签",
+    "selectedTooMuchLogWarningMessage": "您已选择了 %s 个日志，可能需要很长时间来加载。只会加载前 %s 个日志。",
+    "selectedTooMuchLogWarningTitle": "选择的日志过多",
     "setSearch": "设置搜索",
     "showEntireLine": "显示全行",
     "showFileInFileManager": "在文件中查看",
