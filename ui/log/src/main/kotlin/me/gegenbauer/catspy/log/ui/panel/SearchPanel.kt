@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.log.ui.panel
 
 import com.github.weisj.darklaf.iconset.AllIcons
-import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -16,7 +15,10 @@ import me.gegenbauer.catspy.view.button.IconBarButton
 import me.gegenbauer.catspy.view.combobox.filterComboBox
 import java.awt.BorderLayout
 import java.awt.FlowLayout
-import java.awt.event.*
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
@@ -67,7 +69,6 @@ internal class SearchPanel(
 
     private fun registerEvent() {
         registerComboBoxEditorEvent()
-        searchMatchCaseToggle.addItemListener(SearchItemHandler())
         upBtn.addActionListener(searchActionHandler)
         downBtn.addActionListener(searchActionHandler)
         closeBtn.addActionListener(searchActionHandler)
@@ -135,16 +136,6 @@ internal class SearchPanel(
                 this@SearchPanel::moveToPrev
                     .takeIf { KeyEvent.SHIFT_DOWN_MASK == event.modifiersEx }
                     ?.invoke() ?: this@SearchPanel::moveToNext.invoke()
-            }
-        }
-    }
-
-    private inner class SearchItemHandler : ItemListener {
-        override fun itemStateChanged(event: ItemEvent) {
-            when (event.source) {
-                searchMatchCaseToggle -> {
-                    SettingsManager.settings.searchMatchCaseEnabled = searchMatchCaseToggle.isSelected
-                }
             }
         }
     }

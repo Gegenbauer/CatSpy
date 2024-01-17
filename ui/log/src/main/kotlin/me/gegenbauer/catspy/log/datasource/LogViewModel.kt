@@ -381,8 +381,8 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
     suspend fun preCacheFilters() {
         withContext(Dispatchers.CPU) {
             val filterCache = ServiceManager.getContextService(FilterCache::class.java)
-            SettingsManager.settings.apply {
-                (logFilterHistory + tagFilterHistory + searchHistory + highlightHistory).forEach {
+            SettingsManager.settings.logSettings.apply {
+                (filterHistory.logFilterHistory + filterHistory.tagFilterHistory + search.searchHistory + filterHistory.highlightHistory).forEach {
                     filterCache[it.toFilterKey(true)]
                     filterCache[it.toFilterKey(false)]
                 }

@@ -74,7 +74,7 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
             val latestRelease = latestReleaseResult.getOrThrow()
             GLog.d(TAG, "[checkUpdate] latestRelease=$latestRelease, currentRelease=${Release(APP_VERSION_NAME)}")
             if (updateService.checkForUpdate(latestRelease, Release(APP_VERSION_NAME))) {
-                val releaseIgnored = SettingsManager.settings.ignoredRelease.contains(latestRelease.name)
+                val releaseIgnored = SettingsManager.settings.updateSettings.isIgnored(latestRelease.name)
                 GLog.i(TAG, "[checkUpdate] releaseIgnored=$releaseIgnored")
                 if (force || releaseIgnored.not()) {
                     _eventFlow.value = ReleaseEvent.NewReleaseEvent(latestRelease)

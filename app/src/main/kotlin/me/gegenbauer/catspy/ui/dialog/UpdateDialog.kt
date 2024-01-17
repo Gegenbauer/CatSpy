@@ -26,7 +26,7 @@ class UpdateDialog(
             onDownloadConfirm(newRelease)
         }
         if (result == JOptionPane.OK_OPTION || result == JOptionPane.NO_OPTION) {
-            SettingsManager.settings.ignoredRelease.add(newRelease.name)
+            SettingsManager.settings.updateSettings.addIgnoredRelease(newRelease.name)
         }
     }
 }

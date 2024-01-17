@@ -193,11 +193,7 @@ abstract class LogPanel(
         ctrlMainPanel.add(scrollToEndBtn)
     }
 
-    var customFont: Font = Font(
-        SettingsManager.settings.logFontName,
-        SettingsManager.settings.logFontStyle,
-        SettingsManager.settings.logFontSize
-    )
+    var customFont: Font = SettingsManager.settings.logSettings.font.toNativeFont()
         set(value) {
             field = value
             table.font = value

@@ -75,7 +75,7 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         languageCbx.addActionListener {
             val locale = supportLocales[languageCbx.selectedIndex]
             if (locale == globalLocale) return@addActionListener
-            SettingsManager.updateSettings { this.locale = locale.ordinal }
+            SettingsManager.updateSettings { this.mainUISettings.locale = locale.ordinal }
         }
         languageCbx.selectedItem = globalLocale.displayName
 
@@ -84,7 +84,7 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         lafCbx.addActionListener {
             scope.launch {
                 SettingsManager.suspendUpdateSettings {
-                    theme = lafCbx.selectedItem as String
+                    themeSettings.theme = lafCbx.selectedItem as String
                 }
                 reloadUI()
             }
@@ -104,11 +104,11 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         changeFontBtn.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 val fontChooser = JFontChooser()
-                fontChooser.selectedFont = SettingsManager.settings.font
+                fontChooser.selectedFont = SettingsManager.settings.themeSettings.font.toNativeFont()
                 val result: Int = fontChooser.showDialog(this@GThemeSettingsDialog)
                 if (result == JFontChooser.OK_OPTION) {
                     val font: Font = fontChooser.selectedFont
-                    SettingsManager.settings.font = font
+                    SettingsManager.settings.themeSettings.font.update(font)
                     updateUIWithAnim { FontSupport.setUIFont(font) }
                     fontLabel.text = getFontLabelStr()
                 }
@@ -124,12 +124,12 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
             val colors = accentColors.map { UIManager.getColor(it.first) ?: Color.lightGray }
             accentColors.forEachIndexed { index, color ->
                 val colorButton = JToggleButton(AccentColorIcon(color.first))
-                colorButton.isSelected = SettingsManager.settings.getAccentColor() == colors[index]
+                colorButton.isSelected = SettingsManager.settings.themeSettings.getAccentColor() == colors[index]
                 colorButton.toolTipText = color.second
                 colorButton.addActionListener {
                     scope.launch {
                         SettingsManager.suspendUpdateSettings {
-                            setAccentColor(UIManager.getColor(color.first) ?: Color.lightGray)
+                            themeSettings.setAccentColor(UIManager.getColor(color.first) ?: Color.lightGray)
                         }
                     }
                 }
@@ -155,7 +155,7 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
     }
 
     private fun getFontLabelStr(): String {
-        val font = SettingsManager.settings.font
+        val font = SettingsManager.settings.themeSettings.font.toNativeFont()
         val fontStyleName = FontSupport.convertFontStyleToString(font.style)
         return "${STRINGS.ui.font}: ${font.fontName} $fontStyleName ${font.size}"
     }
