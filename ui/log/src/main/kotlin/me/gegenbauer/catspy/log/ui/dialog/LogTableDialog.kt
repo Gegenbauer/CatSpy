@@ -1,11 +1,14 @@
 package me.gegenbauer.catspy.log.ui.dialog
 
+import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.currentSettings
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.appIcons
 import me.gegenbauer.catspy.log.ui.panel.FullLogPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
 import java.awt.BorderLayout
+import java.awt.Rectangle
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.JFrame
@@ -15,17 +18,15 @@ class LogTableDialog(
     private val logPanel: FullLogPanel,
     private val onWindowClosing: () -> Unit = {}
 ) : JFrame(STRINGS.ui.fullLogDialogTitle) {
-    private var frameX = 0
-    private var frameY = 0
-    private var frameWidth = 1280
-    private var frameHeight = 720
 
     init {
         iconImages = appIcons
 
         defaultCloseOperation = DISPOSE_ON_CLOSE
-        setLocation(frameX, frameY)
-        setSize(frameWidth, frameHeight)
+        currentSettings.windowSettings.loadWindowSettings(
+            this,
+            Rectangle(DEFAULT_WINDOW_X, DEFAULT_WINDOW_Y, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
+        )
         val panel = JPanel(BorderLayout())
         panel.add(this.logPanel, BorderLayout.CENTER)
         contentPane.add(panel)
@@ -39,7 +40,19 @@ class LogTableDialog(
         installKeyStrokeEscClosing(this)
     }
 
+    override fun dispose() {
+        super.dispose()
+        SettingsManager.updateSettings {
+            windowSettings.saveWindowSettings(this@LogTableDialog)
+        }
+    }
+
     companion object {
         private const val TAG = "LogTableDialog"
+
+        private const val DEFAULT_WINDOW_X = 0
+        private const val DEFAULT_WINDOW_Y = 0
+        private const val DEFAULT_WINDOW_WIDTH = 1280
+        private const val DEFAULT_WINDOW_HEIGHT = 720
     }
 }

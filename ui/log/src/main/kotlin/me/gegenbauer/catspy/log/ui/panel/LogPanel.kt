@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.log.ui.panel
 
 import me.gegenbauer.catspy.configuration.LogColorScheme
-import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.currentSettings
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -14,7 +14,7 @@ import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.ui.table.LogTable
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModelListener
-import me.gegenbauer.catspy.strings.GlobalStrings
+import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.applyTooltip
 import me.gegenbauer.catspy.view.button.ColorToggleButton
@@ -193,11 +193,7 @@ abstract class LogPanel(
         ctrlMainPanel.add(scrollToEndBtn)
     }
 
-    var customFont: Font = Font(
-        SettingsManager.settings.logFontName,
-        SettingsManager.settings.logFontStyle,
-        SettingsManager.settings.logFontSize
-    )
+    var customFont: Font = currentSettings.logSettings.font.toNativeFont()
         set(value) {
             field = value
             table.font = value

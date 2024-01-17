@@ -8,11 +8,9 @@ import kotlinx.coroutines.*
 import me.gegenbauer.catspy.concurrency.IgnoreFastCallbackScheduler
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.Rotation
-import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.context.GlobalContextManager
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.databinding.bind.bindDual
@@ -27,15 +25,15 @@ import me.gegenbauer.catspy.log.LogLevel
 import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.log.datasource.LogViewModel
 import me.gegenbauer.catspy.log.datasource.TaskState
+import me.gegenbauer.catspy.log.getLevelFromName
 import me.gegenbauer.catspy.log.model.LogcatFilter
-import me.gegenbauer.catspy.log.nameToLogLevel
 import me.gegenbauer.catspy.log.ui.dialog.GoToDialog
 import me.gegenbauer.catspy.log.ui.dialog.LogTableDialog
 import me.gegenbauer.catspy.log.ui.popup.FileOpenPopupMenu
 import me.gegenbauer.catspy.log.ui.table.FilteredLogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.platform.GlobalProperties
-import me.gegenbauer.catspy.strings.GlobalStrings
+import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.*
 import me.gegenbauer.catspy.view.button.ColorToggleButton
@@ -54,7 +52,6 @@ import me.gegenbauer.catspy.view.state.StatefulPanel
 import me.gegenbauer.catspy.view.tab.TabPanel
 import java.awt.BorderLayout
 import java.awt.FlowLayout
-import java.awt.Font
 import java.awt.event.*
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -183,17 +180,6 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
     private val actionHandler = ActionHandler()
     //endregion
 
-    var logFont: Font = Font(
-        SettingsManager.settings.logFontName,
-        SettingsManager.settings.logFontStyle,
-        SettingsManager.settings.logFontSize
-    )
-        set(value) {
-            field = value
-            splitLogPane.filteredLogPanel.customFont = value
-            splitLogPane.fullLogPanel.customFont = value
-        }
-
     private var updateFilterJob: Job? = null
     private var updateSearchFilterJob: Job? = null
 
@@ -202,7 +188,6 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
     }
 
     override fun setup() {
-        GlobalContextManager.register(this)
         scope.launch {
             createUI()
 
@@ -297,10 +282,6 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
             dividerProperty(splitLogPane) bindDual splitPanelDividerLocation
             //endregion
 
-            logLevelFilterCurrentContent.addObserver {
-                logLevel.updateValue(nameToLogLevel[it] ?: LogLevel.VERBOSE)
-            }
-
             syncGlobalConfWithMainBindings()
         }
     }
@@ -329,7 +310,7 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
                 logViewModel.setPaused(it == true)
             }
             configureUpdateLogFilterTriggers(
-                filterMatchCaseEnabled, logLevel, logFilterEnabled, logFilterCurrentContent,
+                filterMatchCaseEnabled, logLevelFilterCurrentContent, logFilterEnabled, logFilterCurrentContent,
                 tagFilterEnabled, tagFilterCurrentContent, pidFilterEnabled, pidFilterCurrentContent,
                 packageFilterEnabled, packageFilterCurrentContent, tidFilterEnabled,
                 tidFilterCurrentContent, logLevelFilterEnabled, boldEnabled, searchMatchCase, boldCurrentContent
@@ -346,8 +327,8 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
             searchCurrentContent.addObserver { updateSearchFilter() }
             logFont.addObserver {
                 it ?: return@addObserver
-                filteredTable.font = it
-                fullTable.font = it
+                splitLogPane.filteredLogPanel.customFont = it.toNativeFont()
+                splitLogPane.fullLogPanel.customFont = it.toNativeFont()
             }
         }
     }
@@ -369,14 +350,6 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
                     }
                 }
             }
-        }
-    }
-
-    private fun saveConfiguration() {
-        SettingsManager.updateSettings {
-            logFontSize = this@BaseLogMainPanel.logFont.size
-            logFontName = this@BaseLogMainPanel.logFont.name
-            logFontStyle = this@BaseLogMainPanel.logFont.style
         }
     }
 
@@ -432,12 +405,7 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
 
         splitLogPane.isOneTouchExpandable = false
 
-        logFont = SettingsManager.settings.logFont
-        GLog.d(tag, "[createUI] log font: $logFont")
-        splitLogPane.filteredLogPanel.customFont = logFont
-        splitLogPane.fullLogPanel.customFont = logFont
-
-        searchPanel.searchMatchCaseToggle.isSelected = SettingsManager.settings.searchMatchCaseEnabled
+        GLog.d(tag, "[createUI] log font: ${logMainBinding.logFont.getValueNonNull()}")
 
         splitLogWithStatefulPanel.setContent(splitLogPane)
         splitLogWithStatefulPanel.action = {
@@ -542,7 +510,10 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
         registerStroke(Key.C_O, "Select Log File") { filePopupMenu.onClickFileOpen() }
         registerStroke(Key.C_DELETE, "Clear All Logs") { clearAllLogs() }
         registerStroke(Key.ESCAPE, "Close Search Panel") { logMainBinding.searchPanelVisible.updateValue(false) }
-        registerStroke(Key.C_F, "Open Search Panel") { logMainBinding.searchPanelVisible.updateValue(true) }
+        registerStroke(Key.C_F, "Open Search Panel") {
+            logMainBinding.searchPanelVisible.updateValue(true)
+            searchPanel.searchCombo.requestFocus()
+        }
         registerStroke(Key.F3, "Move To Previous Search Result") {
             if (searchPanel.isVisible) {
                 searchPanel.moveToPrev()
@@ -733,7 +704,7 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
                     currentPidFilter,
                     currentPackageFilter,
                     if (tidFilterEnabled.getValueNonNull()) tidFilterCombo.filterItem.rebuild(matchCase) else EMPTY_ITEM,
-                    if (logLevelFilterEnabled.getValueNonNull()) logMainBinding.logLevel.getValueNonNull() else LogLevel.NONE,
+                    if (logLevelFilterEnabled.getValueNonNull()) getLevelFromName(logLevelFilterCurrentContent.getValueNonNull()) else LogLevel.NONE,
                     logMainBinding.filterMatchCaseEnabled.getValueNonNull()
                 ).apply {
                     logViewModel.updateFilter(this)
@@ -835,7 +806,6 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
         ThemeManager.unregisterThemeUpdateListener(logMainBinding)
         logViewModel.destroy()
         clearAllLogs()
-        saveConfiguration()
         splitLogPane.destroy()
     }
 

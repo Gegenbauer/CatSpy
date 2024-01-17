@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.ui.dialog
 
-import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.currentSettings
 import me.gegenbauer.catspy.network.update.data.Release
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
@@ -12,9 +12,11 @@ class UpdateDialog(
     private val onDownloadConfirm: (Release) -> Unit
 ) {
     fun show() {
+        val message = STRINGS.ui.updateDialogMessage.get(newRelease.name)
+        val releaseDescription = STRINGS.ui.updateDescription.get(newRelease.body)
         val result = JOptionPane.showOptionDialog(
             frame,
-            STRINGS.ui.updateDialogMessage.get(newRelease.name),
+            "$message\n\n$releaseDescription",
             STRINGS.ui.updateDialogTitle,
             JOptionPane.YES_NO_OPTION,
             JOptionPane.INFORMATION_MESSAGE,
@@ -26,7 +28,7 @@ class UpdateDialog(
             onDownloadConfirm(newRelease)
         }
         if (result == JOptionPane.OK_OPTION || result == JOptionPane.NO_OPTION) {
-            SettingsManager.settings.ignoredRelease.add(newRelease.name)
+            currentSettings.updateSettings.addIgnoredRelease(newRelease.name)
         }
     }
 }

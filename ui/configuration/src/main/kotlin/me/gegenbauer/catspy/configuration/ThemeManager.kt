@@ -40,20 +40,20 @@ object ThemeManager {
         FlatLaf.registerCustomDefaultsSource(GlobalProperties.APP_ID)
         if (!setupLaf(getThemeClass(settings))) {
             setupLaf(SYSTEM_THEME_NAME)
-            settings.theme = SYSTEM_THEME_NAME
+            settings.themeSettings.theme = SYSTEM_THEME_NAME
         }
         applyLocale(settings)
         applyFont(settings)
     }
 
     private fun setSystemColorGetter() {
-        FlatLaf.setSystemColorGetter { SettingsManager.settings.getAccentColor() }
+        FlatLaf.setSystemColorGetter { currentSettings.themeSettings.getAccentColor() }
     }
 
     fun update(originalSettings: GSettings, settings: GSettings) {
-        val themeChanged = originalSettings.theme != settings.theme
-        val fontChanged = originalSettings.font != settings.font
-        val ifAccentColorChanged = originalSettings.getAccentColor() != settings.getAccentColor()
+        val themeChanged = originalSettings.themeSettings.theme != settings.themeSettings.theme
+        val fontChanged = originalSettings.themeSettings.font != settings.themeSettings.font
+        val ifAccentColorChanged = originalSettings.themeSettings.getAccentColor() != settings.themeSettings.getAccentColor()
         if (themeChanged || fontChanged || ifAccentColorChanged) {
             updateUIWithAnim {
                 updateLaf(settings)
@@ -85,11 +85,11 @@ object ThemeManager {
     }
 
     fun applyLocale(settings: GSettings) {
-        globalLocale = getEnum(settings.locale)
+        globalLocale = getEnum(settings.mainUISettings.locale)
     }
 
     private fun applyFont(settings: GSettings) {
-        FontSupport.setUIFont(settings.font)
+        FontSupport.setUIFont(settings.themeSettings.font.toNativeFont())
     }
 
     private fun applyLaf(theme: String): Boolean {
@@ -121,7 +121,7 @@ object ThemeManager {
     }
 
     private fun getThemeClass(settings: GSettings): String {
-        return themesMap[settings.theme] ?: ""
+        return themesMap[settings.themeSettings.theme] ?: ""
     }
 
     private fun setupLaf(themeClass: String?): Boolean {

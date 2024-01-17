@@ -10,7 +10,7 @@ import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.log.ui.table.FilteredLogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
-import me.gegenbauer.catspy.strings.GlobalStrings
+import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.view.button.ColorToggleButton
 import me.gegenbauer.catspy.view.combobox.filterComboBox

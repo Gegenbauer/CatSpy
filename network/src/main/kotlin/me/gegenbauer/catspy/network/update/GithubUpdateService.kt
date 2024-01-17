@@ -53,11 +53,13 @@ class GithubUpdateServiceImpl(override val user: String, override val repo: Stri
                 response.close()
                 return@withContext Result.failure(Exception("Failed to get latest release $url, code: ${response.code}"))
             }
-            val body = response.body?.string() ?: return@withContext Result.failure(Exception("Failed to get latest release, body is null"))
+            val body = response.body?.string()
+                ?: return@withContext Result.failure(Exception("Failed to get latest release, body is null"))
             val release = parseRelease(body)
             if (release == null) {
                 val errorMessage = parseErrorMessage(body)
-                if (errorMessage != null) { Result.failure(Exception("Failed to parse latest release, error: $errorMessage"))
+                if (errorMessage != null) {
+                    Result.failure(Exception("Failed to parse latest release, error: $errorMessage"))
                 } else {
                     Result.failure(Exception("Failed to parse latest release"))
                 }
@@ -109,7 +111,9 @@ class GithubUpdateServiceImpl(override val user: String, override val repo: Stri
                     }
                 }
             }.onFailure {
-                if (it is SocketException || it is StreamResetException) {
+                if (it is StreamResetException) {
+                    throw CancellationException("Download canceled")
+                } else if (it is SocketException && it.message?.contains("Socket closed") == true) {
                     throw CancellationException("Download canceled")
                 } else {
                     throw it

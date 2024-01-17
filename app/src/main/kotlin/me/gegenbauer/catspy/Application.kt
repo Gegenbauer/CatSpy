@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy
 
-import com.formdev.flatlaf.extras.FlatInspector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -9,6 +8,7 @@ import me.gegenbauer.catspy.concurrency.APP_LAUNCH
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.conf.DebugConfiguration
 import me.gegenbauer.catspy.conf.GlobalConfSync
 import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.configuration.SettingsManager
@@ -19,7 +19,7 @@ import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
-import me.gegenbauer.catspy.strings.GlobalStrings
+import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.strings.StringResourceManager
 import me.gegenbauer.catspy.strings.registerLocaleChangeListener
 import me.gegenbauer.catspy.ui.MainFrame
@@ -51,10 +51,10 @@ object Application : WindowAdapter() {
                 GLog.init(filesDir, GlobalStrings.LOG_NAME)
                 SettingsManager.init()
                 GlobalConfSync.init()
+                DebugConfiguration.apply()
                 GLog.i(TAG, "[currentPlatform] $currentPlatform")
                 registerGlobalService()
             }
-            FlatInspector.install("ctrl shift alt X")
             createMainFrame()
 
             registerLocaleChangeListener { old, new ->

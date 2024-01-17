@@ -4,9 +4,11 @@ import me.gegenbauer.catspy.glog.GLog
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.isAccessible
+import kotlin.reflect.jvm.kotlinProperty
 
 private const val TAG = "Reflection"
 
@@ -78,10 +80,24 @@ fun copyFields(from: Any, to: Any) {
     val toFields = to::class.java.declaredFields
     fromFields.forEach { field ->
         field.isAccessible = true
-        val toField = toFields.firstOrNull { it.name == field.name }
+        // 不是 companion
+        val toField = toFields.firstOrNull {
+            it.name == field.name && !isCompanionObject(it.type, field.declaringClass)
+                    && !isConstantField(it)
+        }
         if (toField != null) {
             toField.isAccessible = true
             toField[to] = field[from]
         }
     }
+}
+
+fun isCompanionObject(javaClass: Class<*>, declaredClass: Class<*>): Boolean {
+    val kClass = declaredClass.kotlin
+    val companionObjectInstance = kClass.companionObjectInstance
+    return javaClass.name == companionObjectInstance?.javaClass?.name
+}
+
+fun isConstantField(field: Field): Boolean {
+    return field.kotlinProperty?.isConst == null
 }

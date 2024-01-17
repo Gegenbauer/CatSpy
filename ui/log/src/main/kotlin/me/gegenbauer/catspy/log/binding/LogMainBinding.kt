@@ -1,16 +1,18 @@
 package me.gegenbauer.catspy.log.binding
 
 import com.formdev.flatlaf.FlatLaf
-import com.github.weisj.darklaf.theme.Theme
-import me.gegenbauer.catspy.configuration.*
+import me.gegenbauer.catspy.configuration.GThemeChangeListener
+import me.gegenbauer.catspy.configuration.Rotation
+import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.currentSettings
 import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.bind.bindLeft
 import me.gegenbauer.catspy.databinding.property.support.*
+import me.gegenbauer.catspy.file.clone
 import me.gegenbauer.catspy.java.ext.getEnum
 import me.gegenbauer.catspy.log.LogLevel
-import me.gegenbauer.catspy.log.getLevelFromName
 import me.gegenbauer.catspy.log.nameToLogLevel
 import me.gegenbauer.catspy.utils.editorComponent
 import me.gegenbauer.catspy.view.combobox.HistoryComboBox
@@ -20,53 +22,54 @@ import me.gegenbauer.catspy.view.combobox.toStrHistoryList
 import javax.swing.JToggleButton
 
 class LogMainBinding : ContextService, GThemeChangeListener {
+    private val logSettings = currentSettings.logSettings
 
     //region Toolbar
     //region Filter
-    val logFilterEnabled = ObservableValueProperty(SettingsManager.settings.logFilterEnabled)
-    val logFilterHistory = ObservableValueProperty(SettingsManager.settings.logFilterHistory.toStrHistoryList())
+    val logFilterEnabled = ObservableValueProperty(logSettings.filterEnabledState.logFilterEnabled)
+    val logFilterHistory = ObservableValueProperty(logSettings.filterHistory.logFilterHistory.toStrHistoryList())
     val logFilterSelectedIndex = ObservableValueProperty<Int>()
     val logFilterCurrentContent = ObservableValueProperty<String>()
     val logFilterErrorMessage = ObservableValueProperty<String>()
 
-    val tagFilterEnabled = ObservableValueProperty(SettingsManager.settings.tagFilterEnabled)
-    val tagFilterHistory = ObservableValueProperty(SettingsManager.settings.tagFilterHistory.toStrHistoryList())
+    val tagFilterEnabled = ObservableValueProperty(logSettings.filterEnabledState.tagFilterEnabled)
+    val tagFilterHistory = ObservableValueProperty(logSettings.filterHistory.tagFilterHistory.toStrHistoryList())
     val tagFilterSelectedIndex = ObservableValueProperty<Int>()
     val tagFilterCurrentContent = ObservableValueProperty<String>()
     val tagFilterErrorMessage = ObservableValueProperty<String>()
 
-    val pidFilterEnabled = ObservableValueProperty(SettingsManager.settings.pidFilterEnabled)
+    val pidFilterEnabled = ObservableValueProperty(logSettings.filterEnabledState.pidFilterEnabled)
     val pidFilterHistory = ObservableValueProperty(arrayListOf<String>().toStrHistoryList())
     val pidFilterSelectedIndex = ObservableValueProperty<Int>()
     val pidFilterCurrentContent = ObservableValueProperty<String>()
     val pidFilterErrorMessage = ObservableValueProperty<String>()
 
-    val packageFilterEnabled = ObservableValueProperty(SettingsManager.settings.packageFilterEnabled)
-    val packageFilterHistory = ObservableValueProperty(SettingsManager.settings.packageFilterHistory.toStrHistoryList())
+    val packageFilterEnabled = ObservableValueProperty(logSettings.filterEnabledState.packageFilterEnabled)
+    val packageFilterHistory = ObservableValueProperty(logSettings.filterHistory.packageFilterHistory.toStrHistoryList())
     val packageFilterSelectedIndex = ObservableValueProperty<Int>()
     val packageFilterCurrentContent = ObservableValueProperty<String>()
     val packageFilterErrorMessage = ObservableValueProperty<String>()
 
-    val tidFilterEnabled = ObservableValueProperty(SettingsManager.settings.tidFilterEnabled)
+    val tidFilterEnabled = ObservableValueProperty(logSettings.filterEnabledState.tidFilterEnabled)
     val tidFilterHistory = ObservableValueProperty(arrayListOf<String>().toStrHistoryList())
     val tidFilterSelectedIndex = ObservableValueProperty<Int>()
     val tidFilterCurrentContent = ObservableValueProperty<String>()
     val tidFilterErrorMessage = ObservableValueProperty<String>()
 
-    val logLevelFilterEnabled = ObservableValueProperty(SettingsManager.settings.logLevelFilterEnabled)
+    val logLevelFilterEnabled = ObservableValueProperty(logSettings.filterEnabledState.logLevelFilterEnabled)
     private val sortedLogLevels = nameToLogLevel.toList().sortedBy { it.second.logLevel }.map { it.second.logName }
     val logLevelFilterHistory = ObservableValueProperty(sortedLogLevels.toStrHistoryList())
-    val logLevelFilterCurrentContent = ObservableValueProperty(SettingsManager.settings.logLevel)
+    val logLevelFilterCurrentContent = ObservableValueProperty(logSettings.logLevel)
     val logLevelFilterSelectedIndex =
-        ObservableValueProperty(sortedLogLevels.indexOf(SettingsManager.settings.logLevel))
+        ObservableValueProperty(sortedLogLevels.indexOf(logSettings.logLevel))
 
-    val boldEnabled = ObservableValueProperty(SettingsManager.settings.boldEnabled)
-    val boldHistory = ObservableValueProperty(SettingsManager.settings.highlightHistory.toStrHistoryList())
+    val boldEnabled = ObservableValueProperty(logSettings.filterEnabledState.boldEnabled)
+    val boldHistory = ObservableValueProperty(logSettings.filterHistory.highlightHistory.toStrHistoryList())
     val boldSelectedIndex = ObservableValueProperty<Int>()
     val boldCurrentContent = ObservableValueProperty<String>()
     val boldErrorMessage = ObservableValueProperty<String>()
 
-    val filterMatchCaseEnabled = ObservableValueProperty(SettingsManager.settings.filterMatchCaseEnabled)
+    val filterMatchCaseEnabled = ObservableValueProperty(logSettings.filterEnabledState.filterMatchCaseEnabled)
     //endregion
 
     //region ADB
@@ -80,26 +83,25 @@ class LogMainBinding : ContextService, GThemeChangeListener {
     //endregion
 
     //region Menu
-    val rotation = ObservableValueProperty(getEnum<Rotation>(SettingsManager.settings.rotation))
-    val logLevel = ObservableValueProperty(getLevelFromName(SettingsManager.settings.logLevel))
+    val rotation = ObservableValueProperty(getEnum<Rotation>(logSettings.rotation))
     //endregion
 
     //endregion
 
     //region SearchBar
-    val searchHistory = ObservableValueProperty(SettingsManager.settings.searchHistory.toStrHistoryList())
+    val searchHistory = ObservableValueProperty(logSettings.search.searchHistory.toStrHistoryList())
     val searchSelectedIndex = ObservableValueProperty<Int>()
     val searchCurrentContent = ObservableValueProperty<String>()
-    val searchMatchCase = ObservableValueProperty(SettingsManager.settings.searchMatchCaseEnabled)
+    val searchMatchCase = ObservableValueProperty(logSettings.search.searchMatchCaseEnabled)
     val searchErrorMessage = ObservableValueProperty<String>()
     //endregion
 
     //region LogPanel
-    val splitPanelDividerLocation = ObservableValueProperty(SettingsManager.settings.dividerLocation)
+    val splitPanelDividerLocation = ObservableValueProperty(logSettings.dividerLocation)
     //endregion
 
     //region Style
-    val logFont = ObservableValueProperty(SettingsManager.settings.logFont)
+    val logFont = ObservableValueProperty(logSettings.font)
     //endregion
 
     fun bindLogFilter(
@@ -133,103 +135,102 @@ class LogMainBinding : ContextService, GThemeChangeListener {
     fun syncGlobalConfWithMainBindings() {
         searchHistory.addObserver {
             SettingsManager.updateSettings {
-                searchHistory.clear()
-                searchHistory.addAll(it!!.toStrContentList())
+                logSettings.search.searchHistory.clear()
+                logSettings.search.searchHistory.addAll(it!!.toStrContentList())
             }
         }
         logFilterHistory.addObserver {
             SettingsManager.updateSettings {
-                logFilterHistory.clear()
-                logFilterHistory.addAll(it!!.toStrContentList())
+                logSettings.filterHistory.logFilterHistory.clear()
+                logSettings.filterHistory.logFilterHistory.addAll(it!!.toStrContentList())
             }
         }
         packageFilterHistory.addObserver {
             SettingsManager.updateSettings {
-                packageFilterHistory.clear()
-                packageFilterHistory.addAll(it!!.toStrContentList())
+                logSettings.filterHistory.packageFilterHistory.clear()
+                logSettings.filterHistory.packageFilterHistory.addAll(it!!.toStrContentList())
             }
         }
         tagFilterHistory.addObserver {
             SettingsManager.updateSettings {
-                tagFilterHistory.clear()
-                tagFilterHistory.addAll(it!!.toStrContentList())
+                logSettings.filterHistory.tagFilterHistory.clear()
+                logSettings.filterHistory.tagFilterHistory.addAll(it!!.toStrContentList())
             }
         }
         boldHistory.addObserver {
             SettingsManager.updateSettings {
-                highlightHistory.clear()
-                highlightHistory.addAll(it!!.toStrContentList())
+                logSettings.filterHistory.highlightHistory.clear()
+                logSettings.filterHistory.highlightHistory.addAll(it!!.toStrContentList())
             }
         }
         rotation.addObserver {
             SettingsManager.updateSettings {
-                rotation = it?.ordinal ?: Rotation.ROTATION_LEFT_RIGHT.ordinal
+                logSettings.rotation = it?.ordinal ?: Rotation.ROTATION_LEFT_RIGHT.ordinal
             }
         }
-        logLevel.addObserver {
+        logLevelFilterCurrentContent.addObserver {
             SettingsManager.updateSettings {
-                logLevel = it?.logName ?: LogLevel.WARN.logName
+                logSettings.logLevel = it ?: LogLevel.VERBOSE.logName
             }
         }
         splitPanelDividerLocation.addObserver {
             SettingsManager.updateSettings {
-                dividerLocation = it ?: 500
+                logSettings.dividerLocation = it ?: 500
             }
         }
         logFilterEnabled.addObserver {
             SettingsManager.updateSettings {
-                logFilterEnabled = it ?: false
+                logSettings.filterEnabledState.logFilterEnabled = it ?: false
             }
         }
         tagFilterEnabled.addObserver {
             SettingsManager.updateSettings {
-                tagFilterEnabled = it ?: false
+                logSettings.filterEnabledState.tagFilterEnabled = it ?: false
             }
         }
         pidFilterEnabled.addObserver {
             SettingsManager.updateSettings {
-                pidFilterEnabled = it ?: false
+                logSettings.filterEnabledState.pidFilterEnabled = it ?: false
             }
         }
         packageFilterEnabled.addObserver {
             SettingsManager.updateSettings {
-                packageFilterEnabled = it ?: false
+                logSettings.filterEnabledState.packageFilterEnabled = it ?: false
             }
         }
         tidFilterEnabled.addObserver {
             SettingsManager.updateSettings {
-                tidFilterEnabled = it ?: false
+                logSettings.filterEnabledState.tidFilterEnabled = it ?: false
             }
         }
         logLevelFilterEnabled.addObserver {
             SettingsManager.updateSettings {
-                logLevelFilterEnabled = it ?: false
+                logSettings.filterEnabledState.logLevelFilterEnabled = it ?: false
             }
         }
         boldEnabled.addObserver {
             SettingsManager.updateSettings {
-                boldEnabled = it ?: false
+                logSettings.filterEnabledState.boldEnabled = it ?: false
             }
         }
         filterMatchCaseEnabled.addObserver {
             SettingsManager.updateSettings {
-                filterMatchCaseEnabled = it ?: false
+                logSettings.filterEnabledState.filterMatchCaseEnabled = it ?: false
             }
         }
         searchMatchCase.addObserver {
             SettingsManager.updateSettings {
-                searchMatchCaseEnabled = it ?: false
+                logSettings.search.searchMatchCaseEnabled = it ?: false
             }
         }
         logFont.addObserver {
             SettingsManager.updateSettings {
-                logFontName = it?.fontName ?: "DialogInput"
-                logFontSize = it?.size ?: DEFAULT_FONT_SIZE
-                logFontStyle = it?.style ?: 0
+                logSettings.font = it?.run { clone(this) } ?: logSettings.font
             }
         }
     }
 
+    // TODO customize log font
     override fun onThemeChange(theme: FlatLaf) {
         logFont.value?.let {
             //logFont.updateValue(it.newFont(theme, DEFAULT_LOG_FONT_SIZE))

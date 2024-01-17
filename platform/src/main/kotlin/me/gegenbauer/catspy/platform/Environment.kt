@@ -31,10 +31,6 @@ interface IPlatform {
     fun showFileInExplorer(file: File) {}
 
     fun configureUIProperties() {
-        if (isInDebugMode()) {
-            // ubuntu 调试会拦截所有事件导致无法操作
-            System.setProperty("Dsun.awt.disablegrab", "true")
-        }
         // 启用系统抗锯齿，极大提升字体渲染速度
         System.setProperty("awt.useSystemAAFontSettings", "on")
         System.setProperty("swing.aatext", "true")

@@ -5,7 +5,9 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.iconset.GIcons
-import me.gegenbauer.catspy.strings.GlobalStrings
+import me.gegenbauer.catspy.platform.currentPlatform
+import me.gegenbauer.catspy.configuration.GlobalStrings
+import me.gegenbauer.catspy.configuration.getLastModifiedLog
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.MainViewModel
@@ -25,14 +27,16 @@ class HelpMenu(override val contexts: Contexts = Contexts.default) : GMenu(), Co
         icon = GIcons.Menu.Help.get(Menu.MENU_ITEM_ICON_SIZE, Menu.MENU_ITEM_ICON_SIZE)
     }
     private val itemExportLog = JMenuItem(STRINGS.ui.menuExportLog)
+    private val itemShowLogInFiles = JMenuItem(STRINGS.ui.menuShowLogInFiles)
     private val itemCheckUpdates = JMenuItem(STRINGS.ui.menuCheckUpdates)
     private val itemAbout = JMenuItem(STRINGS.ui.menuAbout).apply {
         icon = GIcons.Menu.About.get(MENU_ICON_SIZE, MENU_ICON_SIZE)
     }
     private val actionHandler = ActionListener {
         when (it.source) {
-            itemHelp -> openHelpDialog()
             itemExportLog -> exportLog()
+            itemShowLogInFiles -> showLogInFiles()
+            itemHelp -> openHelpDialog()
             itemCheckUpdates -> checkUpdates()
             itemAbout -> openAboutDialog()
         }
@@ -43,12 +47,14 @@ class HelpMenu(override val contexts: Contexts = Contexts.default) : GMenu(), Co
         mnemonic = KeyEvent.VK_H
 
         add(itemExportLog)
+        add(itemShowLogInFiles)
         addSeparator()
         add(itemCheckUpdates)
         add(itemAbout)
 
-        itemHelp.addActionListener(actionHandler)
         itemExportLog.addActionListener(actionHandler)
+        itemShowLogInFiles.addActionListener(actionHandler)
+        itemHelp.addActionListener(actionHandler)
         itemCheckUpdates.addActionListener(actionHandler)
         itemAbout.addActionListener(actionHandler)
     }
@@ -69,6 +75,12 @@ class HelpMenu(override val contexts: Contexts = Contexts.default) : GMenu(), Co
                 .setDefaultName(GlobalStrings.LOG_NAME)
                 .build()
                 .show()
+        }
+    }
+
+    private fun showLogInFiles() {
+        getLastModifiedLog()?.let {
+            currentPlatform.showFileInExplorer(it)
         }
     }
 

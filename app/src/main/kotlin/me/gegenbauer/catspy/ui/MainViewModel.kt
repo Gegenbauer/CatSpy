@@ -5,7 +5,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ViewModelScope
-import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.currentSettings
+import me.gegenbauer.catspy.configuration.getLastModifiedLog
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.context.Contexts
@@ -22,7 +23,6 @@ import me.gegenbauer.catspy.platform.GlobalProperties.*
 import me.gegenbauer.catspy.platform.Platform
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
-import me.gegenbauer.catspy.strings.GlobalStrings
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
 import me.gegenbauer.catspy.utils.copyFileWithProgress
@@ -54,7 +54,7 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
     fun startMemoryMonitor() {
         GLog.d(TAG, "[startMemoryMonitor]")
         memoryMonitorJob = scope.launch {
-           val memory = memoryMonitor.startMonitor()
+            val memory = memoryMonitor.startMonitor()
             memory.collect {
                 _eventFlow.value = it
             }
@@ -74,7 +74,7 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
             val latestRelease = latestReleaseResult.getOrThrow()
             GLog.d(TAG, "[checkUpdate] latestRelease=$latestRelease, currentRelease=${Release(APP_VERSION_NAME)}")
             if (updateService.checkForUpdate(latestRelease, Release(APP_VERSION_NAME))) {
-                val releaseIgnored = SettingsManager.settings.ignoredRelease.contains(latestRelease.name)
+                val releaseIgnored = currentSettings.updateSettings.isIgnored(latestRelease.name)
                 GLog.i(TAG, "[checkUpdate] releaseIgnored=$releaseIgnored")
                 if (force || releaseIgnored.not()) {
                     _eventFlow.value = ReleaseEvent.NewReleaseEvent(latestRelease)
@@ -155,16 +155,6 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
                 }.getOrDefault(Result.failure(Exception(STRINGS.ui.unknownError)))
             } ?: Result.success(null)
         }
-    }
-
-    private fun getLastModifiedLog(): File? {
-        val logDir = File(filesDir)
-        if (logDir.exists().not() || logDir.isFile || logDir.listFiles().isNullOrEmpty()) {
-            return null
-        }
-        return logDir.listFiles()
-            ?.filter { it.name.startsWith(GlobalStrings.LOG_NAME) }
-            ?.maxByOrNull { it.lastModified() }
     }
 
     private fun stopMemoryMonitor() {

@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.log.ui.dialog
 
 import me.gegenbauer.catspy.configuration.LogColorScheme
+import me.gegenbauer.catspy.configuration.currentSettings
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.log.ui.panel.BaseLogMainPanel
@@ -56,9 +57,7 @@ class LogViewDialog(
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        val logMainUI = contexts.getContext(BaseLogMainPanel::class.java)
-        logMainUI ?: return
-        textArea.font = logMainUI.logFont
+        textArea.font = currentSettings.logSettings.font.toNativeFont()
     }
 
     internal inner class KeyHandler : KeyAdapter() {

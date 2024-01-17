@@ -6,6 +6,7 @@ import com.formdev.flatlaf.ui.FlatEmptyBorder
 import com.formdev.flatlaf.ui.FlatUIUtils
 import com.formdev.flatlaf.util.UIScale
 import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.currentSettings
 import net.miginfocom.swing.MigLayout
 import java.awt.*
 import java.awt.event.MouseAdapter
@@ -21,7 +22,7 @@ object HintManager {
         if (hint == null) {
             return
         }
-        if (SettingsManager.settings.isHintShown(hint.key)) {
+        if (currentSettings.isHintShown(hint.key)) {
             hint.nextHint?.let { showHint(it.nextHint) }
             return
         }
@@ -134,7 +135,7 @@ object HintManager {
         private fun gotIt() {
             hideHint()
             SettingsManager.updateSettings {
-                SettingsManager.settings.setHintShown(hint.key)
+                currentSettings.setHintShown(hint.key)
             }
             hint.nextHint?.let { showHint(it) }
         }

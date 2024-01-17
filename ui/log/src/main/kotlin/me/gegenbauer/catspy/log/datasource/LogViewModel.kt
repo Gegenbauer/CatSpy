@@ -7,7 +7,7 @@ import me.gegenbauer.catspy.concurrency.CPU
 import me.gegenbauer.catspy.concurrency.CoroutineSuspender
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ViewModelScope
-import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.currentSettings
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -381,8 +381,8 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
     suspend fun preCacheFilters() {
         withContext(Dispatchers.CPU) {
             val filterCache = ServiceManager.getContextService(FilterCache::class.java)
-            SettingsManager.settings.apply {
-                (logFilterHistory + tagFilterHistory + searchHistory + highlightHistory).forEach {
+            currentSettings.logSettings.apply {
+                (filterHistory.logFilterHistory + filterHistory.tagFilterHistory + search.searchHistory + filterHistory.highlightHistory).forEach {
                     filterCache[it.toFilterKey(true)]
                     filterCache[it.toFilterKey(false)]
                 }

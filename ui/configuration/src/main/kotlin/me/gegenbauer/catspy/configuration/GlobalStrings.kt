@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.strings
+package me.gegenbauer.catspy.configuration
 
 object GlobalStrings {
     const val LOG_NAME = "catspy.log"

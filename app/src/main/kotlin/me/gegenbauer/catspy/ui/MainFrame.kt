@@ -5,9 +5,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.conf.GlobalConfSync
 import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.currentSettings
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.context.GlobalContextManager
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
@@ -28,6 +28,7 @@ import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.tab.OnTabChangeListener
 import me.gegenbauer.catspy.view.tab.TabManager
 import java.awt.BorderLayout
+import java.awt.Frame
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File
@@ -64,8 +65,6 @@ class MainFrame(
         registerEvents()
 
         bindGlobalProperties()
-
-        GlobalContextManager.register(this)
 
         mainViewModel.startMemoryMonitor()
         mainViewModel.checkUpdate()
@@ -128,9 +127,11 @@ class MainFrame(
                     is NormalEvent -> {
                         handleNormalEvent(it)
                     }
+
                     is ReleaseEvent -> {
                         handleReleaseEvent(it)
                     }
+
                     is FileSaveEvent -> {
                         handleFileSaveEvent(it)
                     }
@@ -157,6 +158,7 @@ class MainFrame(
                     mainViewModel.startDownloadRelease(event.release)
                 }.show()
             }
+
             is ReleaseEvent.ErrorEvent -> {
                 val errorMsg = event.error?.message ?: STRINGS.ui.unknownError
                 JOptionPane.showMessageDialog(
@@ -166,6 +168,7 @@ class MainFrame(
                     JOptionPane.ERROR_MESSAGE
                 )
             }
+
             is ReleaseEvent.NoNewReleaseEvent -> {
                 JOptionPane.showMessageDialog(
                     this@MainFrame,
@@ -197,6 +200,7 @@ class MainFrame(
                     }
                 }
             }
+
             is FileSaveEvent.FileSaveError -> {
                 val errorMsg = fileSaveEvent.error.message ?: STRINGS.ui.unknownError
                 JOptionPane.showMessageDialog(
@@ -212,19 +216,7 @@ class MainFrame(
     private fun configureWindow() {
         iconImages = appIcons
 
-        SettingsManager.updateSettings {
-            extendedState = if (frameX == 0 || frameY == 0 || frameWidth == 0 || frameHeight == 0) {
-                MAXIMIZED_BOTH
-            } else {
-                frameExtendedState
-            }
-            if (frameX != 0 && frameY != 0) {
-                setLocation(frameX, frameY)
-            }
-            if (frameWidth != 0 && frameHeight != 0) {
-                setSize(frameWidth, frameHeight)
-            }
-        }
+        currentSettings.windowSettings.loadWindowSettings(this, Frame.MAXIMIZED_BOTH)
     }
 
     override fun destroy() {
@@ -232,17 +224,13 @@ class MainFrame(
         scope.cancel()
         ServiceManager.dispose(this)
         ServiceManager.dispose(Context.process)
-        saveConfigOnDestroy()
+        saveSettings()
         dispose()
     }
 
-    private fun saveConfigOnDestroy() {
+    private fun saveSettings() {
         SettingsManager.updateSettings {
-            frameX = location.x
-            frameY = location.y
-            frameWidth = size.width
-            frameHeight = size.height
-            frameExtendedState = extendedState
+            windowSettings.saveWindowSettings(this@MainFrame)
         }
     }
 }

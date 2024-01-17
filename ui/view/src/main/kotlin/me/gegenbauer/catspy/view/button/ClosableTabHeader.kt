@@ -26,6 +26,21 @@ class ClosableTabHeader(
     private var titleLen = 0
     private var editorMinDimen: Dimension = Dimension(0, 0)
 
+    private val clickListener = object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+            if (e.isLeftClick && e.isSingleClick) {
+                parent.selectedIndex = parent.indexOfTabComponent(this@ClosableTabHeader)
+                parent.requestFocusInWindow()
+            }
+            val rect = parent.ui.getTabBounds(parent, parent.selectedIndex)
+            if (e.isLeftClick && e.isDoubleClick) {
+                startEditing()
+            } else if (!rect.contains(e.point) && editor.isVisible) {
+                renameTabTitle()
+            }
+        }
+    }
+
     init {
         initUI()
 
@@ -33,8 +48,7 @@ class ClosableTabHeader(
     }
 
     private fun initUI() {
-        layout = FlowLayout(FlowLayout.LEFT,
-            CLOSE_BUTTON_PADDING_LEFT, 0)
+        layout = FlowLayout(FlowLayout.LEFT, CLOSE_BUTTON_PADDING_LEFT, 0)
         toolTipText = tabTooltip
         isOpaque = false
         name = "Tab.header"
@@ -54,20 +68,9 @@ class ClosableTabHeader(
     }
 
     private fun registerEvent() {
-        title.addMouseListener(object : MouseAdapter() {
-            override fun mouseClicked(e: MouseEvent) {
-                if (e.isLeftClick && e.isSingleClick) {
-                    parent.selectedIndex = parent.indexOfTabComponent(this@ClosableTabHeader)
-                    parent.requestFocusInWindow()
-                }
-                val rect = parent.ui.getTabBounds(parent, parent.selectedIndex)
-                if (e.isLeftClick && e.isDoubleClick) {
-                    startEditing()
-                } else if (!rect.contains(e.point) && editor.isVisible) {
-                    renameTabTitle()
-                }
-            }
-        })
+        addMouseListener(clickListener)
+        title.addMouseListener(clickListener)
+        editor.addMouseListener(clickListener)
 
         editor.addFocusListener(object : FocusAdapter() {
             override fun focusLost(e: FocusEvent) {

@@ -4,7 +4,7 @@ import me.gegenbauer.catspy.configuration.Menu.MENU_ITEM_ICON_SIZE
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.iconset.GIcons
-import me.gegenbauer.catspy.strings.GlobalStrings
+import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.dialog.GThemeSettingsDialog
 import me.gegenbauer.catspy.utils.findFrameFromParent
