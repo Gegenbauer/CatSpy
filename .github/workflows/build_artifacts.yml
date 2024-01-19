@@ -11,6 +11,7 @@ on:
       - 'gradle.properties'
       - '**.kts'
       - '**.java'
+      - '.github/workflows/build_artifacts.yml'
   pull_request:
     branches:
       - main
@@ -101,4 +102,37 @@ jobs:
           path: app/build/compose/binaries/main/msi/${{ steps.getFilename.outputs.msiFileName }}
           retention-days: 1
 
+  macos:
+    name: macOS (Java 17)
+    runs-on: macos-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 10
+      - name: Set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build
+        run: ./gradlew packageDmg
+
+      - name: Retrieve Artifact Name
+        id: getFilename
+        run: |
+          find "$(pwd)/app/build/compose/binaries/main/dmg" -type f -name "*.dmg" -exec basename {} \;
+          echo "::set-output name=dmgFileName::$filename"
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: catspy_macos.dmg
+          path: app/build/compose/binaries/main/dmg/${{ steps.getFilename.outputs.dmgFileName }}
+          retention-days: 1
 

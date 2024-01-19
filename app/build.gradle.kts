@@ -67,6 +67,14 @@ compose.desktop {
                 upgradeUuid = "eff1902c-4e55-11ee-be56-0242ac120002"
                 msiPackageVersion = project.extra["app.version.name"].toString()
             }
+
+            macOS {
+                iconFile.set(iconsRoot.resolve("icon-linux.png"))
+                appCategory = "public.app-category.developer-tools"
+                packageName = project.extra["app.name"].toString()
+                dmgPackageVersion = project.extra["app.version.name"].toString()
+                dmgPackageBuildVersion = project.extra["app.version.code"].toString()
+            }
         }
     }
 }
