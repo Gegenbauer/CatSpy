@@ -9,7 +9,7 @@ import java.awt.GridBagLayout
 import javax.swing.*
 
 class StatefulPanel : JPanel() {
-    var action: (JComponent) -> Unit = { _ -> }
+    var onClickOpen: (JComponent) -> Unit = { _ -> }
 
     var listState: ListState = ListState.NONE
         set(value) {
@@ -46,7 +46,7 @@ class StatefulPanel : JPanel() {
     init {
         layout = rootLayout
 
-        emptyImage.addActionListener { action(it.source as JComponent) }
+        emptyImage.addActionListener { onClickOpen(it.source as JComponent) }
 
         add(content, "content")
         add(emptyContainer, "empty")

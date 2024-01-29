@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
-import me.gegenbauer.catspy.ddmlib.DdmLog
+import me.gegenbauer.catspy.ddmlib.log.DdmLog
 import java.net.ConnectException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantReadWriteLock

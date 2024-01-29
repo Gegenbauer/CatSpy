@@ -49,13 +49,15 @@ object FormDev {
 object Adam {
     val groupName = "com.malinskiy.adam"
 
-    val adam = Dependency(groupName, "adam", "0.5.0")
+    val adam = Dependency(groupName, "adam", "0.5.3")
 }
 
 object Slf4j {
     val groupName = "org.slf4j"
 
     val simple = Dependency(groupName, "slf4j-simple", "1.7.32")
+    val api = Dependency(groupName, "slf4j-api", "2.0.0")
+    val nop = Dependency(groupName, "slf4j-nop", "2.0.0")
 }
 
 object Fifesoft {

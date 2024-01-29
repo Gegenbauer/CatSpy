@@ -5,6 +5,7 @@ import kotlinx.coroutines.cancel
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.log.ui.panel.FileLogMainPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.menu.TabSelectorPopupMenu
@@ -14,12 +15,10 @@ import me.gegenbauer.catspy.view.hint.HintManager
 import me.gegenbauer.catspy.view.panel.StatusBar
 import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.tab.TabInfo
+import me.gegenbauer.catspy.view.tab.TabManager
 import me.gegenbauer.catspy.view.tab.TabPanel
 import java.awt.GridBagLayout
-import javax.swing.Icon
-import javax.swing.JPanel
-import javax.swing.SwingConstants
-import javax.swing.SwingUtilities
+import javax.swing.*
 
 class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
     override val tabName: String = STRINGS.ui.tabHome
@@ -29,7 +28,8 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
     private val tabSelector = GButton(STRINGS.ui.selectTab)
     private val selectMenu = TabSelectorPopupMenu()
 
-    override val hint = HintManager.Hint(STRINGS.hints.selectFunctionTab, tabSelector, SwingConstants.TOP, SELECT_TAB_HINT_KEY)
+    override val hint =
+        HintManager.Hint(STRINGS.hints.selectFunctionTab, tabSelector, SwingConstants.TOP, SELECT_TAB_HINT_KEY)
 
     private val supportedTabs: List<TabInfo>
         get() = contexts.getContext(MainFrame::class.java)?.supportedTabs ?: emptyList()
@@ -61,6 +61,18 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
 
     override fun getTabContent(): JPanel {
         return this
+    }
+
+    override fun isDataImportSupported(info: TransferHandler.TransferSupport): Boolean {
+        return true
+    }
+
+    override fun handleDataImport(info: TransferHandler.TransferSupport): Boolean {
+        val fileLogMainPanel = FileLogMainPanel()
+        contexts.getContext(TabManager::class.java)?.addTab(fileLogMainPanel)
+        val droppedFiles = getDroppedFiles(info)
+        fileLogMainPanel.pendingOpenFiles(droppedFiles)
+        return true
     }
 
     override fun destroy() {

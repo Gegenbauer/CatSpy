@@ -1,12 +1,16 @@
 package me.gegenbauer.catspy.log.ui.panel
 
-import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.configuration.GlobalStrings
+import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.view.button.ColorToggleButton
 import me.gegenbauer.catspy.view.combobox.filterComboBox
 import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.rebuild
+import java.io.File
+import javax.swing.JOptionPane
+import javax.swing.TransferHandler
 
 class FileLogMainPanel: BaseLogMainPanel() {
     override val tag: String = "FileLogMainPanel"
@@ -20,6 +24,8 @@ class FileLogMainPanel: BaseLogMainPanel() {
             FilterItem.EMPTY_ITEM
         }
     override val currentPackageFilter: FilterItem = FilterItem.EMPTY_ITEM
+
+    private val pendingLogFiles = mutableListOf<File>()
 
     override fun bindProcessComponents(mainBinding: LogMainBinding) {
         mainBinding.apply {
@@ -49,5 +55,57 @@ class FileLogMainPanel: BaseLogMainPanel() {
         if (state is TaskIdle) {
             startBtn.isEnabled = false
         }
+    }
+
+    fun pendingOpenFiles(files: List<File>) {
+        if (isVisible) {
+            handleFileImport(files)
+        } else {
+            pendingLogFiles.clear()
+            pendingLogFiles.addAll(files)
+        }
+    }
+
+    override fun onVisible() {
+        super.onVisible()
+        handleFileImport(pendingLogFiles)
+    }
+
+    private fun handleFileImport(files: List<File>) {
+        pendingLogFiles.clear()
+        if (files.isEmpty()) {
+            return
+        }
+        val logMainUI = contexts.getContext(BaseLogMainPanel::class.java)
+        logMainUI ?: return
+        if (logMainUI.isLogEmpty()) {
+            logMainUI.openFile(files.first().absolutePath)
+            return
+        }
+        val options = listOf<Pair<String, (List<File>) -> Unit>>(
+            STRINGS.ui.open to { files ->
+                files.firstOrNull()?.let { logMainUI.openFile(it.absolutePath) }
+            },
+            STRINGS.ui.cancel to { GLog.d(tag, "[onDragLogFile] select cancel") }
+        )
+        val value = JOptionPane.showOptionDialog(
+            this, STRINGS.ui.dragLogFileWarning,
+            "",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE,
+            null,
+            options.map { it.first }.toTypedArray(),
+            STRINGS.ui.append
+        )
+        options[value].second.invoke(files)
+    }
+
+    override fun isDataImportSupported(info: TransferHandler.TransferSupport): Boolean {
+        return true
+    }
+
+    override fun handleDataImport(info: TransferHandler.TransferSupport): Boolean {
+        handleFileImport(getDroppedFiles(info))
+        return true
     }
 }

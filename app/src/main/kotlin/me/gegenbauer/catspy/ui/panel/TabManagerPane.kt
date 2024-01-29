@@ -4,9 +4,11 @@ import com.formdev.flatlaf.FlatClientProperties
 import com.github.weisj.darklaf.iconset.AllIcons
 import kotlinx.coroutines.*
 import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.ui.panel.DeviceLogMainPanel
 import me.gegenbauer.catspy.log.ui.panel.FileLogMainPanel
+import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.script.ui.ScriptTabPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainFrame
@@ -56,6 +58,17 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
         addActionListener(createNewTabAction())
     }
 
+    private val dataTransferHandler = object : TransferHandler() {
+        override fun canImport(info: TransferSupport): Boolean {
+            return getSelectedTab().isDataImportSupported(info)
+        }
+
+        override fun importData(info: TransferSupport): Boolean {
+            GLog.d(TAG, "os:$currentPlatform, drop:${info.dropAction},sourceDrop:${info.sourceDropActions},userDrop:${info.userDropAction}")
+            return getSelectedTab().handleDataImport(info)
+        }
+    }
+
     init {
         addTab(homePanel)
 
@@ -81,6 +94,8 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
         putClientProperty("TabbedPane.tabsOpaque", false)
 
         addTabSelectStroke()
+
+        transferHandler = dataTransferHandler
     }
 
     private fun addTabSelectStroke() {
@@ -158,5 +173,9 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
         super.destroy()
         scope.cancel()
         getAllTabs().forEach { it.destroy() }
+    }
+
+    companion object {
+        private const val TAG = "TabManagerPane"
     }
 }

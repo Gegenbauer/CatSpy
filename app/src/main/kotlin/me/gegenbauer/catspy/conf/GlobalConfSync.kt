@@ -5,7 +5,7 @@ import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.configuration.currentSettings
 import me.gegenbauer.catspy.databinding.BindingLog
 import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
-import me.gegenbauer.catspy.ddmlib.DdmLog
+import me.gegenbauer.catspy.ddmlib.log.DdmLog
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.task.TaskLog

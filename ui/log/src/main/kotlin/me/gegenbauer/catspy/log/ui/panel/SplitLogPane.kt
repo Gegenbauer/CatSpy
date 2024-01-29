@@ -6,20 +6,13 @@ import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
-import me.gegenbauer.catspy.platform.currentPlatform
-import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.view.state.ListState
 import me.gegenbauer.catspy.view.state.StatefulPanel
-import java.awt.datatransfer.DataFlavor
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
-import java.io.File
-import javax.swing.JOptionPane
 import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
-import javax.swing.TransferHandler
 
 class SplitLogPane(
     fullTableModel: LogTableModel,
@@ -53,8 +46,6 @@ class SplitLogPane(
 
         add(fullLogPanel, LEFT)
         add(filterStatefulPanel, RIGHT)
-
-        transferHandler = TableTransferHandler()
     }
 
     private fun changeRotation(rotation: Rotation) {
@@ -100,53 +91,6 @@ class SplitLogPane(
 
     fun resetWithCurrentRotation() {
         changeRotation(rotation)
-    }
-
-    internal inner class TableTransferHandler : TransferHandler() {
-        override fun canImport(info: TransferSupport): Boolean {
-            return info.isDataFlavorSupported(DataFlavor.javaFileListFlavor) && !fullLogPanel.tableModel.deviceMode
-        }
-
-        override fun importData(info: TransferSupport): Boolean {
-            GLog.d(TAG, "[importData] info = $info")
-            info.takeIf { it.isDrop } ?: return false
-
-            val fileList: MutableList<File> = mutableListOf()
-
-            if (info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                runCatching {
-                    val data = info.transferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<*>
-                    data?.mapNotNull { it as? File }?.forEach { fileList.add(it) }
-                }.onFailure {
-                    GLog.e(TAG, "[importData]", it)
-                }
-            }
-
-            fileList.takeIf { it.isNotEmpty() } ?: return false
-            val os = currentPlatform
-            GLog.d(TAG, "os:$os, drop:${info.dropAction},sourceDrop:${info.sourceDropActions},userDrop:${info.userDropAction}")
-
-            val logMainUI = contexts.getContext(BaseLogMainPanel::class.java)
-            logMainUI ?: return false
-
-            val options = listOf<Pair<String, (List<File>) -> Unit>>(
-                STRINGS.ui.open to { files ->
-                    files.firstOrNull()?.let { logMainUI.openFile(it.absolutePath) }
-                },
-                STRINGS.ui.cancel to { GLog.d(TAG, "[onDragLogFile] select cancel") }
-            )
-            val value = JOptionPane.showOptionDialog(
-                this@SplitLogPane, STRINGS.ui.dragLogFileWarning,
-                "",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                options.map { it.first }.toTypedArray(),
-                STRINGS.ui.append
-            )
-            options[value].second.invoke(fileList)
-            return true
-        }
     }
 
     override fun destroy() {

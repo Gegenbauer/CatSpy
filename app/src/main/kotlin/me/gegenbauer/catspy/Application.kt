@@ -55,12 +55,12 @@ object Application : WindowAdapter() {
                 GLog.i(TAG, "[currentPlatform] $currentPlatform")
                 registerGlobalService()
             }
-            createMainFrame()
+            showMainFrame()
 
             registerLocaleChangeListener { old, new ->
                 GLog.i(TAG, "[registerLocaleChangeListener] $old -> $new")
                 StringResourceManager.loadStrings()
-                createMainFrame()
+                showMainFrame()
             }
         }
     }
@@ -76,7 +76,7 @@ object Application : WindowAdapter() {
         }
     }
 
-    private fun createMainFrame() {
+    private fun showMainFrame() {
         if (::mainFrame.isInitialized) {
             mainFrame.destroy()
         }
