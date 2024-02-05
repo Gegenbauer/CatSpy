@@ -6,8 +6,10 @@ plugins {
 
 dependencies {
     implementation(JavaXAnno.annotationApi)
+    implementation(FormDev.flatLaf)
     implementation(projects.resources)
     implementation(projects.file)
+    implementation(projects.javaext)
 }
 
 val generateGlobalProperties by tasks.registering {

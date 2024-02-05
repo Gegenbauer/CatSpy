@@ -4,12 +4,9 @@ import com.malinskiy.adam.AndroidDebugBridgeClientFactory
 import com.malinskiy.adam.request.device.AsyncDeviceMonitorRequest
 import com.malinskiy.adam.request.device.Device
 import com.malinskiy.adam.request.device.DeviceState
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
@@ -21,6 +18,8 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 class AdamDeviceManager : ContextService, DeviceManager {
+
+    override var isMonitoring = false
 
     private val scope = ModelScope()
     private val adb = AndroidDebugBridgeClientFactory().build()
@@ -48,9 +47,23 @@ class AdamDeviceManager : ContextService, DeviceManager {
         }
     }
 
+    override fun tryStartMonitor() {
+        if (isMonitoring) {
+            return
+        }
+        startMonitor()
+    }
+
     override fun startMonitor() {
         scope.launch(monitorExceptionHandler) {
             DdmLog.d(TAG, "[startMonitor]")
+
+            isMonitoring = true
+
+            coroutineContext.job.invokeOnCompletion {
+                isMonitoring = false
+            }
+
             val deviceEventsChannel: ReceiveChannel<List<Device>> = adb.execute(
                 request = AsyncDeviceMonitorRequest(),
                 scope = scope

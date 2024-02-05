@@ -14,6 +14,8 @@ import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.iconset.appIcons
 import me.gegenbauer.catspy.java.ext.FileSaveEvent
 import me.gegenbauer.catspy.java.ext.NormalEvent
+import me.gegenbauer.catspy.java.ext.Message
+import me.gegenbauer.catspy.java.ext.globalMessage
 import me.gegenbauer.catspy.network.update.ReleaseEvent
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
@@ -65,9 +67,6 @@ class MainFrame(
         registerEvents()
 
         bindGlobalProperties()
-
-        mainViewModel.startMemoryMonitor()
-        mainViewModel.checkUpdate()
     }
 
     private fun createUI() {
@@ -80,6 +79,7 @@ class MainFrame(
         globalStatus.memoryMonitorBar = memoryStatusBar
 
         mainViewModel.startMemoryMonitor()
+        mainViewModel.checkUpdate()
     }
 
     private fun bindGlobalProperties() {
@@ -117,6 +117,7 @@ class MainFrame(
             }
         })
         observeEventFlow()
+        observeGlobalMessage()
         registerDismissOnClickOutsideListener { it.javaClass.simpleName in dismissOnClickOutsideWindows }
     }
 
@@ -208,6 +209,30 @@ class MainFrame(
                     fileSaveEvent.message.format(errorMsg),
                     fileSaveEvent.title,
                     JOptionPane.ERROR_MESSAGE
+                )
+            }
+        }
+    }
+
+    private fun observeGlobalMessage() {
+        scope.launch {
+            globalMessage.collect {
+                it ?: return@collect
+
+                fun getMessageBoxType(message: Message): Int {
+                    return when (message) {
+                        is Message.Info -> JOptionPane.INFORMATION_MESSAGE
+                        is Message.Error -> JOptionPane.ERROR_MESSAGE
+                        is Message.Warning -> JOptionPane.WARNING_MESSAGE
+                        is Message.Empty -> JOptionPane.INFORMATION_MESSAGE
+                    }
+                }
+
+                JOptionPane.showMessageDialog(
+                    this@MainFrame,
+                    it.message,
+                    "",
+                    getMessageBoxType(it)
                 )
             }
         }

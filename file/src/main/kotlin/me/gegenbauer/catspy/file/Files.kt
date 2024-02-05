@@ -5,7 +5,19 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 fun String.appendPath(path: String): String {
-    return "$this/$path"
+    return "$this${File.separator}$path"
+}
+
+fun String.checkAndAppendPath(path: String): String {
+    return if (endsWith(File.separator)) {
+        "$this$path"
+    } else {
+        appendPath(path)
+    }
+}
+
+fun String.appendExtension(extension: String): String {
+    return "$this.$extension"
 }
 
 fun File.ensureDir() {

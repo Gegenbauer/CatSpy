@@ -85,6 +85,9 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
         }
 
     override fun setup() {
+        val deviceManager = ServiceManager.getContextService(AdamDeviceManager::class.java)
+        deviceManager.tryStartMonitor()
+
         layout = BorderLayout()
         add(cardContainer.container, BorderLayout.NORTH)
 

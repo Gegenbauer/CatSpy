@@ -10,30 +10,30 @@
  */
 package me.gegenbauer.catspy.glog
 
-import java.util.concurrent.ConcurrentHashMap
-import java.util.logging.Level
+import me.gegenbauer.catspy.glog.interceptor.GSlf4jLoggerFactoryAdapter
+import me.gegenbauer.catspy.glog.logback.LogbackConfiguration
 
-object GLog : ILogger {
+object GLog : GLogger {
     var debug = false
         set(value) {
             field = value
-            logConfig.setLevel(getLevel(value))
+            GSlf4jLoggerFactoryAdapter.logConfig.setLevel(getLevel(value))
         }
-    private val loggers = ConcurrentHashMap<String, GLogger>()
-    private var logConfig: LogConfig = defaultConfig
+
+    private val loggerFactory = GSlf4jLoggerFactoryAdapter
 
     init {
         debug = true
     }
 
-    private fun getLevel(debug: Boolean): Level = if (debug) {
-        Level.ALL
+    private fun getLevel(debug: Boolean): LogLevel = if (debug) {
+        LogLevel.VERBOSE
     } else {
-        Level.INFO
+        LogLevel.INFO
     }
 
     fun init(path: String, name: String) {
-        logConfig = LogConfig(path, name)
+        GSlf4jLoggerFactoryAdapter.logConfig = LogbackConfiguration(path, name)
     }
 
     override fun v(tag: String, msg: String) {
@@ -65,17 +65,10 @@ object GLog : ILogger {
     }
 
     override fun flush() {
-        logConfig.flush()
+        GSlf4jLoggerFactoryAdapter.logConfig.flush()
     }
 
     private fun getLogger(tag: String): GLogger {
-        return if (loggers.containsKey(tag)) {
-            loggers[tag]!!
-        } else {
-            GLogger(tag).apply {
-                logConfig.configure(this)
-                loggers[tag] = this
-            }
-        }
+        return loggerFactory.getGLogger(tag)
     }
 }

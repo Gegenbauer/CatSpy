@@ -11,9 +11,9 @@ import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.bind.bindLeft
 import me.gegenbauer.catspy.databinding.property.support.*
 import me.gegenbauer.catspy.file.clone
+import me.gegenbauer.catspy.glog.LogLevel
 import me.gegenbauer.catspy.java.ext.getEnum
-import me.gegenbauer.catspy.log.LogLevel
-import me.gegenbauer.catspy.log.nameToLogLevel
+import me.gegenbauer.catspy.glog.nameToLogLevel
 import me.gegenbauer.catspy.utils.editorComponent
 import me.gegenbauer.catspy.view.combobox.HistoryComboBox
 import me.gegenbauer.catspy.view.combobox.HistoryItem
@@ -57,7 +57,7 @@ class LogMainBinding : ContextService, GThemeChangeListener {
     val tidFilterErrorMessage = ObservableValueProperty<String>()
 
     val logLevelFilterEnabled = ObservableValueProperty(logSettings.filterEnabledState.logLevelFilterEnabled)
-    private val sortedLogLevels = nameToLogLevel.toList().sortedBy { it.second.logLevel }.map { it.second.logName }
+    private val sortedLogLevels = nameToLogLevel.toList().sortedBy { it.second.intValue }.map { it.second.logName }
     val logLevelFilterHistory = ObservableValueProperty(sortedLogLevels.toStrHistoryList())
     val logLevelFilterCurrentContent = ObservableValueProperty(logSettings.logLevel)
     val logLevelFilterSelectedIndex =

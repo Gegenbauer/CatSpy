@@ -5,16 +5,25 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.*
-import java.util.logging.Formatter
-import java.util.logging.Level
-import java.util.logging.LogRecord
 
-class GLogFormatter: Formatter() {
+object GLogFormatter {
+    private const val ANSI_RESET = "\u001B[0m"
+    private const val ANSI_BLACK = "\u001B[30m"
+    private const val ANSI_RED = "\u001B[31m"
+    private const val ANSI_GREEN = "\u001B[32m"
+    private const val ANSI_YELLOW = "\u001B[33m"
+    private const val ANSI_BLUE = "\u001B[34m"
+    private const val ANSI_PURPLE = "\u001B[35m"
+    private const val ANSI_CYAN = "\u001B[36m"
+    private const val ANSI_WHITE = "\u001B[37m"
+    private const val ANSI_BOLD_ON = "\u001B[01m"
+    private const val ANSI_BOLD_OFF = "\u001B[2m"
+
     private val dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM)
         .withLocale(Locale.UK)
         .withZone(ZoneId.systemDefault())
 
-    override fun format(record: LogRecord): String {
+    fun format(record: LogRecord): String {
         val builder = StringBuilder()
         builder.append(ANSI_BLUE)
         val time = calculateDateString(record.millis)
@@ -25,7 +34,7 @@ class GLogFormatter: Formatter() {
         builder.append("]")
         builder.append(ANSI_YELLOW)
         builder.append(" [")
-        builder.append(record.level.name)
+        builder.append(record.level::class.java.simpleName)
         builder.append("]")
         builder.append(ANSI_RESET)
         builder.append(ANSI_BOLD_ON)
@@ -40,23 +49,6 @@ class GLogFormatter: Formatter() {
         builder.append(" ")
         builder.append(record.message)
         builder.append(ANSI_RESET)
-        val params = record.parameters
-        val spaceLength = time.length + 3 + record.level.name.length + 3
-        val space = repeat(" ", spaceLength)
-        if (params != null) {
-            builder.append("\n")
-            builder.append(repeat(" ", spaceLength - 10))
-            builder.append(ANSI_YELLOW)
-            builder.append("[Details] ")
-            builder.append(getMessageColor(record))
-            for (i in params.indices) {
-                builder.append(params[i])
-                if (i < params.size - 1) {
-                    builder.append(",\n")
-                    builder.append(space)
-                }
-            }
-        }
         builder.append(ANSI_RESET)
         builder.append("\n")
         if (record.thrown != null) {
@@ -136,34 +128,12 @@ class GLogFormatter: Formatter() {
     }
 
     private fun getMessageColor(record: LogRecord): String {
-        return if (record.level.intValue() >= Level.SEVERE.intValue()) {
+        return if (record.level >= LogLevel.ERROR) {
             ANSI_RED
-        } else if (record.level.intValue() >= Level.WARNING.intValue()) {
+        } else if (record.level >= LogLevel.WARN) {
             ANSI_YELLOW
         } else {
             ANSI_BOLD_ON
         }
-    }
-
-    fun repeat(s: String, count: Int): String {
-        if (count <= 0) return ""
-        if (count == 1) return s
-        val builder = StringBuilder(s.length * count)
-        repeat(count) { builder.append(s) }
-        return builder.toString()
-    }
-
-    companion object {
-        private const val ANSI_RESET = "\u001B[0m"
-        private const val ANSI_BLACK = "\u001B[30m"
-        private const val ANSI_RED = "\u001B[31m"
-        private const val ANSI_GREEN = "\u001B[32m"
-        private const val ANSI_YELLOW = "\u001B[33m"
-        private const val ANSI_BLUE = "\u001B[34m"
-        private const val ANSI_PURPLE = "\u001B[35m"
-        private const val ANSI_CYAN = "\u001B[36m"
-        private const val ANSI_WHITE = "\u001B[37m"
-        private const val ANSI_BOLD_ON = "\u001B[01m"
-        private const val ANSI_BOLD_OFF = "\u001B[2m"
     }
 }

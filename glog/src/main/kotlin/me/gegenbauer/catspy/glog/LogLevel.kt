@@ -1,8 +1,8 @@
-package me.gegenbauer.catspy.log
+package me.gegenbauer.catspy.glog
 
 sealed class LogLevel(
     val logName: String,
-    val logLevel: Int
+    val intValue: Int
 ) {
     object NONE : LogLevel("None", 0)
     object VERBOSE : LogLevel("Verbose", 2)
@@ -14,7 +14,7 @@ sealed class LogLevel(
 
     operator fun compareTo(level: LogLevel?): Int {
         level ?: return 1
-        return logLevel.compareTo(level.logLevel)
+        return intValue.compareTo(level.intValue)
     }
 }
 

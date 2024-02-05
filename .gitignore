@@ -9,3 +9,6 @@ glog.txt*
 global.json
 ui.json
 applog
+*/catspy.log*
+*/settings.json
+.DS_Store

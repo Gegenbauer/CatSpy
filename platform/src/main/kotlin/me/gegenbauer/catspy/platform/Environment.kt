@@ -1,6 +1,8 @@
 package me.gegenbauer.catspy.platform
 
+import com.formdev.flatlaf.util.SystemInfo
 import me.gegenbauer.catspy.file.appendPath
+import me.gegenbauer.catspy.java.ext.runCommandIgnoreResult
 import java.io.File
 import java.lang.management.ManagementFactory
 import javax.swing.JDialog
@@ -61,10 +63,13 @@ enum class Platform : IPlatform {
         }
 
         override fun showFileInExplorer(file: File) {
-            Runtime.getRuntime().exec("explorer.exe /select,${file.absolutePath}")
+            listOf("explorer.exe", "/select,${file.absolutePath}").runCommandIgnoreResult()
         }
     },
     LINUX {
+        override val adbCommand: String
+            get() = "/bin/bash -c adb"
+
         override fun getFilesDir(): String {
             return userHome.appendPath(".config").appendPath(GlobalProperties.APP_NAME)
         }
@@ -72,13 +77,15 @@ enum class Platform : IPlatform {
         override fun showFileInExplorer(file: File) {
             when {
                 osName.uppercase().contains("DEBIAN") -> {
-                    Runtime.getRuntime().exec("dolphin --select ${file.absolutePath}")
+                    listOf("dolphin", "--select", file.absolutePath).runCommandIgnoreResult()
                 }
+
                 osName.uppercase().contains("THUNAR") -> {
-                    Runtime.getRuntime().exec("thunar ${file.absolutePath}")
+                    listOf("thunar", file.absolutePath).runCommandIgnoreResult()
                 }
+
                 else -> {
-                    Runtime.getRuntime().exec("nautilus --select ${file.absolutePath}")
+                    listOf("nautilus", "--select", file.absolutePath).runCommandIgnoreResult()
                 }
             }
         }
@@ -91,12 +98,16 @@ enum class Platform : IPlatform {
         }
     },
     MAC {
+        override val adbCommand: String
+            get() = "/bin/bash -c adb"
+
         override fun getFilesDir(): String {
-            return userHome.appendPath("Library").appendPath("Application Support").appendPath(GlobalProperties.APP_NAME)
+            return userHome.appendPath("Library").appendPath("Application Support")
+                .appendPath(GlobalProperties.APP_NAME)
         }
 
         override fun showFileInExplorer(file: File) {
-            Runtime.getRuntime().exec("osascript -e 'tell application \"Finder\" to reveal POSIX file \"${file.absolutePath}\"' -e 'tell application \"Finder\" to activate'")
+            listOf("/bin/bash", "-c", "open -R \"${file.absolutePath}\"").runCommandIgnoreResult()
         }
 
         override fun configureUIProperties() {
@@ -140,9 +151,9 @@ val filesDir = run {
 const val LOG_DIR = "applog"
 
 private inline val _currentPlatform: Platform
-    get() = when (System.getProperty("os.name").lowercase()) {
-        "windows", "windows 11" -> Platform.WINDOWS
-        "linux" -> Platform.LINUX
-        "mac" -> Platform.MAC
+    get() = when {
+        SystemInfo.isWindows -> Platform.WINDOWS
+        SystemInfo.isLinux -> Platform.LINUX
+        SystemInfo.isMacOS -> Platform.MAC
         else -> Platform.UNKNOWN
     }

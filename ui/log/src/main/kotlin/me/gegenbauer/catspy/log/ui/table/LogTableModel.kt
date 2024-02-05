@@ -12,7 +12,7 @@ import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.datasource.LogViewModel
-import me.gegenbauer.catspy.log.flag
+import me.gegenbauer.catspy.glog.flag
 import me.gegenbauer.catspy.log.model.LogcatFilter
 import me.gegenbauer.catspy.log.model.LogcatItem
 import me.gegenbauer.catspy.log.ui.panel.BaseLogMainPanel

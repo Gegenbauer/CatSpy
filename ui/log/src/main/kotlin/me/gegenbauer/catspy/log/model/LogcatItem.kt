@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.log.model
 
 import me.gegenbauer.catspy.configuration.LogColorScheme
-import me.gegenbauer.catspy.log.LogLevel
-import me.gegenbauer.catspy.log.flag
-import me.gegenbauer.catspy.log.getLevelFromFlag
+import me.gegenbauer.catspy.glog.LogLevel
+import me.gegenbauer.catspy.glog.flag
+import me.gegenbauer.catspy.glog.getLevelFromFlag
 import me.gegenbauer.catspy.platform.GlobalProperties
 import java.awt.Color
 

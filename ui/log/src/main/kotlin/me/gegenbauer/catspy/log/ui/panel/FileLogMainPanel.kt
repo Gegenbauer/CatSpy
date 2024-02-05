@@ -76,15 +76,9 @@ class FileLogMainPanel: BaseLogMainPanel() {
         if (files.isEmpty()) {
             return
         }
-        val logMainUI = contexts.getContext(BaseLogMainPanel::class.java)
-        logMainUI ?: return
-        if (logMainUI.isLogEmpty()) {
-            logMainUI.openFile(files.first().absolutePath)
-            return
-        }
         val options = listOf<Pair<String, (List<File>) -> Unit>>(
-            STRINGS.ui.open to { files ->
-                files.firstOrNull()?.let { logMainUI.openFile(it.absolutePath) }
+            STRINGS.ui.open to { it ->
+                it.firstOrNull()?.let { openFile(it.absolutePath) }
             },
             STRINGS.ui.cancel to { GLog.d(tag, "[onDragLogFile] select cancel") }
         )

@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.cache
 
 import me.gegenbauer.catspy.glog.GLog
-import me.gegenbauer.catspy.glog.ILogger
+import me.gegenbauer.catspy.glog.GLogger
 
-object CacheLog: ILogger by GLog {
+object CacheLog: GLogger by GLog {
     var debug = false
 
     override fun v(tag: String, msg: String) {

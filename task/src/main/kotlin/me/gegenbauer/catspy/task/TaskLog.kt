@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.task
 
 import me.gegenbauer.catspy.glog.GLog
-import me.gegenbauer.catspy.glog.ILogger
+import me.gegenbauer.catspy.glog.GLogger
 
-object TaskLog: ILogger by GLog {
+object TaskLog: GLogger by GLog {
     var debug = true
 
     override fun v(tag: String, msg: String) {

@@ -46,7 +46,7 @@ compose.desktop {
             copyright = "© 2023 Gegenbauer. All rights reserved."
 
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            modules += listOf("jdk.unsupported", "jdk.management")
+            modules("jdk.unsupported", "jdk.management", "java.instrument", "java.management", "jdk.management.agent")
             jvmArgs += "--add-exports=java.desktop/sun.awt=ALL-UNNAMED"
 
             packageName = project.extra["app.name"].toString()
@@ -57,7 +57,7 @@ compose.desktop {
             val iconsRoot = project.file("src/main/resources/appicon/")
 
             linux {
-                iconFile.set(iconsRoot.resolve("icon-linux.png"))
+                iconFile.set(iconsRoot.resolve("icon.png"))
                 appRelease = project.extra["app.version.name"].toString()
                 debPackageVersion = project.extra["app.version.name"].toString()
             }
@@ -69,11 +69,14 @@ compose.desktop {
             }
 
             macOS {
-                iconFile.set(iconsRoot.resolve("icon-linux.png"))
+                iconFile.set(iconsRoot.resolve("icon.icns"))
                 appCategory = "public.app-category.developer-tools"
-                packageName = project.extra["app.name"].toString()
+                bundleID = project.extra["app.id"].toString()
+                dockName = project.extra["app.name"].toString()
+
+                pkgPackageVersion = project.extra["app.version.name"].toString()
                 dmgPackageVersion = project.extra["app.version.name"].toString()
-                dmgPackageBuildVersion = project.extra["app.version.code"].toString()
+                dmgPackageBuildVersion = project.extra["app.version.name"].toString()
             }
         }
     }

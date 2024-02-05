@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.configuration
 
 import me.gegenbauer.catspy.glog.GLog
-import me.gegenbauer.catspy.log.LogLevel
+import me.gegenbauer.catspy.glog.LogLevel
 import me.gegenbauer.catspy.strings.Locale
 import me.gegenbauer.catspy.utils.toArgb
 import java.awt.Color

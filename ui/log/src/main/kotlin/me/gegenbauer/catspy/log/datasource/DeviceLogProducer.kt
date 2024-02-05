@@ -15,6 +15,7 @@ import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.model.LogcatItem
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.LOG_DIR
+import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.task.CommandExecutorImpl
 import me.gegenbauer.catspy.task.CommandProcessBuilder
@@ -33,7 +34,7 @@ class DeviceLogProducer(
     private val tempFileStream = BufferedOutputStream(tempFile.outputStream())
 
     private val commandExecutor by lazy {
-        val logcatCommand = "adb${" -s $device".takeIf { device.isNotBlank() } ?: ""} logcat"
+        val logcatCommand = "${currentPlatform.adbCommand} ${"-s $device}".takeIf { device.isNotBlank() } ?: ""} logcat"
         CommandExecutorImpl(CommandProcessBuilder(logcatCommand.toCommandArray()))
     }
 

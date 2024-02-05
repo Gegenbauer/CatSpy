@@ -22,8 +22,4 @@ class DdmLogDelegate: Log.ILogOutput {
     override fun printAndPromptLog(logLevel: Log.LogLevel, tag: String, message: String) {
         printWithGLog(logLevel, tag, message)
     }
-
-    companion object {
-        var debug = false
-    }
 }

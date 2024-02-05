@@ -18,7 +18,7 @@ interface StatusBar: TaskMonitor {
         val path: String
     ) {
         companion object {
-            val NONE = LogStatus(Color.DARK_GRAY, Color.BLACK, "", STRINGS.ui.none)
+            val NONE = LogStatus(Color.DARK_GRAY, Color.BLACK, "", "")
         }
     }
 

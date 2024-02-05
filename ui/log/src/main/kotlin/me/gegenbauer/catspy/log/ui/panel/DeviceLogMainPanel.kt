@@ -57,6 +57,12 @@ class DeviceLogMainPanel: BaseLogMainPanel() {
         }
     }
 
+    override fun setup() {
+        super.setup()
+        val deviceManager = ServiceManager.getContextService(AdamDeviceManager::class.java)
+        deviceManager.tryStartMonitor()
+    }
+
     override fun createUI() {
         super.createUI()
         splitLogWithStatefulPanel.hideEmptyImage()

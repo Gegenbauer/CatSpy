@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.log.model
 
 import me.gegenbauer.catspy.cache.isEmpty
-import me.gegenbauer.catspy.log.LogLevel
+import me.gegenbauer.catspy.glog.LogLevel
 import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.isEmpty
 import me.gegenbauer.catspy.view.filter.getOrCreateFilterItem

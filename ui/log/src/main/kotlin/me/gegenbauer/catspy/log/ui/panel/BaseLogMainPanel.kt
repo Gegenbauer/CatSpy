@@ -7,6 +7,7 @@ import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import kotlinx.coroutines.*
 import me.gegenbauer.catspy.concurrency.IgnoreFastCallbackScheduler
 import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.context.Context
@@ -18,14 +19,14 @@ import me.gegenbauer.catspy.databinding.bind.bindLeft
 import me.gegenbauer.catspy.databinding.property.support.*
 import me.gegenbauer.catspy.file.getFileName
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.glog.LogLevel
+import me.gegenbauer.catspy.glog.getLevelFromName
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.java.ext.ErrorEvent
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.LogLevel
 import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.log.datasource.LogViewModel
 import me.gegenbauer.catspy.log.datasource.TaskState
-import me.gegenbauer.catspy.log.getLevelFromName
 import me.gegenbauer.catspy.log.model.LogcatFilter
 import me.gegenbauer.catspy.log.ui.dialog.GoToDialog
 import me.gegenbauer.catspy.log.ui.dialog.LogTableDialog
@@ -33,7 +34,6 @@ import me.gegenbauer.catspy.log.ui.popup.FileOpenPopupMenu
 import me.gegenbauer.catspy.log.ui.table.FilteredLogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.platform.GlobalProperties
-import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.*
 import me.gegenbauer.catspy.view.button.ColorToggleButton
@@ -586,7 +586,7 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
         splitLogPane.resetWithCurrentRotation()
     }
 
-    fun openFile(path: String) {
+    protected fun openFile(path: String) {
         stopAll()
 
         logViewModel.clear()

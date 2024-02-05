@@ -3,9 +3,14 @@ package me.gegenbauer.catspy.ddmlib.device
 import com.malinskiy.adam.request.device.Device
 
 interface DeviceManager {
+
+    var isMonitoring: Boolean
+
     val isAdbServerRunning: Boolean
 
     fun startMonitor()
+
+    fun tryStartMonitor()
 
     fun stopMonitor()
 

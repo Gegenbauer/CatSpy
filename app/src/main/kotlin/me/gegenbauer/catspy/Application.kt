@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.cache.PatternProvider
@@ -10,16 +11,15 @@ import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.conf.DebugConfiguration
 import me.gegenbauer.catspy.conf.GlobalConfSync
+import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
-import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.strings.StringResourceManager
 import me.gegenbauer.catspy.strings.registerLocaleChangeListener
 import me.gegenbauer.catspy.ui.MainFrame
@@ -70,6 +70,7 @@ object Application : WindowAdapter() {
         AppScope.launch(Dispatchers.GIO) {
             GLog.i(TAG, "[windowClosing] handle dispose start")
             mainFrame.destroy()
+            AppScope.cancel()
             GLog.flush()
             GLog.i(TAG, "[windowClosing] handle dispose end")
             exitProcess(0)
@@ -88,11 +89,7 @@ object Application : WindowAdapter() {
     }
 
     private fun registerGlobalService() {
-        ServiceManager.registerContextService(AdamDeviceManager::class.java)
         ServiceManager.registerContextService(PatternProvider::class.java)
-
-        val deviceManager = ServiceManager.getContextService(AdamDeviceManager::class.java)
-        deviceManager.startMonitor()
     }
 
     private val themeAwareControllers = listOf(

@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.configuration
 
 object GlobalStrings {
-    const val LOG_NAME = "catspy.log"
+    const val LOG_NAME = "catspy"
     const val DEBUG_DATA_BINDING = "Databinding"
     const val DEBUG_DDM = "Ddm"
     const val DEBUG_GLOBAL = "Global"

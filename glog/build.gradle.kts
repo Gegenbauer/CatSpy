@@ -6,4 +6,6 @@ plugins {
 
 dependencies {
     implementation(projects.file)
+    implementation(Slf4j.api)
+    implementation(Logback.classic)
 }

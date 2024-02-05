@@ -1,60 +1,45 @@
+/**
+ * Copyright (C), 2020-2022, FlyingLight
+ * FileName: ILogger
+ * Author: Gegenbauer
+ * Date: 2022/12/18 21:11
+ * Description:
+ * History:
+ * <author>    <time>            <version> <desc>
+ * FlyingLight 2022/12/18 21:11   0.0.1     *
+ */
 package me.gegenbauer.catspy.glog
 
-import java.io.PrintWriter
-import java.io.StringWriter
-import java.net.UnknownHostException
-import java.util.logging.*
+interface GLogger {
+    fun v(tag: String, msg: String)
 
-class GLogger(tag: String) : ILogger {
-    val logger: Logger = Logger.getLogger(tag)
+    fun d(tag: String, msg: String)
 
-    override fun v(tag: String, msg: String) {
-        logger.fine(msg)
-    }
+    fun i(tag: String, msg: String)
 
-    override fun d(tag: String, msg: String) {
-        logger.config(msg)
-    }
+    fun w(tag: String, msg: String)
 
-    override fun i(tag: String, msg: String) {
-        logger.info(msg)
-    }
+    fun w(tag: String, msg: String, tr: Throwable?)
 
-    override fun w(tag: String, msg: String) {
-        logger.warning(msg)
-    }
+    fun e(tag: String, msg: String)
 
-    override fun w(tag: String, msg: String, tr: Throwable?) {
-        logger.warning(msg + '\n' + tr.stackTraceString)
-    }
+    fun e(tag: String, msg: String, tr: Throwable?)
 
-    override fun e(tag: String, msg: String) {
-        logger.severe(msg)
-    }
+    fun flush() {}
+}
 
-    override fun e(tag: String, msg: String, tr: Throwable?) {
-        logger.severe(msg + '\n' + tr.stackTraceString)
-    }
+object EmptyLogger : GLogger {
+    override fun v(tag: String, msg: String) {}
 
-    private inline val Throwable?.stackTraceString: String
-        get() = run {
-            if (this == null) {
-                return ""
-            }
+    override fun d(tag: String, msg: String) {}
 
-            // This is to reduce the amount of log spew that apps do in the non-error
-            // condition of the network being unavailable.
-            var t = this
-            while (t != null) {
-                if (t is UnknownHostException) {
-                    return ""
-                }
-                t = t.cause
-            }
-            val sw = StringWriter()
-            val pw = PrintWriter(sw)
-            this.printStackTrace(pw)
-            pw.flush()
-            return sw.toString()
-        }
+    override fun i(tag: String, msg: String) {}
+
+    override fun w(tag: String, msg: String) {}
+
+    override fun w(tag: String, msg: String, tr: Throwable?) {}
+
+    override fun e(tag: String, msg: String) {}
+
+    override fun e(tag: String, msg: String, tr: Throwable?) {}
 }

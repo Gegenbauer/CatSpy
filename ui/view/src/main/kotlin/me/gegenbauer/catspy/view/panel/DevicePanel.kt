@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.view.panel
 
 import com.github.weisj.darklaf.iconset.AllIcons
+import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import com.malinskiy.adam.request.device.Device
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants
@@ -50,9 +51,8 @@ class DevicePanel : JPanel(), DeviceListener {
         adbStatus.text = if (deviceManager.isAdbServerRunning) "Running" else "Stopped"
 
         refreshButton.addActionListener {
-            val devices = deviceManager.getDevices()
             (deviceList.model as DefaultListModel<String>).clear()
-            devices.forEach {
+            deviceManager.getDevices().forEach {
                 (deviceList.model as DefaultListModel<String>).addElement(it.serial)
             }
             adbStatus.text = if (deviceManager.isAdbServerRunning) "Running" else "Stopped"
@@ -82,16 +82,14 @@ class DeviceIcon: StatusIcon {
     override var host: Component? = null
 
     private val devicePanel = DevicePanel()
-    private val deviceDialog = JDialog().apply {
-        isResizable = true
-        defaultCloseOperation = JDialog.HIDE_ON_CLOSE
-    }
+    private var deviceDialog = createDeviceDialog()
 
     private fun showDevicePanel() {
         if (deviceDialog.isVisible) {
             deviceDialog.isVisible = false
             return
         }
+        deviceDialog = createDeviceDialog()
         deviceDialog.contentPane = devicePanel
         deviceDialog.pack()
         val location = this.host?.locationOnScreen ?: return
@@ -99,5 +97,13 @@ class DeviceIcon: StatusIcon {
         location.x -= deviceDialog.width / 2
         deviceDialog.location = location
         deviceDialog.isVisible = true
+    }
+
+    private fun createDeviceDialog(): JDialog {
+        val frame = DarkUIUtil.getParentOfType(JFrame::class.java, this.devicePanel) ?: return JDialog()
+        return JDialog(frame).apply {
+            isResizable = true
+            defaultCloseOperation = JDialog.HIDE_ON_CLOSE
+        }
     }
 }

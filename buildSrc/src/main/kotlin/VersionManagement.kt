@@ -55,9 +55,15 @@ object Adam {
 object Slf4j {
     val groupName = "org.slf4j"
 
-    val simple = Dependency(groupName, "slf4j-simple", "1.7.32")
+    val simple = Dependency(groupName, "slf4j-simple", "2.0.0")
     val api = Dependency(groupName, "slf4j-api", "2.0.0")
     val nop = Dependency(groupName, "slf4j-nop", "2.0.0")
+}
+
+object Logback {
+    val groupName = "ch.qos.logback"
+
+    val classic = Dependency(groupName, "logback-classic", "1.4.14")
 }
 
 object Fifesoft {
