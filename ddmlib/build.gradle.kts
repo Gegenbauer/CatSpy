@@ -5,7 +5,6 @@ plugins {
 }
 
 dependencies {
-    api(AndroidDdm.ddmlib)
     api(Adam.adam)
     implementation(Slf4j.api)
     implementation(Logback.classic)

@@ -5,7 +5,7 @@ import com.malinskiy.adam.request.device.DeviceState
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.script.model.Script
 import me.gegenbauer.catspy.script.model.ScriptType
@@ -85,7 +85,7 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
         }
 
     override fun setup() {
-        val deviceManager = ServiceManager.getContextService(AdamDeviceManager::class.java)
+        val deviceManager = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
         deviceManager.tryStartMonitor()
 
         layout = BorderLayout()
@@ -100,7 +100,7 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
     override fun configureContext(context: Context) {
         super.configureContext(context)
         focusedActivityCard.setParent(this)
-        currentDevice = ServiceManager.getContextService(AdamDeviceManager::class.java)
+        currentDevice = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
             .getDevices().firstOrNull() ?: currentDevice
     }
 
@@ -115,6 +115,8 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
     override fun destroy() {
         super.destroy()
         taskManager.cancelAll()
+        val deviceManager = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
+        deviceManager.tryStopMonitor()
     }
 
     override fun getTabContent(): JComponent {

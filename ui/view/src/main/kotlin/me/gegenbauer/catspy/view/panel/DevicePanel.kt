@@ -6,19 +6,19 @@ import com.malinskiy.adam.request.device.Device
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
-import me.gegenbauer.catspy.ddmlib.device.DeviceListener
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
+import me.gegenbauer.catspy.ddmlib.device.DeviceObserver
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.view.button.IconBarButton
 import java.awt.Component
 import javax.swing.*
 
-class DevicePanel : JPanel(), DeviceListener {
+class DevicePanel : JPanel(), DeviceObserver {
     private val refreshButton: JButton = IconBarButton(AllIcons.Action.Refresh.get())
     private val adbStatusTitle: JLabel = JLabel("ADB Server Status")
     private val adbStatus: JLabel = JLabel("Unknown")
     private val deviceList: JList<String> = JList(DefaultListModel())
-    private val deviceManager by lazy { ServiceManager.getContextService(AdamDeviceManager::class.java) }
+    private val deviceManager by lazy { ServiceManager.getContextService(AdamDeviceMonitor::class.java) }
 
     init {
         border = BorderFactory.createEmptyBorder(10, 4, 10, 4)
@@ -48,17 +48,21 @@ class DevicePanel : JPanel(), DeviceListener {
             (deviceList.model as DefaultListModel<String>).addElement(it.serial)
         }
 
-        adbStatus.text = if (deviceManager.isAdbServerRunning) "Running" else "Stopped"
+        adbStatus.text = if (deviceManager.adbServerRunning) "Running" else "Stopped"
 
         refreshButton.addActionListener {
             (deviceList.model as DefaultListModel<String>).clear()
             deviceManager.getDevices().forEach {
                 (deviceList.model as DefaultListModel<String>).addElement(it.serial)
             }
-            adbStatus.text = if (deviceManager.isAdbServerRunning) "Running" else "Stopped"
+            adbStatus.text = if (deviceManager.adbServerRunning) "Running" else "Stopped"
         }
 
         deviceList.requestFocus()
+    }
+
+    fun updateAdbStatus() {
+        adbStatus.text = if (deviceManager.adbServerRunning) "Running" else "Stopped"
     }
 
     override fun onDeviceConnect(device: Device) {
@@ -91,6 +95,7 @@ class DeviceIcon: StatusIcon {
         }
         deviceDialog = createDeviceDialog()
         deviceDialog.contentPane = devicePanel
+        devicePanel.updateAdbStatus()
         deviceDialog.pack()
         val location = this.host?.locationOnScreen ?: return
         location.y -= deviceDialog.height + 30

@@ -4,10 +4,10 @@ import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants
 import me.gegenbauer.catspy.context.ContextService
-import java.awt.Component
-import java.awt.Container
-import java.awt.event.MouseAdapter
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.JComponent
+import javax.swing.JFrame
+import javax.swing.JPanel
 
 class StatusPanel(
     private val backgroundTasksContainer: TaskMonitorPanel = TaskMonitorPanel()
@@ -45,35 +45,6 @@ class StatusPanel(
         add(statusIcons, "2,0,f,c")
         add(memoryMonitorContainer, "3,0,f,c")
 
-        statusIcons.addStatusIcon(DeviceIcon())
-
-        getChildByClassRecursively(this, JTextField::class.java)?.addMouseListener(object : MouseAdapter() {
-            override fun mouseClicked(e: java.awt.event.MouseEvent) {
-                if (e.clickCount == 2) {
-                    println()
-                }
-            }
-        })
-    }
-
-    private fun getChildByClassRecursively(component: Component, clazz: Class<*>): Component? {
-        if (clazz.isInstance(component)) {
-            return component
-        }
-        if (component !is Container) {
-            return null
-        }
-        component.components.forEach {
-            if (clazz.isInstance(it)) {
-                return it
-            }
-            if (it is JComponent) {
-                val child = getChildByClassRecursively(it, clazz)
-                if (child != null) {
-                    return child
-                }
-            }
-        }
-        return null
+        //statusIcons.addStatusIcon(DeviceIcon()) // TODO complete device monitor panel
     }
 }

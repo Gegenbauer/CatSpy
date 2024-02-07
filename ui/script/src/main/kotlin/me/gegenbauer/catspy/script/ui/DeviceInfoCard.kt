@@ -10,7 +10,7 @@ import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.script.executor.CommandExecutor
 import me.gegenbauer.catspy.task.PeriodicTask
 import me.gegenbauer.catspy.task.TaskManager
@@ -51,7 +51,7 @@ class DeviceInfoCard(
         get() = this
 
     override fun updateContent() {
-        val deviceManager = ServiceManager.getContextService(AdamDeviceManager::class.java)
+        val deviceManager = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
         if (deviceManager.getDevices().isNotEmpty()) {
             scriptUIItems.forEachIndexed { index, item ->
                 scope.async {

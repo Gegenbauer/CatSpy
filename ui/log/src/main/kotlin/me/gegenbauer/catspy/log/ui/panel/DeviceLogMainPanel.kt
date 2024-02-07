@@ -4,8 +4,8 @@ import com.malinskiy.adam.request.device.Device
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
-import me.gegenbauer.catspy.ddmlib.device.DeviceListListener
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
+import me.gegenbauer.catspy.ddmlib.device.DeviceListObserver
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.log.ui.table.FilteredLogTableModel
@@ -59,7 +59,7 @@ class DeviceLogMainPanel: BaseLogMainPanel() {
 
     override fun setup() {
         super.setup()
-        val deviceManager = ServiceManager.getContextService(AdamDeviceManager::class.java)
+        val deviceManager = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
         deviceManager.tryStartMonitor()
     }
 
@@ -72,11 +72,11 @@ class DeviceLogMainPanel: BaseLogMainPanel() {
         super.registerEvent()
         scope.launch {
             delay(200)
-            ServiceManager.getContextService(AdamDeviceManager::class.java).registerDevicesListener(devicesChangeListener)
+            ServiceManager.getContextService(AdamDeviceMonitor::class.java).registerDevicesListener(devicesChangeListener)
         }
     }
 
-    private val devicesChangeListener = DeviceListListener {
+    private val devicesChangeListener = DeviceListObserver {
         refreshDevices(it)
     }
 
@@ -85,5 +85,11 @@ class DeviceLogMainPanel: BaseLogMainPanel() {
         val newDeviceList = devices.map { it.serial }.sortedBy { if (it == currentDevice) -1 else 1 }
         logMainBinding.connectedDevices.updateValue(newDeviceList.toHistoryItemList())
         startBtn.isEnabled = devices.isEmpty().not()
+    }
+
+    override fun destroy() {
+        super.destroy()
+        val deviceManager = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
+        deviceManager.tryStopMonitor()
     }
 }

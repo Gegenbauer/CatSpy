@@ -532,10 +532,6 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
         registerStroke(Key.C_S, "Save Log") { saveLog() }
     }
 
-    fun isLogEmpty(): Boolean {
-        return fullTableModel.dataSize == 0
-    }
-
     private fun registerComboBoxEditorEvent() {
         messageFilterCombo.keyListener = keyHandler
         messageFilterCombo.keyListener = keyHandler

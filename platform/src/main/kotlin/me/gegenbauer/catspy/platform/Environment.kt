@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.platform
 
 import com.formdev.flatlaf.util.SystemInfo
 import me.gegenbauer.catspy.file.appendPath
+import me.gegenbauer.catspy.file.checkAndAppendPath
 import me.gegenbauer.catspy.java.ext.runCommandIgnoreResult
 import java.io.File
 import java.lang.management.ManagementFactory
@@ -10,8 +11,29 @@ import javax.swing.JFrame
 import javax.swing.TransferHandler.TransferSupport
 
 interface IPlatform {
-    val adbCommand: String
+    val adbExecutable: String
         get() = "adb"
+
+    val adbPath: String
+        get() {
+            val androidSdkPath = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+            androidSdkPath?.let {
+                val targetPath = it.checkAndAppendPath("platform-tools").checkAndAppendPath(adbExecutable)
+                if (File(targetPath).exists()) {
+                    return targetPath
+                }
+            }
+
+            val envPath = System.getenv("PATH")
+            val paths = envPath.split(File.pathSeparator)
+            for (path in paths) {
+                val targetPath = path.checkAndAppendPath(adbExecutable)
+                if (File(targetPath).exists()) {
+                    return targetPath
+                }
+            }
+            return ""
+        }
 
     val osName: String
         get() = System.getProperty("os.name")
@@ -51,7 +73,7 @@ fun isInDebugMode(): Boolean {
 
 enum class Platform : IPlatform {
     WINDOWS {
-        override val adbCommand: String
+        override val adbExecutable: String
             get() = "adb.exe"
 
         override fun getFileDropAction(transferSupport: TransferSupport): Int {
@@ -67,9 +89,6 @@ enum class Platform : IPlatform {
         }
     },
     LINUX {
-        override val adbCommand: String
-            get() = "/bin/bash -c adb"
-
         override fun getFilesDir(): String {
             return userHome.appendPath(".config").appendPath(GlobalProperties.APP_NAME)
         }
@@ -98,9 +117,6 @@ enum class Platform : IPlatform {
         }
     },
     MAC {
-        override val adbCommand: String
-            get() = "/bin/bash -c adb"
-
         override fun getFilesDir(): String {
             return userHome.appendPath("Library").appendPath("Application Support")
                 .appendPath(GlobalProperties.APP_NAME)
@@ -118,7 +134,7 @@ enum class Platform : IPlatform {
 
             // application name used in screen menu bar
             // (in first menu after the "apple" menu)
-            System.setProperty("apple.awt.application.name", "FlatLaf Demo")
+            System.setProperty("apple.awt.application.name", GlobalProperties.APP_NAME)
 
             // appearance of window title bars
             // possible values:

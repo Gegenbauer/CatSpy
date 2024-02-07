@@ -9,7 +9,7 @@ import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.ddmlib.device.AdamDeviceManager
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.script.executor.CommandExecutor
 import me.gegenbauer.catspy.script.ui.ScriptTabPanel.Companion.defaultDevice
 import me.gegenbauer.catspy.task.PeriodicTask
@@ -52,7 +52,7 @@ class ScriptCard(
     }
 
     override fun updateContent() {
-        val deviceManager = ServiceManager.getContextService(AdamDeviceManager::class.java)
+        val deviceManager = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
         if (deviceManager.getDevices().isNotEmpty()) {
             scope.launch {
                 updateContentInternal()

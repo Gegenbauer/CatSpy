@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.ddmlib.device
 
 import com.malinskiy.adam.request.device.Device
 
-interface DeviceListener {
+interface DeviceObserver {
     fun onDeviceStateChange(deviceOld: Device, deviceNew: Device) {
         //
     }

@@ -76,10 +76,18 @@ class FileLogMainPanel: BaseLogMainPanel() {
         if (files.isEmpty()) {
             return
         }
+
+        fun openFileLog(files: List<File>) {
+            files.firstOrNull()?.let { openFile(it.absolutePath) }
+        }
+
+        if (isLogEmpty()) {
+            openFileLog(files)
+            return
+        }
+
         val options = listOf<Pair<String, (List<File>) -> Unit>>(
-            STRINGS.ui.open to { it ->
-                it.firstOrNull()?.let { openFile(it.absolutePath) }
-            },
+            STRINGS.ui.open to { openFileLog(it) },
             STRINGS.ui.cancel to { GLog.d(tag, "[onDragLogFile] select cancel") }
         )
         val value = JOptionPane.showOptionDialog(
@@ -92,6 +100,10 @@ class FileLogMainPanel: BaseLogMainPanel() {
             STRINGS.ui.append
         )
         options[value].second.invoke(files)
+    }
+
+    private fun isLogEmpty(): Boolean {
+        return fullTableModel.dataSize == 0
     }
 
     override fun isDataImportSupported(info: TransferHandler.TransferSupport): Boolean {
