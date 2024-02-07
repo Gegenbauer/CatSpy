@@ -41,6 +41,21 @@ English | [简体中文](README_CN.md)
 ## Download
 latest release: [![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy.svg)](https://github.com/Gegenbauer/CatSpy/releases/latest)
 
+## Open
+### macOS
+On macOS, due to the application being unsigned, you may be prompted that it cannot be opened. In this case, follow the steps below to open it:
+
+1. Open the dmg file and drag the application to the Applications folder.
+2. Find the application in the launchpad and open it.
+3. Close the warning box that pops up.
+   ![macOS_open_warning.png](pic%2FmacOS_open_warning.png)
+4. Open System Preferences -> Privacy & Security -> Go to Security -> Click Open.
+   ![macOS_grant_open_permission.png](pic%2FmacOS_grant_open_permission.png)
+5. Open the application again.
+
+### Other OS
+After installing the deb or msi package, you can find the application icon in the application menu and click to open the application.
+
 ## Build && Run
 ### Environment
 - JDK17 or higher
