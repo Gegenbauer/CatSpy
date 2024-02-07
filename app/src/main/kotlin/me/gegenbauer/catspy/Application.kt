@@ -96,7 +96,7 @@ object Application : WindowAdapter() {
 
         val adbPath = currentPlatform.adbPath
         GLog.i(TAG, "[registerGlobalService] detected adbPath: $adbPath")
-        ServiceManager.getContextService(AdamDeviceMonitor::class.java).configure(AdbConf(currentPlatform.adbPath))
+        ServiceManager.getContextService(AdamDeviceMonitor::class.java).configure(AdbConf(adbPath))
     }
 
     private val themeAwareControllers = listOf(

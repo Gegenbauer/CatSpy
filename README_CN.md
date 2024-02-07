@@ -41,6 +41,21 @@
 ## 下载
 最新版本: [![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy.svg)](https://github.com/Gegenbauer/CatSpy/releases/latest)
 
+## 打开
+### macOS
+在 macOS 上，由于应用未签名，可能会提示无法打开，此时按如下操作打开
+
+1. 打开 dmg 文件，将应用拖到应用程序文件夹
+2. launchpad 中找到应用，打开应用
+3. 关闭弹出的警告框
+  ![macOS_open_warning.png](pic%2FmacOS_open_warning.png)
+4. 打开系统设置 -> 隐私与安全 -> 找到安全 -> 点击打开
+  ![macOS_grant_open_permission.png](pic%2FmacOS_grant_open_permission.png)
+5. 再次打开应用
+
+### other OS
+安装好 deb 或 msi 包后，可以在应用菜单中找到应用图标，点击打开应用
+
 ## 构建和运行
 ### 环境
 - JDK17 及以上

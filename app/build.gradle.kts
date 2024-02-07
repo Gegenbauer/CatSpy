@@ -1,3 +1,4 @@
+import org.gradle.configurationcache.extensions.capitalized
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
@@ -43,7 +44,10 @@ compose.desktop {
 
         nativeDistributions {
             licenseFile.set(rootProject.file("LICENSE"))
-            copyright = "© 2023 Gegenbauer. All rights reserved."
+
+            val author = project.extra["app.author"].toString().capitalized()
+            copyright = "© 2023 $author. All rights reserved."
+            vendor = author.capitalized()
 
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             modules("jdk.unsupported", "jdk.management", "java.instrument", "java.management", "jdk.management.agent")
@@ -59,13 +63,15 @@ compose.desktop {
             linux {
                 iconFile.set(iconsRoot.resolve("icon.png"))
                 appRelease = project.extra["app.version.name"].toString()
-                debPackageVersion = project.extra["app.version.name"].toString()
+
+                packageVersion = project.extra["app.version.name"].toString()
             }
 
             windows {
                 dirChooser = true
                 upgradeUuid = "eff1902c-4e55-11ee-be56-0242ac120002"
-                msiPackageVersion = project.extra["app.version.name"].toString()
+
+                packageVersion = project.extra["app.version.name"].toString()
             }
 
             macOS {
@@ -74,9 +80,8 @@ compose.desktop {
                 bundleID = project.extra["app.id"].toString()
                 dockName = project.extra["app.name"].toString()
 
-                pkgPackageVersion = project.extra["app.version.name"].toString()
-                dmgPackageVersion = project.extra["app.version.name"].toString()
-                dmgPackageBuildVersion = project.extra["app.version.name"].toString()
+                packageVersion = project.extra["app.version.name"].toString()
+                packageBuildVersion = project.extra["app.version.name"].toString()
             }
         }
     }

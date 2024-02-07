@@ -17,7 +17,7 @@ object StringResourceManager {
     internal var strings: Strings = DEFAULT_STRINGS
 
     private fun parse(locale: Locale): Strings {
-        val inStream = loadResourceAsStream(STRING_RES_DIR.appendPath(locale.stringFile))
+        val inStream = loadResourceAsStream("$STRING_RES_DIR/${locale.stringFile}")
         JsonReader(InputStreamReader(inStream)).use {
             return gson.fromJson(it, Strings::class.java)
         }
