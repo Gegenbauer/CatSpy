@@ -288,7 +288,6 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
             Log.d(TAG, "[updateFilter] start")
             updateFilterCompanyJobs.toList().forEach { it.cancelAndJoin() }
             updateFilterCompanyJobs.clear()
-            filteredLogRepo.clear()
 
             updateTriggerCountLock.write {
                 updatingFilteredLogTriggerCount.value += 1
@@ -358,10 +357,13 @@ open class LogViewModel(override val contexts: Contexts = Contexts.default) :
 
     private suspend fun updateFilterInternal(filter: LogFilter<LogcatItem>) {
         withContext(Dispatchers.CPU) {
-            fullLogRepo.readLogItems {
-                it.forEach { item ->
-                    ensureActive()
-                    filteredLogRepo.onReceiveLogItem(item, filter)
+            filteredLogRepo.writeLogItems {
+                it.clear()
+                fullLogRepo.readLogItems {
+                    it.forEach { item ->
+                        ensureActive()
+                        filteredLogRepo.onReceiveLogItem(item, filter)
+                    }
                 }
             }
         }
