@@ -1,0 +1,62 @@
+name: Build Artifacts
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.cpp'
+      - '**.kt'
+      - 'buildSrc/**'
+      - 'gradle/**'
+      - 'gradle.properties'
+      - '**.kts'
+      - '**.java'
+      - '.github/workflows/build_linux_artifact.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.cpp'
+      - '**.kt'
+      - 'buildSrc/**'
+      - 'gradle/**'
+      - 'gradle.properties'
+      - '**.kts'
+      - '**.java'
+  release:
+    types:
+      - published
+jobs:
+  linux:
+    name: Linux (Java 17)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 10
+      - name: Set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build
+        run: ./gradlew packageDeb
+
+      - name: Retrieve Artifact Name
+        id: getFilename
+        run: |
+          find "$(pwd)/app/build/compose/binaries/main/deb" -type f -name "*.deb" -exec basename {} \;
+          echo "::set-output name=debFileName::$filename"
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: catspy_amd64.deb
+          path: app/build/compose/binaries/main/deb/${{ steps.getFilename.outputs.debFileName }}
+          retention-days: 1
