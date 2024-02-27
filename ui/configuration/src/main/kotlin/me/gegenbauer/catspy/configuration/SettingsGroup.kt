@@ -4,7 +4,7 @@ import me.gegenbauer.catspy.databinding.property.support.PROPERTY_ENABLED
 import java.awt.*
 import javax.swing.*
 
-class SettingsGroup(override val title: String) : ISettingsGroup {
+open class SettingsGroup(override val title: String) : ISettingsGroup {
     private val gridPanel = JPanel(GridBagLayout())
 
     private val panel = JPanel().apply {
@@ -22,11 +22,15 @@ class SettingsGroup(override val title: String) : ISettingsGroup {
         panel.add(gridPanel, BorderLayout.PAGE_START)
     }
 
-    fun addRow(label: String, comp: JComponent): JLabel {
+    override fun initGroup() {
+        // no-op
+    }
+
+    override fun addRow(label: String, comp: JComponent): JLabel {
         return addRow(label, null, comp)
     }
 
-    fun addRow(label: String, tooltip: String?, comp: JComponent): JLabel {
+    override fun addRow(label: String, tooltip: String?, comp: JComponent): JLabel {
         c.gridy = row++
         val rowLbl = JLabel(label)
         rowLbl.labelFor = comp
@@ -52,7 +56,7 @@ class SettingsGroup(override val title: String) : ISettingsGroup {
         return rowLbl
     }
 
-    fun end() {
+    override fun end() {
         gridPanel.add(Box.createVerticalGlue())
     }
 

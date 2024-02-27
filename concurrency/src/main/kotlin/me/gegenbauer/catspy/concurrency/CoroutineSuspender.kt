@@ -1,30 +1,23 @@
 package me.gegenbauer.catspy.concurrency
 
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.*
 import me.gegenbauer.catspy.glog.GLog
-import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 class CoroutineSuspender(private val name: String = "") {
     private val enabled = AtomicBoolean(false)
     private val suspended = AtomicBoolean(false)
 
+    private val scope = ModelScope()
     private var con: CancellableContinuation<Unit>? = null
-    private var timer: Timer? = null
 
     suspend fun checkSuspend(timeout: Long = Int.MAX_VALUE.toLong()) {
         Unit.takeIf { enabled.get().not() } ?: suspendCancellableCoroutine { con ->
             GLog.d(TAG, "[$name] [checkSuspend] start suspend")
             this.con = con
-            timer = Timer().also {
-                it.schedule(object : TimerTask() {
-                    override fun run() {
-                        resumeSuspendPoint()
-                        timer = null
-                    }
-                }, timeout)
+            scope.launch {
+                delay(timeout)
+                resumeSuspendPoint()
             }
             suspended.set(true)
             enabled.set(true)
@@ -41,7 +34,7 @@ class CoroutineSuspender(private val name: String = "") {
             return
         }
         resumeSuspendPoint()
-        timer?.cancel()
+        scope.cancel()
         GLog.d(TAG, "[$name] [disable]")
     }
 

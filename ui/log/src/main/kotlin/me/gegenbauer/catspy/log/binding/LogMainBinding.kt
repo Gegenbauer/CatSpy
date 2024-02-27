@@ -73,6 +73,7 @@ class LogMainBinding : ContextService, GThemeChangeListener {
     //endregion
 
     //region ADB
+    val adbServerStatusWarningVisibility = ObservableValueProperty(false)
     val connectedDevices = ObservableValueProperty(arrayListOf<HistoryItem<String>>().toList())
     val deviceSelectedIndex = ObservableValueProperty<Int>()
     val currentDevice = ObservableValueProperty<String>()

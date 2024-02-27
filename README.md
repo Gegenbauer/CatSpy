@@ -12,7 +12,7 @@ English | [简体中文](README_CN.md)
 **CatSpy** - A tool for browsing logs.
 
 **Main Features:**
-- Can filter logs based on various parts
+- Filter logs based on various parts
 - Import local file logs and view real-time logs of connected devices
 - Real-time filtering with changing input content
 - Multiple tabs

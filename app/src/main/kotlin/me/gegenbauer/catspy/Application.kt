@@ -16,7 +16,6 @@ import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.ddmlib.adb.AdbConf
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.platform.GlobalProperties
@@ -93,10 +92,6 @@ object Application : WindowAdapter() {
     private fun registerGlobalService() {
         ServiceManager.registerContextService(PatternProvider::class.java)
         ServiceManager.registerContextService(AdamDeviceMonitor::class.java)
-
-        val adbPath = currentPlatform.adbPath
-        GLog.i(TAG, "[registerGlobalService] detected adbPath: $adbPath")
-        ServiceManager.getContextService(AdamDeviceMonitor::class.java).configure(AdbConf(adbPath))
     }
 
     private val themeAwareControllers = listOf(

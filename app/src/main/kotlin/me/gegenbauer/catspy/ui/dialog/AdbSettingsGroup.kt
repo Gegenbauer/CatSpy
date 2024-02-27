@@ -1,0 +1,181 @@
+package me.gegenbauer.catspy.ui.dialog
+
+import info.clearthought.layout.TableLayout
+import info.clearthought.layout.TableLayoutConstants.PREFERRED
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.gegenbauer.catspy.concurrency.UI
+import me.gegenbauer.catspy.configuration.SettingsContainer
+import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.SettingsManager.settings
+import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.ddmlib.adb.*
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
+import me.gegenbauer.catspy.platform.currentPlatform
+import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.utils.DefaultDocumentListener
+import java.awt.Component
+import java.io.File
+import javax.swing.*
+import javax.swing.filechooser.FileFilter
+
+class AdbSettingsGroup(
+    scope: CoroutineScope,
+    container: SettingsContainer
+): BaseSettingsGroup(STRINGS.ui.adb, scope, container) {
+
+    private var adbPath: String = ""
+        set(value) {
+            field = value
+            ServiceManager.getContextService(AdamDeviceMonitor::class.java).configure(AdbConf(value))
+        }
+
+    private val adbStatusTf = JTextField().apply { isEditable = false }
+
+    private val currentAdbDir: File
+        get() {
+            val file = File(adbPath)
+            return if (file.exists()) file.parentFile else File(".")
+        }
+
+    private val adbFileFilter = object : FileFilter() {
+        override fun accept(f: File): Boolean {
+            return f.isDirectory || currentPlatform.adbExecutable == f.name
+        }
+
+        override fun getDescription(): String {
+            return STRINGS.ui.adbFileDescription
+        }
+    }
+
+    override fun initGroup() {
+        adbPath = SettingsManager.adbPath
+        addRow(STRINGS.ui.adbPath, buildAdbPathConfigurePanel())
+        addRow(STRINGS.ui.adbServerStatus, buildAdbStatusPanel())
+        end()
+    }
+
+    private fun buildAdbPathConfigurePanel(): JPanel {
+        val adbPathField = JTextField(settings.adbPath)
+        adbPathField.document.addDocumentListener(object : DefaultDocumentListener() {
+            override fun contentUpdate(content: String) {
+                adbPath = content
+            }
+        })
+        val adbPathSelectBtn = JButton(STRINGS.ui.change)
+        adbPathSelectBtn.addActionListener {
+            val fileChooser = JFileChooser()
+            fileChooser.currentDirectory = currentAdbDir
+            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+            fileChooser.dialogTitle = STRINGS.ui.selectAdbPath
+            fileChooser.isAcceptAllFileFilterUsed = false
+            fileChooser.isFileHidingEnabled = false
+            fileChooser.fileFilter = adbFileFilter
+            val result = fileChooser.showOpenDialog(container as Component)
+            if (result == JFileChooser.APPROVE_OPTION) {
+                val file = fileChooser.selectedFile
+                adbPathField.text = file.absolutePath
+                SettingsManager.updateSettings {
+                    this.adbPath = file.absolutePath
+                    this@AdbSettingsGroup.adbPath = file.absolutePath
+                }
+            }
+        }
+        val checkBtn = JButton(STRINGS.ui.startAdbServer)
+        checkBtn.addActionListener {
+            scope.launch {
+                SettingsManager.updateSettings { adbPath = adbPathField.text}
+                val result = startServer(AdbConf(adbPathField.text))
+                withContext(Dispatchers.UI) {
+                    informAdbServerStartResult(result)
+                }
+                updateAdbStatus(isServerRunning())
+            }
+        }
+        val panel = JPanel()
+        val layout = TableLayout(
+            doubleArrayOf(0.8, PREFERRED, PREFERRED),
+            doubleArrayOf(PREFERRED)
+        )
+        layout.hGap = 10
+        panel.layout = layout
+
+        panel.add(adbPathField, "0,0")
+        panel.add(adbPathSelectBtn, "1,0")
+        panel.add(checkBtn, "2,0")
+        return panel
+    }
+
+    private fun buildAdbStatusPanel(): JPanel {
+        val panel = JPanel()
+
+        val layout = TableLayout(
+            doubleArrayOf(0.8, PREFERRED),
+            doubleArrayOf(PREFERRED)
+        )
+        layout.hGap = 10
+        panel.layout = layout
+
+        scope.launch {
+            val adbStarted = isServerRunning()
+            withContext(Dispatchers.UI) {
+                updateAdbStatus(adbStarted)
+            }
+        }
+
+        val refreshAdbServerStatusBtn = JButton(STRINGS.ui.refresh)
+        refreshAdbServerStatusBtn.addActionListener {
+            refreshAdbStatus()
+        }
+
+        adbStatusTf.parent?.removeAll()
+        panel.add(adbStatusTf, "0,0")
+        panel.add(refreshAdbServerStatusBtn, "1,0")
+        return panel
+    }
+
+    private fun refreshAdbStatus() {
+        scope.launch {
+            val status = isServerRunning()
+            updateAdbStatus(status)
+            val adbStatus = if (status) STRINGS.ui.adbServerStarted else STRINGS.ui.adbServerNotStarted
+            JOptionPane.showMessageDialog(
+                container as Component,
+                adbStatus,
+                "",
+                JOptionPane.INFORMATION_MESSAGE
+            )
+        }
+    }
+
+    private fun updateAdbStatus(status: Boolean) {
+        val adbStatus = if (status) STRINGS.ui.adbServerStarted else STRINGS.ui.adbServerNotStarted
+        adbStatusTf.text = adbStatus
+    }
+
+    private fun informAdbServerStartResult(result: AdbServerStartResult) {
+        if (result.isSuccess) {
+            JOptionPane.showMessageDialog(
+                container as Component,
+                STRINGS.ui.adbPathValid,
+                "",
+                JOptionPane.INFORMATION_MESSAGE
+            )
+        } else {
+            val message = when (result) {
+                AdbServerStartResult.FAILURE_WRONG_EXECUTABLE -> STRINGS.ui.adbPathInvalid
+                AdbServerStartResult.FAILURE_FILE_NOT_EXIST -> STRINGS.ui.adbPathNotExist
+                AdbServerStartResult.FAILURE_ADB_PATH_UNSPECIFIED -> STRINGS.ui.adbPathEmpty
+                else -> STRINGS.ui.adbPathInvalid
+            }
+            JOptionPane.showMessageDialog(
+                container as Component,
+                message,
+                "",
+                JOptionPane.ERROR_MESSAGE
+            )
+        }
+    }
+}

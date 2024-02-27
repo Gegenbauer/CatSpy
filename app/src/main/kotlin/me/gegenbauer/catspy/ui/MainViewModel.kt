@@ -90,7 +90,7 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
         scope.launch {
             val asset = release.assets.firstOrNull { it.name.contains(currentPlatform.assetKeyword) }
             asset?.let {
-                val downloadFileName = "${APP_NAME.lowercase(Locale.getDefault())}_${release.name}"
+                val downloadFileName = it.name
                 val downloadPath = filesDir.appendPath(downloadFileName)
                 val taskName = STRINGS.ui.downloadTaskTitle.get(release.name)
                 val task = Task(taskName, object : TaskHandle {

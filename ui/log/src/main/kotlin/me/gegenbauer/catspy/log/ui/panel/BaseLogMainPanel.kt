@@ -127,6 +127,12 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
         STRINGS.toolTip.startBtn,
         GIcons.Action.Start.disabled()
     )
+    protected val adbServerStatusWarningBtn = IconBarButton(
+        GIcons.Action.Warning.get(),
+        STRINGS.ui.adbServerNotStartedWarn
+    ).apply {
+        isVisible = false
+    }
     private val stopBtn = IconBarButton(
         GIcons.Action.Stop.get(),
         STRINGS.toolTip.stopBtn,
@@ -264,6 +270,7 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
 
             //region ADB
             bindDeviceComponents(this)
+            visibilityProperty(adbServerStatusWarningBtn) bindDual adbServerStatusWarningVisibility
             //endregion
 
             //region Menu
@@ -387,6 +394,7 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
         filterPanel.add(logPanel, BorderLayout.CENTER)
 
         logToolBar.add(startBtn)
+        logToolBar.add(adbServerStatusWarningBtn)
         logToolBar.add(stopBtn)
         logToolBar.addVSeparator2()
         logToolBar.add(saveBtn)
@@ -700,7 +708,13 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
         val lastUpdateJob = updateFilterJob
         updateFilterJob = scope.launch {
             lastUpdateJob?.cancelAndJoin()
-            updateFilterComboBoxFilterItems(messageFilterCombo, tagFilterCombo, processFilterCombo, tidFilterCombo, boldLogCombo)
+            updateFilterComboBoxFilterItems(
+                messageFilterCombo,
+                tagFilterCombo,
+                processFilterCombo,
+                tidFilterCombo,
+                boldLogCombo
+            )
             logMainBinding.apply {
                 val matchCase = filterMatchCaseEnabled.getValueNonNull()
                 LogcatFilter(
@@ -732,8 +746,8 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
         updateSearchFilterJob = scope.launch {
             lastUpdateJob?.cancelAndJoin()
             updateFilterComboBoxFilterItems(searchPanel.searchCombo)
-            val searchItem = EMPTY_ITEM.takeUnless { logMainBinding.searchPanelVisible.getValueNonNull() } ?:
-            searchPanel.searchCombo.filterItem.rebuild(logMainBinding.searchMatchCase.getValueNonNull())
+            val searchItem = EMPTY_ITEM.takeUnless { logMainBinding.searchPanelVisible.getValueNonNull() }
+                ?: searchPanel.searchCombo.filterItem.rebuild(logMainBinding.searchMatchCase.getValueNonNull())
             filteredTableModel.searchFilterItem = searchItem
             fullTableModel.searchFilterItem = searchItem
         }

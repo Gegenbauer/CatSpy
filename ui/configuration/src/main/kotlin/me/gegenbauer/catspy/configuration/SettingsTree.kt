@@ -15,7 +15,7 @@ import javax.swing.tree.TreeSelectionModel
 
 class SettingsTree : JTree() {
 
-    fun init(groupPanel: JPanel, groups: List<ISettingsGroup>) {
+    fun init(groupPanel: JPanel, groups: List<ISettingsGroup>, selectedGroupIndex: Int) {
         val treeRoot = DefaultMutableTreeNode(STRINGS.ui.preferences)
         addGroups(treeRoot, groups)
         model = DefaultTreeModel(treeRoot)
@@ -25,7 +25,7 @@ class SettingsTree : JTree() {
         // expand all nodes and disallow collapsing
         setNodeExpandedState(this, treeRoot, true)
         addTreeWillExpandListener(DisableRootCollapseListener(treeRoot))
-        addSelectionRow(1)
+        addSelectionRow(selectedGroupIndex)
     }
 
     private fun addGroups(base: DefaultMutableTreeNode, groups: List<ISettingsGroup>) {
