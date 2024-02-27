@@ -1,29 +1,23 @@
 package me.gegenbauer.catspy.ui.dialog
 
-import com.formdev.flatlaf.FlatLaf
-import com.formdev.flatlaf.icons.FlatAbstractIcon
-import com.formdev.flatlaf.util.ColorFunctions
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.configuration.*
 import me.gegenbauer.catspy.file.gson
+import me.gegenbauer.catspy.java.ext.Message
 import me.gegenbauer.catspy.java.ext.copyFields
+import me.gegenbauer.catspy.java.ext.globalMessagePublisher
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.strings.globalLocale
-import me.gegenbauer.catspy.strings.supportLocales
 import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
-import say.swing.JFontChooser
 import java.awt.*
 import java.awt.datatransfer.StringSelection
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import javax.swing.*
 
-/**
- * 从上至下添加设置项
- */
-class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELESS) {
+class GThemeSettingsDialog(
+    parent: Window,
+    private val selectedGroupIndex: Int = GROUP_INDEX_APPEARANCE
+) : JDialog(parent), SettingsContainer {
 
     private var tree = SettingsTree()
 
@@ -45,10 +39,11 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
     private fun initUI() {
         val wrapGroupPanel = JPanel(BorderLayout(10, 10))
         val groups = ArrayList<ISettingsGroup>()
-        groups.add(makeAppearanceGroup())
+        groups.add(AppearanceSettingsGroup(scope, this))
+        groups.add(AdbSettingsGroup(scope, this))
 
         tree = SettingsTree()
-        tree.init(wrapGroupPanel, groups)
+        tree.init(wrapGroupPanel, groups, selectedGroupIndex)
 
         val rightPane = JScrollPane(wrapGroupPanel)
         rightPane.verticalScrollBar.unitIncrement = 16
@@ -63,101 +58,22 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         splitPane.leftComponent = leftPane
         splitPane.rightComponent = rightPane
 
-        contentPane = JPanel(BorderLayout())
-        contentPane.add(splitPane, BorderLayout.CENTER)
-        contentPane.add(buildButtonsPane(), BorderLayout.PAGE_END)
+        val panel = JPanel(BorderLayout())
+        panel.add(splitPane, BorderLayout.CENTER)
+        panel.add(buildButtonsPane(), BorderLayout.PAGE_END)
+        contentPane.add(panel)
+
+        currentSettings.windowSettings.loadWindowSettings(
+            this,
+            Rectangle(
+                (parent.bounds.x + parent.bounds.width / 2 - DEFAULT_WINDOW_WIDTH / 2),
+                (parent.bounds.y + parent.bounds.height / 2 - DEFAULT_WINDOW_HEIGHT / 2),
+                DEFAULT_WINDOW_WIDTH,
+                DEFAULT_WINDOW_HEIGHT
+            )
+        )
 
         installKeyStrokeEscClosing(this) { cancel() }
-    }
-
-    private fun makeAppearanceGroup(): SettingsGroup {
-        val languageCbx = JComboBox(supportLocales.map { it.displayName }.toTypedArray())
-        languageCbx.addActionListener {
-            val locale = supportLocales[languageCbx.selectedIndex]
-            if (locale == globalLocale) return@addActionListener
-            SettingsManager.updateSettings { this.mainUISettings.locale = locale.ordinal }
-        }
-        languageCbx.selectedItem = globalLocale.displayName
-
-        val lafCbx = JComboBox(ThemeManager.getThemes())
-        lafCbx.selectedItem = ThemeManager.currentTheme.name
-        lafCbx.addActionListener {
-            scope.launch {
-                SettingsManager.suspendUpdateSettings {
-                    themeSettings.theme = lafCbx.selectedItem as String
-                }
-                reloadUI()
-            }
-        }
-
-        val changeFontBtn = JButton(STRINGS.ui.change)
-
-        val group = SettingsGroup(STRINGS.ui.appearance)
-        group.addRow(STRINGS.ui.language, languageCbx)
-        group.addRow(STRINGS.ui.menuTheme, lafCbx)
-        val fontLabel = group.addRow(getFontLabelStr(), changeFontBtn)
-        if (ThemeManager.isAccentColorSupported) {
-            group.addRow(STRINGS.ui.accentColor, createColorChoosePanel())
-        }
-        group.end()
-
-        changeFontBtn.addMouseListener(object : MouseAdapter() {
-            override fun mouseClicked(e: MouseEvent) {
-                val fontChooser = JFontChooser()
-                fontChooser.selectedFont = currentSettings.themeSettings.font.toNativeFont()
-                val result: Int = fontChooser.showDialog(this@GThemeSettingsDialog)
-                if (result == JFontChooser.OK_OPTION) {
-                    val font: Font = fontChooser.selectedFont
-                    currentSettings.themeSettings.font.update(font)
-                    updateUIWithAnim { FontSupport.setUIFont(font) }
-                    fontLabel.text = getFontLabelStr()
-                }
-            }
-        })
-
-        return group
-    }
-
-    private fun createColorChoosePanel(): JToolBar {
-        return JToolBar().apply {
-            val group = ButtonGroup()
-            val colors = accentColors.map { UIManager.getColor(it.first) ?: Color.lightGray }
-            accentColors.forEachIndexed { index, color ->
-                val colorButton = JToggleButton(AccentColorIcon(color.first))
-                colorButton.isSelected = currentSettings.themeSettings.getAccentColor() == colors[index]
-                colorButton.toolTipText = color.second
-                colorButton.addActionListener {
-                    scope.launch {
-                        SettingsManager.suspendUpdateSettings {
-                            themeSettings.setAccentColor(UIManager.getColor(color.first) ?: Color.lightGray)
-                        }
-                    }
-                }
-                add(colorButton)
-                group.add(colorButton)
-            }
-        }
-    }
-
-    private class AccentColorIcon(private val colorKey: String) : FlatAbstractIcon(16, 16, null) {
-        override fun paintIcon(c: Component, g: Graphics2D) {
-            var color = UIManager.getColor(colorKey)
-            if (color == null) color = Color.lightGray
-            else if (!c.isEnabled) {
-                color = if (FlatLaf.isLafDark()
-                ) ColorFunctions.shade(color, 0.5f)
-                else ColorFunctions.tint(color, 0.6f)
-            }
-
-            g.color = color
-            g.fillRoundRect(1, 1, width - 2, height - 2, 5, 5)
-        }
-    }
-
-    private fun getFontLabelStr(): String {
-        val font = currentSettings.themeSettings.font.toNativeFont()
-        val fontStyleName = FontSupport.convertFontStyleToString(font.style)
-        return "${STRINGS.ui.font}: ${font.fontName} $fontStyleName ${font.size}"
     }
 
     private fun buildButtonsPane(): JPanel {
@@ -194,18 +110,22 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
     }
 
     private fun reset() {
-        scope.launch { resetSuspend() }
+        scope.launch { suspendedReset() }
     }
 
-    private suspend fun resetSuspend() {
-        SettingsManager.suspendUpdateSettings {
-            val originalSettings = gson.fromJson(startSettings, GSettings::class.java)
-            copyFields(originalSettings, currentSettings)
-        }
+    private suspend fun suspendedReset() {
+        resetSettings()
         reloadUI()
     }
 
-    private fun reloadUI() {
+    private suspend fun resetSettings() {
+        SettingsManager.suspendedUpdateSettings {
+            val originalSettings = gson.fromJson(startSettings, GSettings::class.java)
+            copyFields(originalSettings, currentSettings)
+        }
+    }
+
+    override fun reloadUI() {
         val selection = tree.selectionRows
         contentPane.removeAll()
         initUI()
@@ -215,13 +135,16 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
 
     private fun cancel() {
         scope.launch {
-            resetSuspend()
+            resetSettings()
             dispose()
         }
     }
 
     override fun dispose() {
         super.dispose()
+        SettingsManager.updateSettings {
+            windowSettings.saveWindowSettings(this@GThemeSettingsDialog)
+        }
         scope.cancel()
     }
 
@@ -230,11 +153,14 @@ class GThemeSettingsDialog(parent: Window) : JDialog(parent, ModalityType.MODELE
         val json = gson.toJson(settings)
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
         clipboard.setContents(StringSelection(json), null)
+        globalMessagePublisher.publish(Message.Info(STRINGS.ui.settingsCopyToClipboardSuccess))
     }
 
     companion object {
-        private val accentColors = listOf("CatSpy.accent.default" to "Default", "CatSpy.accent.blue" to "Blue",
-            "CatSpy.accent.purple" to "Purple", "CatSpy.accent.red" to "Red", "CatSpy.accent.orange" to "Orange",
-            "CatSpy.accent.yellow" to "Yellow", "CatSpy.accent.green" to "Green")
+        const val GROUP_INDEX_APPEARANCE = 1
+        const val GROUP_INDEX_ADB = 2
+
+        private const val DEFAULT_WINDOW_WIDTH = 1000
+        private const val DEFAULT_WINDOW_HEIGHT = 600
     }
 }

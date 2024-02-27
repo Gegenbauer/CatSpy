@@ -11,6 +11,10 @@ import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.log.ui.table.FilteredLogTableModel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel
 import me.gegenbauer.catspy.configuration.GlobalStrings
+import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.ddmlib.device.AdbServerStatusListener
+import me.gegenbauer.catspy.java.ext.OpenAdbPathSettingsEvent
+import me.gegenbauer.catspy.java.ext.globalEventPublisher
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.view.button.ColorToggleButton
 import me.gegenbauer.catspy.view.combobox.filterComboBox
@@ -63,21 +67,47 @@ class DeviceLogMainPanel: BaseLogMainPanel() {
         deviceManager.tryStartMonitor()
     }
 
+    override fun onVisible() {
+        super.onVisible()
+        checkAdbPath()
+        adbServerStatusWarningBtn.addActionListener {
+            showAdbPathSettings()
+        }
+    }
+
     override fun createUI() {
         super.createUI()
         splitLogWithStatefulPanel.hideEmptyImage()
+    }
+
+    private fun checkAdbPath() {
+        val adbPath = SettingsManager.adbPath
+        if (adbPath.isEmpty()) {
+            showAdbPathSettings()
+        }
+    }
+
+    private fun showAdbPathSettings() {
+        globalEventPublisher.publish(OpenAdbPathSettingsEvent)
     }
 
     override fun registerEvent() {
         super.registerEvent()
         scope.launch {
             delay(200)
-            ServiceManager.getContextService(AdamDeviceMonitor::class.java).registerDevicesListener(devicesChangeListener)
+            ServiceManager.getContextService(AdamDeviceMonitor::class.java).apply {
+                registerDevicesListener(devicesChangeObserver)
+                registerAdbServerStatusListener(adbStatusChangeObserver)
+            }
         }
     }
 
-    private val devicesChangeListener = DeviceListObserver {
+    private val devicesChangeObserver = DeviceListObserver {
         refreshDevices(it)
+    }
+
+    private val adbStatusChangeObserver = AdbServerStatusListener {
+        logMainBinding.adbServerStatusWarningVisibility.updateValue(it.not())
     }
 
     private fun refreshDevices(devices: List<Device>) {
@@ -91,5 +121,7 @@ class DeviceLogMainPanel: BaseLogMainPanel() {
         super.destroy()
         val deviceManager = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
         deviceManager.tryStopMonitor()
+        deviceManager.unregisterDevicesListener(devicesChangeObserver)
+        deviceManager.unregisterAdbServerStatusListener(adbStatusChangeObserver)
     }
 }

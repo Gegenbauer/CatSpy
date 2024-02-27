@@ -9,13 +9,13 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.GIO
+import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.file.ensureDir
 import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.model.LogcatItem
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.LOG_DIR
-import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.task.CommandExecutorImpl
 import me.gegenbauer.catspy.task.CommandProcessBuilder
@@ -34,7 +34,7 @@ class DeviceLogProducer(
     private val tempFileStream = BufferedOutputStream(tempFile.outputStream())
 
     private val commandExecutor by lazy {
-        val logcatCommand = "${currentPlatform.adbPath} ${"-s $device".takeIf { device.isNotBlank() } ?: ""} logcat"
+        val logcatCommand = "${SettingsManager.adbPath} ${"-s $device".takeIf { device.isNotBlank() } ?: ""} logcat"
         CommandExecutorImpl(CommandProcessBuilder(logcatCommand.toCommandArray()))
     }
 

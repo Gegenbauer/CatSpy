@@ -11,14 +11,16 @@ import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
+import me.gegenbauer.catspy.ddmlib.adb.AdbConf
+import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.appIcons
-import me.gegenbauer.catspy.java.ext.FileSaveEvent
-import me.gegenbauer.catspy.java.ext.NormalEvent
-import me.gegenbauer.catspy.java.ext.Message
-import me.gegenbauer.catspy.java.ext.globalMessage
+import me.gegenbauer.catspy.java.ext.*
 import me.gegenbauer.catspy.network.update.ReleaseEvent
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.ui.dialog.GThemeSettingsDialog
+import me.gegenbauer.catspy.ui.dialog.GThemeSettingsDialog.Companion.GROUP_INDEX_ADB
 import me.gegenbauer.catspy.ui.dialog.UpdateDialog
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
@@ -67,6 +69,8 @@ class MainFrame(
         registerEvents()
 
         bindGlobalProperties()
+
+        configureAdbPath()
     }
 
     private fun createUI() {
@@ -89,6 +93,12 @@ class MainFrame(
         selectedProperty(settingsMenu.ddmDebug) bindDual GlobalConfSync.ddmDebug
         selectedProperty(settingsMenu.cacheDebug) bindDual GlobalConfSync.cacheDebug
         selectedProperty(settingsMenu.logDebug) bindDual GlobalConfSync.logDebug
+    }
+
+    private fun configureAdbPath() {
+        val adbPath = SettingsManager.adbPath
+        GLog.i(TAG, "[configureAdbPath] detected adbPath: $adbPath")
+        ServiceManager.getContextService(AdamDeviceMonitor::class.java).configure(AdbConf(adbPath))
     }
 
     override fun configureContext(context: Context) {
@@ -118,6 +128,7 @@ class MainFrame(
         })
         observeEventFlow()
         observeGlobalMessage()
+        observeGlobalEvent()
         registerDismissOnClickOutsideListener { it.javaClass.simpleName in dismissOnClickOutsideWindows }
     }
 
@@ -238,6 +249,23 @@ class MainFrame(
         }
     }
 
+    private fun observeGlobalEvent() {
+        scope.launch {
+            globalEvent.collect {
+                it ?: return@collect
+
+                when (it) {
+                    is OpenAdbPathSettingsEvent -> {
+                        val dialog = GThemeSettingsDialog(this@MainFrame, GROUP_INDEX_ADB)
+                        dialog.setLocationRelativeTo(this@MainFrame)
+                        dialog.isVisible = true
+                    }
+                }
+
+            }
+        }
+    }
+
     private fun configureWindow() {
         iconImages = appIcons
 
@@ -257,6 +285,10 @@ class MainFrame(
         SettingsManager.updateSettings {
             windowSettings.saveWindowSettings(this@MainFrame)
         }
+    }
+
+    companion object {
+        private const val TAG = "MainFrame"
     }
 }
 

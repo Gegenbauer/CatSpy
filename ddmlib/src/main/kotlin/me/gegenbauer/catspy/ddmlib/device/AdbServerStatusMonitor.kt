@@ -4,6 +4,6 @@ interface AdbServerStatusMonitor {
 
     val adbServerRunning: Boolean
 
-    fun registerListener(listener: AdbServerStatusListener)
-    fun unregisterListener(listener: AdbServerStatusListener)
+    fun registerAdbServerStatusListener(listener: AdbServerStatusListener)
+    fun unregisterAdbServerStatusListener(listener: AdbServerStatusListener)
 }

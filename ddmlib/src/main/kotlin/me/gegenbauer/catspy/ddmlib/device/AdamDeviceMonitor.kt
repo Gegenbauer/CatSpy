@@ -11,10 +11,7 @@ import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.ddmlib.adb.AdbConf
-import me.gegenbauer.catspy.ddmlib.adb.isServerRunning
-import me.gegenbauer.catspy.ddmlib.adb.startServer
 import me.gegenbauer.catspy.ddmlib.log.DdmLog
-import java.net.ConnectException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -45,46 +42,8 @@ class AdamDeviceMonitor : ContextService, DeviceMonitor, AdbServerStatusMonitor 
     private var monitorJob: Job? = null
     private var adbConf: AdbConf? = null
 
-    private val monitorExceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        if (throwable is ConnectException) {
-            scope.launch {
-
-                dispatchDeviceListChange(emptyList())
-
-                receiveChannel?.cancel()
-                _adbServerRunning.set(false)
-                DdmLog.v(TAG, "[startMonitor] end, restart")
-
-                if (checkAndStartServer().not()) {
-                    DdmLog.e(TAG, "[startMonitor] failed to start adb server")
-                    return@launch
-                }
-
-                delay(3000)
-                startMonitor()
-            }
-        } else if (throwable is CancellationException) {
-            DdmLog.v(TAG, "[startMonitor] cancelled")
-        }
-    }
-
-    private fun checkAndStartServer(): Boolean {
-        val conf = adbConf ?: return false
-        if (!isServerRunning(conf)) {
-            val result = startServer(conf)
-            DdmLog.i(TAG, "[configure] adb server started result: $result")
-            return result
-        }
-        return true
-    }
-
     override fun configure(adbConf: AdbConf) {
         this.adbConf = adbConf
-        scope.launch {
-            monitorJob?.cancelAndJoin()
-            val result = startServer(adbConf)
-            DdmLog.i(TAG, "[configure] adb server started result: $result")
-        }
     }
 
     @Synchronized
@@ -112,7 +71,19 @@ class AdamDeviceMonitor : ContextService, DeviceMonitor, AdbServerStatusMonitor 
     }
 
     private fun startMonitor() {
-        monitorJob = scope.launch(monitorExceptionHandler) {
+        val lastMonitorJob = monitorJob
+        monitorJob = scope.launch {
+
+            coroutineContext.job.invokeOnCompletion {
+                it ?: return@invokeOnCompletion
+                if (it is CancellationException) {
+                    DdmLog.v(TAG, "[startMonitor] cancelled")
+                } else {
+                    handleMonitorException()
+                }
+            }
+
+            lastMonitorJob?.cancelAndJoin()
             DdmLog.i(TAG, "[startMonitor]")
 
             isMonitoring = true
@@ -130,8 +101,24 @@ class AdamDeviceMonitor : ContextService, DeviceMonitor, AdbServerStatusMonitor 
 
             deviceEventsChannel.consumeEach {
                 _adbServerRunning.set(true)
+                dispatchAdbServerStatusChange()
                 dispatchDeviceListChange(it.filterConnected())
             }
+        }
+    }
+
+    private fun handleMonitorException() {
+        scope.launch {
+
+            dispatchDeviceListChange(emptyList())
+
+            receiveChannel?.cancel()
+            _adbServerRunning.set(false)
+            dispatchAdbServerStatusChange()
+            DdmLog.v(TAG, "[startMonitor] end, restart")
+
+            delay(3000)
+            startMonitor()
         }
     }
 
@@ -220,11 +207,12 @@ class AdamDeviceMonitor : ContextService, DeviceMonitor, AdbServerStatusMonitor 
         return currentDevices
     }
 
-    override fun registerListener(listener: AdbServerStatusListener) {
+    override fun registerAdbServerStatusListener(listener: AdbServerStatusListener) {
         adbStatusLock.write { adbServerStatusListeners.add(listener) }
+        dispatchAdbServerStatusChange()
     }
 
-    override fun unregisterListener(listener: AdbServerStatusListener) {
+    override fun unregisterAdbServerStatusListener(listener: AdbServerStatusListener) {
         adbStatusLock.write { adbServerStatusListeners.remove(listener) }
     }
 

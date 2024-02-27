@@ -1,4 +1,4 @@
-name: Build Artifacts
+name: Build macOS Artifacts
 on:
   push:
     branches:
@@ -11,7 +11,7 @@ on:
       - 'gradle.properties'
       - '**.kts'
       - '**.java'
-      - '.github/workflows/build_linux_artifact.yml'
+      - '.github/workflows/build_macos_artifact.yml'
   pull_request:
     branches:
       - main
@@ -27,9 +27,9 @@ on:
     types:
       - published
 jobs:
-  linux:
-    name: Linux (Java 17)
-    runs-on: ubuntu-latest
+  macos:
+    name: macOS (Java 17)
+    runs-on: macos-latest
     permissions:
       contents: read
       packages: read
@@ -46,17 +46,34 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build
-        run: ./gradlew packageDeb
+        run: ./gradlew packageDmg
+
+      - name: Build UberJar
+        run: ./gradlew packageUberJarForCurrentOS
 
       - name: Retrieve Artifact Name
-        id: getFilename
+        id: getJarFilename
         run: |
-          find "$(pwd)/app/build/compose/binaries/main/deb" -type f -name "*.deb" -exec basename {} \;
-          echo "::set-output name=debFileName::$filename"
+          find "$(pwd)/app/build/compose/jars" -type f -name "*.jar" -exec basename {} \;
+          echo "::set-output name=jarFileName::$filename"
 
-      - name: Upload Linux Artifact
+      - name: Upload JAR Artifact
         uses: actions/upload-artifact@v1
         with:
-          name: catspy_amd64.deb
-          path: app/build/compose/binaries/main/deb/${{ steps.getFilename.outputs.debFileName }}
+          name: catspy.jar
+          path: app/build/compose/jars/${{ steps.getJarFilename.outputs.jarFileName }}
           retention-days: 1
+
+      - name: Retrieve Artifact Name
+        id: getDmgFilename
+        run: |
+          find "$(pwd)/app/build/compose/binaries/main/dmg" -type f -name "*.dmg" -exec basename {} \;
+          echo "::set-output name=dmgFileName::$filename"
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: catspy_macos.dmg
+          path: app/build/compose/binaries/main/dmg/${{ steps.getDmgFilename.outputs.dmgFileName }}
+          retention-days: 1
+

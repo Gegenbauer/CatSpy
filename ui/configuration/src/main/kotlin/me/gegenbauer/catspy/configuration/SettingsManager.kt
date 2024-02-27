@@ -11,6 +11,7 @@ import me.gegenbauer.catspy.concurrency.ViewModelScope
 import me.gegenbauer.catspy.file.clone
 import me.gegenbauer.catspy.file.gson
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
 import java.io.File
 
@@ -28,6 +29,11 @@ object SettingsManager {
     private val migrations = listOf(Migration1To2())
 
     private val scope = ViewModelScope()
+
+    val adbPath: String
+        get() = settings.adbPath.takeIf { it.isNotEmpty() } ?: detectedAdbPath
+
+    private val detectedAdbPath by lazy { currentPlatform.detectAdbPath() }
 
     private suspend fun ensureSettingsFile() {
         withContext(Dispatchers.GIO) {
@@ -89,7 +95,7 @@ object SettingsManager {
         }
     }
 
-    suspend fun suspendUpdateSettings(editAction: suspend GSettings.() -> Unit) {
+    suspend fun suspendedUpdateSettings(editAction: suspend GSettings.() -> Unit) {
         val originalSettings = clone(settings)
         settings.editAction()
         withContext(Dispatchers.UI) {

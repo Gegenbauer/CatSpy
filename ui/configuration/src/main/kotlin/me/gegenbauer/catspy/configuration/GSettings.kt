@@ -21,6 +21,7 @@ data class GSettings(
     val windowSettings: Window = Window(),
 
     var lastFileSaveDir: String = "",
+    var adbPath: String = "",
     private val shownHints: MutableSet<String> = mutableSetOf()
 ): ISettings {
 
@@ -133,6 +134,7 @@ data class GSettings(
         fun loadWindowSettings(window: java.awt.Window, defaultBounds: Rectangle? = null, extendedState: Int = Frame.NORMAL) {
             configurationCache[window.javaClass.name]?.takeIf { isAccessibleInAnyScreen(it) }?.let { windowSettings ->
                 window.bounds = windowSettings.bounds.toNativeBounds()
+                window.preferredSize = windowSettings.bounds.toNativeBounds().size
                 (window as? Frame)?.extendedState = windowSettings.extendedState
             } ?: run {
                 (window as? Frame)?.extendedState = extendedState
