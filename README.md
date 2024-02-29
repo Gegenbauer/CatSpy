@@ -9,74 +9,85 @@ English | [简体中文](README_CN.md)
 [![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy.svg)](https://github.com/Gegenbauer/CatSpy/releases/latest)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
-**CatSpy** - A tool for browsing logs.
+**CatSpy** - A tool designed for Android log browsing.
 
-**Main Features:**
-- Filter logs based on various parts
-- Import local file logs and view real-time logs of connected devices
-- Real-time filtering with changing input content
-- Multiple tabs
-- Paginated display of logs to improve rendering speed
-- Can add bookmarks to logs and filter logs added to bookmarks
-- Integrated with FlatLaf, providing multiple themes to switch
-- Supports multiple languages (Korean, Simplified Chinese, English)
+**Key Features:**
+- Filter logs based on various parts, eg. message, tag, pid, tid, log level, etc. 
+- Import local log files and view real-time logs from connected devices.
+- Real-time filtering with dynamic content updates.
+- Multi-tab functionality for simultaneous log viewing.
+- Paginated log display for enhanced rendering speed.
+- Log entries can be bookmarked for easy viewing and filtering.
+- Integrated with FlatLaf, offering multiple themes for customization.
+- Supports multiple languages (Korean, Simplified Chinese, English).
 
-## Comparison of Advantages: CatSpy vs Other Android Log Viewing Tools
-| Advantage                  | CatSpy                                                       | Android Studio                                               | Text Readers (Notepad++, sublime, fleet) |
-| -------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------------------- |
-| Memory Usage               | Lighter than Android Studio, uses less memory, but due to the characteristics of JVM, it uses more memory than some pure text readers | \                                                            | \                                       |
-| Filtering Method           | Supports individual filtering search for message, tag, pid, tid, log level. Text filters support forward matching and reverse matching, and conditions can be added in an OR manner | Unique filtering syntax, higher freedom in creating filters                       | Only supports text matching search                      |
-| Support for Reading Real-time Device Logs | Supports reading real-time device logs and supports package name filtering                         | Supported                                                         | \                                       |
-| Validity of Real-time Logs           | The captured real-time logs will be retained as long as they are not manually cleared, and all captured logs can be filtered at any time | Real-time logs often disappear after switching devices, or disappear for other unknown reasons, often leading to the need to reproduce logs | \                                       |
-| Real-time Log Export     | Can export real-time logs, and the size of the exported logs depends on the memory of the device running the software. | The logs can be exported, but the exported files can only be viewed by importing into Android Studio, resulting in lower readability. | \                                       |
-| Import File Logs             | Supports import, and the size limit of the file log also depends on the memory of the device running the software. | File logs can be imported, but only those exported from Android Studio in real-time are supported.                            | Can import file logs                          |
+## Advantages Compared to Other Android Log Viewing Tools
+| Advantage                              | CatSpy                                                       | Android Studio                               | Text Readers (Notepad++, sublime, fleet) |
+|----------------------------------------| ------------------------------------------------------------ |----------------------------------------------| --------------------------------------- |
+| Memory Usage                           | Lighter than Android Studio, consuming less memory. However, due to JVM characteristics, it may still consume more memory compared to some pure text readers. | \                                            | \                                       |
+| Filtering Method                       | Supports individual filtering for message, tag, pid, tid, log level, etc. Text filters support both forward and reverse matching, with conditions combinable using OR logic. | Unique filtering syntax in Android Studio provides greater flexibility in filter creation.                       | Only supports text matching search                      |
+| Real-time Device Log Reading Support   | Enables real-time device log reading and supports package name filtering.                         | Supported                                           | \                                       |
+| The validity period of Real-time logs. | Captured real-time logs persist until manually cleared, allowing filtering at any time. | Real-time logs often disappear after device switching or due to other unknown reasons, often requiring log reproduction. | \                                       |
+| Real-time Log Export                   | Allows exporting real-time logs, with exported file size dependent on the device's memory. | Logs can be exported, but the exported files can only be viewed by importing into Android Studio, resulting in reduced readability.  | \                                       |
+| File Log Import                        | Supports importing file logs, with size limitations based on the device's memory. | File logs can be imported, but only those exported from Android Studio in real-time are supported.                            | File logs can be imported                          |
 
 ## Interface
-### Log main interface
+### Log Main Interface
 ![log_main_interface.png](pic%2Flog_main_interface.png)
 
 ### Theme Settings
 ![theme_configuration.png](pic%2Ftheme_configuration.png)
 
 ## Download
-latest release: [![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy.svg)](https://github.com/Gegenbauer/CatSpy/releases/latest)
+Latest Release: [![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy.svg)](https://github.com/Gegenbauer/CatSpy/releases/latest)
 
-## Open
-### macOS
-On macOS, due to the application being unsigned, you may be prompted that it cannot be opened. In this case, follow the steps below to open it:
+## Launching the Application
+### Running After Installation from Packages
+#### macOS
+On macOS, due to the application being unsigned, you may encounter an error indicating it cannot be opened. In such cases, follow these steps to open it:
 
 1. Open the dmg file and drag the application to the Applications folder.
 2. Find the application in the launchpad and open it.
-3. Close the warning box that pops up.
+3. Dismiss the warning box that appears.
+   
    ![macOS_open_warning.png](pic%2FmacOS_open_warning.png)
-4. Open System Preferences -> Privacy & Security -> Go to Security -> Click Open.
+4. Navigate to System Preferences -> Privacy & Security -> Security and click "Open".
+   
    ![macOS_grant_open_permission.png](pic%2FmacOS_grant_open_permission.png)
-5. Open the application again.
+5. Attempt to open the application again.
 
-### Other OS
-After installing the deb or msi package, you can find the application icon in the application menu and click to open the application.
+#### Linux
+After installing the .deb package, you can find the application icon in the application menu. Click on it to open the application.
 
-## Build && Run
+#### Windows
+After installing the .msi package, you can find the application icon in the application menu. Click on it to open the application. 
+
+However, please note that it's advisable not to install the application in the C drive as it may encounter permission issues.
+
+### Running with JAR File
+```bash
+java -jar CatSpy-${version}.jar
+```
+
+## Build and Run
 ### Environment
 - JDK17 or higher
 ```bash
 git clone git@github.com:Gegenbauer/CatSpy.git
 cd CatSpy
-./gradlew :app:packageDeb # build deb artifact
-./gradlew :app:packageMsi # build msi artifact
-./gradlew :app:packageDmg # build dmg artifact
-./gradlew :app:run #run
+./gradlew :app:packageDeb # Build deb artifact
+./gradlew :app:packageMsi # Build msi artifact
+./gradlew :app:packageDmg # Build dmg artifact
+./gradlew :app:run # Run
 ```
 
-## Download
+## Support
+The project was initially based on [lognote](https://github.com/cdcsgit/lognote) and underwent complete refactoring, with optimizations made to the log loading and rendering processes. It introduced the ability to build artifacts for various platforms, software update functionality, and paginated log display. The project structure is divided into multiple modules according to hierarchy, including cache, context, service, data binding, and logs modules.
 
-## References
-The project was initially based on [lognote](https://github.com/cdcsgit/lognote), and was completely refactored, with optimizations made to the log loading and rendering process,
-Added the ability to build artifacts for various platforms, added software update functionality, added paginated display of logs.
-The project structure is divided into multiple modules according to the level, and added modules such as cache, context, service, data binding, and logs
-
-**Also referred to the following projects**
+Additionally, the project referenced the following:
 
 [darklaf](https://github.com/weisJ/darklaf)
 
 [jadx](https://github.com/skylot/jadx)
+
+![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)

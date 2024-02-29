@@ -9,15 +9,15 @@
 [![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy.svg)](https://github.com/Gegenbauer/CatSpy/releases/latest)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
-**CatSpy** - 一个用于浏览日志的工具。
+**CatSpy** - 一个用于浏览安卓日志的工具。
 
 **主要特性：**
-- 针对日志的各个部分进行过滤
+- 针对日志的各个部分进行过滤，例如 message，tag，pid，tid，log level 等
 - 导入本地文件日志和查看已连接设备实时日志
 - 随输入内容变化的实时过滤
-- 多标签页
+- 多标签页，同时查看多个日志
 - 日志分页显示，提高渲染速度
-- 可以为日志添加书签，并过滤显示添加到书签的日志
+- 可以为日志行添加书签，方便查看和过滤
 - 接入 FlatLaf，提供多种主题供切换
 - 支持多语言（韩语、简体中文、英语）
 
@@ -41,20 +41,32 @@
 ## 下载
 最新版本: [![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy.svg)](https://github.com/Gegenbauer/CatSpy/releases/latest)
 
-## 打开
-### macOS
+## 启动应用
+### 使用安装包安装后打开
+#### macOS
 在 macOS 上，由于应用未签名，可能会提示无法打开，此时按如下操作打开
 
 1. 打开 dmg 文件，将应用拖到应用程序文件夹
 2. launchpad 中找到应用，打开应用
 3. 关闭弹出的警告框
+  
   ![macOS_open_warning.png](pic%2FmacOS_open_warning.png)
 4. 打开系统设置 -> 隐私与安全 -> 找到安全 -> 点击打开
+  
   ![macOS_grant_open_permission.png](pic%2FmacOS_grant_open_permission.png)
 5. 再次打开应用
 
-### other OS
-安装好 deb 或 msi 包后，可以在应用菜单中找到应用图标，点击打开应用
+#### Linux
+安装好 deb 后，可以在应用菜单中找到应用图标，点击打开应用
+
+#### Windows
+安装好 msi 后，可以在应用菜单中找到应用图标，点击打开应用
+但需要注意，安装目录最好不要放在 C 盘，因为 C 盘有可能会有权限问题
+
+### 使用 jar 包运行
+```bash
+java -jar CatSpy-${version}.jar
+```
 
 ## 构建和运行
 ### 环境
@@ -68,12 +80,15 @@ cd CatSpy
 ./gradlew :app:run #运行
 ```
 
-## 参考
+## 支持
 项目最初基于[lognote](https://github.com/cdcsgit/lognote)，对其进行了完全重构，对日志加载和渲染流程进行了优化，
 功能上增加了构建各平台产物的能力，增加了软件更新功能，增加了日志分页显示功能。
 项目结构上根据层级划分为了多个模块，并增加了缓存、上下文、服务、数据绑定，日志等模块
+
 另外还参考了以下项目
 
-[darklaf](https://github.com/weisJ/darklaf)
+[darklaf](https://github.com/weisJ/darklaf) 
 
 [jadx](https://github.com/skylot/jadx)
+
+![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
