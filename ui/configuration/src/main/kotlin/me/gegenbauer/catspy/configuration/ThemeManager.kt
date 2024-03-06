@@ -36,10 +36,10 @@ object ThemeManager {
 
     fun init(settings: GSettings) {
         installFonts()
-        setSystemColorGetter()
         FlatLaf.registerCustomDefaultsSource(GlobalProperties.APP_ID)
         if (!setupLaf(getThemeClass(settings))) {
             setupLaf(SYSTEM_THEME_NAME)
+            setSystemColorGetter()
             settings.themeSettings.theme = SYSTEM_THEME_NAME
         }
         applyLocale(settings)
@@ -57,6 +57,7 @@ object ThemeManager {
         if (themeChanged || fontChanged || ifAccentColorChanged) {
             updateUIWithAnim {
                 updateLaf(settings)
+                setSystemColorGetter()
                 applyFont(settings)
             }
         }

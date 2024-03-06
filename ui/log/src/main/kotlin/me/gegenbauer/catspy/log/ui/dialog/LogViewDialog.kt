@@ -36,6 +36,7 @@ class LogViewDialog(
         textArea.addFocusListener(FocusHandler())
         textArea.text = log
         textArea.selectionColor = LogColorScheme.selectedBG
+        isModal = true
         var width = parent.width - 100
         if (width < 960) {
             width = 960
@@ -53,6 +54,16 @@ class LogViewDialog(
         pack()
 
         installKeyStrokeEscClosing(this)
+
+        addWindowFocusListener(object : WindowFocusListener {
+            override fun windowGainedFocus(e: WindowEvent) {
+                textArea.requestFocus()
+            }
+
+            override fun windowLostFocus(e: WindowEvent) {
+                destroy()
+            }
+        })
     }
 
     override fun configureContext(context: Context) {

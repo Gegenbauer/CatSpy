@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.SettingsContainer
 import me.gegenbauer.catspy.configuration.SettingsManager
@@ -58,10 +59,11 @@ class AdbSettingsGroup(
     }
 
     private fun buildAdbPathConfigurePanel(): JPanel {
-        val adbPathField = JTextField(settings.adbPath)
+        val adbPathField = JTextField(SettingsManager.adbPath)
         adbPathField.document.addDocumentListener(object : DefaultDocumentListener() {
             override fun contentUpdate(content: String) {
                 adbPath = content
+                settings.adbPath = content
             }
         })
         val adbPathSelectBtn = JButton(STRINGS.ui.change)
@@ -86,12 +88,14 @@ class AdbSettingsGroup(
         val checkBtn = JButton(STRINGS.ui.startAdbServer)
         checkBtn.addActionListener {
             scope.launch {
+                checkBtn.isEnabled = false
                 SettingsManager.updateSettings { adbPath = adbPathField.text}
-                val result = startServer(AdbConf(adbPathField.text))
-                withContext(Dispatchers.UI) {
-                    informAdbServerStartResult(result)
+                val result = withContext(Dispatchers.GIO) {
+                    startServer(AdbConf(adbPathField.text))
                 }
+                informAdbServerStartResult(result)
                 updateAdbStatus(isServerRunning())
+                checkBtn.isEnabled = true
             }
         }
         val panel = JPanel()

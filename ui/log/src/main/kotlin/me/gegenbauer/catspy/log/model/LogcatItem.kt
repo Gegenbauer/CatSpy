@@ -22,7 +22,7 @@ data class LogcatItem(
         return if (packageName.isEmpty()) {
             "$time\t$pid\t$tid\t${level.flag}\t$tag\t$message"
         } else {
-            "$time\t$packageName\t$tid\t${level.flag}\t$tag\t$message"
+            "$time\t$packageName\t$pid\t$tid\t${level.flag}\t$tag\t$message"
         }
     }
 
@@ -38,6 +38,8 @@ data class LogcatItem(
         private const val LEVEL_INDEX = 4
         private const val TAG_INDEX = 5
         private const val MESSAGE_INDEX = 6
+
+        private val logPartsSplitRegex = Regex("\\s+")
 
         fun from(line: String, num: Int, pidToPackageMap: Map<String, String> = emptyMap()): LogcatItem {
             val items = splitLineIntoParts(line)
@@ -66,7 +68,7 @@ data class LogcatItem(
         }
 
         private fun splitLineIntoParts(line: String): List<String> {
-            val words = line.split(Regex("\\s+"))
+            val words = line.split(logPartsSplitRegex)
 
             val firstFiveWords = mutableListOf<String>()
             val stringBuilder = StringBuilder()
