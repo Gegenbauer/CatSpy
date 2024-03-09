@@ -31,6 +31,14 @@
 | 实时日志是否支持导出     | 可导出实时日志，且支持导出的日志大小取决于运行该软件的设备内存。 | 可导出日志，但导出的文件只能通过导入到 Android Studio 查看，可读性较低  | \                                       |
 | 导入文件日志             | 支持导入，而且文件日志大小的限制也取决于运行该软件的设备内存。 | 可导入文件日志，只支持导入通过 Android Studio 导出的实时日志文件     | 可导入文件日志                          |
 
+## 局限性
+只支持导入标准 logcat 格式的日志文件，不支持导入其他格式的日志文件
+即日志文件的格式应该是这样的
+```bash
+03-02 11:36:21.389   466   466 D BootAnimation: /product/media/bootanimation.zip is loaded successfully
+```
+后续将支持支持自定义解析规则
+
 ## 界面
 ### 日志
 ![log_main_interface.png](pic%2Flog_main_interface.png)

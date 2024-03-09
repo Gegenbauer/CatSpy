@@ -31,6 +31,13 @@ English | [简体中文](README_CN.md)
 | Real-time Log Export                   | Allows exporting real-time logs, with exported file size dependent on the device's memory. | Logs can be exported, but the exported files can only be viewed by importing into Android Studio, resulting in reduced readability.  | \                                       |
 | File Log Import                        | Supports importing file logs, with size limitations based on the device's memory. | File logs can be imported, but only those exported from Android Studio in real-time are supported.                            | File logs can be imported                          |
 
+## Limitations
+Only supports importing standard logcat format log files, does not support other formats of log files. The format of the log file should be as follows:
+```bash
+03-02 11:36:21.389   466   466 D BootAnimation: /product/media/bootanimation.zip is loaded successfully
+```
+Configurable parsing rules will be supported in the future.
+
 ## Interface
 ### Log Main Interface
 ![log_main_interface.png](pic%2Flog_main_interface.png)
