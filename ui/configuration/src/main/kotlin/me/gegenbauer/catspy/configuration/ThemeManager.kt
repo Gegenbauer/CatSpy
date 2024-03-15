@@ -37,9 +37,9 @@ object ThemeManager {
     fun init(settings: GSettings) {
         installFonts()
         FlatLaf.registerCustomDefaultsSource(GlobalProperties.APP_ID)
+        setSystemColorGetter()
         if (!setupLaf(getThemeClass(settings))) {
             setupLaf(SYSTEM_THEME_NAME)
-            setSystemColorGetter()
             settings.themeSettings.theme = SYSTEM_THEME_NAME
         }
         applyLocale(settings)
@@ -53,11 +53,12 @@ object ThemeManager {
     fun update(originalSettings: GSettings, settings: GSettings) {
         val themeChanged = originalSettings.themeSettings.theme != settings.themeSettings.theme
         val fontChanged = originalSettings.themeSettings.font != settings.themeSettings.font
-        val ifAccentColorChanged = originalSettings.themeSettings.getAccentColor() != settings.themeSettings.getAccentColor()
+        val ifAccentColorChanged =
+            originalSettings.themeSettings.getAccentColor() != settings.themeSettings.getAccentColor()
         if (themeChanged || fontChanged || ifAccentColorChanged) {
             updateUIWithAnim {
-                updateLaf(settings)
                 setSystemColorGetter()
+                updateLaf(settings)
                 applyFont(settings)
             }
         }

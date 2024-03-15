@@ -9,7 +9,6 @@ plugins {
 
 allprojects {
     group = "me.gegenbauer.catspy"
-    version = "1.0.0"
 
     repositories {
         google()
