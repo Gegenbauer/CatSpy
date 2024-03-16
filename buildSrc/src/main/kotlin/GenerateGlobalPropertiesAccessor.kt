@@ -18,6 +18,8 @@ fun generateGlobalPropertiesAccessor(project: Project): String {
             builder.appendLine("${1.indent} public static final String ${formalizePropertyName(key)} = \"$value\";")
         }
     }
+    builder.appendLine()
+    builder.appendLine("${1.indent} public static final String ARTIFACT_TYPE = \"${getArtifactType(project)}\";")
     builder.append("}")
     return builder.toString()
 }
@@ -34,4 +36,15 @@ private fun formalizePropertyName(raw: String): String {
     }
     builder.deleteCharAt(builder.length - 1)
     return builder.toString()
+}
+
+private fun getArtifactType(project: Project): String {
+    val startTask = project.gradle.startParameter.taskNames.firstOrNull()?.lowercase()
+    startTask ?: return "jar"
+    return when {
+        startTask.contains("deb") -> "deb"
+        startTask.contains("dmg") -> "dmg"
+        startTask.contains("msi") -> "msi"
+        else -> "jar"
+    }
 }

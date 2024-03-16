@@ -20,8 +20,6 @@ import me.gegenbauer.catspy.network.update.GithubUpdateServiceFactory
 import me.gegenbauer.catspy.network.update.ReleaseEvent
 import me.gegenbauer.catspy.network.update.data.Release
 import me.gegenbauer.catspy.platform.GlobalProperties.*
-import me.gegenbauer.catspy.platform.Platform
-import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
@@ -87,7 +85,7 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
 
     fun startDownloadRelease(release: Release) {
         scope.launch {
-            val asset = release.assets.firstOrNull { it.name.contains(currentPlatform.assetKeyword) }
+            val asset = release.assets.firstOrNull { it.name.contains(ARTIFACT_TYPE) }
             asset?.let {
                 val downloadFileName = it.name
                 val downloadPath = filesDir.appendPath(downloadFileName)
@@ -169,11 +167,3 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
         private const val TAG = "MainViewModel"
     }
 }
-
-val Platform.assetKeyword: String
-    get() = when (this) {
-        Platform.WINDOWS -> "msi"
-        Platform.LINUX -> "deb"
-        Platform.MAC -> "dmg"
-        else -> throw IllegalArgumentException("Unsupported platform: $this")
-    }
