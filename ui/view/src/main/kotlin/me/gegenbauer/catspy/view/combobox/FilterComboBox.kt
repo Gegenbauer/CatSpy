@@ -11,7 +11,6 @@ import me.gegenbauer.catspy.utils.registerStrokeWhenFocused
 import me.gegenbauer.catspy.view.combobox.highlight.CustomEditorDarkComboBoxUI
 import me.gegenbauer.catspy.view.combobox.highlight.HighlighterEditor
 import me.gegenbauer.catspy.view.filter.FilterItem
-import me.gegenbauer.catspy.view.filter.getOrCreateFilterItem
 import java.awt.event.KeyListener
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
@@ -22,7 +21,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.text.JTextComponent
 import javax.swing.undo.UndoManager
 
-class FilterComboBox(items: List<String>, private val enableHighlight: Boolean = true, private val tooltip: String? = null) :
+class FilterComboBox(items: List<String>, private val highlightEnabled: Boolean = true, private val tooltip: String? = null) :
     HistoryComboBox<String>(items) {
 
     var filterItem: FilterItem = FilterItem.EMPTY_ITEM
@@ -41,14 +40,14 @@ class FilterComboBox(items: List<String>, private val enableHighlight: Boolean =
     private val editorComponent: JTextComponent // create new instance when theme changed(setUI invoked)
         get() = getEditor().editorComponent as JTextComponent
 
-    var enabledTfTooltip = false
+    var tooltipEnabled = false
         set(value) {
             field = value
             if (value) {
                 updateTooltip()
             }
         }
-    private var errorMsg: String = ""
+    private var errorMessage: String = ""
         set(value) {
             field = value
             updateTooltip(value.isNotEmpty())
@@ -61,14 +60,8 @@ class FilterComboBox(items: List<String>, private val enableHighlight: Boolean =
         updateUI()
     }
 
-    fun buildFilterItem() {
-        val currentContent = editorComponent.text
-        filterItem = currentContent.getOrCreateFilterItem()
-        errorMsg = filterItem.errorMessage
-    }
-
     override fun setUI(ui: ComboBoxUI?) {
-        val newEditor = if (enableHighlight) {
+        val newEditor = if (highlightEnabled) {
             HighlighterEditor()
         } else {
             BasicComboBoxEditor.UIResource()
@@ -117,16 +110,16 @@ class FilterComboBox(items: List<String>, private val enableHighlight: Boolean =
     }
 
     private fun updateTooltip(isShow: Boolean) {
-        if (!enabledTfTooltip) {
+        if (!tooltipEnabled) {
             return
         }
 
-        if (errorMsg.isNotEmpty()) {
+        if (errorMessage.isNotEmpty()) {
             var tooltip = "<html><b>"
-            tooltip += if (ThemeManager.currentTheme.isDark) {
-                "<font size=5 color=#C07070>$errorMsg</font>"
+            tooltip += if (ThemeManager.isDarkTheme) {
+                "<font size=5 color=#C07070>$errorMessage</font>"
             } else {
-                "<font size=5 color=#FF0000>$errorMsg</font>"
+                "<font size=5 color=#FF0000>$errorMessage</font>"
             }
             tooltip += "</b></html>"
             editorComponent.toolTipText = tooltip
@@ -135,7 +128,7 @@ class FilterComboBox(items: List<String>, private val enableHighlight: Boolean =
             val excludeStr = updateToolTipStrToHtml(filterItem.negativeFilter.pattern())
 
             var tooltip = "<html><b>$toolTipText</b><br>"
-            if (ThemeManager.currentTheme.isDark) {
+            if (ThemeManager.isDarkTheme) {
                 tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#7070C0>$includeStr</font>\"<br>"
                 tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#C07070>$excludeStr</font>\"<br>"
             } else {
@@ -153,7 +146,7 @@ class FilterComboBox(items: List<String>, private val enableHighlight: Boolean =
 
     private inner class DocumentHandler : DefaultDocumentListener() {
         override fun contentUpdate(content: String) {
-            if (enabledTfTooltip && !isPopupVisible) {
+            if (tooltipEnabled && !isPopupVisible) {
                 updateTooltip()
             }
         }

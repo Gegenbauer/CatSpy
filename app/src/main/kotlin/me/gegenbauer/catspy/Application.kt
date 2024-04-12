@@ -27,6 +27,7 @@ import me.gegenbauer.catspy.ui.MainFrame
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.util.*
+import javax.swing.JComponent
 import javax.swing.UIManager
 import kotlin.system.exitProcess
 
@@ -60,6 +61,7 @@ object Application : WindowAdapter() {
 
             registerLocaleChangeListener { old, new ->
                 GLog.i(TAG, "[registerLocaleChangeListener] $old -> $new")
+                JComponent.setDefaultLocale(new.locale)
                 StringResourceManager.loadStrings()
                 showMainFrame()
             }

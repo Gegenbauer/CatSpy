@@ -50,7 +50,7 @@ internal class SearchPanel(
     }
 
     private fun configureUI() {
-        searchCombo.enabledTfTooltip = false
+        searchCombo.tooltipEnabled = false
         searchCombo.isEditable = true
         searchCombo.setWidth(400)
 

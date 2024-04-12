@@ -31,6 +31,9 @@ interface Pageable<T> {
     fun <R> accessPageData(page: Int, action: (List<T>) -> R): R
 }
 
+inline val Pageable<*>.isAtLastPage: Boolean
+    get() = currentPage == pageCount - 1
+
 data class PageMetadata(
     val currentPage: Int = -1,
     val pageCount: Int = 0,

@@ -283,7 +283,7 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
             listProperty(searchPanel.searchCombo) bindDual searchHistory
             selectedIndexProperty(searchPanel.searchCombo) bindLeft searchSelectedIndex
             textProperty(searchPanel.searchCombo.editorComponent) bindDual searchCurrentContent
-            customProperty(searchPanel.searchCombo, "errorMsg", "") bindDual searchErrorMessage
+            customProperty(searchPanel.searchCombo, "errorMessage", "") bindDual searchErrorMessage
 
             visibilityProperty(searchPanel) bindDual searchPanelVisible
 
@@ -366,7 +366,7 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
     }
 
     protected open fun createUI() {
-        boldLogCombo.enabledTfTooltip = false
+        boldLogCombo.tooltipEnabled = false
 
         deviceCombo.setWidth(150)
 
@@ -708,13 +708,6 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
         val lastUpdateJob = updateFilterJob
         updateFilterJob = scope.launch {
             lastUpdateJob?.cancelAndJoin()
-            updateFilterComboBoxFilterItems(
-                messageFilterCombo,
-                tagFilterCombo,
-                processFilterCombo,
-                tidFilterCombo,
-                boldLogCombo
-            )
             logMainBinding.apply {
                 val matchCase = filterMatchCaseEnabled.getValueNonNull()
                 LogcatFilter(
@@ -737,15 +730,10 @@ abstract class BaseLogMainPanel(override val contexts: Contexts = Contexts.defau
         }
     }
 
-    private fun updateFilterComboBoxFilterItems(vararg filterComboBox: FilterComboBox) {
-        filterComboBox.forEach(FilterComboBox::buildFilterItem)
-    }
-
     private fun updateSearchFilter() {
         val lastUpdateJob = updateSearchFilterJob
         updateSearchFilterJob = scope.launch {
             lastUpdateJob?.cancelAndJoin()
-            updateFilterComboBoxFilterItems(searchPanel.searchCombo)
             val searchItem = EMPTY_ITEM.takeUnless { logMainBinding.searchPanelVisible.getValueNonNull() }
                 ?: searchPanel.searchCombo.filterItem.rebuild(logMainBinding.searchMatchCase.getValueNonNull())
             filteredTableModel.searchFilterItem = searchItem

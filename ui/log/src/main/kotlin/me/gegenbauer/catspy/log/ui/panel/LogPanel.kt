@@ -24,6 +24,7 @@ import me.gegenbauer.catspy.view.icon.DayNightIcon
 import me.gegenbauer.catspy.view.table.PageIndicator
 import me.gegenbauer.catspy.view.table.PageMetadata
 import me.gegenbauer.catspy.view.table.RowNavigation
+import me.gegenbauer.catspy.view.table.isAtLastPage
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Font
@@ -244,15 +245,13 @@ abstract class LogPanel(
             val scrollBar = event.adjustable as JScrollBar
             val extent = scrollBar.model.extent
             val maximum = scrollBar.model.maximum
-            false.takeUnless { isScrollingDown }?.let {
+            if (!isScrollingDown) {
                 setGoToLast(false)
             }
 
             val valueIsAtMaximum = (event.value + extent) >= maximum
-            true.takeIf { valueIsAtMaximum }?.let {
-                if (tableModel.currentPage == tableModel.pageCount - 1) {
-                    setGoToLast(true)
-                }
+            if (valueIsAtMaximum && tableModel.isAtLastPage) {
+                setGoToLast(true)
             }
             vStatusPanel.repaint()
         }

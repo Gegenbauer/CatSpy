@@ -64,7 +64,7 @@ enum class Locale: ILocale {
         override val helpText: String
             get() = HelpText.textCn
         override val locale: java.util.Locale
-            get() = java.util.Locale.CHINESE
+            get() = java.util.Locale.SIMPLIFIED_CHINESE
     },
     EN {
         override val displayName: String

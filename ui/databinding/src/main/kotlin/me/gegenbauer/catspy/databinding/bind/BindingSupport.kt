@@ -7,6 +7,10 @@ infix fun <T> ObservableComponentProperty<T>?.bindDual(viewModelProperty: Observ
     Bindings.bind(this, viewModelProperty)
 }
 
+/**
+ * Binds the [ObservableComponentProperty] to the [ObservableValueProperty] in a one-way binding from the view to the view model.
+ * The view property will be the source of the binding.
+ */
 infix fun <T> ObservableComponentProperty<T>?.bindRight(viewModelProperty: ObservableValueProperty<T>?) {
     if (this == null || viewModelProperty == null) {
         return
@@ -18,6 +22,10 @@ infix fun <T> ObservableComponentProperty<T>?.bindRight(viewModelProperty: Obser
     )
 }
 
+/**
+ * Binds the [ObservableComponentProperty] to the [ObservableValueProperty] in a one-way binding from the view model to the view.
+ * The view model property will be the source of the binding.
+ */
 infix fun <T> ObservableComponentProperty<T>?.bindLeft(viewModelProperty: ObservableValueProperty<T>?) {
     if (this == null || viewModelProperty == null) {
         return
@@ -27,15 +35,4 @@ infix fun <T> ObservableComponentProperty<T>?.bindLeft(viewModelProperty: Observ
         viewModelProperty,
         BindType.ONE_WAY_TO_SOURCE
     )
-}
-
-fun <T> List<T>.updateListByLRU(lastUsedItem: T): List<T> {
-    return if (lastUsedItem in this) {
-        val list = this.toMutableList()
-        list.remove(lastUsedItem)
-        list.add(0, lastUsedItem)
-        list
-    } else {
-        this
-    }
 }

@@ -17,7 +17,7 @@ class DayNightIcon(lightIcon: Icon, darkIcon: Icon? = lightIcon) : ImageIcon() {
     }
 
     override fun paintIcon(c: Component, g: Graphics, x: Int, y: Int) {
-        val image = darkImage.takeIf { ThemeManager.currentTheme.isDark } ?: lightImage
+        val image = darkImage.takeIf { ThemeManager.isDarkTheme } ?: lightImage
         if (imageObserver == null) {
             g.drawImage(image, x, y, c)
         } else {

@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import me.gegenbauer.catspy.concurrency.CoroutineSuspender
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ModelScope
+import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.log.Log
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -35,7 +36,7 @@ class AndroidProcessFetcher(var device: String) {
                 return
             }
             val map = HashMap<String, String>()
-            val process = Runtime.getRuntime().exec("adb -s $device shell ps")
+            val process = Runtime.getRuntime().exec("${SettingsManager.adbPath} -s $device shell ps")
             val reader = BufferedReader(InputStreamReader(process.inputStream))
             reader.forEachLine {
                 parseLineToPidPackage(it)?.let { (pid, packageName) ->

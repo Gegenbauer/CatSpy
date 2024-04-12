@@ -22,6 +22,9 @@ object ThemeManager {
     val currentTheme: FlatLaf
         get() = UIManager.getLookAndFeel() as FlatLaf
 
+    val isDarkTheme: Boolean
+        get() = currentTheme.isDark
+
     val isAccentColorSupported: Boolean
         get() = listOf(
             FlatLightLaf::class.java,

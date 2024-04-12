@@ -119,7 +119,7 @@ class LogMainBinding : ContextService, GThemeChangeListener {
         listProperty(comboBox) bindDual listProperty
         selectedIndexProperty(comboBox) bindDual selectedIndexProperty
         textProperty(comboBox.editorComponent) bindDual editorContentProperty
-        customProperty(comboBox, "errorMsg", "") bindLeft errorMessageProperty
+        customProperty(comboBox, "errorMessage", "") bindLeft errorMessageProperty
     }
 
     fun bindNormalCombo(

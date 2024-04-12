@@ -57,8 +57,8 @@ class MainFrame(
     //endregion
 
     private val globalStatus = ServiceManager.getContextService(StatusPanel::class.java)
-    private val memoryStatusBar = MemoryStatusBar()
     private val mainViewModel = ServiceManager.getContextService(this, MainViewModel::class.java)
+    private val memoryStatusBar = MemoryStatusBar()
     private val scope = MainScope()
 
     init {

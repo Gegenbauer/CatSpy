@@ -48,32 +48,17 @@ data class LogcatFilter(
         val tid = item.tid
         val packageName = item.packageName
 
-        val logLineMatches = matchHidePattern(filterLog.negativeFilter, message) &&
-                matchShowPattern(filterLog.positiveFilter, message)
+        val logLineMatches = filterLog.match(message)
 
-        val tagMatches = matchHidePattern(filterTag.negativeFilter, tag) &&
-                matchShowPattern(filterTag.positiveFilter, tag)
+        val tagMatches = filterTag.match(tag)
 
-        val pidMatches = matchHidePattern(filterPid.negativeFilter, pid) &&
-                matchShowPattern(filterPid.positiveFilter, pid)
+        val pidMatches = filterPid.match(pid)
 
-        val packageMatches = matchHidePattern(filterPackage.negativeFilter, packageName) &&
-                matchShowPattern(filterPackage.positiveFilter, packageName)
+        val packageMatches = filterPackage.match(packageName)
 
-        val tidMatches = matchHidePattern(filterTid.negativeFilter, tid) &&
-                matchShowPattern(filterTid.positiveFilter, tid)
+        val tidMatches = filterTid.match(tid)
 
         return logLineMatches && tagMatches && pidMatches && packageMatches && tidMatches
-    }
-
-    private fun matchShowPattern(pattern: Pattern, text: String): Boolean {
-        if (pattern.isEmpty) return true
-        return pattern.matcher(text).find()
-    }
-
-    private fun matchHidePattern(pattern: Pattern, text: String): Boolean {
-        if (pattern.isEmpty) return true
-        return pattern.matcher(text).find().not()
     }
 
     override fun equals(other: Any?): Boolean {
@@ -105,4 +90,18 @@ data class LogcatFilter(
     companion object {
         val EMPTY_FILTER = LogcatFilter("", "", "", "", "", LogLevel.NONE)
     }
+}
+
+fun FilterItem.match(text: String): Boolean {
+    return matchHidePattern(negativeFilter, text) && matchShowPattern(positiveFilter, text)
+}
+
+private fun matchShowPattern(pattern: Pattern, text: String): Boolean {
+    if (pattern.isEmpty) return true
+    return pattern.matcher(text).find()
+}
+
+private fun matchHidePattern(pattern: Pattern, text: String): Boolean {
+    if (pattern.isEmpty) return true
+    return pattern.matcher(text).find().not()
 }
