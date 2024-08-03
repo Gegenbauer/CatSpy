@@ -1,0 +1,232 @@
+{
+  "logType": "TimeFormatLogcatFileLog",
+  "parser": {
+    "splitToPartsOp": {
+      "maxParts": 5,
+      "splitPostProcessOps": [
+        {
+          "from": 0,
+          "to": 1,
+          "name": "MergeNearbyParts",
+          "splitPostProcessOpType": 11
+        },
+        {
+          "splitChar": "/",
+          "partIndex": 1,
+          "name": "SplitPartWithChar",
+          "splitPostProcessOpType": 10
+        }
+      ],
+      "name": "SplitByWordSeparator",
+      "splitToPartsOpType": 1
+    },
+    "trimOps": [
+      {
+        "partIndex": 2,
+        "trailing": "(",
+        "name": "TrimWithChar",
+        "trimOpType": 100
+      },
+      {
+        "partIndex": 3,
+        "removedLeadingCharCount": 0,
+        "removedTrailingCharCount": 2,
+        "name": "TrimWithIndex",
+        "trimOpType": 101
+      }
+    ],
+    "partCount": 5,
+    "levelPartIndex": 1,
+    "defaultLevelTag": "V"
+  },
+  "columns": [
+    {
+      "name": "Time",
+      "supportFilter": true,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 0,
+          "charLen": 17,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Time",
+          "layoutWidth": 300.0,
+          "position": {
+            "columnIndex": 0,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 0,
+      "isMessage": false,
+      "isLevel": false
+    },
+    {
+      "name": "Level",
+      "supportFilter": true,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 3,
+          "charLen": 8,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Level",
+          "layoutWidth": -2.0,
+          "position": {
+            "columnIndex": 4,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 1,
+      "isMessage": false,
+      "isLevel": true
+    },
+    {
+      "name": "Tag",
+      "supportFilter": true,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 4,
+          "charLen": 23,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Tag",
+          "layoutWidth": -2.0,
+          "position": {
+            "columnIndex": 2,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 2,
+      "isMessage": false,
+      "isLevel": false
+    },
+    {
+      "name": "Pid",
+      "supportFilter": true,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 1,
+          "charLen": 6,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Pid",
+          "layoutWidth": -2.0,
+          "position": {
+            "columnIndex": 3,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 3,
+      "isMessage": false,
+      "isLevel": false
+    },
+    {
+      "name": "Message",
+      "supportFilter": true,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 5,
+          "charLen": 200,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Message",
+          "layoutWidth": -1.0,
+          "position": {
+            "columnIndex": 1,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 4,
+      "isMessage": true,
+      "isLevel": false
+    }
+  ],
+  "levels": [
+    {
+      "level": {
+        "value": 0,
+        "name": "Verbose",
+        "tag": "V"
+      },
+      "color": {
+        "color": -16777216,
+        "darkThemeColor": -986896
+      }
+    },
+    {
+      "level": {
+        "value": 1,
+        "name": "Debug",
+        "tag": "D"
+      },
+      "color": {
+        "color": -14643200,
+        "darkThemeColor": -9660298
+      }
+    },
+    {
+      "level": {
+        "value": 2,
+        "name": "Info",
+        "tag": "I"
+      },
+      "color": {
+        "color": -16744225,
+        "darkThemeColor": -11500348
+      }
+    },
+    {
+      "level": {
+        "value": 3,
+        "name": "Warning",
+        "tag": "W"
+      },
+      "color": {
+        "color": -1019904,
+        "darkThemeColor": -3438782
+      }
+    },
+    {
+      "level": {
+        "value": 4,
+        "name": "Error",
+        "tag": "E"
+      },
+      "color": {
+        "color": -3145728,
+        "darkThemeColor": -3314567
+      }
+    },
+    {
+      "level": {
+        "value": 5,
+        "name": "Fatal",
+        "tag": "F"
+      },
+      "color": {
+        "color": -9437184,
+        "darkThemeColor": -1232848
+      }
+    }
+  ],
+  "supportedFileExtensions": [],
+  "isDeviceLog": false,
+  "isBuiltIn": true,
+  "description": "Log produced from \"adb logcat -v time\"",
+  "sample": "05-26 21:11:35.078 W/AppLinksAsyncVerifierV2( 7610): Caused by: java.net.ConnectException: failed to connect to digitalassetlinks.googleapis.com/142.251.42.234 (port 443) from /:: (port 44610): connect failed: ECONNABORTED (Software caused connection abort)"
+}

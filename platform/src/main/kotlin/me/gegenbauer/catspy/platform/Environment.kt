@@ -1,13 +1,17 @@
 package me.gegenbauer.catspy.platform
 
+import com.formdev.flatlaf.FlatClientProperties
 import com.formdev.flatlaf.util.SystemInfo
 import me.gegenbauer.catspy.file.appendPath
-import me.gegenbauer.catspy.file.checkAndAppendPath
 import me.gegenbauer.catspy.java.ext.runCommandIgnoreResult
+import java.awt.Toolkit
+import java.awt.event.KeyEvent
 import java.io.File
 import java.lang.management.ManagementFactory
 import javax.swing.JDialog
 import javax.swing.JFrame
+import javax.swing.JRootPane
+import javax.swing.ToolTipManager
 import javax.swing.TransferHandler.TransferSupport
 
 interface IPlatform {
@@ -16,6 +20,9 @@ interface IPlatform {
 
     val osName: String
         get() = System.getProperty("os.name")
+
+    val vkMask: Int
+        get() = KeyEvent.CTRL_DOWN_MASK
 
     fun getFileDropAction(transferSupport: TransferSupport): Int {
         return transferSupport.sourceDropActions
@@ -26,15 +33,13 @@ interface IPlatform {
     fun ensureFilesDirExists() {
         val filesDir = getFilesDir()
         val file = File(filesDir)
-        if (!file.exists()) {
-            file.mkdirs()
-        }
+        file.mkdirs()
     }
 
     fun detectAdbPath(): String {
         val androidSdkPath = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
         androidSdkPath?.let {
-            val targetPath = it.checkAndAppendPath("platform-tools").checkAndAppendPath(adbExecutable)
+            val targetPath = it.appendPath("platform-tools").appendPath(adbExecutable)
             if (File(targetPath).exists()) {
                 return targetPath
             }
@@ -43,7 +48,7 @@ interface IPlatform {
         val envPath = System.getenv("PATH")
         val paths = envPath.split(File.pathSeparator)
         for (path in paths) {
-            val targetPath = path.checkAndAppendPath(adbExecutable)
+            val targetPath = path.appendPath(adbExecutable)
             if (File(targetPath).exists()) {
                 return targetPath
             }
@@ -57,17 +62,20 @@ interface IPlatform {
         // 启用系统抗锯齿，极大提升字体渲染速度
         System.setProperty("awt.useSystemAAFontSettings", "on")
         System.setProperty("swing.aatext", "true")
+        ToolTipManager.sharedInstance().dismissDelay = Int.MAX_VALUE
     }
+
+    fun setFrameTitleFullscreen(frame: JFrame) {}
 }
 
-fun isInDebugMode(): Boolean {
+val isInDebugMode: Boolean by lazy {
     val inputArguments = ManagementFactory.getRuntimeMXBean().inputArguments
     for (arg in inputArguments) {
         if (arg.contains("-agentlib:jdwp")) {
-            return true
+            return@lazy true
         }
     }
-    return false
+    false
 }
 
 enum class Platform : IPlatform {
@@ -116,6 +124,9 @@ enum class Platform : IPlatform {
         }
     },
     MAC {
+        override val vkMask: Int
+            get() = Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
+
         override fun getFilesDir(): String {
             return userHome.appendPath("Library").appendPath("Application Support")
                 .appendPath(GlobalProperties.APP_NAME)
@@ -144,6 +155,24 @@ enum class Platform : IPlatform {
             //  setting it on AWT thread does not work)
             System.setProperty("apple.awt.application.appearance", "system")
         }
+
+        override fun setFrameTitleFullscreen(frame: JFrame) {
+            super.setFrameTitleFullscreen(frame)
+
+            val rootPane: JRootPane = frame.rootPane
+            if (SystemInfo.isMacFullWindowContentSupported) {
+                // expand window content into window title bar and make title bar transparent
+                rootPane.putClientProperty("apple.awt.fullWindowContent", true)
+                rootPane.putClientProperty("apple.awt.transparentTitleBar", true)
+                rootPane.putClientProperty(
+                    FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING,
+                    FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING_LARGE
+                )
+
+                // hide window title
+                rootPane.putClientProperty("apple.awt.windowTitleVisible", false)
+            }
+        }
     },
     UNKNOWN {
         // default implementation
@@ -155,7 +184,7 @@ val currentPlatform: Platform by lazy {
     platform
 }
 
-val userDir: String = System.getProperty("user.dir")
+private val userDir: String = System.getProperty("user.dir")
 val userHome: String = System.getProperty("user.home")
 
 val filesDir = run {

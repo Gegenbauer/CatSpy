@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.databinding.bind
 
-class ObservableValueProperty<T>(value: T? = null): ObservableProperty<T>(value) {
+open class ObservableValueProperty<T>(value: T? = null): ObservableProperty<T>(value) {
 
     /**
      * notify component to update with default value of [ObservableValueProperty] when binding first created

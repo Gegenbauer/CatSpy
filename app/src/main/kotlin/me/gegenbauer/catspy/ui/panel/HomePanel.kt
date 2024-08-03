@@ -1,54 +1,43 @@
 package me.gegenbauer.catspy.ui.panel
 
+import info.clearthought.layout.TableLayout
+import info.clearthought.layout.TableLayoutConstants.FILL
+import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
-import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.iconset.GIcons
-import me.gegenbauer.catspy.log.ui.panel.FileLogMainPanel
-import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.java.ext.Bundle
+import me.gegenbauer.catspy.log.ui.tab.AndroidDeviceGuidePanel
+import me.gegenbauer.catspy.log.ui.tab.FileLogGuidePanel
+import me.gegenbauer.catspy.log.ui.tab.FileLogMainPanel
 import me.gegenbauer.catspy.ui.MainFrame
-import me.gegenbauer.catspy.ui.menu.TabSelectorPopupMenu
-import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
-import me.gegenbauer.catspy.view.button.GButton
-import me.gegenbauer.catspy.view.hint.HintManager
 import me.gegenbauer.catspy.view.panel.StatusBar
 import me.gegenbauer.catspy.view.panel.StatusPanel
-import me.gegenbauer.catspy.view.tab.TabInfo
+import me.gegenbauer.catspy.view.tab.BaseTabPanel
 import me.gegenbauer.catspy.view.tab.TabManager
-import me.gegenbauer.catspy.view.tab.TabPanel
-import java.awt.GridBagLayout
-import javax.swing.*
+import java.io.File
+import javax.swing.JPanel
+import javax.swing.TransferHandler
 
-class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
-    override val tabName: String = STRINGS.ui.tabHome
-    override val tabIcon: Icon = GIcons.Tab.Home.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
-    override val closeable: Boolean = false
+class HomePanel : BaseTabPanel() {
 
-    private val tabSelector = GButton(STRINGS.ui.selectTab)
-    private val selectMenu = TabSelectorPopupMenu()
+    override val tag: String = "HomePanel"
 
-    override val hint =
-        HintManager.Hint(STRINGS.hints.selectFunctionTab, tabSelector, SwingConstants.TOP, SELECT_TAB_HINT_KEY)
+    private val fileLogGuidePanel = FileLogGuidePanel(::openFile)
+    private val androidDeviceGuidePanel = AndroidDeviceGuidePanel()
 
-    private val supportedTabs: List<TabInfo>
-        get() = contexts.getContext(MainFrame::class.java)?.supportedTabs ?: emptyList()
+    private val tabManager: TabManager
+        get() = contexts.getContext(MainFrame::class.java)!!
     private val statusBar = ServiceManager.getContextService(StatusPanel::class.java)
     private val scope = MainScope()
 
-    override fun setup() {
-        layout = GridBagLayout()
-        tabSelector.toolTipText = STRINGS.toolTip.selectTabBtn
-        add(tabSelector)
-        tabSelector.addActionListener {
-            selectMenu.isVisible = false
-            SwingUtilities.updateComponentTreeUI(selectMenu)
-            selectMenu.show(supportedTabs, tabSelector)
-        }
-
-        selectMenu.onTabSelected = { tab ->
-            contexts.getContext(MainFrame::class.java)?.addTab(tab.tabClazz.getConstructor().newInstance())
-        }
+    override fun onSetup(bundle: Bundle?) {
+        layout = TableLayout(
+            doubleArrayOf(0.25, FILL, 0.25),
+            doubleArrayOf(0.4, PREFERRED, PREFERRED, 0.2)
+        )
+        add(fileLogGuidePanel, "1,1")
+        //add(androidDeviceGuidePanel, "1,2")
     }
 
     override fun onTabSelected() {
@@ -68,11 +57,15 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
     }
 
     override fun handleDataImport(info: TransferHandler.TransferSupport): Boolean {
-        val fileLogMainPanel = FileLogMainPanel()
-        contexts.getContext(TabManager::class.java)?.addTab(fileLogMainPanel)
+        val fileLogMainPanel = tabManager.addTab(FileLogMainPanel::class.java)
         val droppedFiles = getDroppedFiles(info)
         fileLogMainPanel.pendingOpenFiles(droppedFiles)
         return true
+    }
+
+    private fun openFile(file: String) {
+        val fileLogMainPanel = tabManager.addTab(FileLogMainPanel::class.java)
+        fileLogMainPanel.pendingOpenFiles(listOf(File(file)))
     }
 
     override fun destroy() {
@@ -80,7 +73,4 @@ class HomePanel(override val contexts: Contexts = Contexts.default) : JPanel(), 
         scope.cancel()
     }
 
-    companion object {
-        private const val SELECT_TAB_HINT_KEY = "selectFunctionTab"
-    }
 }

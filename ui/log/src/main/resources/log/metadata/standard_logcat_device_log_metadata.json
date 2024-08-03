@@ -1,0 +1,265 @@
+{
+  "logType": "Standard Logcat Device Log",
+  "parser": {
+    "splitToPartsOp": {
+      "maxParts": 7,
+      "splitPostProcessOps": [
+        {
+          "name": "RemoveBlank",
+          "splitPostProcessOpType": 12
+        },
+        {
+          "from": 0,
+          "to": 1,
+          "name": "MergeNearbyParts",
+          "splitPostProcessOpType": 11
+        },
+        {
+          "start": 4,
+          "targetChar": ":",
+          "name": "MergeUntilCharOp",
+          "splitPostProcessOpType": 13
+        }
+      ],
+      "name": "SplitByWordSeparator",
+      "splitToPartsOpType": 1
+    },
+    "trimOps": []
+  },
+  "columns": [
+    {
+      "name": "Time",
+      "supportFilter": false,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 0,
+          "charLen": 17,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "",
+          "layoutWidth": -2.0,
+          "position": {
+            "columnIndex": 0,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 0,
+      "isMessage": false,
+      "isLevel": false
+    },
+    {
+      "name": "Pid",
+      "supportFilter": true,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 1,
+          "charLen": 5,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Pid",
+          "layoutWidth": 200.0,
+          "position": {
+            "columnIndex": 2,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 1,
+      "isMessage": false,
+      "isLevel": false
+    },
+    {
+      "name": "Package",
+      "supportFilter": true,
+      "isParsed": false,
+      "uiConf": {
+        "column": {
+          "index": 2,
+          "charLen": 23,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Package",
+          "layoutWidth": 0.3,
+          "position": {
+            "columnIndex": 0,
+            "rowIndex": 1
+          }
+        }
+      },
+      "partIndex": 2,
+      "isMessage": false,
+      "isLevel": false
+    },
+    {
+      "name": "Tid",
+      "supportFilter": true,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 3,
+          "charLen": 5,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Tid",
+          "layoutWidth": 200.0,
+          "position": {
+            "columnIndex": 3,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 3,
+      "isMessage": false,
+      "isLevel": false
+    },
+    {
+      "name": "Level",
+      "supportFilter": true,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 4,
+          "charLen": 2,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Level",
+          "layoutWidth": 200.0,
+          "position": {
+            "columnIndex": 4,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 4,
+      "isMessage": false,
+      "isLevel": true
+    },
+    {
+      "name": "Tag",
+      "supportFilter": true,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 5,
+          "charLen": 20,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Tag",
+          "layoutWidth": 200.0,
+          "position": {
+            "columnIndex": 1,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 5,
+      "isMessage": false,
+      "isLevel": false
+    },
+    {
+      "name": "Message",
+      "supportFilter": true,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 6,
+          "charLen": 160,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Message",
+          "layoutWidth": -1.0,
+          "position": {
+            "columnIndex": 0,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 6,
+      "isMessage": true,
+      "isLevel": false
+    }
+  ],
+  "levels": [
+    {
+      "level": {
+        "value": 0,
+        "name": "Verbose",
+        "tag": "V"
+      },
+      "color": {
+        "color": -16777216,
+        "darkThemeColor": -986896
+      }
+    },
+    {
+      "level": {
+        "value": 1,
+        "name": "Debug",
+        "tag": "D"
+      },
+      "color": {
+        "color": -14643200,
+        "darkThemeColor": -9660298
+      }
+    },
+    {
+      "level": {
+        "value": 2,
+        "name": "Info",
+        "tag": "I"
+      },
+      "color": {
+        "color": -16744225,
+        "darkThemeColor": -11500348
+      }
+    },
+    {
+      "level": {
+        "value": 3,
+        "name": "Warning",
+        "tag": "W"
+      },
+      "color": {
+        "color": -1019904,
+        "darkThemeColor": -3438782
+      }
+    },
+    {
+      "level": {
+        "value": 4,
+        "name": "Error",
+        "tag": "E"
+      },
+      "color": {
+        "color": -3145728,
+        "darkThemeColor": -3314567
+      }
+    },
+    {
+      "level": {
+        "value": 5,
+        "name": "Fatal",
+        "tag": "F"
+      },
+      "color": {
+        "color": -9437184,
+        "darkThemeColor": -1232848
+      }
+    }
+  ],
+  "supportedFileExtensions": [],
+  "isDeviceLog": true,
+  "isBuiltIn": true,
+  "description": "Device log produced from \"adb logcat\"",
+  "sample": "06-05 17:36:15.905  2083  4016 D CompatibilityChangeReporter: Compat change id reported: 161252188; UID 10541; state: DISABLED"
+}

@@ -1,18 +1,18 @@
 package me.gegenbauer.catspy.ui.menu
 
-import me.gegenbauer.catspy.view.tab.TabInfo
+import me.gegenbauer.catspy.view.tab.FunctionTab
 import javax.swing.JComponent
 import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
 
 class TabSelectorPopupMenu : JPopupMenu() {
 
-    var onTabSelected: ((TabInfo) -> Unit)? = null
+    var onTabSelected: ((FunctionTab) -> Unit)? = null
 
-    fun show(tabs: List<TabInfo>, anchor: JComponent) {
+    fun show(tabs: List<FunctionTab>, anchor: JComponent) {
         removeAll()
         tabs.forEach { tab ->
-            val item = JMenuItem(tab.tabName, tab.tabIcon)
+            val item = JMenuItem(tab.name, tab.icon)
             item.toolTipText = tab.tooltip
             item.addActionListener {
                 onTabSelected?.invoke(tab)

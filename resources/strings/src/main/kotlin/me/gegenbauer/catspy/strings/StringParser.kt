@@ -2,7 +2,6 @@ package me.gegenbauer.catspy.strings
 
 import com.google.gson.stream.JsonReader
 import me.gegenbauer.catspy.common.Resources.loadResourceAsStream
-import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.file.gson
 import me.gegenbauer.catspy.java.ext.replaceNullStringProperties
 import java.io.InputStreamReader

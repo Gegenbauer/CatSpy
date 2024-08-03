@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.context
 
-interface ContextServiceProvider {
+interface ContextServiceProvider: MemoryAware {
 
     fun <T : ContextService> getContextService(contextId: Long, serviceClazz: Class<out T>): T?
 
@@ -14,7 +14,7 @@ interface ContextServiceProvider {
      */
     fun <T : ContextService> getContextService(serviceClazz: Class<out T>): T
 
-    fun <T : ContextService> registerContextService(serviceClazz: Class<out T>)
+    fun <T : ContextService> registerGlobalService(serviceClazz: Class<out T>)
 
     fun createServiceProvider(context: Context): ServiceProvider
 

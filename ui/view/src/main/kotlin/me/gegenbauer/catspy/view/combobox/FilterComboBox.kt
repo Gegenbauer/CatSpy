@@ -1,30 +1,46 @@
 package me.gegenbauer.catspy.view.combobox
 
-import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.filter.ui.enableAutoComplete
+import me.gegenbauer.catspy.render.LabelRenderer
+import me.gegenbauer.catspy.render.Tag
+import me.gegenbauer.catspy.render.HtmlStringBuilder
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.utils.DefaultDocumentListener
-import me.gegenbauer.catspy.utils.Key
-import me.gegenbauer.catspy.utils.applyTooltip
-import me.gegenbauer.catspy.utils.registerStrokeWhenFocused
+import me.gegenbauer.catspy.utils.ui.DefaultDocumentListener
+import me.gegenbauer.catspy.utils.ui.Key
+import me.gegenbauer.catspy.utils.ui.applyTooltip
+import me.gegenbauer.catspy.utils.ui.registerStrokeWhenFocused
 import me.gegenbauer.catspy.view.combobox.highlight.CustomEditorDarkComboBoxUI
 import me.gegenbauer.catspy.view.combobox.highlight.HighlighterEditor
 import me.gegenbauer.catspy.view.filter.FilterItem
+import me.gegenbauer.catspy.view.filter.FilterItem.Companion.isEmpty
+import java.awt.Color
 import java.awt.event.KeyListener
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
+import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.ToolTipManager
+import javax.swing.UIManager
 import javax.swing.plaf.ComboBoxUI
 import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.text.JTextComponent
 import javax.swing.undo.UndoManager
 
-class FilterComboBox(items: List<String>, private val highlightEnabled: Boolean = true, private val tooltip: String? = null) :
-    HistoryComboBox<String>(items) {
+class FilterComboBox(
+    items: List<String>,
+    private val highlightEnabled: Boolean = true,
+    private val tooltip: String? = null
+) : JComboBox<String>(FilterComboBoxModel(items)) {
 
+    /**
+     * invoked via reflection
+     */
     var filterItem: FilterItem = FilterItem.EMPTY_ITEM
+        set(value) {
+            field = value
+            updateTooltip(true)
+        }
     var keyListener: KeyListener? = null
         set(value) {
             field = value
@@ -40,22 +56,25 @@ class FilterComboBox(items: List<String>, private val highlightEnabled: Boolean 
     private val editorComponent: JTextComponent // create new instance when theme changed(setUI invoked)
         get() = getEditor().editorComponent as JTextComponent
 
-    var tooltipEnabled = false
+    var tooltipEnabled: Boolean = true
         set(value) {
             field = value
             if (value) {
                 updateTooltip()
             }
         }
-    private var errorMessage: String = ""
-        set(value) {
-            field = value
-            updateTooltip(value.isNotEmpty())
-        }
     private val undo = UndoManager()
 
+    private val errorForeground: Color
+        get() = UIManager.getColor("Objects.Red") ?: Color.RED
+    private val positiveForeground: Color
+        get() = UIManager.getColor("Objects.Yellow") ?: Color.GREEN
+    private val negativeForeground: Color
+        get() = UIManager.getColor("Objects.Red") ?: Color.RED
+    private val normalTooltipForeground: Color
+        get() = UIManager.getColor("ToolTip.foreground") ?: Color.WHITE
+
     init {
-        toolTipText = tooltip
         configureEditorComponent(editorComponent)
         updateUI()
     }
@@ -75,6 +94,7 @@ class FilterComboBox(items: List<String>, private val highlightEnabled: Boolean 
             editorComponent.addKeyListener(keyListener)
             editorComponent.addMouseListener(mouseListener)
         }))
+        updateTooltip()
     }
 
     private fun configureEditorComponent(editorComponent: JTextComponent) {
@@ -96,7 +116,7 @@ class FilterComboBox(items: List<String>, private val highlightEnabled: Boolean 
                 }
             }
         }
-        editorComponent.enableAutoComplete(getAllItems().map { it.content }) {
+        editorComponent.enableAutoComplete(getAllItems().map { it }) {
             hidePopup()
         }
     }
@@ -113,35 +133,61 @@ class FilterComboBox(items: List<String>, private val highlightEnabled: Boolean 
         if (!tooltipEnabled) {
             return
         }
-
-        if (errorMessage.isNotEmpty()) {
-            var tooltip = "<html><b>"
-            tooltip += if (ThemeManager.isDarkTheme) {
-                "<font size=5 color=#C07070>$errorMessage</font>"
-            } else {
-                "<font size=5 color=#FF0000>$errorMessage</font>"
-            }
-            tooltip += "</b></html>"
-            editorComponent.toolTipText = tooltip
-        } else {
-            val includeStr = updateToolTipStrToHtml(filterItem.positiveFilter.pattern())
-            val excludeStr = updateToolTipStrToHtml(filterItem.negativeFilter.pattern())
-
-            var tooltip = "<html><b>$toolTipText</b><br>"
-            if (ThemeManager.isDarkTheme) {
-                tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#7070C0>$includeStr</font>\"<br>"
-                tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#C07070>$excludeStr</font>\"<br>"
-            } else {
-                tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#0000FF>$includeStr</font>\"<br>"
-                tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#FF0000>$excludeStr</font>\"<br>"
-            }
-            tooltip += "</html>"
-            editorComponent.toolTipText = tooltip
+        val errorMessage = filterItem.errorMessage
+        if (filterItem.isEmpty() && errorMessage.isEmpty()) {
+            return
         }
+        val renderedContent = HtmlStringBuilder()
+        if (errorMessage.isNotEmpty()) {
+            val errorLine = renderLineWithBreak(errorMessage, errorForeground)
+            renderedContent.append(errorLine)
+        } else {
+            val positive = filterItem.positiveFilter.pattern()
+            val negative = filterItem.negativeFilter.pattern()
+            val positiveLine = "INCLUDE : $positive"
+            val negativeLine = "EXCLUDE : $negative"
+            if (tooltip != null) {
+                renderedContent.append(renderLineWithBreak(tooltip, normalTooltipForeground))
+                renderedContent.addSingleTag(Tag.LINE_BREAK)
+            }
+            renderedContent.append(renderLine(positiveLine, positiveForeground))
+            renderedContent.addSingleTag(Tag.LINE_BREAK)
+            renderedContent.append(renderLine(negativeLine, negativeForeground))
+        }
+        editorComponent.toolTipText = renderedContent.build()
 
         if (isShow) {
-            ToolTipManager.sharedInstance().mouseMoved(MouseEvent(editorComponent, 0, 0, 0, 0, 0, 0, false))
+            showTooltip()
         }
+    }
+
+    private fun showTooltip() {
+        if (tooltipEnabled && !isPopupVisible) {
+            ToolTipManager.sharedInstance()
+                .mouseMoved(MouseEvent(editorComponent, 0, 0, 0, 0, 0, 0, false))
+        }
+    }
+
+    private fun renderLineWithBreak(content: String, foreground: Color): String {
+        val lines = content.lines()
+        val renderedContent = HtmlStringBuilder(false)
+        lines.forEachIndexed { index, line ->
+            renderedContent.append(renderLine(line, foreground))
+            if (index != lines.lastIndex) {
+                renderedContent.addSingleTag(Tag.LINE_BREAK)
+            }
+        }
+        return renderedContent.build()
+    }
+
+    private fun renderLine(content: String, foreground: Color): String {
+        val renderer = LabelRenderer.obtain()
+        renderer.updateRaw(content)
+        renderer.foreground(0, content.length - 1, foreground)
+        renderer.bold(0, content.length - 1)
+        val renderedContent = renderer.renderWithoutTags()
+        renderer.recycle()
+        return renderedContent
     }
 
     private inner class DocumentHandler : DefaultDocumentListener() {
@@ -152,37 +198,30 @@ class FilterComboBox(items: List<String>, private val highlightEnabled: Boolean 
         }
     }
 
-    private fun getAllItems(): List<HistoryItem<String>> {
-        return mutableListOf<HistoryItem<String>>().apply {
+    private fun getAllItems(): List<String> {
+        return mutableListOf<String>().apply {
             for (i in 0 until itemCount) {
                 add(getItemAt(i))
             }
         }
     }
 
-    override fun addItem(item: HistoryItem<String>?) {
-        if (item == null || item.content.isEmpty()) return
+    override fun addItem(item: String?) {
+        if (item.isNullOrEmpty()) return
         super.addItem(item)
-        editorComponent.enableAutoComplete(getAllItems().map { it.content }) {
+        editorComponent.enableAutoComplete(getAllItems().map { it }) {
             hidePopup()
-        }
-    }
-
-    companion object {
-
-        private fun updateToolTipStrToHtml(toolTipStr: String): String {
-            if (toolTipStr.isEmpty()) return toolTipStr
-            return toolTipStr.replace("&#09", "&amp;#09")
-                .replace("\t", "&#09;")
-                .replace("&nbsp", "&amp;nbsp")
-                .replace(" ", "&nbsp;")
-                .replace("|", "<font color=#303030><b>|</b></font>")
         }
     }
 }
 
-fun filterComboBox(items: List<String> = emptyList(), enableHighlight: Boolean = true, tooltip: String? = null): FilterComboBox {
-    val comboBox = FilterComboBox(items, enableHighlight, "$tooltip\n${STRINGS.toolTip.comboFilter}")
+fun filterComboBox(
+    items: List<String> = emptyList(),
+    enableHighlight: Boolean = true,
+    tooltip: String? = null
+): FilterComboBox {
+    val finalTooltip = ("$tooltip\n".takeIf { tooltip != null } ?: "") + STRINGS.toolTip.filter
+    val comboBox = FilterComboBox(items, enableHighlight, finalTooltip)
     comboBox.isEditable = true
     comboBox.addTooltipUpdateListener()
     return comboBox

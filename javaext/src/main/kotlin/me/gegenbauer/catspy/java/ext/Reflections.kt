@@ -29,20 +29,16 @@ fun Any.invokeMethod(methodName: String, vararg args: Any?): Any? {
 
 fun Any.setField(fieldName: String, value: Any?) {
     kotlin.runCatching {
-        val property = this::class.declaredMemberProperties.firstOrNull { it.name == fieldName }
-        if (property != null && property is KMutableProperty1) {
-            property.isAccessible = true
-            property.setter.call(this, value)
-        } else {
-            invokeMethod("set${fieldName.capitalize()}", value)
-        }
+        val method = this::class.java.methods.firstOrNull { it.name == "set${fieldName.capitalize()}" }
+        method?.isAccessible = true
+        method?.invoke(this, value)
     }.onFailure {
         GLog.e(TAG, "[setField] failed! $this fieldName: $fieldName, value: $value", it)
     }
 }
 
 /**
- * 从本类查询 field, 如果没有匹配到，则从父类查询，依次类推
+ * Query the field from the current class. If no match is found, query from the parent class, and so on.
  */
 fun Any.getFieldDeeply(fieldName: String): Field {
     var clazz: Class<*>? = this::class.java
@@ -100,4 +96,13 @@ fun isCompanionObject(javaClass: Class<*>, declaredClass: Class<*>): Boolean {
 
 fun isConstantField(field: Field): Boolean {
     return field.kotlinProperty?.isConst == null
+}
+
+class KotlinReflectionPreTrigger {
+
+    fun trigger() {
+        val clazz = this::class
+        clazz.declaredMemberProperties
+        clazz.declaredMemberFunctions
+    }
 }

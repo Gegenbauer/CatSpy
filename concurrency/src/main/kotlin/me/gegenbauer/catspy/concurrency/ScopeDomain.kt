@@ -14,7 +14,7 @@ private const val DISPATCHER_NAME_SERIAL = "serial"
 private const val APP_LAUNCH_CORE_POOL_SIZE = 4
 
 /**
- * 取代 [GlobalScope] 作为全局的作用域，默认使用 [Dispatchers.CPU]
+ * replace [GlobalScope] as global scope. Use [Dispatchers.CPU] by default
  */
 object AppScope : CoroutineScope {
     private const val TAG = "AppScope"
@@ -23,7 +23,7 @@ object AppScope : CoroutineScope {
 }
 
 /**
- * Service 层中的作用域，默认使用 [Dispatchers.CPU]，生命周期随 Service 存在而存在，每个 Service 都有一个对应的 [ServiceScope]
+ * Scope of Service. Use [Dispatchers.CPU] as default. Its lifecycle is as long as service.
  */
 class ServiceScope : CoroutineScope {
     override val coroutineContext: CoroutineContext
@@ -35,11 +35,11 @@ class ServiceScope : CoroutineScope {
 }
 
 /**
- * Model 层中的作用域，默认使用 [Dispatchers.IO]，生命周期随 Model 存在而存在，每个 Model 都有一个对应的 [ModelScope]
+ * Scope of Model. Use [Dispatchers.GIO] as default. Its lifecycle is as long as Model.
  */
 open class ModelScope : CoroutineScope {
     override val coroutineContext: CoroutineContext =
-        CoroutineName(TAG) + Dispatchers.IO + loggingExceptionHandler + SupervisorJob()
+        CoroutineName(TAG) + Dispatchers.GIO + loggingExceptionHandler + SupervisorJob()
 
     private companion object {
         private const val TAG = "ModelScope"
@@ -47,7 +47,7 @@ open class ModelScope : CoroutineScope {
 }
 
 /**
- * ViewModel 层中的作用域，默认使用 [Dispatchers.CPU]，生命周期随 ViewModel 存在而存在，每个 ViewModel 都有一个对应的 [ViewModelScope]
+ * Scope of ViewModel. Use [Dispatchers.CPU] as default. Its lifecycle is as long as ViewModel.
  */
 class ViewModelScope : CoroutineScope {
     override val coroutineContext: CoroutineContext
@@ -59,7 +59,7 @@ class ViewModelScope : CoroutineScope {
 }
 
 /**
- * 为埋点建立的一个作用域，默认使用 [Dispatchers.TRACK]
+ * A scope created for the statics, default [Dispatchers.TRACK]
  */
 object TrackScope : CoroutineScope {
     private const val TAG = "AppScope"
@@ -68,26 +68,28 @@ object TrackScope : CoroutineScope {
 }
 
 /**
- * 异常处理的 Handler 句柄， 当不使用此异常处理句柄，而协程中崩溃时，并不会捕获异常，可能导致崩溃。所以必须使用。
+ * Exception handling handler. When this exception handling handler is not used, and a coroutine crashes,
+ * the exception will not be caught, which may lead to a crash. Therefore, it must be used.
  */
 val loggingExceptionHandler = CoroutineExceptionHandler { _, t ->
     GLog.e(TAG, "[CoroutineExceptionHandler]", t)
 }
 
 /**
- * UI 线程的调度器，取代 [Dispatchers.Main]
+ * UI thread dispatcher, replacing [Dispatchers.Main]
  */
 val Dispatchers.UI by lazy { Dispatchers.Swing }
 
 /**
- * CPU 密集型任务的调度器，取代 [Dispatchers.Default], 默认线程池数量为 CPU 的核心数
+ * CPU-intensive task dispatcher, replacing [Dispatchers.Default],
+ * with the default thread pool size equal to the number of CPU cores.
  */
 val Dispatchers.CPU by lazy { Dispatchers.Default }
 
 val Dispatchers.GIO by lazy { Dispatchers.IO }
 
 /**
- * 埋点的调度器，启动时阻塞
+ * Blocking dispatcher for tracking points during startup.
  */
 val Dispatchers.TRACK by lazy {
     Executors.newSingleThreadExecutor(
@@ -99,7 +101,7 @@ val Dispatchers.TRACK by lazy {
 }
 
 /**
- * 不繁忙的单线程调度器，使用此调度器尽量不要处理 大量任务、耗时任务
+ * Non-busy single-threaded dispatcher, avoid using this dispatcher for handling large or time-consuming tasks.
  */
 val Dispatchers.SINGLE_UN_BUSY by lazy {
     Executors.newSingleThreadExecutor(
@@ -111,7 +113,7 @@ val Dispatchers.SINGLE_UN_BUSY by lazy {
 }
 
 /**
- * 进程启动耗时任务调度器
+ * Dispatcher for time-consuming tasks during process startup.
  */
 val Dispatchers.APP_LAUNCH by lazy {
     Executors.newScheduledThreadPool(

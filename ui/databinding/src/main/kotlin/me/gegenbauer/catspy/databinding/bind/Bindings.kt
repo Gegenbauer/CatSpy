@@ -1,9 +1,5 @@
 package me.gegenbauer.catspy.databinding.bind
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.concurrency.AppScope
-import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.databinding.BindingLog
 import java.awt.Component
 import javax.swing.JComponent
@@ -37,8 +33,8 @@ var JComponent.bindingCache: MutableMap<ObservableComponentProperty<*>, BindingI
     }
 
 /**
- * 一个 Component 的一个属性与一个 ViewModel 的一个属性构建一种类型的绑定关系
- * Source means ComponentProperty, target means ViewModelProperty
+ * Construct a type of binding relationship between a property of a [Component] and a property of a [ViewModel].
+ * Source means [ObservableComponentProperty], target means [ObservableValueProperty].
  */
 enum class BindType : Bindable {
     ONE_WAY_TO_SOURCE {
@@ -141,9 +137,10 @@ data class BindingItem(
 }
 
 /**
- * 绑定属性，将 [Component] 的属性绑定到 [ObservableProperty] 类型的对象上，
- * 当 [ObservableProperty] 的值发生变化时，[Component] 的属性也会发生变化
- * 而且绑定是双向的，当 [Component] 的属性发生变化时，[ObservableProperty] 的值也会发生变化
+ * Bind properties, binding the properties of a [Component] to an [ObservableProperty] type object.
+ * When the value of the [ObservableProperty] changes, the properties of the [Component] also change.
+ * The binding is bidirectional, meaning when the properties of the [Component] change,
+ * the value of the [ObservableProperty] also changes.
  */
 @Suppress("UNCHECKED_CAST")
 object Bindings {

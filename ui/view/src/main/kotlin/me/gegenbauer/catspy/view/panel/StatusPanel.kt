@@ -1,12 +1,10 @@
 package me.gegenbauer.catspy.view.panel
 
-import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants
 import me.gegenbauer.catspy.context.ContextService
 import javax.swing.BorderFactory
 import javax.swing.JComponent
-import javax.swing.JFrame
 import javax.swing.JPanel
 
 class StatusPanel(
@@ -17,7 +15,6 @@ class StatusPanel(
         set(value) {
             field = value
             logStatusContainer.setLogStatus(value)
-            DarkUIUtil.getParentOfType(JFrame::class.java, this)?.title = value.status
         }
 
     override var memoryMonitorBar: JComponent = JPanel()

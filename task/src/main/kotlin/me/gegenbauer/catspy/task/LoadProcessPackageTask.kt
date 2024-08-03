@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 class LoadProcessPackageTask : BaseObservableTask(name = "LoadProcessPackageTask") {
     private var pidToNameMapper = ConcurrentHashMap<String, String>()
-    private val coroutineSuspender = CoroutineSuspender()
+    private val coroutineSuspender = CoroutineSuspender("LoadProcessPackageTask")
 
     override suspend fun startInCoroutine() {
         repeat(Int.MAX_VALUE) {

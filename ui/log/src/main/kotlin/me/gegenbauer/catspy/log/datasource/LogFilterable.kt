@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.log.datasource
 
-import me.gegenbauer.catspy.log.model.LogcatFilter
+import me.gegenbauer.catspy.log.filter.LogFilter
 
 interface LogFilterable {
-    val logcatFilter: LogcatFilter
+    val logFilter: LogFilter
 
     var fullMode: Boolean
 
@@ -13,7 +13,7 @@ interface LogFilterable {
 
     var filteredTableSelectedRows: List<Int>
 
-    fun updateFilter(filter: LogcatFilter)
+    fun updateFilter(filter: LogFilter)
 
-    fun updateFilter(filter: LogcatFilter, force: Boolean)
+    fun updateFilter(filter: LogFilter, force: Boolean)
 }

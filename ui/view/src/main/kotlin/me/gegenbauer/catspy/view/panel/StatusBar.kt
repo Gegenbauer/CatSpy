@@ -1,10 +1,10 @@
 package me.gegenbauer.catspy.view.panel
 
-import me.gegenbauer.catspy.strings.STRINGS
 import java.awt.Color
 import javax.swing.JComponent
+import javax.swing.UIManager
 
-interface StatusBar: TaskMonitor {
+interface StatusBar : TaskMonitor {
     var logStatus: LogStatus
 
     var memoryMonitorBar: JComponent
@@ -12,21 +12,32 @@ interface StatusBar: TaskMonitor {
     var statusIcons: StatusIconsBar
 
     open class LogStatus(
-        val backgroundColor: Color,
-        val foregroundColor: Color,
+        val backgroundColorProvider: () -> Color,
+        val foregroundColorProvider: () -> Color,
         val status: String,
         val path: String
     ) {
         companion object {
-            val NONE = LogStatus(Color.DARK_GRAY, Color.BLACK, "", "")
+            val NONE = LogStatus(
+                { UIManager.getColor("Button.disabledSelectedBackground") },
+                { UIManager.getColor("Button.background") },
+                "",
+                ""
+            )
         }
     }
 
     class LogStatusIdle(status: String, path: String = "") : LogStatus(
-        Color.DARK_GRAY, Color.BLACK, status, path
+        { UIManager.getColor("Button.disabledText") },
+        { UIManager.getColor("Button.disabledBackground") },
+        status,
+        path
     )
 
     class LogStatusRunning(status: String, path: String = "") : LogStatus(
-        Color.GREEN, Color.WHITE, status, path
+        { UIManager.getColor("CheckBox.background.selected") },
+        { UIManager.getColor("CheckBox.foreground") },
+        status,
+        path
     )
 }

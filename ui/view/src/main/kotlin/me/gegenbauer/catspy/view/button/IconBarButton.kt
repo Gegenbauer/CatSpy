@@ -1,11 +1,11 @@
 package me.gegenbauer.catspy.view.button
 
-import me.gegenbauer.catspy.utils.setBorderless
+import me.gegenbauer.catspy.utils.ui.setBorderless
 import java.awt.Dimension
 import javax.swing.Icon
 
 /**
- * 尺寸紧凑，而且宽高相同
+ * Compact in size and equal in width and height
  */
 class IconBarButton(
     icon: Icon? = null,

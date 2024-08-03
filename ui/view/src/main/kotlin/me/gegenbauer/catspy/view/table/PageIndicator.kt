@@ -75,8 +75,10 @@ class PageIndicator<T>(
     }
 
     /**
-     * 获取省略的组件个数
-     * 假如有10页，当前页是第5页，最多显示5个按钮，那么去掉头尾2个按钮，再去掉省略的两个，中间应该是1个按钮，左边省略 4 个，右边省略 3 个
+     * Gets the number of omitted components
+     * If there are 10 pages, the current page is page 5, and a maximum of 5 buttons are displayed,
+     * then go to the end of the 2 buttons, and then remove the two omitted,
+     * there should be 1 button in the middle, 4 omitted on the left and 3 omitted on the right
      */
     private fun getEllipsesComponentCount(pageCount: Int, currentPage: Int): Pair<Int, Int> {
         val leftEllipsesCount = (currentPage - 0 + 1) - 2 - getMiddleButtonEachSide()

@@ -12,6 +12,7 @@ dependencies {
     implementation(projects.ui.view)
     implementation(projects.ui.databinding)
     implementation(projects.resources)
+    implementation(projects.javaext)
     implementation(projects.glog)
     implementation(projects.concurrency)
     implementation(projects.task)

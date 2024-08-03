@@ -60,11 +60,10 @@ object GLogFormatter {
 
     private fun appendExceptionMessage(builder: StringBuilder, throwable: Throwable) {
         builder.append(throwable.javaClass.canonicalName).append(": ")
-        builder.append(throwable.message)
-        builder.append('\n')
+        builder.appendLine(throwable.message)
         val trace = throwable.stackTrace
         for (element in trace) {
-            builder.append("\tat ").append(element).append('\n')
+            builder.append("\tat ").appendLine(element)
         }
         val dejaVu = Collections.newSetFromMap(IdentityHashMap<Throwable, Boolean>())
         // Print suppressed exceptions, if any
@@ -104,7 +103,7 @@ object GLogFormatter {
             // Print the stack trace
             builder.append(prefix).append(caption).append(throwable).append('\n')
             for (i in 0..m) {
-                builder.append(prefix).append("\tat ").append(trace[i])
+                builder.append(prefix).append("\tat ").appendLine(trace[i])
             }
             if (framesInCommon != 0) {
                 builder.append(prefix).append("\t... ").append(framesInCommon).append(" more\n")

@@ -2,20 +2,22 @@ package me.gegenbauer.catspy.cache
 
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
+import me.gegenbauer.catspy.context.MemoryAware
 import java.security.MessageDigest
 import java.util.regex.Pattern
 
 class PatternProvider(size: Long = DEFAULT_CACHE_SIZE) : ContextService, LruCache<PatternKey, Pattern>(size) {
 
-    override fun get(key: PatternKey): Pattern? {
-        return super.get(key).takeIf { it != null } ?: Pattern.compile(key.pattern, key.getPatternFlag()).apply {
-            CacheLog.d(TAG, "[get] miss, pattern: $key")
-            put(key, this)
-        }
+    override fun create(key: PatternKey): Pattern? {
+        return Pattern.compile(key.pattern, key.getPatternFlag())
     }
 
     override fun onContextDestroyed(context: Context) {
         clearMemory()
+    }
+
+    override fun onTrimMemory(level: MemoryAware.Level) {
+        setSizeMultiplier(0.8f)
     }
 
     companion object {
@@ -37,9 +39,5 @@ data class PatternKey(
 ) : Key {
     fun getPatternFlag(): Int {
         return if (matchCase) 0 else Pattern.CASE_INSENSITIVE
-    }
-
-    override fun updateDiskCacheKey(messageDigest: MessageDigest) {
-        messageDigest.update(pattern.toByteArray(Key.CHARSET))
     }
 }

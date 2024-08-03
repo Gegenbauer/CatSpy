@@ -1,0 +1,53 @@
+{
+  "logType": "Default Raw Log",
+  "parser": {
+    "splitToPartsOp": {
+      "name": "EmptySplitToParts",
+      "splitToPartsOpType": 0
+    },
+    "trimOps": []
+  },
+  "columns": [
+    {
+      "name": "Line",
+      "supportFilter": true,
+      "uiConf": {
+        "column": {
+          "index": 0,
+          "charLen": 250,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Line",
+          "layoutWidth": -1.0,
+          "position": {
+            "columnIndex": 0,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 0,
+      "isMessage": true,
+      "isLevel": false,
+      "id": 0
+    }
+  ],
+  "levels": [
+    {
+      "level": {
+        "value": 0,
+        "name": "Verbose",
+        "tag": "V"
+      },
+      "color": {
+        "color": -16777216,
+        "darkThemeColor": -986896
+      }
+    }
+  ],
+  "supportedFileExtensions": [],
+  "isDeviceLog": false,
+  "isBuiltIn": true,
+  "description": "Treat whole line as a single part and use the default raw log parser which does not parse the log message and just displays the raw log message.",
+  "sample": "06-05 17:36:15.905  2083  4016 D CompatibilityChangeReporter: Compat change id reported: 161252188; UID 10541; state: DISABLED"
+}

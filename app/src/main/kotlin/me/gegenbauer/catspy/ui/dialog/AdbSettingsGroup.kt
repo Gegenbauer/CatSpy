@@ -16,7 +16,7 @@ import me.gegenbauer.catspy.ddmlib.adb.*
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.utils.DefaultDocumentListener
+import me.gegenbauer.catspy.utils.ui.DefaultDocumentListener
 import java.awt.Component
 import java.io.File
 import javax.swing.*
@@ -122,13 +122,6 @@ class AdbSettingsGroup(
         layout.hGap = 10
         panel.layout = layout
 
-        scope.launch {
-            val adbStarted = isServerRunning()
-            withContext(Dispatchers.UI) {
-                updateAdbStatus(adbStarted)
-            }
-        }
-
         val refreshAdbServerStatusBtn = JButton(STRINGS.ui.refresh)
         refreshAdbServerStatusBtn.addActionListener {
             refreshAdbStatus()
@@ -137,7 +130,18 @@ class AdbSettingsGroup(
         adbStatusTf.parent?.removeAll()
         panel.add(adbStatusTf, "0,0")
         panel.add(refreshAdbServerStatusBtn, "1,0")
+
+        checkAdbStatus()
         return panel
+    }
+
+    private fun checkAdbStatus() {
+        scope.launch {
+            val adbStarted = isServerRunning()
+            withContext(Dispatchers.UI) {
+                updateAdbStatus(adbStarted)
+            }
+        }
     }
 
     private fun refreshAdbStatus() {

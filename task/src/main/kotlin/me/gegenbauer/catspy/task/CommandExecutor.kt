@@ -62,7 +62,7 @@ class CommandExecutorImpl(
 
     private fun ProducerScope<Result<String>>.readOutput(process: Process) {
         launch(job) {
-            Scanner(BufferedInputStream(process.inputStream)).use {
+            Scanner(BufferedInputStream(process.inputStream), Charsets.UTF_8).use {
                 while (it.hasNextLine()) {
                     val line = it.nextLine()
                     send(Result.success(line))

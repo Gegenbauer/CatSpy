@@ -39,9 +39,6 @@ class ScriptCard(
 
     var device: Device = defaultDevice
 
-    /**
-     * titleLabel 和 contentLabel 分两行
-     */
     init {
         layout = GridLayout(3, 0)
         titleLabel.text = scriptUIItem.script.name

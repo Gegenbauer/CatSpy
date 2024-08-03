@@ -4,6 +4,7 @@ import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ModelScope
@@ -54,7 +55,7 @@ class DeviceInfoCard(
         val deviceManager = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
         if (deviceManager.getDevices().isNotEmpty()) {
             scriptUIItems.forEachIndexed { index, item ->
-                scope.async {
+                scope.launch {
                     val executor = CommandExecutor(taskManager, item.script, Dispatchers.GIO)
                     val response = executor.execute(device)
                     response.collect {

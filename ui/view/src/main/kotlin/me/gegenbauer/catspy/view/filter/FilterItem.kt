@@ -13,7 +13,7 @@ data class FilterItem(
 ) {
 
     override fun hashCode(): Int {
-        return Objects.hash(positiveFilter, negativeFilter)
+        return Objects.hash(positiveFilter, negativeFilter, errorMessage)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -23,14 +23,15 @@ data class FilterItem(
         return this.positiveFilter.pattern() == other.positiveFilter.pattern() &&
                 this.negativeFilter.pattern() == other.negativeFilter.pattern() &&
                 this.positiveFilter.flags() == other.positiveFilter.flags() &&
-                this.negativeFilter.flags() == other.negativeFilter.flags()
+                this.negativeFilter.flags() == other.negativeFilter.flags() &&
+                this.errorMessage == other.errorMessage
     }
 
     override fun toString(): String {
         if (this.isEmpty()) {
             return STR_PATTERN_EMPTY
         }
-        return "positive: ${positiveFilter.pattern()}, negative: ${negativeFilter.pattern()}"
+        return "positive: ${positiveFilter.pattern()}, negative: ${negativeFilter.pattern()}, error: $errorMessage"
     }
 
     companion object {
@@ -87,7 +88,7 @@ fun String.getOrCreateFilterItem(matchCase: Boolean = false): FilterItem {
         return FilterItem.EMPTY_ITEM
     }
     val filterCache = ServiceManager.getContextService(FilterCache::class.java)
-    return filterCache[toFilterKey(matchCase)]
+    return filterCache[toFilterKey(matchCase)] ?: FilterItem.EMPTY_ITEM
 }
 
 internal fun String.toFilterItem(matchCase: Boolean = false): FilterItem {

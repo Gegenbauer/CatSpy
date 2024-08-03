@@ -24,6 +24,7 @@ import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.strings.StringResourceManager
 import me.gegenbauer.catspy.strings.registerLocaleChangeListener
 import me.gegenbauer.catspy.ui.MainFrame
+import me.gegenbauer.catspy.utils.persistence.Preferences
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.util.*
@@ -51,6 +52,7 @@ object Application : WindowAdapter() {
 
             withContext(Dispatchers.APP_LAUNCH) {
                 GLog.init(filesDir, GlobalStrings.LOG_NAME)
+                Preferences.loadFromDisk()
                 SettingsManager.init()
                 GlobalConfSync.init()
                 DebugConfiguration.apply()
@@ -89,11 +91,12 @@ object Application : WindowAdapter() {
         mainFrame.configureContext(mainFrame)
         mainFrame.isVisible = true
         mainFrame.addWindowListener(this@Application)
+        GLog.i(TAG, "[showMainFrame] mainFrame is visible")
     }
 
     private fun registerGlobalService() {
-        ServiceManager.registerContextService(PatternProvider::class.java)
-        ServiceManager.registerContextService(AdamDeviceMonitor::class.java)
+        ServiceManager.registerGlobalService(PatternProvider::class.java)
+        ServiceManager.registerGlobalService(AdamDeviceMonitor::class.java)
     }
 
     private val themeAwareControllers = listOf(

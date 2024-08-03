@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.view.combobox.highlight
 
+import com.formdev.flatlaf.FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON
 import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.glog.GLog
-import me.gegenbauer.catspy.utils.DefaultDocumentListener
-import me.gegenbauer.catspy.view.combobox.HistoryItem
+import me.gegenbauer.catspy.utils.ui.DefaultDocumentListener
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
@@ -30,7 +30,7 @@ class HighlighterEditor : BasicComboBoxEditor.UIResource(), Highlightable, UIRes
     private val textEditor = editorComponent as JTextComponent
 
     override fun setItem(item: Any?) {
-        if (item is String || item is HistoryItem<*>) {
+        if (item is String) {
             if (item.toString() != textEditor.text) {
                 textEditor.text = item.toString()
                 updateHighlighter()
@@ -42,7 +42,7 @@ class HighlighterEditor : BasicComboBoxEditor.UIResource(), Highlightable, UIRes
 
     override fun createEditorComponent(): JTextField {
         return super.createEditorComponent().apply {
-            putClientProperty("JTextField.showClearButton", true)
+            putClientProperty(TEXT_FIELD_SHOW_CLEAR_BUTTON, true)
         }
     }
 

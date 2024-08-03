@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
-import me.gegenbauer.catspy.log.model.LogcatItem
 import java.io.File
 
 interface LogProducer {
@@ -21,7 +20,7 @@ interface LogProducer {
     val isPaused: Boolean
         get() = state.value == State.PAUSED
 
-    fun start(): Flow<Result<LogcatItem>>
+    fun start(): Flow<Result<LogItem>>
 
     fun pause()
 
@@ -32,8 +31,8 @@ interface LogProducer {
     fun destroy()
 
     /**
-     * RUNNING 和 PAUSED 状态可以互相切换
-     * 其余状态只能往后面的状态切换
+     * RUNNING and PAUSED states can switch between each other.
+     * Other states can only transition to the next state.
      * CREATED -> RUNNING -> PAUSED -> CANCELED -> DESTROYED
      */
     fun moveToState(state: State)
@@ -47,11 +46,11 @@ object EmptyLogProducer : LogProducer {
     override val dispatcher: CoroutineDispatcher
         get() = throw IllegalStateException("EmptyLogProducer should not use dispatcher")
 
-    override val state: MutableStateFlow<LogProducer.State> = MutableStateFlow(LogProducer.State.CREATED)
+    override val state: StateFlow<LogProducer.State> = MutableStateFlow(LogProducer.State.CREATED)
 
     override val tempFile: File = File("")
 
-    override fun start(): Flow<Result<LogcatItem>> {
+    override fun start(): Flow<Result<LogItem>> {
         return emptyFlow()
     }
 

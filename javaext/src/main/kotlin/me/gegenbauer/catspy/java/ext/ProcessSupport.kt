@@ -18,7 +18,7 @@ fun List<String>.runCommandIgnoreResult() {
             val error = it.readText()
             if (error.isNotEmpty()) {
                 GLog.e(TAG, "[runCommand] executing command[${this@runCommandIgnoreResult}] failed with error: $error")
-                globalMessagePublisher.publish(Message.Error(error))
+                GlobalMessageManager.publish(Message.Error(error))
             }
         }
     }

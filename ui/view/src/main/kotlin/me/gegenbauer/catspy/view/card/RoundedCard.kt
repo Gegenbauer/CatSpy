@@ -6,7 +6,7 @@ import javax.swing.JPanel
 import javax.swing.UIManager
 
 /**
- * 带圆角背景容器
+ * Container with rounded corner
  */
 open class RoundedCard @JvmOverloads constructor(
     private val radius: Int = 30,

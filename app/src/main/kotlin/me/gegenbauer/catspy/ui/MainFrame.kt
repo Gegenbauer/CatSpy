@@ -1,8 +1,7 @@
 package me.gegenbauer.catspy.ui
 
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.conf.GlobalConfSync
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.configuration.currentSettings
@@ -16,9 +15,11 @@ import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.appIcons
 import me.gegenbauer.catspy.java.ext.*
+import me.gegenbauer.catspy.log.metadata.LogMetadataManager
 import me.gegenbauer.catspy.network.update.ReleaseEvent
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.get
 import me.gegenbauer.catspy.ui.dialog.GThemeSettingsDialog
 import me.gegenbauer.catspy.ui.dialog.GThemeSettingsDialog.Companion.GROUP_INDEX_ADB
 import me.gegenbauer.catspy.ui.dialog.UpdateDialog
@@ -26,8 +27,8 @@ import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
 import me.gegenbauer.catspy.ui.panel.MemoryStatusBar
 import me.gegenbauer.catspy.ui.panel.TabManagerPane
-import me.gegenbauer.catspy.utils.dismissOnClickOutsideWindows
-import me.gegenbauer.catspy.utils.registerDismissOnClickOutsideListener
+import me.gegenbauer.catspy.utils.ui.dismissOnClickOutsideWindows
+import me.gegenbauer.catspy.utils.ui.registerDismissOnClickOutsideListener
 import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.tab.OnTabChangeListener
 import me.gegenbauer.catspy.view.tab.TabManager
@@ -71,6 +72,10 @@ class MainFrame(
         bindGlobalProperties()
 
         configureAdbPath()
+
+        preTriggerKotlinReflection()
+
+        loadLogMetadata()
     }
 
     private fun createUI() {
@@ -132,6 +137,22 @@ class MainFrame(
         registerDismissOnClickOutsideListener { it.javaClass.simpleName in dismissOnClickOutsideWindows }
     }
 
+    private fun preTriggerKotlinReflection() {
+        scope.launch {
+            withContext(Dispatchers.GIO) {
+                KotlinReflectionPreTrigger().trigger()
+            }
+        }
+    }
+
+    private fun loadLogMetadata() {
+        scope.launch {
+            withContext(Dispatchers.GIO) {
+                ServiceManager.getContextService(LogMetadataManager::class.java).loadAllMetadata()
+            }
+        }
+    }
+
     private fun observeEventFlow() {
         scope.launch {
             mainViewModel.eventFlow.collect {
@@ -175,7 +196,7 @@ class MainFrame(
                 val errorMsg = event.error?.message ?: STRINGS.ui.unknownError
                 JOptionPane.showMessageDialog(
                     this@MainFrame,
-                    STRINGS.ui.checkUpdateFailedMessage.format(errorMsg),
+                    STRINGS.ui.checkUpdateFailedMessage.get(errorMsg),
                     STRINGS.ui.checkUpdateTitle,
                     JOptionPane.ERROR_MESSAGE
                 )
@@ -217,7 +238,7 @@ class MainFrame(
                 val errorMsg = fileSaveEvent.error.message ?: STRINGS.ui.unknownError
                 JOptionPane.showMessageDialog(
                     this@MainFrame,
-                    fileSaveEvent.message.format(errorMsg),
+                    fileSaveEvent.message.get(errorMsg),
                     fileSaveEvent.title,
                     JOptionPane.ERROR_MESSAGE
                 )
@@ -227,9 +248,7 @@ class MainFrame(
 
     private fun observeGlobalMessage() {
         scope.launch {
-            globalMessage.collect {
-                it ?: return@collect
-
+            GlobalMessageManager.collect {
                 fun getMessageBoxType(message: Message): Int {
                     return when (message) {
                         is Message.Info -> JOptionPane.INFORMATION_MESSAGE
@@ -251,9 +270,7 @@ class MainFrame(
 
     private fun observeGlobalEvent() {
         scope.launch {
-            globalEvent.collect {
-                it ?: return@collect
-
+            GlobalEventManager.collect {
                 when (it) {
                     is OpenAdbPathSettingsEvent -> {
                         val dialog = GThemeSettingsDialog(this@MainFrame, GROUP_INDEX_ADB)

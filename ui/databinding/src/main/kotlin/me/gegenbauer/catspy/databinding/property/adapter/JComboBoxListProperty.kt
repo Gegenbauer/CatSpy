@@ -1,7 +1,8 @@
 package me.gegenbauer.catspy.databinding.property.adapter
 
 import me.gegenbauer.catspy.databinding.property.support.BasePropertyAdapter
-import me.gegenbauer.catspy.utils.DefaultListDataListener
+import me.gegenbauer.catspy.utils.ui.DefaultListDataListener
+import java.lang.reflect.Method
 import javax.swing.JComboBox
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
@@ -16,6 +17,12 @@ class JComboBoxListProperty<ITEM>(component: JComboBox<ITEM>) :
             }
             notifyValueChange(component.getAllItems())
         }
+    }
+
+    private val setItemsMethod: Method? by lazy {
+        kotlin.runCatching {
+            component.model.javaClass.getDeclaredMethod("setItems", List::class.java)
+        }.getOrNull()
     }
 
     init {
@@ -36,9 +43,15 @@ class JComboBoxListProperty<ITEM>(component: JComboBox<ITEM>) :
 
     override fun updateValue(value: List<ITEM>?) {
         value ?: return
-        component.removeAllItems()
-        value.forEach(component::addItem)
-        component.editor.item = value.firstOrNull()
+        val setItemsMethod = setItemsMethod
+        if (setItemsMethod != null) {
+            setItemsMethod.invoke(component.model, value)
+        } else {
+            component.removeAllItems()
+            value.forEach(component::addItem)
+            component.editor.item = value.firstOrNull()
+        }
+
         propertyChangeObserver?.updateValue(value)
     }
 

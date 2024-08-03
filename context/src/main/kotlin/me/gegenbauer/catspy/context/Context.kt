@@ -26,6 +26,10 @@ interface Context: Disposable {
         configureContext(this)
     }
 
+    fun putContext(context: Context) {
+        contexts.putContext(context)
+    }
+
     fun configureContext(context: Context) {
         contexts.putContext(context)
     }

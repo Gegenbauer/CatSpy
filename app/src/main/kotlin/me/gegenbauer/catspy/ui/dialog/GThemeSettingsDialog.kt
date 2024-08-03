@@ -5,11 +5,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.configuration.*
 import me.gegenbauer.catspy.file.gson
+import me.gegenbauer.catspy.java.ext.GlobalMessageManager
 import me.gegenbauer.catspy.java.ext.Message
 import me.gegenbauer.catspy.java.ext.copyFields
-import me.gegenbauer.catspy.java.ext.globalMessagePublisher
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
+import me.gegenbauer.catspy.strings.globalLocale
+import me.gegenbauer.catspy.utils.ui.installKeyStrokeEscClosing
+import me.gegenbauer.catspy.utils.ui.showWarningDialog
 import java.awt.*
 import java.awt.datatransfer.StringSelection
 import javax.swing.*
@@ -86,6 +88,9 @@ class GThemeSettingsDialog(
         val resetBtn = JButton(STRINGS.ui.reset)
         resetBtn.addActionListener { reset() }
 
+        val resetToDefault = JButton(STRINGS.ui.resetToDefaultTheme)
+        resetToDefault.addActionListener { resetToDefault() }
+
         val copyBtn = JButton(STRINGS.ui.copyToClipboard)
         copyBtn.addActionListener { copySettings() }
 
@@ -93,6 +98,7 @@ class GThemeSettingsDialog(
         buttonPane.layout = BoxLayout(buttonPane, BoxLayout.LINE_AXIS)
         buttonPane.border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
         buttonPane.add(resetBtn)
+        buttonPane.add(resetToDefault)
         buttonPane.add(copyBtn)
         buttonPane.add(Box.createHorizontalGlue())
         buttonPane.add(saveBtn)
@@ -104,17 +110,68 @@ class GThemeSettingsDialog(
     }
 
     private fun save() {
+        checkAndApplyLanguage()
         dispose()
-        SettingsManager.checkAndUpdateLocale(startSettings)
         startSettings = SettingsManager.string
+    }
+
+    private fun checkAndApplyLanguage() {
+        if (globalLocale.ordinal == currentSettings.mainUISettings.locale) {
+            return
+        }
+        if (showApplyLanguageWarning()) {
+            SettingsManager.updateLocale()
+        }
+    }
+
+    private fun showApplyLanguageWarning(): Boolean {
+        val actions = listOf(
+            STRINGS.ui.restartLater to { false },
+            STRINGS.ui.restartNow to { true }
+        )
+        return showWarningDialog(
+            this,
+            "",
+            STRINGS.ui.applyLanguageWarning,
+            actions,
+            defaultChoice = 1
+        )
     }
 
     private fun reset() {
         scope.launch { suspendedReset() }
     }
 
+    private fun resetToDefault() {
+        if (showResetToDefaultWarning()) {
+            scope.launch { suspendedResetToDefault() }
+        }
+    }
+
+    private fun showResetToDefaultWarning(): Boolean {
+        val actions = listOf(
+            STRINGS.ui.reset to { true },
+            STRINGS.ui.cancel to { false }
+        )
+        return showWarningDialog(
+            this,
+            "",
+            STRINGS.ui.resetToDefaultWarning,
+            actions,
+        )
+    }
+
     private suspend fun suspendedReset() {
         resetSettings()
+        reloadUI()
+    }
+
+    private suspend fun suspendedResetToDefault() {
+        SettingsManager.suspendedUpdateSettings {
+            themeSettings.resetToDefault()
+            mainUISettings.resetToDefault()
+            logSettings.resetToDefault()
+        }
         reloadUI()
     }
 
@@ -153,7 +210,7 @@ class GThemeSettingsDialog(
         val json = gson.toJson(settings)
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
         clipboard.setContents(StringSelection(json), null)
-        globalMessagePublisher.publish(Message.Info(STRINGS.ui.settingsCopyToClipboardSuccess))
+        GlobalMessageManager.publish(Message.Info(STRINGS.ui.settingsCopyToClipboardSuccess))
     }
 
     companion object {

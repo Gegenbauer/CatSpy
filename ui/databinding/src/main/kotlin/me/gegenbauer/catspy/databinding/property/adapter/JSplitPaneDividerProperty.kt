@@ -9,7 +9,7 @@ import javax.swing.JSplitPane
 
 class JSplitPaneDividerProperty(component: JSplitPane) :
     BasePropertyAdapter<JSplitPane, Int, PropertyChangeListener>(component) {
-    private val ignoreFastCallbackScheduler = IgnoreFastCallbackScheduler(Dispatchers.UI.immediate, 100)
+    private val ignoreFastCallbackScheduler = IgnoreFastCallbackScheduler(Dispatchers.UI, 100)
     override val propertyChangeListener: PropertyChangeListener = PropertyChangeListener {
         ignoreFastCallbackScheduler.schedule {
             notifyValueChange(it.newValue as? Int)

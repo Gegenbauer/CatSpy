@@ -48,7 +48,11 @@ class GithubUpdateServiceImpl(override val user: String, override val repo: Stri
             val request = Request.Builder()
                 .url(url)
                 .build()
-            val response = NetworkClient.client.newCall(request).execute()
+            val response = kotlin.runCatching {
+                NetworkClient.client.newCall(request).execute()
+            }.getOrElse {
+                return@withContext Result.failure(it)
+            }
             if (response.code != 200) {
                 response.close()
                 return@withContext Result.failure(Exception("Failed to get latest release $url, code: ${response.code}"))

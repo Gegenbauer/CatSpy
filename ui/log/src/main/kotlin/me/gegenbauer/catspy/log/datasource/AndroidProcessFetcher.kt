@@ -9,43 +9,55 @@ import me.gegenbauer.catspy.log.Log
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-class AndroidProcessFetcher(var device: String) {
+class AndroidProcessFetcher(device: String) {
     private var pidToPackageMap = HashMap<String, String>()
-    private val suspender = CoroutineSuspender()
+    private val suspender = CoroutineSuspender("AndroidProcessFetcher")
     private val scope = ModelScope()
     private val splitRegex by lazy { "\\s+".toRegex() }
 
     private var fetchTask: Job? = null
 
+    var device: String = device
+        set(value) {
+            if (field != value) {
+                field = value
+                pidToPackageMap = HashMap()
+            }
+        }
+
     fun start() {
         val lastTask = fetchTask
         fetchTask = scope.launch {
-            withContext(Dispatchers.GIO) {
-                lastTask?.cancelAndJoin()
-                while (isActive) {
-                    updatePidToPackageMap()
-                    delay(UPDATE_INTERVAL)
-                }
+            lastTask?.cancelAndJoin()
+            while (isActive) {
+                updatePidToPackageMap()
+                delay(UPDATE_INTERVAL)
             }
         }
     }
 
-    private fun updatePidToPackageMap() {
-        kotlin.runCatching {
-            if (device.isEmpty()) {
-                return
-            }
-            val map = HashMap<String, String>()
-            val process = Runtime.getRuntime().exec("${SettingsManager.adbPath} -s $device shell ps")
-            val reader = BufferedReader(InputStreamReader(process.inputStream))
-            reader.forEachLine {
-                parseLineToPidPackage(it)?.let { (pid, packageName) ->
-                    map[pid] = packageName
+    suspend fun initiallyLoadPackages() {
+        updatePidToPackageMap()
+    }
+
+    private suspend fun updatePidToPackageMap() {
+        withContext(Dispatchers.GIO) {
+            kotlin.runCatching {
+                if (device.isEmpty()) {
+                    return@withContext
                 }
+                val map = HashMap<String, String>()
+                val process = Runtime.getRuntime().exec("${SettingsManager.adbPath} -s $device shell ps")
+                val reader = BufferedReader(InputStreamReader(process.inputStream))
+                reader.forEachLine {
+                    parseLineToPidPackage(it)?.let { (pid, packageName) ->
+                        map[pid] = packageName
+                    }
+                }
+                pidToPackageMap = map
+            }.onFailure {
+                Log.e(TAG, "[updatePidToPackageMap] failed", it)
             }
-            pidToPackageMap = map
-        }.onFailure {
-            Log.e(TAG, "[updatePidToPackageMap] failed", it)
         }
     }
 
