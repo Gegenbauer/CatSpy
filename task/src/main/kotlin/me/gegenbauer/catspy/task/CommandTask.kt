@@ -1,28 +1,25 @@
 package me.gegenbauer.catspy.task
 
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.emptyFlow
-import me.gegenbauer.catspy.glog.GLog
+import kotlinx.coroutines.launch
 import java.io.BufferedInputStream
 import java.io.File
 import java.util.*
 
-// TODO 增加关于接受输出和处理输出的速度比较，避免出现数据积压然后遗漏的情况
-@Suppress("OPT_IN_IS_NOT_ENABLED")
 open class CommandTask(
-    protected val commands: Array<String>,
+    private val commands: Array<String>,
     private val args: Array<String> = arrayOf(),
     private val envVars: Map<String, String> = mapOf(),
     name: String = "CommandTask"
 ) : PausableTask(name = name) {
 
-    protected var process: Process? = null
-    protected var workingDirectory: File? = null
+    private var process: Process? = null
+    private var workingDirectory: File? = null
 
     override suspend fun startInCoroutine() {
         TaskLog.d(name, "[startInCoroutine] start")
@@ -48,7 +45,7 @@ open class CommandTask(
         return runCatching {
             // flow buffer size is 20MB
             channelFlow {
-                async {
+                launch {
                     val builder = ProcessBuilder(*commands)
                         .directory(workingDirectory)
                     builder.command().addAll(args)
@@ -74,7 +71,7 @@ open class CommandTask(
     }
 
     private fun ProducerScope<String>.readOutput(process: Process) {
-        async {
+        launch {
             Scanner(BufferedInputStream(process.inputStream)).use {
                 while (it.hasNextLine()) {
                     send(it.nextLine())
@@ -86,7 +83,7 @@ open class CommandTask(
     }
 
     private fun ProducerScope<String>.readError(process: Process) {
-        async {
+        launch {
             process.errorStream.readAllBytes().toString(Charsets.UTF_8).let {
                 if (it.isNotEmpty()) {
                     TaskLog.e(name, "[readError] $process, $it")

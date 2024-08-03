@@ -1,25 +1,18 @@
 package me.gegenbauer.catspy.log.datasource
 
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import me.gegenbauer.catspy.java.ext.Event
-import me.gegenbauer.catspy.log.model.LogItem
-import me.gegenbauer.catspy.log.model.LogcatItem
 import me.gegenbauer.catspy.view.state.ListState
 import java.io.File
 
-interface LogProducerManager<T: LogItem> {
+interface LogProducerManager {
 
-    val eventFlow: StateFlow<Event>
+    val eventFlow: SharedFlow<Event>
 
-    val fullLogItemsFlow: StateFlow<List<T>>
+    val fullLogObservables: LogObservables
 
-    val filteredLogItemsFlow: StateFlow<List<T>>
-
-    val fullLogListState: StateFlow<ListState>
-
-    val filteredLogListState: StateFlow<ListState>
-
-    val processValueExtractor: (LogcatItem) -> String
+    val filteredLogObservables: LogObservables
 
     val tempLogFile: File
 
@@ -29,7 +22,11 @@ interface LogProducerManager<T: LogItem> {
 
     fun startProduceFileLog(file: String)
 
-    fun onLogItemReceived(logItem: T)
+    fun startProduceCustomFileLog(producer: () -> List<String>)
+
+    fun startProduceCustomDeviceLog(producer: () -> List<String>)
+
+    fun onLogItemReceived(logItem: LogItem)
 
     fun onLogProduceError(error: Throwable)
 
@@ -44,6 +41,12 @@ interface LogProducerManager<T: LogItem> {
     fun clear()
 
     fun cancel()
+
+    class LogObservables(
+        val itemsFlow: StateFlow<List<LogItem>>,
+        val listState: StateFlow<ListState>,
+        val repaintEventFlow: SharedFlow<Event>
+    )
 }
 
 enum class TaskState: Event {

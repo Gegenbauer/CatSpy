@@ -6,6 +6,8 @@ plugins {
 
 dependencies {
     implementation(projects.glog)
+    implementation(projects.context)
+    implementation(projects.cache)
 
     testImplementation(kotlinTestApi())
     testImplementation(Mockk.mockk)

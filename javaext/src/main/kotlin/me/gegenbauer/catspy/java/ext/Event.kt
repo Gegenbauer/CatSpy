@@ -1,10 +1,7 @@
 package me.gegenbauer.catspy.java.ext
 
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.concurrency.AppScope
 
 interface Event
 
@@ -24,14 +21,24 @@ fun interface EventPublisher {
     fun publish(event: Event)
 }
 
+fun interface EventObservable {
+    suspend fun collect(action: suspend (Event) -> Unit)
+}
 
-private val _globalEvent: MutableSharedFlow<Event?> = MutableSharedFlow()
+object GlobalEventManager: EventPublisher, EventObservable {
+    private val _globalEvent: MutableSharedFlow<Event?> = MutableSharedFlow(
+        extraBufferCapacity = 20,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
 
-val globalEvent: SharedFlow<Event?> = _globalEvent.asSharedFlow()
-val globalEventPublisher: EventPublisher = object : EventPublisher {
     override fun publish(event: Event) {
-        AppScope.launch {
-            _globalEvent.emit(event)
+        _globalEvent.tryEmit(event)
+    }
+
+    override suspend fun collect(action: suspend (Event) -> Unit) {
+        _globalEvent.collect {
+            action(it ?: EmptyEvent)
         }
     }
+
 }

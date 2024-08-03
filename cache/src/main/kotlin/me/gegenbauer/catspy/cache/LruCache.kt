@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.cache
 
 import kotlin.math.roundToLong
 
-open class LruCache<T, K>(private val initialMaxSize: Long): MemoryAware {
+open class LruCache<T, K>(private val initialMaxSize: Long) {
     val count: Int
         get() = cache.size
     var currentSize: Long = 0L
@@ -11,12 +11,14 @@ open class LruCache<T, K>(private val initialMaxSize: Long): MemoryAware {
 
     private val cache: MutableMap<T, Entry<K>> = LinkedHashMap(100, 0.75f, true)
 
-
     @Synchronized
     fun setSizeMultiplier(multiplier: Float) {
         require(multiplier >= 0) { "Multiplier must be >= 0" }
-        maxSize = (initialMaxSize * multiplier).roundToLong()
-        ensureSize()
+        val newSize = (initialMaxSize * multiplier).roundToLong()
+        if (newSize != maxSize) {
+            maxSize = newSize
+            ensureSize()
+        }
     }
 
     protected open fun getSize(item: K?): Int {
@@ -33,9 +35,18 @@ open class LruCache<T, K>(private val initialMaxSize: Long): MemoryAware {
         val entry = cache[key]
         val value = entry?.value
         if (value == null) {
+            val new = create(key)
+            if (new != null) {
+                put(key, new)
+            }
             missedCount++
+            return new
         }
         return value
+    }
+
+    protected open fun create(key: T): K? {
+        return null
     }
 
     @Synchronized
@@ -85,7 +96,9 @@ open class LruCache<T, K>(private val initialMaxSize: Long): MemoryAware {
 
     @Synchronized
     protected fun trimToSize(size: Long) {
-        CacheLog.d(TAG, "[trimToSize] currentSize: $currentSize, maxSize: $maxSize, size: $size")
+        if (currentSize > size) {
+            CacheLog.d(TAG, "[trimToSize] currentSize: $currentSize, maxSize: $maxSize, size: $size")
+        }
         val cacheIterator = cache.iterator()
         while (currentSize > size) {
             val last = cacheIterator.next()
@@ -112,10 +125,5 @@ open class LruCache<T, K>(private val initialMaxSize: Long): MemoryAware {
 
     companion object {
         private const val TAG = "LruCache"
-    }
-
-    override fun onTrimMemory(level: Int) {
-        CacheLog.d(TAG, "[onTrimMemory] level: $level")
-        // TODO
     }
 }

@@ -3,13 +3,16 @@ package me.gegenbauer.catspy.view.filter
 import me.gegenbauer.catspy.cache.LruCache
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
+import me.gegenbauer.catspy.context.MemoryAware
 
-class FilterCache: LruCache<FilterKey, FilterItem>(2000), ContextService {
+class FilterCache : LruCache<FilterKey, FilterItem>(2000), ContextService {
 
-    override fun get(key: FilterKey): FilterItem {
-        return super.get(key) ?: key.filter.toFilterItem(key.matchCase).apply {
-            put(key, this)
-        }
+    override fun create(key: FilterKey): FilterItem? {
+        return key.filter.toFilterItem(key.matchCase)
+    }
+
+    override fun onTrimMemory(level: MemoryAware.Level) {
+        setSizeMultiplier(0.8f)
     }
 
     override fun onContextDestroyed(context: Context) {

@@ -15,7 +15,7 @@ import me.gegenbauer.catspy.strings.globalLocale
 import javax.swing.LookAndFeel
 import javax.swing.UIManager
 
-object ThemeManager {
+object ThemeManager: SettingsChangeListener {
     private const val TAG = "ThemeManager"
     private const val SYSTEM_THEME_NAME = "default"
 
@@ -38,6 +38,7 @@ object ThemeManager {
     private val themesMap = hashMapOf<String, String>()
 
     fun init(settings: GSettings) {
+        SettingsManager.addSettingsChangeListener(this)
         installFonts()
         FlatLaf.registerCustomDefaultsSource(GlobalProperties.APP_ID)
         setSystemColorGetter()
@@ -53,9 +54,9 @@ object ThemeManager {
         FlatLaf.setSystemColorGetter { currentSettings.themeSettings.getAccentColor() }
     }
 
-    fun update(originalSettings: GSettings, settings: GSettings) {
+    private fun update(originalSettings: GSettings, settings: GSettings) {
         val themeChanged = originalSettings.themeSettings.theme != settings.themeSettings.theme
-        val fontChanged = originalSettings.themeSettings.font != settings.themeSettings.font
+        val fontChanged = originalSettings.themeSettings.uiFont != settings.themeSettings.uiFont
         val ifAccentColorChanged =
             originalSettings.themeSettings.getAccentColor() != settings.themeSettings.getAccentColor()
         if (themeChanged || fontChanged || ifAccentColorChanged) {
@@ -94,7 +95,7 @@ object ThemeManager {
     }
 
     private fun applyFont(settings: GSettings) {
-        FontSupport.setUIFont(settings.themeSettings.font.toNativeFont())
+        FontSupport.setUIFont(settings.themeSettings.uiFont.nativeFont)
     }
 
     private fun applyLaf(theme: String): Boolean {
@@ -145,5 +146,9 @@ object ThemeManager {
 
     fun unregisterThemeUpdateListener(listener: GThemeChangeListener) {
         UIManager.removePropertyChangeListener(listener)
+    }
+
+    override fun onSettingsChanged(oldSettings: GSettings, newSettings: GSettings) {
+        update(oldSettings, newSettings)
     }
 }

@@ -2,7 +2,8 @@ package me.gegenbauer.catspy.view.button
 
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
-import me.gegenbauer.catspy.utils.*
+import me.gegenbauer.catspy.utils.ui.*
+import me.gegenbauer.catspy.view.label.EllipsisLabel
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Insets
@@ -10,7 +11,7 @@ import java.awt.event.*
 import javax.swing.*
 
 class ClosableTabHeader(
-    tabName: String,
+    private val tabName: String,
     private val parent: JTabbedPane,
     icon: Icon? = null,
     private val closeable: Boolean = true,
@@ -20,7 +21,7 @@ class ClosableTabHeader(
 
     var onCloseClicked: (() -> Unit)? = null
 
-    private val title = JLabel(tabName, icon, SwingConstants.LEFT)
+    private val title = EllipsisLabel(tabName, false, icon, 250)
     private val closeButton = CloseButton(::closeTab)
     private val editor = JTextField()
     private var titleLen = 0
@@ -30,7 +31,6 @@ class ClosableTabHeader(
         override fun mouseClicked(e: MouseEvent) {
             if (e.isLeftClick && e.isSingleClick) {
                 parent.selectedIndex = parent.indexOfTabComponent(this@ClosableTabHeader)
-                parent.requestFocusInWindow()
             }
             val rect = parent.ui.getTabBounds(parent, parent.selectedIndex)
             if (e.isLeftClick && e.isDoubleClick) {
@@ -49,22 +49,40 @@ class ClosableTabHeader(
 
     private fun initUI() {
         layout = FlowLayout(FlowLayout.LEFT, CLOSE_BUTTON_PADDING_LEFT, 0)
-        toolTipText = tabTooltip
         isOpaque = false
-        name = "Tab.header"
-        closeButton.name = "Tab.close"
+        name = TAB_HEADER_KEY
+        closeButton.name = TAB_CLOSE_KEY
         closeButton.toolTipText = STRINGS.toolTip.tabCloseBtn
         title.border = null
         title.isOpaque = false
-        title.name = "Tab.name"
-        title.toolTipText = tabTooltip
+        title.name = TAB_NAME_KEY
         editor.border = BorderFactory.createLineBorder(editor.foreground)
         editor.margin = Insets(0, 0, 0, 0)
+        setTooltipInternal(tabTooltip ?: "")
 
         add(title)
         if (closeable) {
             add(closeButton)
         }
+    }
+
+    fun setTabTooltip(tooltip: String) {
+        if (tooltip.isNotEmpty()) {
+            setTooltipInternal(tooltip)
+        } else {
+            setTooltipInternal(tabTooltip ?: "")
+        }
+    }
+
+    private fun setTooltipInternal(tooltip: String) {
+        toolTipText = tooltip
+        title.toolTipText = tooltip
+    }
+
+    fun setTabName(name: String) {
+        title.text = name.ifEmpty { tabName }
+        revalidate()
+        repaint()
     }
 
     private fun registerEvent() {
@@ -144,5 +162,10 @@ class ClosableTabHeader(
 
     companion object {
         private const val CLOSE_BUTTON_PADDING_LEFT = 4
+
+        private const val TAB_HEADER_KEY = "Tab"
+        private const val TAB_NAME_KEY = "Tab.name"
+        private const val TAB_CLOSE_KEY = "Tab.close"
+        private const val TAB_NAME_MAX_WIDTH = Int.MAX_VALUE
     }
 }

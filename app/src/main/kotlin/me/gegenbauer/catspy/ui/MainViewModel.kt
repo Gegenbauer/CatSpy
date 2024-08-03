@@ -1,16 +1,16 @@
 package me.gegenbauer.catspy.ui
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ViewModelScope
 import me.gegenbauer.catspy.configuration.currentSettings
 import me.gegenbauer.catspy.configuration.getLastModifiedLog
-import me.gegenbauer.catspy.context.Context
-import me.gegenbauer.catspy.context.ContextService
-import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.context.*
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.EmptyEvent
@@ -23,7 +23,8 @@ import me.gegenbauer.catspy.platform.GlobalProperties.*
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
-import me.gegenbauer.catspy.utils.copyFileWithProgress
+import me.gegenbauer.catspy.utils.file.copyFileWithProgress
+import me.gegenbauer.catspy.utils.persistence.Preferences
 import me.gegenbauer.catspy.view.panel.DownloadListenerTaskWrapper
 import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.panel.Task
@@ -31,10 +32,13 @@ import me.gegenbauer.catspy.view.panel.TaskHandle
 import java.io.File
 
 class MainViewModel(override val contexts: Contexts = Contexts.default) : Context, ContextService {
-    val eventFlow: StateFlow<Event>
+    val eventFlow: SharedFlow<Event>
         get() = _eventFlow
 
-    private val _eventFlow = MutableStateFlow<Event>(EmptyEvent)
+    private val _eventFlow = MutableSharedFlow<Event>(
+        extraBufferCapacity = 30,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     private val scope = ViewModelScope()
     private val memoryMonitor: IMemoryMonitor = MemoryMonitor()
     private val updateService = GithubUpdateServiceFactory.create(APP_AUTHOR, APP_REPO)
@@ -44,7 +48,7 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
 
     fun refreshMemoryInfo() {
         scope.launch {
-            _eventFlow.value = memoryMonitor.calculateMemoryUsage()
+            _eventFlow.emit(memoryMonitor.calculateMemoryUsage())
         }
     }
 
@@ -53,32 +57,40 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
         memoryMonitorJob = scope.launch {
             val memory = memoryMonitor.startMonitor()
             memory.collect {
-                _eventFlow.value = it
+                _eventFlow.emit(it)
+                checkMemoryState(it)
             }
         }
     }
 
+    private fun checkMemoryState(memory: Memory) {
+        MemoryState.onMemoryChanged(memory)
+    }
+
     fun checkUpdate(force: Boolean = false) {
+        val lastCheckTime = Preferences.getLong(CHECK_UPDATE_TIME_KEY, 0)
+        if (!force && System.currentTimeMillis() - lastCheckTime < CHECK_UPDATE_INTERVAL) return
         scope.launch {
             val latestReleaseResult = updateService.getLatestRelease()
             if (latestReleaseResult.isFailure) {
                 GLog.w(TAG, "[checkUpdate] failed to get latest release, error=${latestReleaseResult.exceptionOrNull()}")
                 if (force) {
-                    _eventFlow.value = ReleaseEvent.ErrorEvent(latestReleaseResult.exceptionOrNull())
+                    _eventFlow.emit(ReleaseEvent.ErrorEvent(latestReleaseResult.exceptionOrNull()))
                 }
                 return@launch
             }
             val latestRelease = latestReleaseResult.getOrThrow()
+            Preferences.putLong(CHECK_UPDATE_TIME_KEY, System.currentTimeMillis())
             GLog.d(TAG, "[checkUpdate] latestRelease=$latestRelease, currentRelease=${Release(APP_VERSION_NAME)}")
             if (updateService.checkForUpdate(latestRelease, Release(APP_VERSION_NAME))) {
-                val releaseIgnored = currentSettings.updateSettings.isIgnored(latestRelease.name)
+                val releaseIgnored = Preferences.getStringList(IGNORED_RELEASES_KEY).contains(latestRelease.name)
                 GLog.i(TAG, "[checkUpdate] releaseIgnored=$releaseIgnored")
                 if (force || releaseIgnored.not()) {
-                    _eventFlow.value = ReleaseEvent.NewReleaseEvent(latestRelease)
+                    _eventFlow.emit(ReleaseEvent.NewReleaseEvent(latestRelease))
                 }
             } else if (force) {
                 GLog.i(TAG, "[checkUpdate] no new release")
-                _eventFlow.value = ReleaseEvent.NoNewReleaseEvent
+                _eventFlow.emit(ReleaseEvent.NoNewReleaseEvent)
             }
         }
     }
@@ -88,7 +100,7 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
             val asset = release.assets.firstOrNull { it.name.contains(ARTIFACT_TYPE) }
             asset?.let {
                 val downloadFileName = it.name
-                val downloadPath = filesDir.appendPath(downloadFileName)
+                val downloadPath = filesDir.appendPath(DOWNLOAD_DIR).appendPath(downloadFileName)
                 val taskName = STRINGS.ui.downloadTaskTitle.get(release.name)
                 val task = Task(taskName, object : TaskHandle {
                     override fun cancel() {
@@ -99,19 +111,23 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
                 updateService.downloadAsset(it, downloadPath, object : DownloadListenerTaskWrapper(task) {
                     override fun onDownloadComplete(file: File) {
                         super.onDownloadComplete(file)
-                        _eventFlow.value = FileSaveEvent.FileSaveSuccess(
-                            file.absolutePath,
-                            STRINGS.ui.downloadReleaseCompleteDialogTitle,
-                            STRINGS.ui.downloadReleaseCompleteDialogMessage
+                        _eventFlow.tryEmit(
+                            FileSaveEvent.FileSaveSuccess(
+                                file.absolutePath,
+                                STRINGS.ui.downloadReleaseCompleteDialogTitle,
+                                STRINGS.ui.downloadReleaseCompleteDialogMessage
+                            )
                         )
                     }
 
                     override fun onDownloadFailed(e: Throwable) {
                         super.onDownloadFailed(e)
-                        _eventFlow.value = FileSaveEvent.FileSaveError(
-                            STRINGS.ui.downloadReleaseTitle,
-                            STRINGS.ui.downloadReleaseFailedMessage,
-                            e
+                        _eventFlow.tryEmit(
+                            FileSaveEvent.FileSaveError(
+                                STRINGS.ui.downloadReleaseTitle,
+                                STRINGS.ui.downloadReleaseFailedMessage,
+                                e
+                            )
                         )
                     }
                 })
@@ -165,5 +181,10 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
 
     companion object {
         private const val TAG = "MainViewModel"
+
+        private const val DOWNLOAD_DIR = "downloads"
+        private const val CHECK_UPDATE_TIME_KEY = "update/checkUpdateTime"
+        const val IGNORED_RELEASES_KEY = "update/ignoredReleases"
+        private const val CHECK_UPDATE_INTERVAL = 1000L * 60L * 60 * 24
     }
 }

@@ -5,7 +5,15 @@ import me.gegenbauer.catspy.view.filter.FilterItem
 interface Searchable {
     var searchFilterItem: FilterItem
 
-    fun moveToNextSearchResult()
+    /**
+     * Moves to the next search result
+     * @return Result of the operation, if no result is found, an error string is returned
+     */
+    fun moveToNextSearchResult(): String
 
-    fun moveToPreviousSearchResult()
+    /**
+     * Moves to the previous search result
+     * @return Result of the operation, if no result is found, an error string is returned
+     */
+    fun moveToPreviousSearchResult(): String
 }

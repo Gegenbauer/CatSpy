@@ -3,11 +3,11 @@ package me.gegenbauer.catspy.view.dialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.configuration.currentSettings
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
+import me.gegenbauer.catspy.utils.persistence.Preferences
 import java.awt.Component
 import java.io.File
 import javax.swing.JFileChooser
@@ -44,7 +44,7 @@ class FileSaveHandler private constructor(
     }
 
     private fun checkAndSetDefaultFile() {
-        val lastFileSaveDir = currentSettings.lastFileSaveDir
+        val lastFileSaveDir = Preferences.getString(LAST_OPEN_DIR_STORE_KEY, "")
         if (lastFileSaveDir.isNotEmpty()) {
             fileChooser.currentDirectory = File(lastFileSaveDir)
         } else {
@@ -97,7 +97,7 @@ class FileSaveHandler private constructor(
     private fun onFileSavedSuccess(file: File?) {
         file ?: return
         GLog.d(TAG, "[onFileSaved] file=${file.absolutePath}")
-        currentSettings.lastFileSaveDir = file.parent
+        Preferences.putString(LAST_OPEN_DIR_STORE_KEY, file.parent)
         val result = JOptionPane.showOptionDialog(
             parent,
             STRINGS.ui.fileSaveSuccessMessage.get(file.absolutePath),
@@ -147,5 +147,7 @@ class FileSaveHandler private constructor(
 
     companion object {
         private const val TAG = "SaveFileHandler"
+
+        private const val LAST_OPEN_DIR_STORE_KEY = "last_open_dir/save_file"
     }
 }

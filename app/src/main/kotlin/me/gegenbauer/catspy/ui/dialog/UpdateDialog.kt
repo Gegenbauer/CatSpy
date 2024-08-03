@@ -1,9 +1,10 @@
 package me.gegenbauer.catspy.ui.dialog
 
-import me.gegenbauer.catspy.configuration.currentSettings
 import me.gegenbauer.catspy.network.update.data.Release
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
+import me.gegenbauer.catspy.ui.MainViewModel
+import me.gegenbauer.catspy.utils.persistence.Preferences
 import javax.swing.JFrame
 import javax.swing.JOptionPane
 
@@ -28,7 +29,13 @@ class UpdateDialog(
             onDownloadConfirm(newRelease)
         }
         if (result == JOptionPane.OK_OPTION || result == JOptionPane.NO_OPTION) {
-            currentSettings.updateSettings.addIgnoredRelease(newRelease.name)
+            val ignoredReleases = Preferences.getStringList(MainViewModel.IGNORED_RELEASES_KEY).toMutableList()
+            ignoredReleases.add(0, newRelease.name)
+            Preferences.putStringList(MainViewModel.IGNORED_RELEASES_KEY, ignoredReleases, MAX_IGNORED_RELEASES)
         }
+    }
+
+    companion object {
+        private const val MAX_IGNORED_RELEASES = 10
     }
 }

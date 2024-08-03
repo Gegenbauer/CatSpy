@@ -1,28 +1,19 @@
 package me.gegenbauer.catspy.log.ui.table
 
-import kotlinx.coroutines.flow.Flow
-import me.gegenbauer.catspy.log.model.LogcatItem
-import me.gegenbauer.catspy.log.model.LogcatFilter
-import me.gegenbauer.catspy.view.filter.FilterItem
+import me.gegenbauer.catspy.log.datasource.LogProducerManager
+import me.gegenbauer.catspy.log.filter.LogFilter
+import me.gegenbauer.catspy.log.datasource.LogItem
 
 interface ILogTableModel {
-    var highlightFilterItem: FilterItem
-
-    val boldTag: Boolean
-
-    val boldPid: Boolean
-
-    val boldTid: Boolean
-
     var selectedLogRows: List<Int>
 
-    val logFlow: Flow<List<LogcatItem>>
+    val logObservables: LogProducerManager.LogObservables
 
     fun addLogTableModelListener(eventListener: LogTableModelListener)
 
-    fun getItemInCurrentPage(row: Int): LogcatItem
+    fun getItemInCurrentPage(row: Int): LogItem
 
-    fun getLogFilter(): LogcatFilter
+    fun getLogFilter(): LogFilter
 
     fun getRowIndexInAllPages(lineNumber: Int): Int
 

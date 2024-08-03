@@ -5,8 +5,6 @@ import java.security.MessageDigest
 
 interface Key {
 
-    fun updateDiskCacheKey(messageDigest: MessageDigest)
-
     override fun equals(other: Any?): Boolean
 
     override fun hashCode(): Int

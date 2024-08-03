@@ -4,7 +4,7 @@ import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.java.ext.capitalize
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.utils.installKeyStrokeEscClosing
+import me.gegenbauer.catspy.utils.ui.installKeyStrokeEscClosing
 import me.gegenbauer.catspy.view.icon.IconComponent
 import me.gegenbauer.catspy.view.icon.ScaledIcon
 import java.awt.*

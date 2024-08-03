@@ -1,9 +1,7 @@
 package me.gegenbauer.catspy.java.ext
 
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.concurrency.AppScope
-
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 sealed class Message {
     abstract val message: String
@@ -14,18 +12,27 @@ sealed class Message {
     data class Empty(override val message: String = "") : Message()
 }
 
-interface MessagePublisher {
+fun interface MessagePublisher {
     fun publish(message: Message)
 }
 
+fun interface MessageObservable {
+    suspend fun collect(action: suspend (Message) -> Unit)
+}
 
-private val _globalMessage: MutableSharedFlow<Message?> = MutableSharedFlow()
+object GlobalMessageManager : MessagePublisher, MessageObservable {
+    private val _globalMessage: MutableSharedFlow<Message?> = MutableSharedFlow(
+        extraBufferCapacity = 20,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
 
-val globalMessage: SharedFlow<Message?> = _globalMessage.asSharedFlow()
-val globalMessagePublisher: MessagePublisher = object : MessagePublisher {
     override fun publish(message: Message) {
-        AppScope.launch {
-            _globalMessage.emit(message)
+        _globalMessage.tryEmit(message)
+    }
+
+    override suspend fun collect(action: suspend (Message) -> Unit) {
+        _globalMessage.collect {
+            action(it ?: Message.Empty())
         }
     }
 }

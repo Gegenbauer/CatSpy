@@ -1,21 +1,27 @@
 package me.gegenbauer.catspy.log.ui.table
 
-import com.github.weisj.darklaf.ui.util.DarkUIUtil
+import me.gegenbauer.catspy.configuration.GSettings
+import me.gegenbauer.catspy.configuration.SettingsChangeListener
+import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.databinding.bind.Observer
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.ui.dialog.LogViewDialog
-import me.gegenbauer.catspy.log.ui.panel.BaseLogMainPanel
+import me.gegenbauer.catspy.log.metadata.LogMetadata
+import me.gegenbauer.catspy.log.ui.LogConfiguration
+import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel.Companion.COLUMN_NUM
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
-import me.gegenbauer.catspy.utils.Key
-import me.gegenbauer.catspy.utils.findFrameFromParent
-import me.gegenbauer.catspy.utils.isDoubleClick
-import me.gegenbauer.catspy.utils.keyEventInfo
+import me.gegenbauer.catspy.utils.ui.Key
+import me.gegenbauer.catspy.utils.ui.findFrameFromParent
+import me.gegenbauer.catspy.utils.ui.isDoubleClick
+import me.gegenbauer.catspy.utils.ui.keyEventInfo
 import me.gegenbauer.catspy.view.table.RowNavigation
+import java.awt.Component
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.Rectangle
 import java.awt.datatransfer.StringSelection
 import java.awt.event.*
@@ -25,7 +31,7 @@ import javax.swing.event.ListSelectionListener
 class LogTable(
     val tableModel: LogTableModel,
     override val contexts: Contexts = Contexts.default
-) : JTable(tableModel), Context, RowNavigation {
+) : JTable(tableModel), Context, RowNavigation, SettingsChangeListener {
 
     var listSelectionHandler: ListSelectionListener? = null
         set(value) {
@@ -33,26 +39,26 @@ class LogTable(
             selectionModel.addListSelectionListener(value)
         }
 
+    private val popupMenu: JPopupMenu = PopUp()
+    private var logPopupActionsProvider: () -> List<Pair<String, () -> Unit>> = { emptyList() }
+    private var logDetailPopupActionsProvider: () -> List<LogDetailDialog.PopupAction> = { emptyList() }
+
+    private val logConf: LogConfiguration
+        get() = contexts.getContext(LogConfiguration::class.java) ?: LogConfiguration.default
+
+    private val logMetadataObserver = Observer<LogMetadata> {
+        updateConfigure()
+    }
+
     init {
         setShowGrid(false)
-        setTableHeader(null)
-        setAutoResizeMode(AUTO_RESIZE_OFF)
         autoscrolls = false
-        dragEnabled = true
-        dropMode = DropMode.INSERT
         intercellSpacing = Dimension(0, 0)
+        getTableHeader().resizingAllowed = true
         setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION)
         setRowSelectionAllowed(true)
+        setAutoResizeMode(AUTO_RESIZE_OFF)
         columnSelectionAllowed = false
-
-        val columns = if (tableModel.deviceMode) {
-            deviceLogColumns
-        } else {
-            fileLogColumns
-        }
-        columns.forEach { it.configureColumn(this) }
-
-        updateRowHeight()
 
         addMouseListener(MouseHandler())
         addKeyListener(TableKeyHandler())
@@ -63,6 +69,23 @@ class LogTable(
                 repaint()
             }
         }
+        SettingsManager.addSettingsChangeListener(this)
+        updateConfigure()
+    }
+
+    override fun getFont(): Font {
+        return SettingsManager.settings.logSettings.font.nativeFont
+    }
+
+    override fun onSettingsChanged(oldSettings: GSettings, newSettings: GSettings) {
+        if (oldSettings.logSettings.font != newSettings.logSettings.font) {
+            updateConfigure()
+        }
+    }
+
+    private fun updateConfigure() {
+        updateRowHeight()
+        logConf.configureColumn(this)
     }
 
     override fun changeSelection(rowIndex: Int, columnIndex: Int, toggle: Boolean, extend: Boolean) {
@@ -94,6 +117,7 @@ class LogTable(
     override fun configureContext(context: Context) {
         super.configureContext(context)
         tableModel.setParent(this)
+        logConf.addObserver(logMetadataObserver)
     }
 
     override fun moveRowToCenter(rowIndex: Int, setSelected: Boolean) {
@@ -164,7 +188,7 @@ class LogTable(
     }
 
     private fun updateRowHeight() {
-        setRowHeight(getFontMetrics(font).height)
+        setRowHeight(getFontMetrics(font).height + 4)
     }
 
     override fun moveToNextSeveralRows() {
@@ -211,19 +235,13 @@ class LogTable(
         }
 
         fun realShowSelected(rows: IntArray) {
-            val displayContent = if (rows.size > 1) {
-                getRenderedContent(rows.toList())
+            val displayedRows = if (rows.size > 1) {
+                rows.toList()
             } else {
-                getRenderedContent(
-                    ((rows[0] - 2).coerceAtLeast(0)..(rows[0] + 3)
-                        .coerceAtMost(rowCount - 1)).toList()
-                )
+                ((rows[0] - 2).coerceAtLeast(0)..(rows[0] + 3)
+                    .coerceAtMost(rowCount - 1)).toList()
             }
-            val frame = findFrameFromParent<JFrame>()
-            val logViewDialog = LogViewDialog(frame, displayContent.trim())
-            logViewDialog.setParent(this)
-            logViewDialog.setLocationRelativeTo(frame)
-            logViewDialog.isVisible = true
+            logConf.showSelectedRowsInDialog(this, displayedRows, logDetailPopupActionsProvider.invoke())
         }
 
         if (rows.size > MAX_LOG_COUNT_SHOWS_IN_DIALOG) {
@@ -234,6 +252,10 @@ class LogTable(
         } else {
             realShowSelected(rows)
         }
+    }
+
+    fun setLogDetailPopupActionsProvider(actionsProvider: () -> List<LogDetailDialog.PopupAction>) {
+        logDetailPopupActionsProvider = actionsProvider
     }
 
     private fun showExceedMaxLogCount(selected: Int, threshold: Int, afterShow: () -> Unit) {
@@ -251,7 +273,7 @@ class LogTable(
     }
 
     private fun getRowsContent(rows: List<Int>): String {
-        return rows.joinToString("\n") { tableModel.getItemInCurrentPage(it).toLogLine() }
+        return rows.joinToString("\n") { tableModel.getItemInCurrentPage(it).logLine }
     }
 
     private fun updateBookmark(rows: List<Int>) {
@@ -290,75 +312,94 @@ class LogTable(
         }
     }
 
+    /**
+     * Set the log right-click menu
+     * @param popupItemsProvider Menu items, Pair<String, () -> Unit>,
+     * where String is the menu item name and () -> Unit is the callback for clicking the menu item
+     */
+    fun setTablePopupActionProvider(popupItemsProvider: () -> List<Pair<String, () -> Unit>>) {
+        logPopupActionsProvider = popupItemsProvider
+    }
+
     internal inner class PopUp : JPopupMenu() {
-        var copyItem: JMenuItem = JMenuItem(STRINGS.ui.copy)
-        var showEntireItem = JMenuItem(STRINGS.ui.showEntireLine)
-        var bookmarkItem = JMenuItem(STRINGS.ui.bookmark)
-        var startItem = JMenuItem(STRINGS.ui.start)
-        var stopItem = JMenuItem(STRINGS.ui.stop)
-        var clearItem = JMenuItem(STRINGS.ui.clear)
+        private val copyItem: JMenuItem = JMenuItem(STRINGS.ui.copy)
+        private val showEntireItem = JMenuItem(STRINGS.ui.showEntireLine)
+        private val bookmarkItem = JMenuItem(STRINGS.ui.bookmark)
 
         private val actionHandler = ActionHandler()
+        private val customPopupActions: MutableList<Pair<String, () -> Unit>> = mutableListOf()
 
         init {
-            add(copyItem)
-            add(showEntireItem)
-            add(bookmarkItem)
-            addSeparator()
-            add(startItem)
-            add(stopItem)
-            add(clearItem)
             copyItem.addActionListener(actionHandler)
             showEntireItem.addActionListener(actionHandler)
             bookmarkItem.addActionListener(actionHandler)
-            startItem.addActionListener(actionHandler)
-            stopItem.addActionListener(actionHandler)
-            clearItem.addActionListener(actionHandler)
+        }
+
+        override fun show(invoker: Component?, x: Int, y: Int) {
+            prepareCustomPopupItems()
+            super.show(invoker, x, y)
+        }
+
+        override fun setVisible(b: Boolean) {
+            prepareCustomPopupItems()
+            super.setVisible(b)
+        }
+
+        private fun prepareCustomPopupItems() {
+            removeAll()
+            add(copyItem)
+            add(showEntireItem)
+            add(bookmarkItem)
+            val customPopupActions = logPopupActionsProvider.invoke()
+            this.customPopupActions.clear()
+            this.customPopupActions.addAll(customPopupActions)
+            if (customPopupActions.isNotEmpty()) {
+                addSeparator()
+            }
+            customPopupActions.forEach {
+                val item = JMenuItem(it.first)
+                item.addActionListener(actionHandler)
+                add(item)
+            }
         }
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(event: ActionEvent) {
-                val logTabPanel = DarkUIUtil.getParentOfType(this@LogTable, BaseLogMainPanel::class.java)
-                when (event.source) {
-                    copyItem -> {
+                val action = (event.source as JMenuItem).text
+                when {
+                    event.source == copyItem -> {
                         copySelectedRows()
                     }
 
-                    showEntireItem -> {
+                    event.source == showEntireItem -> {
                         showSelected(selectedRows)
                     }
 
-                    bookmarkItem -> {
+                    event.source == bookmarkItem -> {
                         updateBookmark(selectedNums())
                     }
 
-                    startItem -> {
-                        logTabPanel.startLogcat()
-                    }
-
-                    stopItem -> {
-                        logTabPanel.stopAll()
-                    }
-
-                    clearItem -> {
-                        logTabPanel.clearAllLogs()
+                    (action in customPopupActions.map { it.first }) -> {
+                        customPopupActions.find { it.first == action }?.second?.invoke()
                     }
                 }
             }
         }
     }
 
+    fun onReceiveMouseReleaseEvent(event: MouseEvent) {
+        if (SwingUtilities.isRightMouseButton(event)) {
+            popupMenu.show(event.component, event.x, event.y)
+            SwingUtilities.updateComponentTreeUI(popupMenu)
+        } else {
+            popupMenu.isVisible = false
+        }
+    }
+
     internal inner class MouseHandler : MouseAdapter() {
-        private val popupMenu: JPopupMenu = PopUp()
 
         override fun mouseReleased(event: MouseEvent) {
-            if (SwingUtilities.isRightMouseButton(event)) {
-                popupMenu.show(event.component, event.x, event.y)
-                SwingUtilities.updateComponentTreeUI(popupMenu)
-            } else {
-                popupMenu.isVisible = false
-            }
-
+            onReceiveMouseReleaseEvent(event)
             super.mouseReleased(event)
         }
 
@@ -384,18 +425,17 @@ class LogTable(
         }
     }
 
-    @Suppress("SAFE_CALL_WILL_CHANGE_NULLABILITY", "UNNECESSARY_SAFE_CALL")
     override fun updateUI() {
         super.updateUI()
         updateRowHeight()
         if (tableModel != null) {
-            val columns = if (tableModel.deviceMode) {
-                deviceLogColumns
-            } else {
-                fileLogColumns
-            }
-            columns.forEach { it.configureColumn(this) }
+            updateConfigure()
         }
+    }
+
+    override fun destroy() {
+        super.destroy()
+        logConf.removeObserver(logMetadataObserver)
     }
 
     internal inner class TableKeyHandler : KeyAdapter() {

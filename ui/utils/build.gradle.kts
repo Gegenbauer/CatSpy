@@ -6,8 +6,11 @@ plugins {
 
 dependencies {
     implementation(projects.glog)
+    implementation(projects.file)
     implementation(projects.javaext)
     implementation(projects.context)
     implementation(projects.concurrency)
+    implementation(projects.platform)
+    implementation(FormDev.flatLaf)
     implementation(Weisj.darklafCore)
 }

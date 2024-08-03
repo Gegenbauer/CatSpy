@@ -1,13 +1,13 @@
 package me.gegenbauer.catspy.conf
 
 import com.formdev.flatlaf.extras.FlatInspector
-import me.gegenbauer.catspy.configuration.SettingsManager.settings
+import me.gegenbauer.catspy.platform.isInDebugMode
 
 object DebugConfiguration {
 
     @JvmStatic
     fun apply() {
-        if (settings.debugSettings.globalDebug) {
+        if (isInDebugMode) {
             FlatInspector.install("ctrl shift alt X")
         }
     }

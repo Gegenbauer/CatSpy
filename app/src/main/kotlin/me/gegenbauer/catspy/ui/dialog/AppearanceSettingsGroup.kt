@@ -6,6 +6,7 @@ import com.formdev.flatlaf.util.ColorFunctions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.configuration.*
+import me.gegenbauer.catspy.view.panel.VerticalFlexibleWidthLayout
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.globalLocale
 import me.gegenbauer.catspy.strings.supportLocales
@@ -24,13 +25,21 @@ class AppearanceSettingsGroup(
 ) : BaseSettingsGroup(STRINGS.ui.appearance, scope, container) {
 
     override fun initGroup() {
+        val languageModifiedHint = JLabel("")
+        languageModifiedHint.foreground = UIManager.getColor("Objects.RedStatus")
         val languageCbx = JComboBox(supportLocales.map { it.displayName }.toTypedArray())
         languageCbx.addActionListener {
             val locale = supportLocales[languageCbx.selectedIndex]
-            if (locale == globalLocale) return@addActionListener
             SettingsManager.updateSettings { this.mainUISettings.locale = locale.ordinal }
+            if (locale == globalLocale) {
+                languageModifiedHint.text = ""
+                return@addActionListener
+            }
+            languageModifiedHint.text = STRINGS.ui.languageSettingHint
         }
-        languageCbx.selectedItem = globalLocale.displayName
+        languageCbx.selectedItem = SettingsManager.settings.mainUISettings.locale
+            .let { if (it < 0 || it >= supportLocales.size) globalLocale.ordinal else it }
+            .let { supportLocales[it].displayName }
 
         val lafCbx = JComboBox(ThemeManager.getThemes())
         lafCbx.selectedItem = ThemeManager.currentTheme.name
@@ -42,27 +51,56 @@ class AppearanceSettingsGroup(
                 container.reloadUI()
             }
         }
+        val languageEditPanel = JPanel()
+        languageEditPanel.layout = VerticalFlexibleWidthLayout()
+        languageEditPanel.add(languageCbx)
+        languageEditPanel.add(languageModifiedHint)
 
-        val changeFontBtn = JButton(STRINGS.ui.change)
+        val changeUIFontBtn = JButton(STRINGS.ui.change)
+        val changeLogFontBtn = JButton(STRINGS.ui.change)
 
-        addRow(STRINGS.ui.language, languageCbx)
+        addRow(STRINGS.ui.language, languageEditPanel)
         addRow(STRINGS.ui.menuTheme, lafCbx)
-        val fontLabel = addRow(getFontLabelStr(), changeFontBtn)
+        val uiFontLabel = addRow(
+            getFontLabelStr(
+                STRINGS.ui.uiFont,
+                SettingsManager.settings.themeSettings.uiFont.nativeFont
+            ), changeUIFontBtn
+        )
+        val logFontLabel = addRow(
+            getFontLabelStr(
+                STRINGS.ui.logFont,
+                SettingsManager.settings.logSettings.font.nativeFont
+            ), changeLogFontBtn
+        )
         if (ThemeManager.isAccentColorSupported) {
             addRow(STRINGS.ui.accentColor, createColorChoosePanel())
         }
         end()
 
-        changeFontBtn.addMouseListener(object : MouseAdapter() {
+        changeUIFontBtn.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 val fontChooser = JFontChooser()
-                fontChooser.selectedFont = currentSettings.themeSettings.font.toNativeFont()
+                fontChooser.selectedFont = currentSettings.themeSettings.uiFont.nativeFont
                 val result: Int = fontChooser.showDialog(container as Component)
                 if (result == JFontChooser.OK_OPTION) {
                     val font: Font = fontChooser.selectedFont
-                    currentSettings.themeSettings.font.update(font)
+                    currentSettings.themeSettings.uiFont.update(font)
                     updateUIWithAnim { FontSupport.setUIFont(font) }
-                    fontLabel.text = getFontLabelStr()
+                    uiFontLabel.text = getUIFontLabelStr()
+                }
+            }
+        })
+        changeLogFontBtn.addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent) {
+                val fontChooser = JFontChooser()
+                fontChooser.selectedFont = currentSettings.logSettings.font.nativeFont
+                val result: Int = fontChooser.showDialog(container as Component)
+                if (result == JFontChooser.OK_OPTION) {
+                    val font: Font = fontChooser.selectedFont
+                    currentSettings.logSettings.font.update(font)
+                    updateUIWithAnim { container.reloadUI() }
+                    logFontLabel.text = getFontLabelStr(STRINGS.ui.logFont, font)
                 }
             }
         })
@@ -104,10 +142,15 @@ class AppearanceSettingsGroup(
         }
     }
 
-    private fun getFontLabelStr(): String {
-        val font = currentSettings.themeSettings.font.toNativeFont()
+    private fun getFontLabelStr(label: String, font: Font): String {
         val fontStyleName = FontSupport.convertFontStyleToString(font.style)
-        return "${STRINGS.ui.font}: ${font.fontName} $fontStyleName ${font.size}"
+        return "$label: ${font.fontName} $fontStyleName ${font.size}"
+    }
+
+    private fun getUIFontLabelStr(): String {
+        val font = currentSettings.themeSettings.uiFont.nativeFont
+        val fontStyleName = FontSupport.convertFontStyleToString(font.style)
+        return "${STRINGS.ui.uiFont}: ${font.fontName} $fontStyleName ${font.size}"
     }
 
     companion object {

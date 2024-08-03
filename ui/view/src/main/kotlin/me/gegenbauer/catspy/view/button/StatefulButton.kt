@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.view.button
 
-import me.gegenbauer.catspy.utils.BORDER_TYPE_BORDERLESS
-import me.gegenbauer.catspy.utils.BORDER_TYPE_NONE
-import me.gegenbauer.catspy.utils.PROPERTY_KEY_BUTTON_VARIANT
-import me.gegenbauer.catspy.utils.setHeight
+import com.formdev.flatlaf.FlatClientProperties
+import com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE_BORDERLESS
+import me.gegenbauer.catspy.utils.ui.BORDER_TYPE_NONE
+import me.gegenbauer.catspy.utils.ui.setHeight
 import javax.swing.Icon
 
 class StatefulButton(
@@ -38,8 +38,8 @@ class StatefulButton(
         }
 
         putClientProperty(
-            PROPERTY_KEY_BUTTON_VARIANT,
-            if (mode == ButtonDisplayMode.ICON) BORDER_TYPE_BORDERLESS else BORDER_TYPE_NONE
+            FlatClientProperties.BUTTON_TYPE,
+            if (mode == ButtonDisplayMode.ICON) BUTTON_TYPE_BORDERLESS else BORDER_TYPE_NONE
         )
     }
 

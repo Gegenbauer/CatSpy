@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.view.combobox.highlight
 
 import com.formdev.flatlaf.ui.FlatComboBoxUI
-import me.gegenbauer.catspy.utils.DefaultFocusListener
+import me.gegenbauer.catspy.utils.ui.DefaultFocusListener
 import java.awt.event.FocusEvent
 import javax.swing.ComboBoxEditor
 

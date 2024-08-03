@@ -73,8 +73,10 @@ class AdamDeviceMonitor : ContextService, DeviceMonitor, AdbServerStatusMonitor 
     private fun startMonitor() {
         val lastMonitorJob = monitorJob
         monitorJob = scope.launch {
+            lastMonitorJob?.cancelAndJoin()
 
             coroutineContext.job.invokeOnCompletion {
+                isMonitoring = false
                 it ?: return@invokeOnCompletion
                 if (it is CancellationException) {
                     DdmLog.v(TAG, "[startMonitor] cancelled")
@@ -83,32 +85,37 @@ class AdamDeviceMonitor : ContextService, DeviceMonitor, AdbServerStatusMonitor 
                 }
             }
 
-            lastMonitorJob?.cancelAndJoin()
             DdmLog.i(TAG, "[startMonitor]")
 
             isMonitoring = true
 
-            coroutineContext.job.invokeOnCompletion {
-                isMonitoring = false
-            }
+            try {
+                val deviceEventsChannel: ReceiveChannel<List<Device>> = adb.execute(
+                    request = AsyncDeviceMonitorRequest(),
+                    scope = this
+                )
 
-            val deviceEventsChannel: ReceiveChannel<List<Device>> = adb.execute(
-                request = AsyncDeviceMonitorRequest(),
-                scope = scope
-            )
+                receiveChannel = deviceEventsChannel
 
-            receiveChannel = deviceEventsChannel
-
-            deviceEventsChannel.consumeEach {
-                _adbServerRunning.set(true)
-                dispatchAdbServerStatusChange()
-                dispatchDeviceListChange(it.filterConnected())
+                deviceEventsChannel.consumeEach {
+                    _adbServerRunning.set(true)
+                    dispatchAdbServerStatusChange()
+                    dispatchDeviceListChange(it.filterConnected())
+                }
+            } catch (e: Exception) {
+                DdmLog.w(TAG, "[startMonitor] error", e)
+                handleMonitorException()
             }
         }
     }
 
     private fun handleMonitorException() {
         scope.launch {
+            synchronized(this@AdamDeviceMonitor) {
+                if (adbObserverCount == 0) {
+                    return@launch
+                }
+            }
 
             dispatchDeviceListChange(emptyList())
 

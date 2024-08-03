@@ -3,27 +3,21 @@ package me.gegenbauer.catspy.script.ui
 import com.malinskiy.adam.request.device.Device
 import com.malinskiy.adam.request.device.DeviceState
 import me.gegenbauer.catspy.context.Context
-import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
-import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.java.ext.Bundle
 import me.gegenbauer.catspy.script.model.Script
 import me.gegenbauer.catspy.script.model.ScriptType
 import me.gegenbauer.catspy.script.parser.DirectRule
 import me.gegenbauer.catspy.script.parser.RegexRule
 import me.gegenbauer.catspy.script.task.ScriptTaskManager
-import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.utils.TAB_ICON_SIZE
-import me.gegenbauer.catspy.view.tab.TabPanel
+import me.gegenbauer.catspy.view.tab.BaseTabPanel
 import java.awt.BorderLayout
-import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JPanel
 
-class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
+class ScriptTabPanel : BaseTabPanel() {
 
-    override val tabName: String = STRINGS.ui.tabScript
-    override val tabIcon: Icon = GIcons.Tab.Script.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
+    override val tag: String = "ScriptTabPanel"
 
     private val taskManager = ServiceManager.getContextService(ScriptTaskManager::class.java)
     private val cardContainer = ScriptCardContainer()
@@ -84,7 +78,7 @@ class ScriptTabPanel(override val contexts: Contexts = Contexts.default) : JPane
             focusedActivityCard.device = value
         }
 
-    override fun setup() {
+    override fun onSetup(bundle: Bundle?) {
         val deviceManager = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
         deviceManager.tryStartMonitor()
 

@@ -9,7 +9,6 @@ dependencies {
     implementation(Gson.gson)
     implementation(projects.file)
     implementation(projects.resources.common)
-    implementation(projects.ui.utils)
     implementation(projects.javaext)
 }
 

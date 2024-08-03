@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.view.tab
 
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.java.ext.Bundle
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.view.hint.HintManager
@@ -12,27 +13,21 @@ import javax.swing.JComponent
 import javax.swing.TransferHandler
 
 interface TabPanel : Context {
-    val tabName: String
 
-    val tabIcon: Icon?
+    val tag: String
 
     val hint: HintManager.Hint?
         get() = null
 
-    val tabTooltip: String?
-        get() = STRINGS.toolTip.tab
-
-    val tabMnemonic: Char
-        get() = ' '
-
-    val closeable: Boolean
-        get() = true
-
-    fun setup()
+    fun setup(bundle: Bundle?)
 
     fun onTabSelected()
 
     fun onTabUnselected()
+
+    fun setTabNameController(controller: (String) -> Unit)
+
+    fun setTabTooltipController(controller: (String?) -> Unit)
 
     fun isDataImportSupported(info: TransferHandler.TransferSupport): Boolean = false
 
@@ -41,7 +36,7 @@ interface TabPanel : Context {
     fun getTabContent(): JComponent
 
     fun getDroppedFiles(info: TransferHandler.TransferSupport): List<File> {
-        GLog.d(tabName, "[importData] info = $info")
+        GLog.d(tag, "[importData] info = $info")
         info.takeIf { it.isDrop } ?: return emptyList()
 
         val fileList: MutableList<File> = mutableListOf()
@@ -51,12 +46,16 @@ interface TabPanel : Context {
                 val data = info.transferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<*>
                 data?.mapNotNull { it as? File }?.forEach { fileList.add(it) }
             }.onFailure {
-                GLog.e(tabName, "[importData]", it)
+                GLog.e(tag, "[importData]", it)
             }
         }
 
         val os = currentPlatform
-        GLog.d(tabName, "os:$os, drop:${info.dropAction},sourceDrop:${info.sourceDropActions},userDrop:${info.userDropAction}")
+        GLog.d(tag, "os:$os, drop:${info.dropAction},sourceDrop:${info.sourceDropActions},userDrop:${info.userDropAction}")
         return fileList
+    }
+
+    fun pendingOpenFiles(files: List<File>) {
+        // no-op
     }
 }

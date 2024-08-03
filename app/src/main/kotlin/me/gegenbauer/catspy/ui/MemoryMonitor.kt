@@ -7,8 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import me.gegenbauer.catspy.concurrency.GIO
-import me.gegenbauer.catspy.java.ext.Event
-import me.gegenbauer.catspy.file.GB
+import me.gegenbauer.catspy.context.Memory
 import kotlin.math.min
 
 interface IMemoryMonitor {
@@ -17,32 +16,9 @@ interface IMemoryMonitor {
     fun calculateMemoryUsage(): Memory
 }
 
-data class Memory(
-    val allocated: Float,
-    val free: Float,
-    val total: Float,
-    val max: Float,
-): Event {
-
-    fun isEmpty(): Boolean = this == EMPTY
-
-    private fun toGB(): Memory  = Memory(
-        allocated = allocated / GB,
-        free = free / GB,
-        total = total / GB,
-        max = max / GB
-    )
-
-    fun readable(): String {
-        val readableMemory = toGB()
-        return "%.2f GB / %.2f GB".format(readableMemory.allocated, readableMemory.max)
-    }
-
-    companion object {
-        val EMPTY = Memory(0f, 0f, 0f, 0f)
-    }
-}
-
+/**
+ * todo 内存监控，根据内存情况，清理内存中的日志，优先清理文件日志，再清理设备实时日志。
+ */
 class MemoryMonitor(private val dispatcher: CoroutineDispatcher = Dispatchers.GIO) : IMemoryMonitor {
 
     override fun startMonitor(): Flow<Memory> {
@@ -81,6 +57,6 @@ class MemoryMonitor(private val dispatcher: CoroutineDispatcher = Dispatchers.GI
 
         private const val MIN_FREE_MEMORY = 512 * 1024L * 1024L
         private const val MIN_FREE_MEMORY_PERCENTAGE = 0.2
-        private const val MEMORY_INFO_REFRESH_INTERVAL = 1000L
+        private const val MEMORY_INFO_REFRESH_INTERVAL = 300L
     }
 }

@@ -1,17 +1,16 @@
 package me.gegenbauer.catspy.ui.panel
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.context.Context
-import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.concurrency.CPU
+import me.gegenbauer.catspy.context.*
 import me.gegenbauer.catspy.file.GB
 import me.gegenbauer.catspy.file.KB
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.MainViewModel
-import me.gegenbauer.catspy.ui.Memory
 import me.gegenbauer.catspy.ui.MemoryMonitor
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -31,8 +30,11 @@ class MemoryStatusBar(override val contexts: Contexts = Contexts.default) : JPro
 
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
-                Runtime.getRuntime().gc()
-                getMainViewModel()?.refreshMemoryInfo()
+                scope.launch(Dispatchers.CPU) {
+                    MemoryState.forceTrimMemory()
+                    Runtime.getRuntime().gc()
+                    getMainViewModel()?.refreshMemoryInfo()
+                }
             }
         })
     }

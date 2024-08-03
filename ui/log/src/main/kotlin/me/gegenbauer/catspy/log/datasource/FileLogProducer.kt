@@ -6,21 +6,19 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.emptyFlow
 import me.gegenbauer.catspy.concurrency.GIO
-import me.gegenbauer.catspy.log.model.LogcatItem
+import me.gegenbauer.catspy.log.parse.LogParser
 import java.io.File
 
 class FileLogProducer(
     private val logPath: String,
+    logParser: LogParser,
     override val dispatcher: CoroutineDispatcher = Dispatchers.GIO
-) : BaseLogProducer() {
+) : BaseLogProducer(logParser) {
 
     override val tempFile: File = File(logPath)
 
-    override fun start(): Flow<Result<LogcatItem>> {
-        if (logPath.isBlank()) {
-            return emptyFlow()
-        }
-        if (tempFile.exists().not()) {
+    override fun start(): Flow<Result<LogItem>> {
+        if (logPath.isBlank() || tempFile.exists().not()) {
             return emptyFlow()
         }
         return channelFlow {
@@ -28,7 +26,8 @@ class FileLogProducer(
             tempFile.inputStream().bufferedReader().use { reader ->
                 reader.lineSequence().forEach { line ->
                     suspender.checkSuspend()
-                    send(Result.success(LogcatItem.from(line, logNum.getAndIncrement())))
+                    val num = logNum.getAndIncrement()
+                    send(Result.success(LogItem(num, line, logParser.parse(line))))
                 }
             }
             invokeOnClose { moveToState(LogProducer.State.COMPLETE) }

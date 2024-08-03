@@ -36,14 +36,24 @@ object JGoodies {
     val binding = Dependency(groupName, "jgoodies-binding", "2.13.0")
 }
 
+/**
+ * https://github.com/JFormDesigner/FlatLaf
+ */
 object FormDev {
     val groupName = "com.formdev"
-    val version = "3.2.5"
-    val fontVersion = "3.1.19"
+    val version = "3.4.1"
+    val interFontVersion = "4.0"
+    val jetbrainsMonoFontVersion = "2.304"
+    val robotoMonoFontVersion = "3.000"
+    val robotoFontVersion = "2.137"
 
     val flatLaf = Dependency(groupName, "flatlaf", version)
     val extra = Dependency(groupName, "flatlaf-extras", version)
     val intelliJTheme = Dependency(groupName, "flatlaf-intellij-themes", version)
+    val fontInter = Dependency(groupName, "flatlaf-fonts-inter", interFontVersion)
+    val fontJetbrainsMono = Dependency(groupName, "flatlaf-fonts-jetbrains-mono", jetbrainsMonoFontVersion)
+    val fontRobotoMono = Dependency(groupName, "flatlaf-fonts-roboto-mono", robotoMonoFontVersion)
+    val fontRoboto = Dependency(groupName, "flatlaf-fonts-roboto", robotoFontVersion)
 }
 
 object Adam {
@@ -110,6 +120,12 @@ object MigLayout {
     val swing = Dependency(groupName, "miglayout-swing", "5.3")
 }
 
+object AlexandriaSoftware {
+    val groupName = "com.alexandriasoftware.swing"
+
+    val jInputValidator = Dependency(groupName, "jinputvalidator", "0.9.0")
+}
+
 data class Dependency(
     val group: String,
     val artifact: String,
@@ -142,9 +158,6 @@ fun DependencyHandler.kotlinReflectApi(): Any {
 
 object FileDependency {
     const val swingx = "libs/swingx-1.6.1.jar"
-    const val innerFont = "libs/flatlaf-fonts-inter-3.19.jar"
-    const val jetbrainsMonoFont = "libs/flatlaf-fonts-jetbrains-mono-2.304.jar"
-    const val robotoFont = "libs/flatlaf-fonts-roboto-2.137.jar"
-    const val robotoMonoFont = "libs/flatlaf-fonts-roboto-mono-3.000.jar"
     const val jFontChooser = "libs/jfontchooser-1.0.5.jar"
+    const val toast = "libs/swing-toast-notifications-1.0.3.jar"
 }

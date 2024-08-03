@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.configuration
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.glog.LogLevel
 import me.gegenbauer.catspy.strings.Locale
-import me.gegenbauer.catspy.utils.toArgb
+import me.gegenbauer.catspy.utils.ui.toArgb
 import java.awt.Color
 import java.awt.Frame
 import java.awt.GraphicsEnvironment
@@ -11,16 +11,14 @@ import java.awt.Rectangle
 import javax.swing.UIManager
 
 data class GSettings(
-    var version: Int = 0,
+    var version: Int = SETTINGS_VERSION,
     val debugSettings: Debug = Debug(),
 
     val logSettings: Log = Log(),
     val themeSettings: Theme = Theme(),
     val mainUISettings: Main = Main(),
-    val updateSettings: Update = Update(),
     val windowSettings: Window = Window(),
 
-    var lastFileSaveDir: String = "",
     var adbPath: String = "",
     private val shownHints: MutableSet<String> = mutableSetOf()
 ): ISettings {
@@ -41,7 +39,7 @@ data class GSettings(
 
     data class Theme(
         var theme: String = DEFAULT_THEME,
-        var font: Font = Font(),
+        var uiFont: Font = Font(),
         private var accentColor: Int = 0
     ) : ISettings {
         fun getAccentColor(): Color {
@@ -54,40 +52,24 @@ data class GSettings(
         fun setAccentColor(color: Color) {
             accentColor = color.toArgb()
         }
+
+        override fun resetToDefault() {
+            theme = DEFAULT_THEME
+            uiFont = Font()
+            accentColor = 0
+        }
     }
 
     data class Log(
         var logLevel: String = LogLevel.VERBOSE.logName,
         var dividerLocation: Int = DEFAULT_DIVIDER_LOCATION,
         var rotation: Int = Rotation.ROTATION_LEFT_RIGHT.ordinal,
-        var font: Font = Font(),
-        val filterHistory: FilterHistory = FilterHistory(),
-        val filterEnabledState: FilterEnabledState = FilterEnabledState(),
-        val search: Search = Search(),
+        var font: Font = Font(size = DEFAULT_LOG_FONT_SIZE),
     ) : ISettings {
 
-        data class FilterHistory(
-            val logFilterHistory: MutableList<String> = mutableListOf(),
-            val tagFilterHistory: MutableList<String> = mutableListOf(),
-            val packageFilterHistory: MutableList<String> = mutableListOf(),
-            val highlightHistory: MutableList<String> = mutableListOf(),
-        )
-
-        data class FilterEnabledState(
-            var logFilterEnabled: Boolean = true,
-            var tagFilterEnabled: Boolean = true,
-            var pidFilterEnabled: Boolean = true,
-            var packageFilterEnabled: Boolean = true,
-            var tidFilterEnabled: Boolean = true,
-            var logLevelFilterEnabled: Boolean = true,
-            var boldEnabled: Boolean = true,
-            var filterMatchCaseEnabled: Boolean = false
-        )
-
-        data class Search(
-            var searchMatchCaseEnabled: Boolean = false,
-            val searchHistory: MutableList<String> = mutableListOf()
-        )
+        override fun resetToDefault() {
+            font = Font(size = DEFAULT_LOG_FONT_SIZE)
+        }
 
         companion object {
             private const val DEFAULT_DIVIDER_LOCATION = 500
@@ -97,15 +79,23 @@ data class GSettings(
     data class Main(
         var locale: Int = Locale.EN.ordinal,
         private val shownHints: MutableSet<String> = mutableSetOf()
-    ) : ISettings
+    ) : ISettings {
+
+        override fun resetToDefault() {
+            locale = Locale.EN.ordinal
+        }
+    }
 
     data class Font(
         var family: String = DEFAULT_FONT_FAMILY,
         var style: Int = DEFAULT_FONT_STYLE,
         var size: Int = DEFAULT_FONT_SIZE
-    ) {
+    ): ISettings {
 
-        fun toNativeFont(): java.awt.Font {
+        @Transient
+        var nativeFont = toNativeFont()
+
+        private fun toNativeFont(): java.awt.Font {
             return java.awt.Font(family, style, size)
         }
 
@@ -113,6 +103,16 @@ data class GSettings(
             family = font.family
             style = font.style
             size = font.size
+
+            nativeFont = font
+        }
+
+        override fun resetToDefault() {
+            family = DEFAULT_FONT_FAMILY
+            style = DEFAULT_FONT_STYLE
+            size = DEFAULT_FONT_SIZE
+
+            nativeFont = toNativeFont()
         }
     }
 
@@ -196,25 +196,6 @@ data class GSettings(
         }
     }
 
-    data class Update(
-        private val ignoredRelease: MutableList<String> = mutableListOf(),
-    ) {
-        fun isIgnored(release: String): Boolean {
-            return ignoredRelease.contains(release)
-        }
-
-        fun addIgnoredRelease(release: String) {
-            if (ignoredRelease.size >= MAX_IGNORED_RELEASE) {
-                ignoredRelease.removeAt(0)
-            }
-            ignoredRelease.add(release)
-        }
-
-        companion object {
-            private const val MAX_IGNORED_RELEASE = 10
-        }
-    }
-
     fun isHintShown(hintId: String): Boolean {
         return shownHints.contains(hintId)
     }
@@ -237,7 +218,13 @@ data class GSettings(
 }
 
 interface ISettings {
-    fun init() {}
+    fun init() {
+        // no-op
+    }
+
+    fun resetToDefault() {
+        // no-op
+    }
 }
 
 

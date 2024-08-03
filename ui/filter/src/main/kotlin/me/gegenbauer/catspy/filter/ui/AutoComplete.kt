@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.filter.ui
 
-import me.gegenbauer.catspy.utils.KeyEventInterceptor
+import me.gegenbauer.catspy.utils.ui.KeyEventInterceptor
 import org.fife.ui.autocomplete.BasicCompletion
 import org.fife.ui.autocomplete.CompletionProvider
 import org.fife.ui.autocomplete.DefaultCompletionProvider

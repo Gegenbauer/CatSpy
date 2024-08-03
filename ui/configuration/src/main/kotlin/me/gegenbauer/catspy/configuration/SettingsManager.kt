@@ -1,47 +1,49 @@
 package me.gegenbauer.catspy.configuration
 
 import com.google.gson.JsonParser
-import com.google.gson.stream.JsonReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.concurrency.ViewModelScope
+import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.file.clone
 import me.gegenbauer.catspy.file.gson
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.platform.currentPlatform
-import me.gegenbauer.catspy.platform.filesDir
-import java.io.File
+import me.gegenbauer.catspy.strings.globalLocale
+import me.gegenbauer.catspy.utils.file.JsonFileManager
 
 val currentSettings by lazy { SettingsManager.settings }
 
 object SettingsManager {
     private const val TAG = "SettingsManager"
-    private const val SETTINGS_FILENAME = "settings.json"
+
+    private const val KEY_SETTINGS_FILE = "conf/settings"
 
     val settings: GSettings by lazy { loadSettings() }
     val string: String
         get() = gson.toJson(settings)
 
-    private val settingsFile = File(filesDir, SETTINGS_FILENAME)
-    private val migrations = listOf(Migration1To2())
+    private val migrations = emptyList<Migration>()
 
     private val scope = ViewModelScope()
+
+    private val jsonFileManager: JsonFileManager
+        get() = ServiceManager.getContextService(JsonFileManager::class.java)
 
     val adbPath: String
         get() = settings.adbPath.takeIf { it.isNotEmpty() } ?: detectedAdbPath
 
     private val detectedAdbPath by lazy { currentPlatform.detectAdbPath() }
+    private val settingsChangeListeners = mutableListOf<SettingsChangeListener>()
 
     private suspend fun ensureSettingsFile() {
         withContext(Dispatchers.GIO) {
-            if (!settingsFile.exists()) {
-                settingsFile.createNewFile()
-                settingsFile.writeText(gson.toJson(GSettings()))
-            } else if (settingsFile.length().toInt() == 0) {
-                settingsFile.writeText(gson.toJson(GSettings()))
+            val settingsJson = jsonFileManager.read(KEY_SETTINGS_FILE)
+            if (settingsJson.isEmpty()) {
+                jsonFileManager.write(KEY_SETTINGS_FILE, gson.toJson(GSettings()))
             }
         }
     }
@@ -55,26 +57,21 @@ object SettingsManager {
         saveInternal()
     }
 
-
     private fun loadSettings(): GSettings {
         return kotlin.runCatching {
-            JsonReader(settingsFile.reader()).use {
-                gson.fromJson<GSettings>(it, GSettings::class.java).apply {
-                    init()
-                    checkSettingsUpdate(this)
-                    GLog.i(TAG, "[loadUI] $this")
-                }
+            gson.fromJson(jsonFileManager.read(KEY_SETTINGS_FILE), GSettings::class.java).apply {
+                init()
+                checkSettingsUpdate(this)
+                GLog.i(TAG, "[loadSettings] $this")
             }
         }.onFailure {
-            GLog.e(TAG, "[loadUI] $it")
+            GLog.e(TAG, "[loadSettings] $it")
         }.getOrDefault(GSettings())
     }
 
     private fun checkSettingsUpdate(settings: GSettings) {
         val jsonObject = kotlin.runCatching {
-            settingsFile.reader().use {
-                JsonParser.parseReader(it).asJsonObject
-            }
+            jsonFileManager.read(KEY_SETTINGS_FILE).let { JsonParser.parseString(it).asJsonObject }
         }.onFailure {
             GLog.e(TAG, "[checkSettingsUpdate] $it")
         }.getOrNull() ?: return
@@ -89,7 +86,7 @@ object SettingsManager {
         settings.editAction()
         scope.launch {
             withContext(Dispatchers.UI) {
-                ThemeManager.update(originalSettings, settings)
+                notifySettingsChanged(originalSettings, settings)
             }
             saveInternal()
         }
@@ -99,18 +96,15 @@ object SettingsManager {
         val originalSettings = clone(settings)
         settings.editAction()
         withContext(Dispatchers.UI) {
-            ThemeManager.update(originalSettings, settings)
+            notifySettingsChanged(originalSettings, settings)
         }
         saveInternal()
     }
 
-    fun checkAndUpdateLocale(originalSettings: String) {
+    fun updateLocale() {
         scope.launch {
-            val oriSettings = gson.fromJson(originalSettings, GSettings::class.java)
-            if (oriSettings.mainUISettings.locale != settings.mainUISettings.locale) {
-                withContext(Dispatchers.UI) {
-                    ThemeManager.applyLocale(settings)
-                }
+            if (globalLocale.ordinal != settings.mainUISettings.locale) {
+                ThemeManager.applyLocale(settings)
                 saveInternal()
             }
         }
@@ -118,7 +112,26 @@ object SettingsManager {
 
     private suspend fun saveInternal() {
         withContext(Dispatchers.GIO) {
-            settingsFile.writeText(gson.toJson(settings))
+            jsonFileManager.write(KEY_SETTINGS_FILE, gson.toJson(settings))
         }
     }
+
+    @Synchronized
+    fun addSettingsChangeListener(listener: SettingsChangeListener) {
+        settingsChangeListeners.add(listener)
+    }
+
+    @Synchronized
+    fun removeSettingsChangeListener(listener: SettingsChangeListener) {
+        settingsChangeListeners.remove(listener)
+    }
+
+    @Synchronized
+    private fun notifySettingsChanged(oldSettings: GSettings, newSettings: GSettings) {
+        settingsChangeListeners.forEach { it.onSettingsChanged(oldSettings, newSettings) }
+    }
+}
+
+fun interface SettingsChangeListener {
+    fun onSettingsChanged(oldSettings: GSettings, newSettings: GSettings)
 }

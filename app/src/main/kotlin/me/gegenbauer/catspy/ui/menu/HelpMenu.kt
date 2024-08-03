@@ -13,8 +13,8 @@ import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.MainViewModel
 import me.gegenbauer.catspy.ui.dialog.AboutDialog
 import me.gegenbauer.catspy.ui.dialog.HelpDialog
-import me.gegenbauer.catspy.utils.MENU_ICON_SIZE
-import me.gegenbauer.catspy.utils.findFrameFromParent
+import me.gegenbauer.catspy.utils.ui.MENU_ICON_SIZE
+import me.gegenbauer.catspy.utils.ui.findFrameFromParent
 import me.gegenbauer.catspy.view.dialog.FileSaveHandler
 import me.gegenbauer.catspy.view.menu.GMenu
 import java.awt.event.ActionListener
