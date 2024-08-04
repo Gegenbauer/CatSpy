@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.*
 
-object GLogFormatter {
+object ColoredLogFormatter : BaseLogFormatter() {
     private const val ANSI_RESET = "\u001B[0m"
     private const val ANSI_BLACK = "\u001B[30m"
     private const val ANSI_RED = "\u001B[31m"
@@ -19,11 +19,7 @@ object GLogFormatter {
     private const val ANSI_BOLD_ON = "\u001B[01m"
     private const val ANSI_BOLD_OFF = "\u001B[2m"
 
-    private val dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM)
-        .withLocale(Locale.UK)
-        .withZone(ZoneId.systemDefault())
-
-    fun format(record: LogRecord): String {
+    override fun format(record: LogRecord): String {
         val builder = StringBuilder()
         builder.append(ANSI_BLUE)
         val time = calculateDateString(record.millis)
@@ -58,7 +54,57 @@ object GLogFormatter {
         return builder.toString()
     }
 
-    private fun appendExceptionMessage(builder: StringBuilder, throwable: Throwable) {
+    private fun getMessageColor(record: LogRecord): String {
+        return if (record.level >= LogLevel.ERROR) {
+            ANSI_RED
+        } else if (record.level >= LogLevel.WARN) {
+            ANSI_YELLOW
+        } else {
+            ANSI_BOLD_ON
+        }
+    }
+}
+
+object PlainLogFormatter : BaseLogFormatter() {
+    override fun format(record: LogRecord): String {
+        val builder = StringBuilder()
+        val time = calculateDateString(record.millis)
+        builder.append("[")
+        builder.append(time)
+        builder.append(".")
+        builder.append(record.millis % 1000)
+        builder.append("]")
+        builder.append(" [")
+        builder.append(record.level::class.java.simpleName)
+        builder.append("] [")
+        builder.append(record.loggerName)
+        builder.append("] [")
+        builder.append(Thread.currentThread().name)
+        builder.append("] ")
+        builder.append(record.message)
+        builder.append("\n")
+        if (record.thrown != null) {
+            appendExceptionMessage(builder, record.thrown)
+        }
+        return builder.toString()
+    }
+}
+
+fun interface LogFormatter {
+    fun format(record: LogRecord): String
+}
+
+abstract class BaseLogFormatter : LogFormatter {
+
+    private val dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM)
+        .withLocale(Locale.getDefault())
+        .withZone(ZoneId.systemDefault())
+
+    protected fun calculateDateString(milliseconds: Long): String {
+        return dateTimeFormatter.format(Instant.ofEpochMilli(milliseconds))
+    }
+
+    protected fun appendExceptionMessage(builder: StringBuilder, throwable: Throwable) {
         builder.append(throwable.javaClass.canonicalName).append(": ")
         builder.appendLine(throwable.message)
         val trace = throwable.stackTrace
@@ -119,20 +165,6 @@ object GLogFormatter {
             if (cause != null) {
                 printEnclosedStackTrace(builder, cause, trace, "Caused by: ", prefix, dejaVu)
             }
-        }
-    }
-
-    private fun calculateDateString(milliseconds: Long): String {
-        return dateTimeFormatter.format(Instant.ofEpochMilli(milliseconds))
-    }
-
-    private fun getMessageColor(record: LogRecord): String {
-        return if (record.level >= LogLevel.ERROR) {
-            ANSI_RED
-        } else if (record.level >= LogLevel.WARN) {
-            ANSI_YELLOW
-        } else {
-            ANSI_BOLD_ON
         }
     }
 }

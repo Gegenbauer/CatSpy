@@ -1,8 +1,10 @@
 package me.gegenbauer.catspy.glog.jdk
 
 import me.gegenbauer.catspy.file.appendPath
+import me.gegenbauer.catspy.glog.ColoredLogFormatter
 import me.gegenbauer.catspy.glog.LogConfiguration
 import me.gegenbauer.catspy.glog.LogLevel
+import me.gegenbauer.catspy.glog.PlainLogFormatter
 import java.util.logging.*
 
 internal class JdkLogConfiguration(
@@ -11,10 +13,10 @@ internal class JdkLogConfiguration(
 ) : LogConfiguration<JdkLogger> {
     private val logFilePath = logPath.appendPath(logName)
     private val consoleHandler: Handler = ConsoleHandler().apply {
-        formatter = JdkLogFormatter
+        formatter = JdkLogFormatter(ColoredLogFormatter)
     }
     private val fileHandler = FileHandler(logFilePath, LOG_FILE_MAX_SIZE, LOG_FILE_MAX_COUNT, true).apply {
-        formatter = JdkLogFormatter
+        formatter = JdkLogFormatter(PlainLogFormatter)
     }
 
     private val parentLogger = Logger.getLogger(TAG).apply {

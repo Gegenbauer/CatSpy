@@ -177,19 +177,14 @@ open class FileLogMainPanel : BaseLogMainPanel() {
             return
         }
 
-        val options = listOf<Pair<String, (List<File>) -> Unit>>(
-            STRINGS.ui.open to { openFileLog(it) },
-            STRINGS.ui.cancel to { GLog.d(tag, "[onDragLogFile] select cancel") }
-        )
-        val value = JOptionPane.showOptionDialog(
-            this, STRINGS.ui.dragLogFileWarning,
+        showWarningDialog(
+            this,
             "",
-            JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE,
-            null,
-            options.map { it.first }.toTypedArray(),
-            STRINGS.ui.append
-        )
-        options[value].second.invoke(files)
+            STRINGS.ui.dragLogFileWarning,
+            listOf(
+                STRINGS.ui.open to { true },
+                STRINGS.ui.cancel to { false }
+            )
+        ).takeIf { it }?.let { openFileLog(files) }
     }
 }

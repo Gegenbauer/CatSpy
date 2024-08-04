@@ -12,8 +12,7 @@ import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy
 import ch.qos.logback.core.util.FileSize
 import me.gegenbauer.catspy.file.appendExtension
 import me.gegenbauer.catspy.file.appendPath
-import me.gegenbauer.catspy.glog.LogConfiguration
-import me.gegenbauer.catspy.glog.LogLevel
+import me.gegenbauer.catspy.glog.*
 import org.slf4j.LoggerFactory
 
 class LogbackConfiguration(
@@ -22,21 +21,16 @@ class LogbackConfiguration(
 ) : LogConfiguration<LogbackLogger> {
     private var logLevel: LogLevel = LogLevel.VERBOSE
 
-    private val encoder = LayoutWrappingEncoder<ILoggingEvent>().apply {
-        context = logContext
-        layout = LogbackFormatter()
-        start()
-    }
     private val consoleAppender = ConsoleAppender<ILoggingEvent>().apply {
         context = logContext
         name = CONSOLE_APPENDER_NAME
-        encoder = this@LogbackConfiguration.encoder
+        encoder = getEncoder(ColoredLogFormatter)
         start()
     }
     private val fileAppender = RollingFileAppender<ILoggingEvent>().apply appender@{
         context = logContext
         name = FILE_APPENDER_NAME
-        encoder = this@LogbackConfiguration.encoder
+        encoder = getEncoder(PlainLogFormatter)
         file = logPath.appendPath(logName).appendExtension(LOG_FILE_EXTENSION)
 
         val triggeringPolicy = SizeBasedTriggeringPolicy<ILoggingEvent>().apply {
@@ -84,6 +78,14 @@ class LogbackConfiguration(
         }
     }
 
+    private fun getEncoder(formatter: LogFormatter): LayoutWrappingEncoder<ILoggingEvent> {
+        return LayoutWrappingEncoder<ILoggingEvent>().apply {
+            context = logContext
+            layout = LogbackFormatter(formatter)
+            start()
+        }
+    }
+
     private fun LogLevel.toLogbackLevel(): Level = when (this) {
         LogLevel.ERROR, LogLevel.FATAL -> Level.ERROR
         LogLevel.WARN -> Level.WARN
@@ -100,7 +102,7 @@ class LogbackConfiguration(
         val logContext = LoggerFactory.getILoggerFactory() as LoggerContext
         val defaultConfig = LogbackConfiguration(System.getProperty("user.dir"), "catspy")
 
-        private const val LOG_FILE_MAX_SIZE = 100 * 1024 * 1024L
+        private const val LOG_FILE_MAX_SIZE = 30 * 1024 * 1024L
         private const val LOG_FILE_MAX_COUNT = 3
 
         private const val CONSOLE_APPENDER_NAME = "CONSOLE"
