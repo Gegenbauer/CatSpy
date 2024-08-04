@@ -1,13 +1,13 @@
 package me.gegenbauer.catspy.glog.jdk
 
-import me.gegenbauer.catspy.glog.GLogFormatter
+import me.gegenbauer.catspy.glog.LogFormatter
 import me.gegenbauer.catspy.glog.LogLevel
 import java.util.logging.Formatter
 import java.util.logging.LogRecord
 
-object JdkLogFormatter: Formatter() {
+open class JdkLogFormatter(private val logFormatter: LogFormatter): Formatter() {
     override fun format(record: LogRecord): String {
-        return GLogFormatter.format(
+        return logFormatter.format(
             me.gegenbauer.catspy.glog.LogRecord(
             record.millis,
             fromJdkLevel(record.level),

@@ -33,7 +33,7 @@ class AdbSettingsGroup(
             ServiceManager.getContextService(AdamDeviceMonitor::class.java).configure(AdbConf(value))
         }
 
-    private val adbStatusTf = JTextField().apply { isEditable = false }
+    private val adbStatusField = JTextField().apply { isEditable = false }
 
     private val currentAdbDir: File
         get() {
@@ -127,8 +127,8 @@ class AdbSettingsGroup(
             refreshAdbStatus()
         }
 
-        adbStatusTf.parent?.removeAll()
-        panel.add(adbStatusTf, "0,0")
+        adbStatusField.parent?.removeAll()
+        panel.add(adbStatusField, "0,0")
         panel.add(refreshAdbServerStatusBtn, "1,0")
 
         checkAdbStatus()
@@ -160,7 +160,7 @@ class AdbSettingsGroup(
 
     private fun updateAdbStatus(status: Boolean) {
         val adbStatus = if (status) STRINGS.ui.adbServerStarted else STRINGS.ui.adbServerNotStarted
-        adbStatusTf.text = adbStatus
+        adbStatusField.text = adbStatus
     }
 
     private fun informAdbServerStartResult(result: AdbServerStartResult) {
