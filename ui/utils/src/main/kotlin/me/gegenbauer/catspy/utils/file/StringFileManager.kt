@@ -28,12 +28,12 @@ abstract class StringFileManager : ContextService {
     fun read(key: String): String {
         val lock = getLock(key)
         synchronized(lock) {
-            ensureDir()
             val json = jsonCache[key]
             if (json != null) {
                 return json
             }
             val jsonFile = getJsonFile(key)
+            jsonFile.parentFile.mkdirs()
             val backupFile = getBackupFile(key)
             if (backupFile.exists()) {
                 GLog.w(TAG, "backup file $backupFile exists. Last write may not be completed, recovery it.")
@@ -95,8 +95,8 @@ abstract class StringFileManager : ContextService {
     fun write(key: String, content: String) {
         val lock = getLock(key)
         synchronized(lock) {
-            ensureDir()
             val jsonFile = getJsonFile(key)
+            jsonFile.parentFile.mkdirs()
             val backupFile = getBackupFile(key)
             if (backupFile.exists()) {
                 GLog.w(TAG, "backup file $backupFile exists. Last write may not be completed, deleting it.")
@@ -131,11 +131,6 @@ abstract class StringFileManager : ContextService {
             }
             jsonCache.remove(key)
         }
-    }
-
-    private fun ensureDir() {
-        val dir = File(filesDir)
-        dir.mkdirs()
     }
 
     override fun onTrimMemory(level: MemoryAware.Level) {

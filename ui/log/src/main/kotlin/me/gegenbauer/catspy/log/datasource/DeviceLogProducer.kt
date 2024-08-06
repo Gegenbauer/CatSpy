@@ -88,11 +88,12 @@ class DeviceLogProducer(
 
     private fun getTempLogFile(): File {
         val dtf = DateTimeFormatter.ofPattern(LOG_FILE_NAME_TIME_FORMAT)
+        val deviceName = device.split(":").first().trim()
         val filePath = filesDir
             .appendPath(LOG_DIR)
-            .appendPath(device)
+            .appendPath(deviceName)
             .appendPath(GlobalProperties.APP_NAME)
-            .appendName(device)
+            .appendName(deviceName)
             .appendName(dtf.format(LocalDateTime.now()))
             .appendExtension(LOG_FILE_SUFFIX)
         return File(filePath).apply {
