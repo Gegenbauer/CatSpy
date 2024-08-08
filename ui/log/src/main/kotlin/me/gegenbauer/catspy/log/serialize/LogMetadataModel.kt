@@ -4,6 +4,7 @@ import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.Column.Companion.LAYOUT_WIDTH_PREFERRED
 import me.gegenbauer.catspy.log.metadata.Column.FilterPosition
 import me.gegenbauer.catspy.log.metadata.DisplayedLevel
+import me.gegenbauer.catspy.log.metadata.LogColorScheme
 import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.log.parse.LogParser
 
@@ -18,6 +19,7 @@ data class LogMetadataModel(
     val parser: LogParser,
     val columns: List<ColumnModel>,
     val levels: List<DisplayedLevel>,
+    val colorScheme: LogColorScheme,
     val supportedFileExtensions: Set<String>,
     val isDeviceLog: Boolean,
     val isBuiltIn: Boolean,
@@ -30,6 +32,7 @@ data class LogMetadataModel(
             LogParser.empty,
             emptyList(),
             emptyList(),
+            LogColorScheme(),
             emptySet(),
             isDeviceLog = false,
             isBuiltIn = false,
@@ -99,6 +102,7 @@ fun LogMetadata.toLogMetadataModel(): LogMetadataModel {
         parser,
         columns.map { it.toColumnModel() },
         levels,
+        colorScheme,
         supportedFileExtensions,
         isDeviceLog,
         isBuiltIn,
@@ -158,7 +162,8 @@ fun LogMetadataModel.toLogMetadata(): LogMetadata {
         isBuiltIn,
         description,
         sample,
-        levels
+        levels,
+        colorScheme
     )
 }
 

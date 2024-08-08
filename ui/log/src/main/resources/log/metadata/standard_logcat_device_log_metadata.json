@@ -149,7 +149,7 @@
       "uiConf": {
         "column": {
           "index": 5,
-          "charLen": 20,
+          "charLen": 22,
           "isHidden": false
         },
         "filter": {
@@ -257,6 +257,48 @@
       }
     }
   ],
+  "colorScheme": {
+    "searchContentBg": {
+      "color": "0x-cfcf50",
+      "darkThemeColor": "0x-4f4f50"
+    },
+    "searchContentFg": {
+      "color": "0x-1",
+      "darkThemeColor": "0x-1000000"
+    },
+    "filterContentBg": {
+      "color": "0x4a20b020",
+      "darkThemeColor": "0x-ff6000"
+    },
+    "filterContentFg": {
+      "color": "0x-1",
+      "darkThemeColor": "0x-1000000"
+    },
+    "indexColumnSeparatorColor": {
+      "color": "0x-333334",
+      "darkThemeColor": "0x-5f5f60"
+    },
+    "indexColumnForeground": {
+      "color": "0x-cccccd",
+      "darkThemeColor": "0x-f0f10"
+    },
+    "normalLogBackground": {
+      "color": "0x-506",
+      "darkThemeColor": "0x-eaeaeb"
+    },
+    "selectedLogBackground": {
+      "color": "0x-1f1f20",
+      "darkThemeColor": "0x-c5c2bf"
+    },
+    "bookmarkedLogBackground": {
+      "color": "0x-1f1f01",
+      "darkThemeColor": "0x-afeff0"
+    },
+    "bookmarkedAndSelectedLogBackground": {
+      "color": "0x-2f2f21",
+      "darkThemeColor": "0x-afcfd0"
+    }
+  },
   "supportedFileExtensions": [],
   "isDeviceLog": true,
   "isBuiltIn": true,

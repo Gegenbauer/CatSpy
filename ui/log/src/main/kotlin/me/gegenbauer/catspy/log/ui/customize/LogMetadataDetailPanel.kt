@@ -89,7 +89,6 @@ class LogMetadataDetailPanel : JPanel(), ILogMetadataDetail, EditEventListener {
 
     private fun updatePreview(metadata: LogMetadataModel) {
         previewPanel.setMetadata(metadata)
-        previewPanel.setLogProducer { listOf(metadata.sample) }
     }
 
     private fun showPreview(show: Boolean) {

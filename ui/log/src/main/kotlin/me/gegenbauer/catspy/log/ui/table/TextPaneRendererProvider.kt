@@ -1,9 +1,9 @@
 package me.gegenbauer.catspy.log.ui.table
 
-import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.log.filter.DefaultLogFilter
 import me.gegenbauer.catspy.log.metadata.Column
+import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.render.StringRenderer
 import me.gegenbauer.catspy.render.TextPaneRenderer
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.getMatchedList
@@ -17,19 +17,19 @@ import javax.swing.JTextPane
 import javax.swing.plaf.ColorUIResource
 import javax.swing.table.TableCellRenderer
 
-class TextPaneRendererProvider: BaseLogCellRendererProvider() {
+class TextPaneRendererProvider : BaseLogCellRendererProvider() {
     private val dialogTextComponent = JTextPane()
 
     override fun createRenderer(column: Column): TableCellRenderer {
         if (column.partIndex < 0) {
-            return indexRenderer
+            return IndexRenderer(logMetadata)
         }
 
         if (column.supportFilter && column.uiConf.column.isHidden.not()) {
-            return SearchableCellRenderer(getFilterIndex(column))
+            return SearchableCellRenderer(logMetadata, getFilterIndex(column))
         }
 
-        return SimpleLogCellRenderer()
+        return SimpleLogCellRenderer(logMetadata)
     }
 
     override fun showSelectedRowsInDialog(
@@ -43,7 +43,7 @@ class TextPaneRendererProvider: BaseLogCellRendererProvider() {
         renderer.render()
         renderer.recycle()
         val frame = logTable.contexts.getContext(JFrame::class.java)!!
-        val logViewDialog = LogDetailDialog(frame, dialogTextComponent, popupActions)
+        val logViewDialog = LogDetailDialog(frame, dialogTextComponent, popupActions, logMetadata)
         logViewDialog.setLocationRelativeTo(frame)
         logViewDialog.isVisible = true
     }
@@ -69,8 +69,8 @@ class TextPaneRendererProvider: BaseLogCellRendererProvider() {
             val logItem = table.tableModel.getItemInCurrentPage(row)
             val filterMatchedList = logFilterItem?.getMatchedList(logItem.logLine) ?: emptyList()
             filterMatchedList.forEach {
-                renderer.highlight(offset + it.first, offset + it.second, LogColorScheme.filteredBGs[0])
-                renderer.foreground(offset + it.first, offset + it.second, LogColorScheme.filteredFGs[0])
+                renderer.highlight(offset + it.first, offset + it.second, logMetadata.colorScheme.filterContentBg)
+                renderer.foreground(offset + it.first, offset + it.second, logMetadata.colorScheme.filterContentFg)
             }
             val foregroundColor = getLevel(logItem).color.color
             renderer.foreground(offset, offset + logItem.logLine.length - 1, foregroundColor)
@@ -79,7 +79,8 @@ class TextPaneRendererProvider: BaseLogCellRendererProvider() {
         return content
     }
 
-    private abstract class DefaultLogTableCellRenderer : TextPaneLogTableCellRenderer() {
+    private abstract class DefaultLogTableCellRenderer(logMetadata: LogMetadata) :
+        TextPaneLogTableCellRenderer(logMetadata) {
         private val emptyBorder = BorderFactory.createEmptyBorder(0, 0, 0, 0)
 
         init {
@@ -89,11 +90,11 @@ class TextPaneRendererProvider: BaseLogCellRendererProvider() {
         override fun render(table: LogTable, textPane: JTextPane, renderer: StringRenderer, row: Int, content: String) {
             super.render(table, textPane, renderer, row, content)
             val logItem = table.tableModel.getItemInCurrentPage(row)
-            updateBackground(table.getColumnBackground(logItem.num, row))
+            updateBackground(table.getColumnBackground(logItem.num, row, logMetadata))
         }
     }
 
-    private inner class SimpleLogCellRenderer : DefaultLogTableCellRenderer() {
+    private inner class SimpleLogCellRenderer(logMetadata: LogMetadata) : DefaultLogTableCellRenderer(logMetadata) {
 
         override fun render(table: LogTable, textPane: JTextPane, renderer: StringRenderer, row: Int, content: String) {
             super.render(table, textPane, renderer, row, content)
@@ -101,7 +102,10 @@ class TextPaneRendererProvider: BaseLogCellRendererProvider() {
         }
     }
 
-    private inner class SearchableCellRenderer(private val filterIndex: Int) : DefaultLogTableCellRenderer() {
+    private inner class SearchableCellRenderer(
+        logMetadata: LogMetadata,
+        private val filterIndex: Int
+    ) : DefaultLogTableCellRenderer(logMetadata) {
         override fun render(table: LogTable, textPane: JTextPane, renderer: StringRenderer, row: Int, content: String) {
             super.render(table, textPane, renderer, row, content)
 
@@ -110,8 +114,8 @@ class TextPaneRendererProvider: BaseLogCellRendererProvider() {
             renderer.foreground(0, content.length - 1, foreground)
 
             table.tableModel.searchFilterItem.getMatchedList(content).forEach {
-                renderer.highlight(it.first, it.second, LogColorScheme.searchBG)
-                renderer.foreground(it.first, it.second, LogColorScheme.searchFG)
+                renderer.highlight(it.first, it.second, logMetadata.colorScheme.searchContentBg)
+                renderer.foreground(it.first, it.second, logMetadata.colorScheme.searchContentFg)
             }
 
             val logFilter = table.tableModel.getLogFilter()
@@ -119,8 +123,8 @@ class TextPaneRendererProvider: BaseLogCellRendererProvider() {
             // filter 比 render 更新慢时出现异常
             if (filterIndex >= logFilter.filters.size) return
             logFilter.filters[filterIndex].filterItem.getMatchedList(content).forEach {
-                renderer.highlight(it.first, it.second, LogColorScheme.filteredBGs[0])
-                renderer.foreground(it.first, it.second, LogColorScheme.filteredFGs[0])
+                renderer.highlight(it.first, it.second, logMetadata.colorScheme.filterContentBg)
+                renderer.foreground(it.first, it.second, logMetadata.colorScheme.filterContentFg)
             }
         }
 
@@ -132,26 +136,24 @@ class TextPaneRendererProvider: BaseLogCellRendererProvider() {
         }
     }
 
-    companion object {
-        private val indexRenderer = object : DefaultLogTableCellRenderer() {
-            private val border = LineNumBorder(LogColorScheme.numLogSeparatorBG, 1)
+    private class IndexRenderer(logMetadata: LogMetadata) : DefaultLogTableCellRenderer(logMetadata) {
+        private val border = LineNumBorder(logMetadata.colorScheme.indexColumnSeparatorColor, 1)
 
-            override fun render(
-                table: LogTable,
-                textPane: JTextPane,
-                renderer: StringRenderer,
-                row: Int,
-                content: String
-            ) {
-                super.render(table, textPane, renderer, row, content)
-                border.color = LogColorScheme.numLogSeparatorBG
-                renderer.foreground(0, content.length - 1, LogColorScheme.lineNumFG)
-            }
+        override fun render(
+            table: LogTable,
+            textPane: JTextPane,
+            renderer: StringRenderer,
+            row: Int,
+            content: String
+        ) {
+            super.render(table, textPane, renderer, row, content)
+            border.color = logMetadata.colorScheme.indexColumnSeparatorColor
+            renderer.foreground(0, content.length - 1, logMetadata.colorScheme.indexColumnForeground)
         }
     }
 }
 
-open class TextPaneLogTableCellRenderer : TableCellRenderer, JTextPane() {
+open class TextPaneLogTableCellRenderer(protected val logMetadata: LogMetadata) : TableCellRenderer, JTextPane() {
 
     private val emptyBorder = BorderFactory.createEmptyBorder(0, 5, 0, 0)
     private var background: Color = ColorUIResource(Color.white)

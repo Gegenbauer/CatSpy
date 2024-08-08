@@ -37,9 +37,7 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
      * @param end inclusive
      */
     override fun bold(start: Int, end: Int): StringRenderer {
-        if (checkIndex(start, end)) {
-            spans.add(Span(start, end, SpanType.BOLD))
-        }
+        spans.add(Span(start, end, SpanType.BOLD))
         return this
     }
 
@@ -48,9 +46,7 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
      * @param end inclusive
      */
     override fun italic(start: Int, end: Int): StringRenderer {
-        if (checkIndex(start, end)) {
-            spans.add(Span(start, end, SpanType.ITALIC))
-        }
+        spans.add(Span(start, end, SpanType.ITALIC))
         return this
     }
 
@@ -59,9 +55,7 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
      * @param end inclusive
      */
     override fun strikethrough(start: Int, end: Int): StringRenderer {
-        if (checkIndex(start, end)) {
-            spans.add(Span(start, end, SpanType.STRIKETHROUGH))
-        }
+        spans.add(Span(start, end, SpanType.STRIKETHROUGH))
         return this
     }
 
@@ -70,9 +64,7 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
      * @param end inclusive
      */
     override fun highlight(start: Int, end: Int, color: Color): StringRenderer {
-        if (checkIndex(start, end)) {
-            spans.add(Span(start, end, SpanType.HIGHLIGHT, color))
-        }
+        spans.add(Span(start, end, SpanType.HIGHLIGHT, color))
         return this
     }
 
@@ -81,9 +73,7 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
      * @param end inclusive
      */
     override fun foreground(start: Int, end: Int, color: Color): StringRenderer {
-        if (checkIndex(start, end)) {
-            spans.add(Span(start, end, SpanType.FOREGROUND, color))
-        }
+        spans.add(Span(start, end, SpanType.FOREGROUND, color))
         return this
     }
 
@@ -92,29 +82,25 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
      * @param end inclusive
      */
     override fun underline(start: Int, end: Int): StringRenderer {
-        if (checkIndex(start, end)) {
-            spans.add(Span(start, end, SpanType.UNDERLINE))
-        }
+        spans.add(Span(start, end, SpanType.UNDERLINE))
         return this
-    }
-
-    private fun checkIndex(start: Int, end: Int): Boolean {
-        return start >= 0 && end < raw.length && start <= end
     }
 
     override fun render() {
         val label = requireLabel()
-        if (raw.isEmpty() || spans.isEmpty()) {
+        if (spans.isEmpty()) {
             label.text = raw
             return
         }
 
         if (isComplexityLow()) {
-            if (getForegroundColor() != INVALID_COLOR) {
-                label.foreground = getForegroundColor()
+            val foreground = getForegroundColor()
+            if (foreground != INVALID_COLOR) {
+                label.foreground = foreground
             }
-            if (getBackgroundColor() != INVALID_COLOR) {
-                label.background = getBackgroundColor()
+            val backgroundColor = getBackgroundColor()
+            if (backgroundColor != INVALID_COLOR) {
+                label.background = backgroundColor
             }
             label.text = raw
             return
@@ -126,6 +112,7 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
         if (label.text != renderedText) {
             label.text = renderedText
         }
+        label.background = getBackgroundColor()
     }
 
     fun renderWithoutTags(): String {
@@ -211,7 +198,7 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
             // color 不为空的，则计算 color 平均值
             // 否则只取一个
             val color = if (it.first().isColorType()) {
-                averageColor(it.map { span -> span.color })
+                it.last().color
             } else {
                 it.first().color
             }
@@ -231,9 +218,9 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
         val highlightSpans = spans.filter { it.type == SpanType.HIGHLIGHT }
 
         val isForegroundLowComplexity =
-            foregroundSpans.isEmpty() || (foregroundSpans.all { it.start == 0 && it.end == raw.length - 1 })
+            foregroundSpans.isEmpty() || (foregroundSpans.all { it.start == 0 && it.end >= raw.length - 1 })
         val isHighlightLowComplexity =
-            highlightSpans.isEmpty() || (highlightSpans.all { it.start == 0 && it.end == raw.length - 1 })
+            highlightSpans.isEmpty() || (highlightSpans.all { it.start == 0 && it.end >= raw.length - 1 })
 
         return isForegroundLowComplexity && isHighlightLowComplexity
     }
@@ -243,22 +230,16 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
         return if (foregroundSpans.isEmpty()) {
             INVALID_COLOR
         } else {
-            if (foregroundSpans.size == 1) {
-                return foregroundSpans.first().color
-            }
-            averageColor(foregroundSpans.map { it.color })
+            foregroundSpans.last().color
         }
     }
 
     private fun getBackgroundColor(): Color {
-        val highlightSpans = spans.filter { it.type == SpanType.HIGHLIGHT }
+        val highlightSpans = spans.filter { it.type == SpanType.HIGHLIGHT && it.start == 0 && it.end >= raw.length - 1 }
         return if (highlightSpans.isEmpty()) {
             INVALID_COLOR
         } else {
-            if (highlightSpans.size == 1) {
-                return highlightSpans.first().color
-            }
-            averageColor(highlightSpans.map { it.color })
+            highlightSpans.last().color
         }
     }
 
@@ -277,7 +258,8 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
         val start: Int,
         val end: Int,
         val type: SpanType,
-        val color: Color = Color.BLACK
+        val color: Color = Color.BLACK,
+        val replace: Boolean = false
     ) {
         fun css(): String = when (type) {
             SpanType.NORMAL -> ""
