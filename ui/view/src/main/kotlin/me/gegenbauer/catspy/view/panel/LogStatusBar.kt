@@ -34,6 +34,7 @@ class LogStatusBar : JPanel(), GThemeChangeListener {
                 }
             }
         })
+        ThemeManager.registerThemeUpdateListener(this)
     }
 
     private fun showOpenFilePopup(event: MouseEvent, path: String) {

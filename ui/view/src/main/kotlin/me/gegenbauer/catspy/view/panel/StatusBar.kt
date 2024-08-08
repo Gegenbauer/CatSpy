@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.view.panel
 
 import java.awt.Color
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.UIManager
 
 interface StatusBar : TaskMonitor {
@@ -9,7 +10,9 @@ interface StatusBar : TaskMonitor {
 
     var memoryMonitorBar: JComponent
 
-    var statusIcons: StatusIconsBar
+    val statusIcons: StatusIconsBar
+
+    val toolbar: BottomToolbar
 
     open class LogStatus(
         val backgroundColorProvider: () -> Color,
@@ -35,8 +38,8 @@ interface StatusBar : TaskMonitor {
     )
 
     class LogStatusRunning(status: String, path: String = "") : LogStatus(
-        { UIManager.getColor("CheckBox.background.selected") },
-        { UIManager.getColor("CheckBox.foreground") },
+        { UIManager.getColor("CatSpy.accent.green") },
+        { UIManager.getColor("Button.default.foreground") },
         status,
         path
     )

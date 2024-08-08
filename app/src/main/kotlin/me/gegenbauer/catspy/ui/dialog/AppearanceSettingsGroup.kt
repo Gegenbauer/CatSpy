@@ -26,7 +26,7 @@ class AppearanceSettingsGroup(
 
     override fun initGroup() {
         val languageModifiedHint = JLabel("")
-        languageModifiedHint.foreground = UIManager.getColor("Objects.RedStatus")
+        languageModifiedHint.foreground = UIManager.getColor("CatSpy.accent.red")
         val languageCbx = JComboBox(supportLocales.map { it.displayName }.toTypedArray())
         languageCbx.addActionListener {
             val locale = supportLocales[languageCbx.selectedIndex]

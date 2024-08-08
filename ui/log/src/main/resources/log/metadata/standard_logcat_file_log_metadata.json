@@ -17,14 +17,17 @@
         {
           "start": 4,
           "targetChar": ":",
-          "name": "MergeUntilCharOp",
+          "name": "MergeUntilChar",
           "splitPostProcessOpType": 13
         }
       ],
       "name": "SplitByWordSeparator",
       "splitToPartsOpType": 1
     },
-    "trimOps": []
+    "trimOps": [],
+    "partCount": 6,
+    "levelPartIndex": 3,
+    "defaultLevelTag": "V"
   },
   "columns": [
     {
@@ -131,7 +134,7 @@
         },
         "filter": {
           "name": "Tag",
-          "layoutWidth": 200.0,
+          "layoutWidth": 300.0,
           "position": {
             "columnIndex": 1,
             "rowIndex": 0
@@ -174,8 +177,8 @@
         "tag": "V"
       },
       "color": {
-        "color": -16777216,
-        "darkThemeColor": -986896
+        "color": "0x-1000000",
+        "darkThemeColor": "0x-f0f10"
       }
     },
     {
@@ -185,8 +188,8 @@
         "tag": "D"
       },
       "color": {
-        "color": -14643200,
-        "darkThemeColor": -9660298
+        "color": "0x-df7000",
+        "darkThemeColor": "0x-93678a"
       }
     },
     {
@@ -196,8 +199,8 @@
         "tag": "I"
       },
       "color": {
-        "color": -16744225,
-        "darkThemeColor": -11500348
+        "color": "0x-ff7f21",
+        "darkThemeColor": "0x-af7b3c"
       }
     },
     {
@@ -207,8 +210,8 @@
         "tag": "W"
       },
       "color": {
-        "color": -1019904,
-        "darkThemeColor": -3438782
+        "color": "0x-f9000",
+        "darkThemeColor": "0x-3478be"
       }
     },
     {
@@ -218,8 +221,8 @@
         "tag": "E"
       },
       "color": {
-        "color": -3145728,
-        "darkThemeColor": -3314567
+        "color": "0x-300000",
+        "darkThemeColor": "0x-329387"
       }
     },
     {
@@ -229,11 +232,53 @@
         "tag": "F"
       },
       "color": {
-        "color": -9437184,
-        "darkThemeColor": -1232848
+        "color": "0x-900000",
+        "darkThemeColor": "0x-12cfd0"
       }
     }
   ],
+  "colorScheme": {
+    "searchContentBg": {
+      "color": "0x-cfcf50",
+      "darkThemeColor": "0x-4f4f50"
+    },
+    "searchContentFg": {
+      "color": "0x-1",
+      "darkThemeColor": "0x-1000000"
+    },
+    "filterContentBg": {
+      "color": "0x4a20b020",
+      "darkThemeColor": "0x-ff6000"
+    },
+    "filterContentFg": {
+      "color": "0x-1",
+      "darkThemeColor": "0x-1000000"
+    },
+    "indexColumnSeparatorColor": {
+      "color": "0x-333334",
+      "darkThemeColor": "0x-5f5f60"
+    },
+    "indexColumnForeground": {
+      "color": "0x-cccccd",
+      "darkThemeColor": "0x-f0f10"
+    },
+    "normalLogBackground": {
+      "color": "0x-506",
+      "darkThemeColor": "0x-eaeaeb"
+    },
+    "selectedLogBackground": {
+      "color": "0x-1f1f20",
+      "darkThemeColor": "0x-c5c2bf"
+    },
+    "bookmarkedLogBackground": {
+      "color": "0x-1f1f01",
+      "darkThemeColor": "0x-afeff0"
+    },
+    "bookmarkedAndSelectedLogBackground": {
+      "color": "0x-2f2f21",
+      "darkThemeColor": "0x-afcfd0"
+    }
+  },
   "supportedFileExtensions": [],
   "isDeviceLog": false,
   "isBuiltIn": true,
