@@ -31,11 +31,11 @@ import java.time.format.DateTimeFormatter
 class DeviceLogProducer(
     val device: String,
     logParser: LogParser,
-    private val processFetcher: AndroidProcessFetcher,
     override val dispatcher: CoroutineDispatcher = Dispatchers.GIO
 ) : BaseLogProducer(logParser) {
     override val tempFile: File = getTempLogFile()
     private val tempFileStream = BufferedOutputStream(tempFile.outputStream())
+    private val processFetcher = AndroidProcessFetcher(device)
 
     private val commandExecutor by lazy {
         val logcatCommand = LogcatLog.getLogcatCommand(SettingsManager.adbPath, device)
@@ -50,7 +50,12 @@ class DeviceLogProducer(
                 writeToFile(line)
                 val num = logNum.getAndIncrement()
                 val parts = logParser.parse(line).toMutableList()
-                parts.add(PART_INDEX_PACKAGE, processFetcher.getPidToPackageMap()[parts[PART_INDEX_PID]] ?: "")
+                var packageName = processFetcher.getPidToPackageMap()[parts[PART_INDEX_PID]]
+                if (packageName.isNullOrEmpty()) {
+                    processFetcher.updatePidToPackageMap()
+                    packageName = processFetcher.getPidToPackageMap()[parts[PART_INDEX_PID]]
+                }
+                parts.add(PART_INDEX_PACKAGE, packageName ?: "")
                 LogItem(num, line, parts)
             }
         }.onStart {
@@ -88,7 +93,7 @@ class DeviceLogProducer(
 
     private fun getTempLogFile(): File {
         val dtf = DateTimeFormatter.ofPattern(LOG_FILE_NAME_TIME_FORMAT)
-        val deviceName = device.split(":").first().trim()
+        val deviceName = getFormalizedDeviceName(device)
         val filePath = filesDir
             .appendPath(LOG_DIR)
             .appendPath(deviceName)
@@ -104,6 +109,14 @@ class DeviceLogProducer(
         }
     }
 
+    /**
+     * When device is connected via TCP/IP, the device name is in the format of `ip:port`.
+     * And file name can not contain `:` character on windows, and it needs to be handled.
+     */
+    private fun getFormalizedDeviceName(device: String): String {
+        return device.split(IP_PORT_SEPARATOR).first().trim()
+    }
+
     companion object {
         private const val TAG = "DeviceLogProducer"
 
@@ -111,5 +124,6 @@ class DeviceLogProducer(
         private const val PART_INDEX_PACKAGE = 2
         private const val LOG_FILE_SUFFIX = "txt"
         private const val LOG_FILE_NAME_TIME_FORMAT = "yyyyMMdd_HH_mm_ss"
+        private const val IP_PORT_SEPARATOR = ":"
     }
 }

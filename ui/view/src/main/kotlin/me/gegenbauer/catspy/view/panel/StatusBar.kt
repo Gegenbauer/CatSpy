@@ -35,8 +35,8 @@ interface StatusBar : TaskMonitor {
     )
 
     class LogStatusRunning(status: String, path: String = "") : LogStatus(
-        { UIManager.getColor("CheckBox.background.selected") },
-        { UIManager.getColor("CheckBox.foreground") },
+        { UIManager.getColor("CatSpy.accent.green") },
+        { UIManager.getColor("Button.default.foreground") },
         status,
         path
     )

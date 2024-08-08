@@ -94,7 +94,6 @@ class LogViewModel(
         updateFilter(logFilter, true)
     }
     private val updateFilteredLogTaskSuspender = CoroutineSuspender("updateFilteredLogTaskSuspender")
-    private val processFetcher = AndroidProcessFetcher("")
     private val globalStatus = ServiceManager.getContextService(StatusPanel::class.java)
 
     private val logUpdater = LogUpdater(fullLogRepo, filteredLogRepo, scope)
@@ -119,9 +118,7 @@ class LogViewModel(
     }
 
     override fun startProduceDeviceLog(device: String) {
-        processFetcher.device = device
-        processFetcher.start()
-        startProduce(DeviceLogProducer(device, logParser, processFetcher))
+        startProduce(DeviceLogProducer(device, logParser))
     }
 
     override fun startProduceFileLog(file: String) {
@@ -163,10 +160,6 @@ class LogViewModel(
                 Log.d(TAG, "[startProduce] observeLogProducerState completed")
             }
 
-            if (logProducer is DeviceLogProducer) {
-                processFetcher.initiallyLoadPackages()
-            }
-
             launch {
                 startProduceInternal(logProducer)
             }.invokeOnCompletion {
@@ -191,6 +184,7 @@ class LogViewModel(
                 _eventFlow.emit(TaskState.IDLE)
                 logUpdater.updateFilteredLogTriggerCount(false)
                 logUpdater.updateFullLogTriggerCount(false)
+                clearCurrentProducer()
             }
             _eventFlow.emit(state.toTaskState())
             Log.d(TAG, "[observeLogProducerState] state=$state")
@@ -204,6 +198,10 @@ class LogViewModel(
             LogProducer.State.COMPLETE -> TaskState.IDLE
             else -> TaskState.IDLE
         }
+    }
+
+    private fun clearCurrentProducer() {
+        logProducer = EmptyLogProducer
     }
 
     override fun onLogProduceError(error: Throwable) {
@@ -336,13 +334,11 @@ class LogViewModel(
         }
         updateFilterTask?.cancel()
         logProducer.pause()
-        processFetcher.pause()
     }
 
     override fun resume() {
         Log.d(TAG, "[resume]")
         logProducer.resume()
-        processFetcher.resume()
         if (hasPendingUpdateFilterTask) {
             Log.d(TAG, "[resume] restart pending updateFilterCompanyJobs")
             updateFilter(logFilter, true)
@@ -350,9 +346,6 @@ class LogViewModel(
     }
 
     override fun setPaused(paused: Boolean) {
-        if (this.paused.get() == paused) {
-            return
-        }
         Log.d(TAG, "[setPaused] pause=$paused")
         this.paused.set(paused)
         if (paused) {
@@ -374,7 +367,6 @@ class LogViewModel(
     override fun cancel() {
         setPaused(true)
         logProducer.cancel()
-        processFetcher.cancel()
     }
 
     override fun destroy() {

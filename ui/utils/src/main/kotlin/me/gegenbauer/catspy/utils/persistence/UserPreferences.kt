@@ -100,7 +100,6 @@ class XmlUserPreferences : UserPreferences {
 
     private val xmlManager: XMLFileManager
         get() = ServiceManager.getContextService(XMLFileManager::class.java)
-    private val keySeparator = "/"
     override suspend fun loadFromDisk() {
         withContext(Dispatchers.GIO) {
             synchronized(this) {
@@ -137,9 +136,9 @@ class XmlUserPreferences : UserPreferences {
     }
 
     private fun getCachedKey(key: String): Key {
-        if (key.contains(keySeparator)) {
-            val storeKey = key.substringAfterLast(keySeparator)
-            val filePath = getFilePath(key.substringBeforeLast(keySeparator))
+        if (key.contains(KEY_SEPARATOR)) {
+            val storeKey = key.substringAfterLast(KEY_SEPARATOR)
+            val filePath = getFilePath(key.substringBeforeLast(KEY_SEPARATOR))
             return Key(filePath.parentDir, filePath.fileName, storeKey)
         }
         return Key("", DEFAULT_FILE_NAME, key)
@@ -267,8 +266,8 @@ class XmlUserPreferences : UserPreferences {
 
     companion object {
         private const val PREFERENCES_DIR = "preferences"
-
         private const val DEFAULT_FILE_NAME = "default"
+        private const val KEY_SEPARATOR = "/"
     }
 }
 

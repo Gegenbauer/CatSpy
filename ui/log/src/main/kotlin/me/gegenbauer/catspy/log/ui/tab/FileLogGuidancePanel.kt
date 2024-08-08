@@ -6,7 +6,6 @@ import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.recent.RecentFile
 import me.gegenbauer.catspy.log.recent.RecentLogFiles
-import me.gegenbauer.catspy.platform.userHome
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.findFrameFromParent
 import me.gegenbauer.catspy.utils.ui.showSelectSingleFileDialog
@@ -26,7 +25,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import javax.swing.*
 
-class FileLogGuidePanel(
+class FileLogGuidancePanel(
     private val onOpenFile: (String) -> Unit
 ) : JPanel() {
     private val openFileButton = GButton(STRINGS.ui.openFile)
@@ -40,6 +39,7 @@ class FileLogGuidePanel(
     init {
         border = BorderFactory.createTitledBorder(STRINGS.ui.logFile)
         val actionPanel = JPanel(HorizontalFlexibleHeightLayout())
+        actionPanel.border = BorderFactory.createEmptyBorder(6, 10, 6, 0)
         actionPanel.add(openFileButton)
 
         recentFilesContainer.setViewportView(recentFilesPanel)
