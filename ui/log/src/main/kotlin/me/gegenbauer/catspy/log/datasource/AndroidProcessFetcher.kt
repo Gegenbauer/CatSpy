@@ -11,12 +11,13 @@ import java.io.InputStreamReader
 class AndroidProcessFetcher(private val  device: String) {
     private val pidToPackageMap = HashMap<String, String>()
 
-    suspend fun updatePidToPackageMap() {
+    private suspend fun updatePidToPackageMap() {
         withContext(Dispatchers.GIO) {
             kotlin.runCatching {
                 if (device.isEmpty()) {
                     return@withContext
                 }
+                Log.d(TAG, "[updatePidToPackageMap] cache missed, query package info from device.")
                 val process = Runtime.getRuntime().exec("${SettingsManager.adbPath} -s $device shell ps")
                 val reader = BufferedReader(InputStreamReader(process.inputStream))
                 reader.forEachLine {
@@ -38,8 +39,14 @@ class AndroidProcessFetcher(private val  device: String) {
         return Pair(columns[1], columns[columns.size - 1])
     }
 
-    fun getPidToPackageMap(): Map<String, String> {
-        return pidToPackageMap
+    suspend fun queryPackageName(pid: String): String {
+        if (pidToPackageMap.contains(pid)) {
+            return pidToPackageMap[pid]!!
+        }
+        updatePidToPackageMap()
+        val packageName = pidToPackageMap[pid] ?: ""
+        pidToPackageMap.getOrPut(pid) { packageName }
+        return packageName
     }
 
     companion object {

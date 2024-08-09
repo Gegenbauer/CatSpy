@@ -2,12 +2,15 @@ package me.gegenbauer.catspy.log.ui.customize
 
 import info.clearthought.layout.TableLayout
 import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.log.metadata.LogColorScheme
 import me.gegenbauer.catspy.log.metadata.LogMetadataManager
+import me.gegenbauer.catspy.log.serialize.ColumnModel
 import me.gegenbauer.catspy.log.serialize.LogMetadataModel
 import me.gegenbauer.catspy.log.serialize.SerializableLogParser
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.OnScrollToEndListener
 import me.gegenbauer.catspy.utils.ui.ScrollToEndListenerSupport
+import me.gegenbauer.catspy.view.color.DarkThemeAwareColor
 import me.gegenbauer.catspy.view.panel.ScrollConstrainedScrollablePanel
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -58,11 +61,12 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
     private val levelPanel = LevelsEditPanel()
     private val filterPanel = FiltersEditPanel()
     private val parserPanel = ParserEditPanel()
+    private val colorSchemePanel = ColorSchemeEditPanel()
     private val logMetadataManager: LogMetadataManager
         get() = ServiceManager.getContextService(LogMetadataManager::class.java)
 
     private val editPanels = listOf<JPanel>(
-        logTypePanel, descriptionPanel, samplePanel, columnsPanel, levelPanel, filterPanel, parserPanel
+        logTypePanel, descriptionPanel, samplePanel, columnsPanel, levelPanel, filterPanel, parserPanel, colorSchemePanel
     )
     private var logMetadata: LogMetadataEditModel = LogMetadataModel.default.toEditModel()
 
@@ -72,6 +76,7 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
                 TableLayout.FILL
             ),
             doubleArrayOf(
+                TableLayout.PREFERRED,
                 TableLayout.PREFERRED,
                 TableLayout.PREFERRED,
                 TableLayout.PREFERRED,
@@ -117,7 +122,27 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
 
     fun getUpdatedLogMetadata(old: LogMetadataModel): LogMetadataModel {
         val filterUIConfs = filterPanel.items
-        val columns = columnsPanel.items.map { column ->
+        val columns = getUpdatedColumns(columnsPanel.items, filterUIConfs)
+        val colorScheme = getUpdatedColorScheme(colorSchemePanel.items)
+        val parser = parserPanel.getParser() as SerializableLogParser
+        val metadata = LogMetadataModel(
+            logType = logTypePanel.value,
+            description = descriptionPanel.value,
+            sample = samplePanel.value,
+            isBuiltIn = old.isBuiltIn,
+            columns = columns,
+            parser = parser,
+            supportedFileExtensions = old.supportedFileExtensions,
+            levels = levelPanel.items,
+            isDeviceLog = old.isDeviceLog,
+            colorScheme = colorScheme,
+        )
+        parser.setLogMetadata(metadata)
+        return metadata
+    }
+
+    private fun getUpdatedColumns(columns: List<ColumnModel>, filters: List<ColumnModel.FilterUIConf>): List<ColumnModel> {
+        return columns.map { column ->
             if (column.uiConf.column.isHidden || column.supportFilter.not()) {
                 return@map column.copy(
                     uiConf = column.uiConf.copy(
@@ -128,7 +153,7 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
                     )
                 )
             }
-            val filterUIConf = filterUIConfs.firstOrNull { it.columnId == column.id }
+            val filterUIConf = filters.firstOrNull { it.columnId == column.id }
             if (filterUIConf != null) {
                 val filterName = filterUIConf.name.ifBlank { column.name }
                 column.copy(uiConf = column.uiConf.copy(filter = filterUIConf.copy(name = filterName, columnName = column.name)))
@@ -143,26 +168,24 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
                 )
             }
         }
-        val parser = parserPanel.getParser() as SerializableLogParser
-        val metadata = LogMetadataModel(
-            logType = logTypePanel.value,
-            description = descriptionPanel.value,
-            sample = samplePanel.value,
-            isBuiltIn = old.isBuiltIn,
-            columns = columns,
-            parser = parser,
-            supportedFileExtensions = old.supportedFileExtensions,
-            levels = levelPanel.items,
-            isDeviceLog = old.isDeviceLog
-        )
-        parser.setLogMetadata(metadata)
-        return metadata
+    }
+
+    private fun getUpdatedColorScheme(colorSchemeItems: List<ColorSchemeItem>): LogColorScheme {
+        return LogColorScheme().apply {
+            colorSchemeItems.forEach {
+                val color = DarkThemeAwareColor(it.lightColor, it.darkColor)
+                val field = javaClass.getDeclaredField(it.name)
+                field.isAccessible = true
+                field.set(this, color)
+            }
+        }
     }
 
     private fun configureEditableTablePanels() {
         columnsPanel.configure()
         levelPanel.configure()
         filterPanel.configure()
+        colorSchemePanel.configure()
     }
 
     override fun addOnScrollToEndListener(listener: OnScrollToEndListener) {

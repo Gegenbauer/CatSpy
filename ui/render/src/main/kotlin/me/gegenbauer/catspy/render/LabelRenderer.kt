@@ -110,11 +110,13 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
         }
 
         if (isComplexityLow()) {
-            if (getForegroundColor() != INVALID_COLOR) {
-                label.foreground = getForegroundColor()
+            val foreground = getForegroundColor()
+            if (foreground != INVALID_COLOR) {
+                label.foreground = foreground
             }
-            if (getBackgroundColor() != INVALID_COLOR) {
-                label.background = getBackgroundColor()
+            val backgroundColor = getBackgroundColor()
+            if (backgroundColor != INVALID_COLOR) {
+                label.background = backgroundColor
             }
             label.text = raw
             return
@@ -255,10 +257,7 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
         return if (highlightSpans.isEmpty()) {
             INVALID_COLOR
         } else {
-            if (highlightSpans.size == 1) {
-                return highlightSpans.first().color
-            }
-            averageColor(highlightSpans.map { it.color })
+            highlightSpans.last().color
         }
     }
 

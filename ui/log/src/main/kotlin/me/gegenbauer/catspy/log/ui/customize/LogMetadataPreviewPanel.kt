@@ -39,9 +39,9 @@ class LogMetadataPreviewPanel : FileLogMainPanel() {
 
     private fun startProduceLog(metadata: LogMetadata) {
         if (metadata.isDeviceLog) {
-            logViewModel.startProduceCustomDeviceLog(logProducer)
+            logViewModel.startProduceCustomDeviceLog()
         } else {
-            logViewModel.startProduceCustomFileLog(logProducer)
+            logViewModel.startProduceCustomFileLog()
         }
     }
 

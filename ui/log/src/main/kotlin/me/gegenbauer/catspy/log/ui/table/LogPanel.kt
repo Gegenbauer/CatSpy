@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.log.ui.table
 
-import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
@@ -10,6 +9,7 @@ import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.BookmarkChangeListener
 import me.gegenbauer.catspy.log.BookmarkManager
+import me.gegenbauer.catspy.log.ui.LogConfiguration
 import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.applyTooltip
@@ -61,6 +61,8 @@ abstract class LogPanel(
     private val adjustmentHandler = AdjustmentHandler()
     private val tableModelHandler = TableModelHandler()
     private val bookmarkHandler = BookmarkHandler()
+    private val logConfiguration: LogConfiguration?
+        get() = contexts.getContext(LogConfiguration::class.java)
 
     private var lastPosition = -1
     private var lastPageMetaData: PageMetadata = PageMetadata()
@@ -164,11 +166,6 @@ abstract class LogPanel(
         ctrlMainPanel.add(topBtn)
         ctrlMainPanel.add(bottomBtn)
         ctrlMainPanel.add(scrollToEndBtn)
-    }
-
-    override fun repaint() {
-        background = LogColorScheme.logBG
-        super.repaint()
     }
 
     fun goToRowIndex(rowIndex: Int, setSelected: Boolean = true) {

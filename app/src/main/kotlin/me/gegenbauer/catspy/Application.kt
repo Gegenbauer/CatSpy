@@ -12,9 +12,7 @@ import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.conf.DebugConfiguration
 import me.gegenbauer.catspy.conf.GlobalConfSync
 import me.gegenbauer.catspy.configuration.GlobalStrings
-import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.configuration.SettingsManager
-import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.glog.GLog
@@ -29,7 +27,6 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.util.*
 import javax.swing.JComponent
-import javax.swing.UIManager
 import kotlin.system.exitProcess
 
 object Application : WindowAdapter() {
@@ -45,10 +42,6 @@ object Application : WindowAdapter() {
     @JvmStatic
     fun main(args: Array<String>) {
         AppScope.launch(Dispatchers.UI) {
-
-            ThemeManager.registerThemeUpdateListener { theme ->
-                themeAwareControllers.forEach { it.onThemeChanged(theme, UIManager.getDefaults()) }
-            }
 
             withContext(Dispatchers.APP_LAUNCH) {
                 GLog.init(filesDir, GlobalStrings.LOG_NAME)
@@ -98,8 +91,4 @@ object Application : WindowAdapter() {
         ServiceManager.registerGlobalService(PatternProvider::class.java)
         ServiceManager.registerGlobalService(AdamDeviceMonitor::class.java)
     }
-
-    private val themeAwareControllers = listOf(
-        LogColorScheme
-    )
 }

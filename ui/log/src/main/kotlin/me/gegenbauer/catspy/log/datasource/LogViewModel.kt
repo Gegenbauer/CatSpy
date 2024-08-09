@@ -50,11 +50,10 @@ class LogViewModel(
         get() = filteredLogRepo.logObservables
 
     private val logParser: LogParser
-        get() = run {
-            val logConf = contexts.getContext(LogConfiguration::class.java)
-                ?: throw IllegalStateException("must put LogConfiguration in context before using it")
-            logConf.logMetaData.parser
-        }
+        get() = logConf.logMetaData.parser
+    private val logConf: LogConfiguration
+        get() = contexts.getContext(LogConfiguration::class.java)
+            ?: throw IllegalStateException("must put LogConfiguration in context before using it")
 
     override var logFilter: LogFilter = LogFilter.default
 
@@ -125,12 +124,12 @@ class LogViewModel(
         startProduce(FileLogProducer(file, logParser))
     }
 
-    override fun startProduceCustomFileLog(producer: () -> List<String>) {
-        startProduce(CustomFileLogProducer(logParser, producer))
+    override fun startProduceCustomFileLog() {
+        startProduce(CustomFileLogProducer(logConf))
     }
 
-    override fun startProduceCustomDeviceLog(producer: () -> List<String>) {
-        startProduce(CustomDeviceLogProducer(logParser, producer))
+    override fun startProduceCustomDeviceLog() {
+        startProduce(CustomDeviceLogProducer(logConf))
     }
 
     private fun startProduce(logProducer: LogProducer) {
