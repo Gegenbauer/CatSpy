@@ -96,54 +96,6 @@ class LevelsEditPanel : BaseEditableTablePanel<DisplayedLevel>() {
         )
     }
 
-    class ColorRenderer : DefaultTableCellRenderer() {
-        override fun getTableCellRendererComponent(
-            table: JTable,
-            value: Any?,
-            isSelected: Boolean,
-            hasFocus: Boolean,
-            row: Int,
-            column: Int
-        ): Component {
-            val component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
-            if (value is Color) {
-                component.background = value
-                component.foreground = value
-            }
-            return component
-        }
-    }
-
-    class ColorEditor : AbstractCellEditor(), TableCellEditor {
-        private var currentColor: Color? = null
-        private val button = JButton().apply {
-            addActionListener {
-                val color = JColorChooser.showDialog(this, STRINGS.ui.colorEditorTitle, currentColor)
-                if (color != null) {
-                    currentColor = color
-                }
-                fireEditingStopped()
-            }
-        }
-
-        override fun getCellEditorValue(): Any? {
-            return currentColor
-        }
-
-        override fun getTableCellEditorComponent(
-            table: JTable,
-            value: Any,
-            isSelected: Boolean,
-            row: Int,
-            column: Int
-        ): Component {
-            currentColor = value as? Color
-            button.background = currentColor
-            button.foreground = currentColor
-            return button
-        }
-    }
-
     companion object {
         private val COLOR_COLUMN_INDEXES = listOf(2, 3)
     }

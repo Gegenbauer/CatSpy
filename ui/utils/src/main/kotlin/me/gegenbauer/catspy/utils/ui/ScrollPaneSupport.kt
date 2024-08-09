@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.utils.ui
 
-import java.awt.Scrollbar
 import java.awt.event.MouseWheelEvent
 import javax.swing.JScrollBar
 import javax.swing.JScrollPane

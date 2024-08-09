@@ -66,11 +66,11 @@ class FilterComboBox(
     private val undo = UndoManager()
 
     private val errorForeground: Color
-        get() = UIManager.getColor("Objects.Red") ?: Color.RED
+        get() = UIManager.getColor("CatSpy.accent.red") ?: Color.RED
     private val positiveForeground: Color
-        get() = UIManager.getColor("Objects.Yellow") ?: Color.GREEN
+        get() = UIManager.getColor("CatSpy.accent.yellow") ?: Color.GREEN
     private val negativeForeground: Color
-        get() = UIManager.getColor("Objects.Red") ?: Color.RED
+        get() = UIManager.getColor("CatSpy.accent.red") ?: Color.RED
     private val normalTooltipForeground: Color
         get() = UIManager.getColor("ToolTip.foreground") ?: Color.WHITE
 

@@ -22,9 +22,9 @@ interface LogProducerManager {
 
     fun startProduceFileLog(file: String)
 
-    fun startProduceCustomFileLog(producer: () -> List<String>)
+    fun startProduceCustomFileLog()
 
-    fun startProduceCustomDeviceLog(producer: () -> List<String>)
+    fun startProduceCustomDeviceLog()
 
     fun onLogItemReceived(logItem: LogItem)
 

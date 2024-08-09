@@ -1,30 +1,26 @@
 package me.gegenbauer.catspy.log.datasource
 
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import me.gegenbauer.catspy.concurrency.GIO
-import me.gegenbauer.catspy.log.parse.LogParser
-import java.io.File
+import me.gegenbauer.catspy.log.ui.LogConfiguration
 
 class CustomDeviceLogProducer(
-    logParser: LogParser,
-    private val producer: () -> List<String>,
-    override val dispatcher: CoroutineDispatcher = Dispatchers.GIO
-) : BaseLogProducer(logParser) {
-
-    override val tempFile: File = File("")
+    logConfiguration: LogConfiguration,
+) : BaseCustomLogProducer(logConfiguration) {
 
     override fun start(): Flow<Result<LogItem>> {
         return channelFlow {
-            producer().forEachIndexed { index, line ->
-                val parts = logParser.parse(line).toMutableList()
-                parts.add(PART_INDEX_PACKAGE, FAKE_PROCESS_NAME)
-                send(Result.success(LogItem(index, line, parts)))
+            generateLogItems().forEachIndexed { index, log ->
+                send(Result.success(log))
             }
             invokeOnClose { moveToState(LogProducer.State.COMPLETE) }
         }
+    }
+
+    override fun getSampleLogItem(): LogItem {
+        val sampleLogParts = logParser.parse(logConfiguration.logMetaData.sample).toMutableList()
+        sampleLogParts.add(PART_INDEX_PACKAGE, FAKE_PROCESS_NAME)
+        return LogItem(0, logConfiguration.logMetaData.sample, sampleLogParts)
     }
 
     companion object {

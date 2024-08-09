@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.view.combobox.highlight
 
 import com.formdev.flatlaf.FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON
-import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.utils.ui.DefaultDocumentListener
 import java.awt.event.FocusAdapter
@@ -21,9 +20,9 @@ class HighlighterEditor : BasicComboBoxEditor.UIResource(), Highlightable, UIRes
     override val painterInclude: HighlightPainter
         get() = DefaultHighlightPainter(UIManager.getColor("ComboBox.editableBackground"))
     override val painterExclude: HighlightPainter
-        get() = DefaultHighlightPainter(LogColorScheme.filterStyleExclude)
+        get() = DefaultHighlightPainter(UIManager.getColor("FilterComboBox.excludeFilterBackground"))
     override val painterSeparator: HighlightPainter
-        get() = DefaultHighlightPainter(LogColorScheme.filterStyleSeparator)
+        get() = DefaultHighlightPainter(UIManager.getColor("FilterComboBox.orSeparatorBackground"))
 
     private var isHighlightEnabled = true
     private val customHighlighters = arrayListOf<Any>()

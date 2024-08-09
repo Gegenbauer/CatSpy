@@ -8,7 +8,7 @@ import kotlinx.coroutines.cancel
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.java.ext.Bundle
 import me.gegenbauer.catspy.log.ui.tab.AndroidDeviceGuidePanel
-import me.gegenbauer.catspy.log.ui.tab.FileLogGuidePanel
+import me.gegenbauer.catspy.log.ui.tab.FileLogGuidancePanel
 import me.gegenbauer.catspy.log.ui.tab.FileLogMainPanel
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.view.panel.StatusBar
@@ -23,7 +23,7 @@ class HomePanel : BaseTabPanel() {
 
     override val tag: String = "HomePanel"
 
-    private val fileLogGuidePanel = FileLogGuidePanel(::openFile)
+    private val fileLogGuidancePanel = FileLogGuidancePanel(::openFile)
     private val androidDeviceGuidePanel = AndroidDeviceGuidePanel()
 
     private val tabManager: TabManager
@@ -36,7 +36,7 @@ class HomePanel : BaseTabPanel() {
             doubleArrayOf(0.25, FILL, 0.25),
             doubleArrayOf(0.4, PREFERRED, PREFERRED, 0.2)
         )
-        add(fileLogGuidePanel, "1,1")
+        add(fileLogGuidancePanel, "1,1")
         //add(androidDeviceGuidePanel, "1,2")
     }
 

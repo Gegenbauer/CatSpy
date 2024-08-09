@@ -257,6 +257,48 @@
       }
     }
   ],
+  "colorScheme": {
+    "searchContentBg": {
+      "color": -16777216,
+      "darkThemeColor": -986896
+    },
+    "searchContentFg": {
+      "color": -16777216,
+      "darkThemeColor": -986896
+    },
+    "filterContentBg": {
+      "color": -16777216,
+      "darkThemeColor": -986896
+    },
+    "filterContentFg": {
+      "color": -16777216,
+      "darkThemeColor": -986896
+    },
+    "indexColumnSeparatorColor": {
+      "color": -16777216,
+      "darkThemeColor": -986896
+    },
+    "indexColumnForeground": {
+      "color": -16777216,
+      "darkThemeColor": -986896
+    },
+    "normalLogBackground": {
+      "color": -16777216,
+      "darkThemeColor": -986896
+    },
+    "selectedLogBackground": {
+      "color": -16777216,
+      "darkThemeColor": -986896
+    },
+    "bookmarkedLogBackground": {
+      "color": -16777216,
+      "darkThemeColor": -986896
+    },
+    "bookmarkedAndSelectedLogBackground": {
+      "color": -16777216,
+      "darkThemeColor": -986896
+    }
+  },
   "supportedFileExtensions": [],
   "isDeviceLog": true,
   "isBuiltIn": true,
