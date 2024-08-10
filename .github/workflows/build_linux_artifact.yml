@@ -47,7 +47,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build
-        run: ./gradlew packageDeb
+        run: ./gradlew packageReleaseDeb
 
       - name: Retrieve Artifact Name
         id: getFilename

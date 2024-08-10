@@ -47,10 +47,10 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build
-        run: ./gradlew packageDmg
+        run: ./gradlew packageReleaseDmg
 
       - name: Build UberJar
-        run: ./gradlew packageUberJarForCurrentOS
+        run: ./gradlew packageReleaseUberJarForCurrentOS
 
       - name: Retrieve Artifact Name
         id: getJarFilename

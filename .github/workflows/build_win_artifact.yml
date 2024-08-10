@@ -47,7 +47,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build
-        run: ./gradlew packageMsi
+        run: ./gradlew packageReleaseMsi
         continue-on-error: true
 
       - name: Upload logs

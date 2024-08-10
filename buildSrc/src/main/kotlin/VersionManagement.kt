@@ -12,7 +12,9 @@ object Kotlin {
 
 object Compose {
     val groupName = "org.jetbrains.compose"
-    val version = "1.1.0"
+    val version = "1.6.11"
+
+    val runtime = Dependency("org.jetbrains.compose.runtime", "runtime", version)
 }
 
 object Weisj {
@@ -67,13 +69,20 @@ object Slf4j {
 
     val simple = Dependency(groupName, "slf4j-simple", "2.0.0")
     val api = Dependency(groupName, "slf4j-api", "2.0.0")
-    val nop = Dependency(groupName, "slf4j-nop", "2.0.0")
 }
 
 object Logback {
     val groupName = "ch.qos.logback"
 
     val classic = Dependency(groupName, "logback-classic", "1.4.14")
+}
+
+object ApacheLogging {
+    val groupName = "org.apache.logging.log4j"
+    val version = "2.17.1"
+
+    val log4jCore = Dependency(groupName, "log4j-core", version)
+    val log4jApi = Dependency(groupName, "log4j-api", version)
 }
 
 object Fifesoft {
