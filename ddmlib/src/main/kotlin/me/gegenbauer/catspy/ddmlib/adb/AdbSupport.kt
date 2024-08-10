@@ -1,6 +1,9 @@
 package me.gegenbauer.catspy.ddmlib.adb
 
 import me.gegenbauer.catspy.ddmlib.log.DdmLog
+import me.gegenbauer.catspy.file.appendPath
+import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.platform.currentPlatform
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -95,4 +98,27 @@ fun stopServer(adbConf: AdbConf) {
 
 fun isServerRunning(port: Int = SOCKET_ADDRESS_DEFAULT_PORT): Boolean {
     return runCatching { Socket(SOCKET_ADDRESS_LOCALHOST, port).use { true } }.getOrDefault(false)
+}
+
+fun detectAdbPath(): String {
+    val androidSdkPath = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+    androidSdkPath?.let {
+        val targetPath = it.appendPath("platform-tools").appendPath(currentPlatform.adbExecutable)
+        if (File(targetPath).exists()) {
+            return targetPath
+        }
+    }
+    GLog.w(TAG, "[detectAdbPath] failed to detect adb path from ANDROID_HOME or ANDROID_SDK_ROOT")
+
+
+    val envPath = System.getenv("PATH")
+    val paths = envPath.split(File.pathSeparator)
+    for (path in paths) {
+        val targetPath = path.appendPath(currentPlatform.adbExecutable)
+        if (File(targetPath).exists()) {
+            return targetPath
+        }
+    }
+    GLog.w(TAG, "[detectAdbPath] failed to detect adb path from PATH")
+    return ""
 }
