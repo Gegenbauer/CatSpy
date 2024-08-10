@@ -7,13 +7,13 @@ import me.gegenbauer.catspy.utils.ui.OnScrollToEndListener
 import me.gegenbauer.catspy.utils.ui.ScrollToEndListenerSupport
 import me.gegenbauer.catspy.utils.ui.addOnScrollToEndListener
 import me.gegenbauer.catspy.utils.ui.showWarningDialog
+import me.gegenbauer.catspy.view.scrollpane.SingleDirectionScrollPane
+import java.awt.Color
 import java.awt.Component
 import java.util.*
 import javax.swing.*
 import javax.swing.event.TableModelEvent
-import javax.swing.table.DefaultTableModel
-import javax.swing.table.TableCellRenderer
-import javax.swing.table.TableColumn
+import javax.swing.table.*
 
 interface EditableTablePanel<T> {
 
@@ -39,8 +39,6 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
 
     protected abstract val tableName: String
 
-    protected open val tableHeight: Int = 200
-
     protected abstract val columnParams: List<ColumnParam>
 
     protected open var allColumnsEditable: Boolean = true
@@ -65,7 +63,7 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
     private val actionPanel = EditableTableActionPanel()
 
     private val container = JPanel()
-    private val scrollPane = JScrollPane(table)
+    private val scrollPane = SingleDirectionScrollPane(table, true)
     private val hintComponent = MultilineLabel()
 
     private val editEventListeners = mutableListOf<EditEventListener>()
@@ -112,7 +110,7 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
             doubleArrayOf(TableLayout.FILL),
             doubleArrayOf(
                 TableLayout.PREFERRED,
-                tableHeight.toDouble(),
+                TableLayout.PREFERRED,
                 TableLayout.PREFERRED
             )
         )
@@ -215,7 +213,7 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
     }
 
     override fun stopEditing() {
-        table.cellEditor?.stopCellEditing()
+        table.cellEditor?.cancelCellEditing()
         actionPanel.stopEditing()
         table.tableHeader.repaint()
     }
@@ -321,5 +319,64 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
         fun isEditValid(): Boolean {
             return editor.isEditValid()
         }
+    }
+}
+
+class ColorRenderer : DefaultTableCellRenderer() {
+
+    init {
+        border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
+    }
+
+    override fun getTableCellRendererComponent(
+        table: JTable,
+        value: Any?,
+        isSelected: Boolean,
+        hasFocus: Boolean,
+        row: Int,
+        column: Int
+    ): Component {
+        val component = super.getTableCellRendererComponent(table, "", isSelected, hasFocus, row, column)
+        if (value is Color) {
+            component.background = value
+            component.foreground = value
+        }
+        return component
+    }
+}
+
+class ColorEditor : AbstractCellEditor(), TableCellEditor {
+    private var currentColor: Color? = null
+    private val button = object: JButton() {
+        init {
+            addActionListener {
+                val color = JColorChooser.showDialog(this, STRINGS.ui.colorEditorTitle, currentColor)
+                if (color != null) {
+                    currentColor = color
+                }
+                fireEditingStopped()
+            }
+            border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
+        }
+
+        override fun setText(text: String?) {
+            super.setText("")
+        }
+    }
+    override fun getCellEditorValue(): Any? {
+        return currentColor
+    }
+
+    override fun getTableCellEditorComponent(
+        table: JTable,
+        value: Any,
+        isSelected: Boolean,
+        row: Int,
+        column: Int
+    ): Component {
+        currentColor = value as? Color
+        button.background = currentColor
+        button.foreground = currentColor
+        return button
     }
 }

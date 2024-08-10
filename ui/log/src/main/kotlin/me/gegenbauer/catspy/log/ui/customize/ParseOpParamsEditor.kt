@@ -10,7 +10,7 @@ fun interface EditEventListener {
     fun onEditDone(component: JComponent)
 }
 
-interface EditEventSource : Editor {
+interface EditEventSource {
 
     fun addEditEventListener(listener: EditEventListener)
 
@@ -49,15 +49,15 @@ abstract class ParseOpParamsEditor<T : ParseOp> : JPanel(), EditEventSource, Edi
     }
 
     override fun startEditing() {
-        getEditEventObservables().forEach { it.startEditing() }
+        getEditEventObservables().filterIsInstance<Editor>().forEach { it.startEditing() }
     }
 
     override fun stopEditing() {
-        getEditEventObservables().forEach { it.stopEditing() }
+        getEditEventObservables().filterIsInstance<Editor>().forEach { it.stopEditing() }
     }
 
     override fun isEditValid(): Boolean {
-        return getEditEventObservables().all { it.isEditValid() }
+        return getEditEventObservables().filterIsInstance<Editor>().all { it.isEditValid() }
     }
 
     abstract fun getEditEventObservables(): List<EditEventSource>

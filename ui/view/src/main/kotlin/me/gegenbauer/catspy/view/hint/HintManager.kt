@@ -111,12 +111,7 @@ object HintManager {
         override fun updateUI() {
             super.updateUI()
 
-            background = if (UIManager.getLookAndFeel() is FlatLaf) {
-                UIManager.getColor("HintPanel.backgroundColor")
-            } else {
-                // using nonUIResource() because otherwise Nimbus does not fill the background
-                FlatUIUtils.nonUIResource(UIManager.getColor("info"))
-            }
+            background = UIManager.getColor("HintPanel.backgroundColor")
 
             if (hint != null) updateBalloonBorder()
         }

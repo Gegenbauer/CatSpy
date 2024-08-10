@@ -1,12 +1,11 @@
 package me.gegenbauer.catspy.log.ui.table
 
-import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.BookmarkManager
+import me.gegenbauer.catspy.log.datasource.LogItem
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.DisplayedLevel
 import me.gegenbauer.catspy.log.metadata.LogMetadata
-import me.gegenbauer.catspy.log.datasource.LogItem
 import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
 import java.awt.Color
 import java.awt.Component
@@ -31,6 +30,9 @@ interface LogCellRendererProvider {
 }
 
 abstract class BaseLogCellRendererProvider : LogCellRendererProvider {
+    protected lateinit var logMetadata: LogMetadata
+        private set
+
     private val levelTagToLevels = mutableMapOf<String, DisplayedLevel>()
     private val columnFilterIndexes = mutableMapOf<Column, Int>()
 
@@ -43,6 +45,8 @@ abstract class BaseLogCellRendererProvider : LogCellRendererProvider {
     )
 
     override fun setLogMetadata(metadata: LogMetadata) {
+        logMetadata = metadata
+
         updateLevelCache(metadata)
 
         val displayedColumns = mutableListOf(indexColumn) +
@@ -106,20 +110,20 @@ abstract class BaseLogCellRendererProvider : LogCellRendererProvider {
         private const val COLUMN_INDEX_NAME = "Index"
         private const val COLUMN_INDEX_CHAR_LEN = 7
 
-        fun LogTable.getColumnBackground(num: Int, row: Int): Color {
-            val context = contexts.getContext(BaseLogMainPanel::class.java) ?: return LogColorScheme.logBG
+        fun LogTable.getColumnBackground(num: Int, row: Int, logMetadata: LogMetadata): Color {
+            val context = contexts.getContext(BaseLogMainPanel::class.java) ?: return logMetadata.colorScheme.normalLogBackground
             val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
             val isRowSelected = tableModel.selectedLogRows.contains(row)
             return if (bookmarkManager.isBookmark(num)) {
                 if (isRowSelected) {
-                    LogColorScheme.bookmarkSelectedBG
+                    logMetadata.colorScheme.bookmarkedAndSelectedLogBackground
                 } else {
-                    LogColorScheme.bookmarkBG
+                    logMetadata.colorScheme.bookmarkedLogBackground
                 }
             } else if (isRowSelected) {
-                LogColorScheme.selectedBG
+                logMetadata.colorScheme.selectedLogBackground
             } else {
-                LogColorScheme.logBG
+                logMetadata.colorScheme.normalLogBackground
             }
         }
     }

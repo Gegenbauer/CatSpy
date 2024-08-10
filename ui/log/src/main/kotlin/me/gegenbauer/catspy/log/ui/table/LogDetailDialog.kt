@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.log.ui.table
 
-import me.gegenbauer.catspy.configuration.LogColorScheme
 import me.gegenbauer.catspy.configuration.currentSettings
+import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.Key
 import me.gegenbauer.catspy.utils.ui.installKeyStrokeEscClosing
@@ -15,6 +15,7 @@ open class LogDetailDialog(
     parent: JFrame,
     private val textComponent: JTextComponent,
     private val popupActions: List<PopupAction> = emptyList(),
+    logMetadata: LogMetadata
 ) : JDialog(parent, false) {
 
     private val scrollPane = JScrollPane(textComponent)
@@ -28,7 +29,7 @@ open class LogDetailDialog(
         textComponent.addKeyListener(KeyHandler())
         textComponent.addMouseListener(MouseHandler())
         textComponent.addFocusListener(FocusHandler())
-        textComponent.selectionColor = LogColorScheme.selectedBG
+        textComponent.selectionColor = logMetadata.colorScheme.selectedLogBackground
         isModal = true
         var width = parent.width - 100
         if (width < 960) {

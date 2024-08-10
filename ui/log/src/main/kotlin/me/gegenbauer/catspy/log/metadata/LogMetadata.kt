@@ -20,7 +20,8 @@ class LogMetadata(
     val isBuiltIn: Boolean = true,
     val description: String = "",
     val sample: String = "",
-    val levels: List<DisplayedLevel> = emptyList()
+    val levels: List<DisplayedLevel> = emptyList(),
+    val colorScheme: LogColorScheme = LogColorScheme(),
 ) {
 
     companion object {
@@ -153,14 +154,25 @@ data class DisplayedLevel(
     val level: Level,
     val color: DarkThemeAwareColor
 ) {
-
-    constructor(value: Int, name: String, tag: String, color: DarkThemeAwareColor) : this(
-        Level(value, name, tag),
-        color
-    )
-
     companion object {
         val default: DisplayedLevel = DisplayedLevel(Level.default, DarkThemeAwareColor(Color.BLACK))
+    }
+}
+
+data class LogColorScheme(
+    val searchContentBg: DarkThemeAwareColor = defaultColor,
+    val searchContentFg: DarkThemeAwareColor = defaultColor,
+    val filterContentBg: DarkThemeAwareColor = defaultColor,
+    val filterContentFg: DarkThemeAwareColor = defaultColor,
+    val indexColumnSeparatorColor: DarkThemeAwareColor = defaultColor,
+    val indexColumnForeground: DarkThemeAwareColor = defaultColor,
+    val normalLogBackground: DarkThemeAwareColor = defaultColor,
+    val selectedLogBackground: DarkThemeAwareColor = defaultColor,
+    val bookmarkedLogBackground: DarkThemeAwareColor = defaultColor,
+    val bookmarkedAndSelectedLogBackground: DarkThemeAwareColor = defaultColor,
+) {
+    companion object {
+        private val defaultColor = DarkThemeAwareColor(Color.BLACK)
     }
 }
 

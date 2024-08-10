@@ -12,6 +12,11 @@ open class HoverStateAwarePanel(layoutManager: LayoutManager = FlowLayout()) : J
 
     private val hoverListener = HoverListener(this)
 
+    init {
+        addMouseMotionListener(this)
+        addMouseListener(hoverListener)
+    }
+
     override fun addImpl(comp: Component?, constraints: Any?, index: Int) {
         super.addImpl(comp, constraints, index)
         comp?.addMouseMotionListener(this)

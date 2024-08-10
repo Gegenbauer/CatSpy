@@ -45,15 +45,28 @@ private class DarkThemeAwareColorAdapter : JsonDeserializer<DarkThemeAwareColor>
         context: JsonDeserializationContext?
     ): DarkThemeAwareColor {
         val jsonObject = json?.asJsonObject
-        val color = jsonObject?.get(KEY_COLOR)?.asInt ?: 0
-        val darkThemeColor = jsonObject?.get(KEY_DARK_THEME_COLOR)?.asInt ?: 0
+        val color = jsonObject?.get(KEY_COLOR)?.toInt() ?: 0
+        val darkThemeColor = jsonObject?.get(KEY_DARK_THEME_COLOR)?.toInt() ?: 0
         return DarkThemeAwareColor(color.toColor(), darkThemeColor.toColor())
+    }
+
+    private fun JsonElement.toInt(): Int {
+        val formattedString = asString.lowercase()
+        return if (formattedString.startsWith(HEX_PREFIX)) {
+            Integer.parseInt(formattedString.substring(2), 16)
+        } else {
+            Integer.parseInt(formattedString)
+        }
+    }
+
+    private fun Color.toSerializedString(): String {
+        return HEX_PREFIX + toInt().toString(16)
     }
 
     override fun serialize(src: DarkThemeAwareColor, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
         val jsonObject = JsonObject()
-        jsonObject.addProperty(KEY_COLOR, src.dayColor.toInt())
-        jsonObject.addProperty(KEY_DARK_THEME_COLOR, src.nightColor.toInt())
+        jsonObject.addProperty(KEY_COLOR, src.dayColor.toSerializedString())
+        jsonObject.addProperty(KEY_DARK_THEME_COLOR, src.nightColor.toSerializedString())
         return jsonObject
     }
 
@@ -68,6 +81,7 @@ private class DarkThemeAwareColorAdapter : JsonDeserializer<DarkThemeAwareColor>
     companion object {
         private const val KEY_COLOR = "color"
         private const val KEY_DARK_THEME_COLOR = "darkThemeColor"
+        private const val HEX_PREFIX = "0x"
     }
 }
 
