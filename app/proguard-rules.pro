@@ -8,7 +8,9 @@
 -keep class org.apache.logging.log4j.** { *; }
 -keep class org.fife.ui.autocomplete.** { *; }
 -keep class kotlinx.coroutines.swing.** { *; }
+-keep class com.formdev.flatlaf.** { *; }
 -keep class com.github.weisj.** { *; }
+-keep class io.vertx.core.** { *; }
 
 # Gson uses generic type information stored in a class file when working with
 # fields. Proguard removes such information by default, keep it.
@@ -26,7 +28,6 @@
 -keep class com.google.gson.reflect.TypeToken { <fields>; }
 -keepclassmembers class **$TypeAdapterFactory { <fields>; }
 
--keep class io.vertx.core.** { *; }
 -keepdirectories META-INF/
 -keepdirectories META-INF.services/
 -ignorewarnings

@@ -2,16 +2,21 @@ package me.gegenbauer.catspy.view.panel
 
 import com.formdev.flatlaf.FlatLaf
 import me.gegenbauer.catspy.configuration.*
+import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.applyTooltip
 import me.gegenbauer.catspy.view.button.ColorToggleButton
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 
-class BottomToolbar: JPanel(), GThemeChangeListener {
+class BottomToolbar : JPanel(), GThemeChangeListener {
 
-    private val darkThemeSwitchButton = ColorToggleButton(STRINGS.ui.darkTheme) applyTooltip STRINGS.toolTip.darkTheme
+    private val darkThemeSwitchButton = ColorToggleButton(
+        unselectedIcon = GIcons.State.DarkMode.get(ICON_SIZE, ICON_SIZE),
+        selectedIcon = GIcons.State.LightMode.get(ICON_SIZE, ICON_SIZE)
+    ) applyTooltip STRINGS.toolTip.darkTheme
 
     init {
         border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
@@ -38,5 +43,9 @@ class BottomToolbar: JPanel(), GThemeChangeListener {
         } else {
             DarkLightThemes.getDarkTheme(theme.name).isNotEmpty()
         }
+    }
+
+    companion object {
+        private const val ICON_SIZE = 24
     }
 }

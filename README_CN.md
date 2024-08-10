@@ -9,13 +9,15 @@
 [![Latest release](https://img.shields.io/github/release/Gegenbauer/CatSpy.svg)](https://github.com/Gegenbauer/CatSpy/releases/latest)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
-**CatSpy** - 一个用于浏览安卓日志的工具。
+**CatSpy** - 一个用于浏览日志的工具。
 
 **主要特性：**
 - 针对日志的各个部分进行过滤，例如 message，tag，pid，tid，log level 等
-- 导入本地文件日志和查看已连接设备实时日志
+- 可自定义日志类型，自定义日志解析器，自定义日志配色方案
+- 导入本地文件日志和查看已连接 Android 设备实时日志
 - 随输入内容变化的实时过滤
 - 多标签页，同时查看多个日志
+- 记录最近查看的文件日志，方便查看
 - 日志分页显示，提高渲染速度
 - 可以为日志行添加书签，方便查看和过滤
 - 接入 FlatLaf，提供多种主题供切换
@@ -31,17 +33,15 @@
 | 实时日志是否支持导出     | 可导出实时日志，且支持导出的日志大小取决于运行该软件的设备内存。 | 可导出日志，但导出的文件只能通过导入到 Android Studio 查看，可读性较低  | \                                       |
 | 导入文件日志             | 支持导入，而且文件日志大小的限制也取决于运行该软件的设备内存。 | 可导入文件日志，只支持导入通过 Android Studio 导出的实时日志文件     | 可导入文件日志                          |
 
-## 局限性
-只支持导入标准 logcat 格式的日志文件，不支持导入其他格式的日志文件
-即日志文件的格式应该是这样的
-```bash
-03-02 11:36:21.389   466   466 D BootAnimation: /product/media/bootanimation.zip is loaded successfully
-```
-后续将支持支持自定义解析规则
-
 ## 界面
-### 日志
+### 主页
+![home_page.png](pic%2Fhome_page.png)
+
+### 日志页面
 ![log_main_interface.png](pic%2Flog_main_interface.png)
+
+### 日志定制面板
+![log_customization_dialog.png](pic%2Flog_customization_dialog.png)
 
 ### 主题设置
 ![theme_configuration.png](pic%2Ftheme_configuration.png)

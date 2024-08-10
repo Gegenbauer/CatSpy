@@ -10,4 +10,6 @@ dependencies {
     implementation(projects.concurrency)
     implementation(projects.glog)
     implementation(projects.context)
+    implementation(projects.platform)
+    implementation(projects.file)
 }

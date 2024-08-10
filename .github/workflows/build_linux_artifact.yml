@@ -52,12 +52,12 @@ jobs:
       - name: Retrieve Artifact Name
         id: getFilename
         run: |
-          find "$(pwd)/app/build/compose/binaries/main/deb" -type f -name "*.deb" -exec basename {} \;
+          find "$(pwd)/app/build/compose/binaries/main-release/deb" -type f -name "*.deb" -exec basename {} \;
           echo "::set-output name=debFileName::$filename"
 
       - name: Upload Linux Artifact
         uses: actions/upload-artifact@v1
         with:
           name: catspy_amd64.deb
-          path: app/build/compose/binaries/main/deb/${{ steps.getFilename.outputs.debFileName }}
+          path: app/build/compose/binaries/main-release/deb/${{ steps.getFilename.outputs.debFileName }}
           retention-days: 1
