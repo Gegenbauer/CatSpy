@@ -109,15 +109,15 @@ class AppearanceSettingsGroup(
     private fun createColorChoosePanel(): JToolBar {
         return JToolBar().apply {
             val group = ButtonGroup()
-            val colors = accentColors.map { UIManager.getColor(it.first) ?: Color.lightGray }
-            accentColors.forEachIndexed { index, color ->
+            val colors = GSettings.Theme.accentColors.map { UIManager.getColor(it.first) ?: Color.lightGray }
+            GSettings.Theme.accentColors.forEachIndexed { index, color ->
                 val colorButton = JToggleButton(AccentColorIcon(color.first))
                 colorButton.isSelected = currentSettings.themeSettings.getAccentColor() == colors[index]
                 colorButton.toolTipText = color.second
                 colorButton.addActionListener {
                     scope.launch {
                         SettingsManager.suspendedUpdateSettings {
-                            themeSettings.setAccentColor(UIManager.getColor(color.first) ?: Color.lightGray)
+                            themeSettings.setAccentColor(color.second)
                         }
                     }
                 }
@@ -154,10 +154,6 @@ class AppearanceSettingsGroup(
     }
 
     companion object {
-        private val accentColors = listOf(
-            "CatSpy.accent.default" to "Default", "CatSpy.accent.blue" to "Blue",
-            "CatSpy.accent.purple" to "Purple", "CatSpy.accent.red" to "Red", "CatSpy.accent.orange" to "Orange",
-            "CatSpy.accent.yellow" to "Yellow", "CatSpy.accent.green" to "Green"
-        )
+
     }
 }

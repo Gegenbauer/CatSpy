@@ -42,6 +42,7 @@ object ThemeManager : SettingsChangeListener {
         installFonts()
         FlatLaf.registerCustomDefaultsSource(GlobalProperties.APP_ID)
         setSystemColorGetter()
+        setupLaf(themesMap[DEFAULT_THEME])
         setupLaf(getThemeClass(settings))
         applyLocale(settings)
         applyFont(settings)

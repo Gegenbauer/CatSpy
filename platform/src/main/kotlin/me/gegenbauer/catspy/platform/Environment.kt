@@ -39,26 +39,6 @@ interface IPlatform {
         file.mkdirs()
     }
 
-    fun detectAdbPath(): String {
-        val androidSdkPath = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
-        androidSdkPath?.let {
-            val targetPath = it.appendPath("platform-tools").appendPath(adbExecutable)
-            if (File(targetPath).exists()) {
-                return targetPath
-            }
-        }
-
-        val envPath = System.getenv("PATH")
-        val paths = envPath.split(File.pathSeparator)
-        for (path in paths) {
-            val targetPath = path.appendPath(adbExecutable)
-            if (File(targetPath).exists()) {
-                return targetPath
-            }
-        }
-        return ""
-    }
-
     fun showFileInExplorer(file: File) {}
 
     fun configureUIProperties() {
