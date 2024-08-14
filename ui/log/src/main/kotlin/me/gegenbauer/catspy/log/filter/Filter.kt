@@ -8,6 +8,7 @@ import me.gegenbauer.catspy.log.filter.FilterProperty.Companion.FILTER_ID_MATCH_
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.log.ui.filter.FilterPropertyObserver
+import me.gegenbauer.catspy.utils.persistence.appendKeySeparator
 import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.getOrCreateFilterItem
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -36,7 +37,7 @@ class FilterProperty(
 
     private fun getComposedKey(key: String): String {
         val prefix = if (storeKeyPrefix.isEmpty()) "" else "${storeKeyPrefix}_"
-        return STORE_KEY_PREFIX.appendPath("$prefix${name}_$key")
+        return STORE_KEY_PREFIX.appendKeySeparator("$prefix${name}_$key")
     }
 
     private val contentObserver = Observer<String> {
