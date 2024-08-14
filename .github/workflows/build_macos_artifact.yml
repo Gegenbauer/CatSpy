@@ -68,13 +68,13 @@ jobs:
       - name: Retrieve Artifact Name
         id: getDmgFilename
         run: |
-          find "$(pwd)/app/build/compose/binaries/main/dmg" -type f -name "*.dmg" -exec basename {} \;
+          find "$(pwd)/app/build/compose/binaries/main-release/dmg" -type f -name "*.dmg" -exec basename {} \;
           echo "::set-output name=dmgFileName::$filename"
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v1
         with:
           name: catspy_macos.dmg
-          path: app/build/compose/binaries/main/dmg/${{ steps.getDmgFilename.outputs.dmgFileName }}
+          path: app/build/compose/binaries/main-release/dmg/${{ steps.getDmgFilename.outputs.dmgFileName }}
           retention-days: 1
 
