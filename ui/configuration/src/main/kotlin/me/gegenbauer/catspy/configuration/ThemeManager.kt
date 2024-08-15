@@ -8,6 +8,7 @@ import com.formdev.flatlaf.fonts.roboto_mono.FlatRobotoMonoFont
 import com.formdev.flatlaf.intellijthemes.FlatAllIJThemes
 import com.formdev.flatlaf.themes.FlatMacDarkLaf
 import com.formdev.flatlaf.themes.FlatMacLightLaf
+import me.gegenbauer.catspy.configuration.GSettings.Companion.DEFAULT_THEME
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.getEnum
 import me.gegenbauer.catspy.platform.GlobalProperties
@@ -15,9 +16,8 @@ import me.gegenbauer.catspy.strings.globalLocale
 import javax.swing.LookAndFeel
 import javax.swing.UIManager
 
-object ThemeManager: SettingsChangeListener {
+object ThemeManager : SettingsChangeListener {
     private const val TAG = "ThemeManager"
-    private const val SYSTEM_THEME_NAME = "default"
 
     val currentTheme: FlatLaf
         get() = UIManager.getLookAndFeel() as FlatLaf
@@ -42,10 +42,8 @@ object ThemeManager: SettingsChangeListener {
         installFonts()
         FlatLaf.registerCustomDefaultsSource(GlobalProperties.APP_ID)
         setSystemColorGetter()
-        if (!setupLaf(getThemeClass(settings))) {
-            setupLaf(SYSTEM_THEME_NAME)
-            settings.themeSettings.theme = SYSTEM_THEME_NAME
-        }
+        setupLaf(themesMap[DEFAULT_THEME])
+        setupLaf(getThemeClass(settings))
         applyLocale(settings)
         applyFont(settings)
     }
@@ -109,8 +107,6 @@ object ThemeManager: SettingsChangeListener {
 
     private fun initThemesMap(): Map<String, String> {
         val map = linkedMapOf<String, String>()
-        map[SYSTEM_THEME_NAME] = SYSTEM_THEME_NAME
-
         // default flatlaf themes
         map[FlatLightLaf.NAME] = FlatLightLaf::class.java.name
         map[FlatDarkLaf.NAME] = FlatDarkLaf::class.java.name
@@ -127,13 +123,10 @@ object ThemeManager: SettingsChangeListener {
     }
 
     private fun getThemeClass(settings: GSettings): String {
-        return themesMap[settings.themeSettings.theme] ?: ""
+        return themesMap[settings.themeSettings.theme] ?: themesMap[DEFAULT_THEME]!!
     }
 
     private fun setupLaf(themeClass: String?): Boolean {
-        if (SYSTEM_THEME_NAME == themeClass) {
-            return applyLaf(UIManager.getSystemLookAndFeelClassName())
-        }
         if (!themeClass.isNullOrEmpty()) {
             return applyLaf(themeClass)
         }
@@ -142,6 +135,7 @@ object ThemeManager: SettingsChangeListener {
 
     fun registerThemeUpdateListener(listener: GThemeChangeListener) {
         UIManager.addPropertyChangeListener(listener)
+        listener.onThemeChange(currentTheme)
     }
 
     fun unregisterThemeUpdateListener(listener: GThemeChangeListener) {

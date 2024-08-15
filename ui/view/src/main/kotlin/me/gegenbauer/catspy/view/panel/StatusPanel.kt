@@ -24,7 +24,9 @@ class StatusPanel(
             memoryMonitorContainer.add(value)
         }
 
-    override var statusIcons: StatusIconsBar = StatusIconsBar()
+    override val statusIcons: StatusIconsBar = StatusIconsBar()
+
+    override val toolbar: BottomToolbar = BottomToolbar()
 
     private val logStatusContainer = LogStatusBar()
     private val memoryMonitorContainer = JPanel()
@@ -34,13 +36,14 @@ class StatusPanel(
 
         val p = TableLayoutConstants.PREFERRED
         layout = TableLayout(
-            doubleArrayOf(TableLayoutConstants.FILL, p, p, p),
+            doubleArrayOf(TableLayoutConstants.FILL, p, p, p, p),
             doubleArrayOf(TableLayoutConstants.FILL)
         )
         add(logStatusContainer, "0,0,f,c")
         add(backgroundTasksContainer, "1,0,f,c")
         add(statusIcons, "2,0,f,c")
-        add(memoryMonitorContainer, "3,0,f,c")
+        add(toolbar, "3,0,f,c")
+        add(memoryMonitorContainer, "4,0,f,c")
 
         //statusIcons.addStatusIcon(DeviceIcon()) // TODO complete device monitor panel
     }

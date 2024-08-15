@@ -1,9 +1,6 @@
 package me.gegenbauer.catspy.glog
 
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
+import java.text.SimpleDateFormat
 import java.util.*
 
 object ColoredLogFormatter : BaseLogFormatter() {
@@ -30,7 +27,7 @@ object ColoredLogFormatter : BaseLogFormatter() {
         builder.append("]")
         builder.append(ANSI_YELLOW)
         builder.append(" [")
-        builder.append(record.level::class.java.simpleName)
+        builder.append(record.level.flag)
         builder.append("]")
         builder.append(ANSI_RESET)
         builder.append(ANSI_BOLD_ON)
@@ -75,7 +72,7 @@ object PlainLogFormatter : BaseLogFormatter() {
         builder.append(record.millis % 1000)
         builder.append("]")
         builder.append(" [")
-        builder.append(record.level::class.java.simpleName)
+        builder.append(record.level.flag)
         builder.append("] [")
         builder.append(record.loggerName)
         builder.append("] [")
@@ -96,12 +93,10 @@ fun interface LogFormatter {
 
 abstract class BaseLogFormatter : LogFormatter {
 
-    private val dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM)
-        .withLocale(Locale.getDefault())
-        .withZone(ZoneId.systemDefault())
+    private val dateTimeFormatter = SimpleDateFormat("yyyy:MM:dd HH:mm:ss.SSS")
 
     protected fun calculateDateString(milliseconds: Long): String {
-        return dateTimeFormatter.format(Instant.ofEpochMilli(milliseconds))
+        return dateTimeFormatter.format(Date(milliseconds))
     }
 
     protected fun appendExceptionMessage(builder: StringBuilder, throwable: Throwable) {

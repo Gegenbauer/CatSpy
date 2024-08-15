@@ -19,23 +19,26 @@ import me.gegenbauer.catspy.log.metadata.LogcatLog
 import me.gegenbauer.catspy.log.parse.LogParser
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.LOG_DIR
+import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.task.CommandExecutorImpl
 import me.gegenbauer.catspy.task.CommandProcessBuilder
 import me.gegenbauer.catspy.task.toCommandArray
 import java.io.BufferedOutputStream
 import java.io.File
+import java.io.OutputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class DeviceLogProducer(
     val device: String,
     logParser: LogParser,
-    private val processFetcher: AndroidProcessFetcher,
     override val dispatcher: CoroutineDispatcher = Dispatchers.GIO
 ) : BaseLogProducer(logParser) {
-    override val tempFile: File = getTempLogFile()
-    private val tempFileStream = BufferedOutputStream(tempFile.outputStream())
+    override val tempFile: File by lazy { getTempLogFile() }
+    private val tempFileStream: OutputStream by lazy { BufferedOutputStream(tempFile.outputStream()) }
+    private val processFetcher = AndroidProcessFetcher(device)
+    private val ipPortSeparator = currentPlatform.wifiAdbIpPortSeparator
 
     private val commandExecutor by lazy {
         val logcatCommand = LogcatLog.getLogcatCommand(SettingsManager.adbPath, device)
@@ -50,7 +53,8 @@ class DeviceLogProducer(
                 writeToFile(line)
                 val num = logNum.getAndIncrement()
                 val parts = logParser.parse(line).toMutableList()
-                parts.add(PART_INDEX_PACKAGE, processFetcher.getPidToPackageMap()[parts[PART_INDEX_PID]] ?: "")
+                val packageName = processFetcher.queryPackageName(parts[PART_INDEX_PID])
+                parts.add(PART_INDEX_PACKAGE, packageName)
                 LogItem(num, line, parts)
             }
         }.onStart {
@@ -62,13 +66,13 @@ class DeviceLogProducer(
     }
 
     private fun writeToFile(line: String) {
-        tempFileStream.write(StringBuilder(line).appendLine().toString().toByteArray())
+        tempFileStream.write(line.toByteArray())
+        tempFileStream.write("\n".toByteArray())
     }
 
     override fun cancel() {
         super.cancel()
         commandExecutor.cancel()
-        flushTempFile()
     }
 
     private fun flushTempFile() {
@@ -88,7 +92,7 @@ class DeviceLogProducer(
 
     private fun getTempLogFile(): File {
         val dtf = DateTimeFormatter.ofPattern(LOG_FILE_NAME_TIME_FORMAT)
-        val deviceName = device.split(":").first().trim()
+        val deviceName = getFormalizedDeviceName(device)
         val filePath = filesDir
             .appendPath(LOG_DIR)
             .appendPath(deviceName)
@@ -102,6 +106,14 @@ class DeviceLogProducer(
                 createNewFile()
             }
         }
+    }
+
+    /**
+     * When device is connected via TCP/IP, the device name is in the format of `ip:port`.
+     * And file name can not contain `:` character on windows, and it needs to be handled.
+     */
+    private fun getFormalizedDeviceName(device: String): String {
+        return device.split(ipPortSeparator).first().trim()
     }
 
     companion object {

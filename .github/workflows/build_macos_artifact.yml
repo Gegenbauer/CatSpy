@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - dev
     paths:
       - '**.cpp'
       - '**.kt'
@@ -46,10 +47,10 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build
-        run: ./gradlew packageDmg
+        run: ./gradlew packageReleaseDmg
 
       - name: Build UberJar
-        run: ./gradlew packageUberJarForCurrentOS
+        run: ./gradlew packageReleaseUberJarForCurrentOS
 
       - name: Retrieve Artifact Name
         id: getJarFilename
@@ -67,13 +68,13 @@ jobs:
       - name: Retrieve Artifact Name
         id: getDmgFilename
         run: |
-          find "$(pwd)/app/build/compose/binaries/main/dmg" -type f -name "*.dmg" -exec basename {} \;
+          find "$(pwd)/app/build/compose/binaries/main-release/dmg" -type f -name "*.dmg" -exec basename {} \;
           echo "::set-output name=dmgFileName::$filename"
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v1
         with:
           name: catspy_macos.dmg
-          path: app/build/compose/binaries/main/dmg/${{ steps.getDmgFilename.outputs.dmgFileName }}
+          path: app/build/compose/binaries/main-release/dmg/${{ steps.getDmgFilename.outputs.dmgFileName }}
           retention-days: 1
 

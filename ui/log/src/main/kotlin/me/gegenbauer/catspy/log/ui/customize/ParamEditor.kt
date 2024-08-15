@@ -14,7 +14,7 @@ import javax.swing.undo.UndoManager
 open class ParamEditor(
     tooltip: String? = null,
     maxCharCount: Int = Int.MAX_VALUE
-) : WidthConstrainedTextField(tooltip, maxCharCount), EditEventSource, ParamVerifier {
+) : WidthConstrainedTextField(tooltip, maxCharCount), EditEventSource, ParamVerifier, Editor {
 
     private val editListeners = mutableListOf<EditEventListener>()
     private var inputVerifier: ParamVerifier = ParamVerifier.default

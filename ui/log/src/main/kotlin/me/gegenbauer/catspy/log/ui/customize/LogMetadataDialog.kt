@@ -33,7 +33,7 @@ class LogMetadataDialog(parent: Frame): JDialog(parent) {
         title = STRINGS.ui.logMetadataEditorTitle
 
         val splitPane = JSplitPane()
-        setSizePercentage(splitPane, 100, 100)
+        setSizePercentage(splitPane, 90, 70)
         splitPane.resizeWeight = 0.06
         splitPane.leftComponent = listPanel
         splitPane.rightComponent = detailPanel

@@ -24,6 +24,9 @@ interface IPlatform {
     val vkMask: Int
         get() = KeyEvent.CTRL_DOWN_MASK
 
+    val wifiAdbIpPortSeparator: String
+        get() = "/"
+
     fun getFileDropAction(transferSupport: TransferSupport): Int {
         return transferSupport.sourceDropActions
     }
@@ -34,26 +37,6 @@ interface IPlatform {
         val filesDir = getFilesDir()
         val file = File(filesDir)
         file.mkdirs()
-    }
-
-    fun detectAdbPath(): String {
-        val androidSdkPath = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
-        androidSdkPath?.let {
-            val targetPath = it.appendPath("platform-tools").appendPath(adbExecutable)
-            if (File(targetPath).exists()) {
-                return targetPath
-            }
-        }
-
-        val envPath = System.getenv("PATH")
-        val paths = envPath.split(File.pathSeparator)
-        for (path in paths) {
-            val targetPath = path.appendPath(adbExecutable)
-            if (File(targetPath).exists()) {
-                return targetPath
-            }
-        }
-        return ""
     }
 
     fun showFileInExplorer(file: File) {}
@@ -82,6 +65,9 @@ enum class Platform : IPlatform {
     WINDOWS {
         override val adbExecutable: String
             get() = "adb.exe"
+
+        override val wifiAdbIpPortSeparator: String
+            get() = ":"
 
         override fun getFileDropAction(transferSupport: TransferSupport): Int {
             return transferSupport.dropAction

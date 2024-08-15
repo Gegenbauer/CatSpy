@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - dev
     paths:
       - '**.cpp'
       - '**.kt'
@@ -46,7 +47,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build
-        run: ./gradlew packageMsi
+        run: ./gradlew packageReleaseMsi
         continue-on-error: true
 
       - name: Upload logs
@@ -58,12 +59,12 @@ jobs:
       - name: Retrieve Artifact Name
         id: getFilename
         run: |
-          Get-ChildItem -Path "$(pwd)/app/build/compose/binaries/main/msi" -Filter "*.msi" | Select-Object -ExpandProperty BaseName
+          Get-ChildItem -Path "$(pwd)/app/build/compose/binaries/main-release/msi" -Filter "*.msi" | Select-Object -ExpandProperty BaseName
           echo "::set-output name=msiFileName::$filename"
 
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v1
         with:
           name: catspy_x64.msi
-          path: app/build/compose/binaries/main/msi/${{ steps.getFilename.outputs.msiFileName }}
+          path: app/build/compose/binaries/main-release/msi/${{ steps.getFilename.outputs.msiFileName }}
           retention-days: 1

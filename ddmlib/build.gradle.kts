@@ -6,9 +6,10 @@ plugins {
 
 dependencies {
     api(Adam.adam)
-    implementation(Slf4j.api)
     implementation(Logback.classic)
     implementation(projects.concurrency)
     implementation(projects.glog)
     implementation(projects.context)
+    implementation(projects.platform)
+    implementation(projects.file)
 }

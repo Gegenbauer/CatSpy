@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation(compose.desktop.currentOs)
+    implementation(Compose.runtime)
     implementation(projects.ui)
     implementation(projects.glog)
     implementation(projects.platform)
@@ -82,6 +82,14 @@ compose.desktop {
 
                 packageVersion = project.extra["app.version.name"].toString()
                 packageBuildVersion = project.extra["app.version.name"].toString()
+            }
+        }
+
+        buildTypes.release {
+            proguard {
+                isEnabled.set(true)
+                joinOutputJars.set(true)
+                configurationFiles.from(project.file("proguard-rules.pro"))
             }
         }
     }

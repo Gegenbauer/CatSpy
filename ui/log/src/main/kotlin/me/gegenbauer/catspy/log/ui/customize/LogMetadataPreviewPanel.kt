@@ -14,8 +14,6 @@ class LogMetadataPreviewPanel : FileLogMainPanel() {
 
     override val tag: String = "PreviewPanel"
 
-    private var logProducer: (() -> List<String>) = { emptyList() }
-
     init {
         templateSelector.isVisible = false
         logToolBar.isVisible = false
@@ -30,18 +28,14 @@ class LogMetadataPreviewPanel : FileLogMainPanel() {
         val metadata = metadataModel.toLogMetadata()
         logConf.setLogMetadata(metadata)
         startProduceLog(metadata)
-    }
-
-    fun setLogProducer(producer: () -> List<String>) {
-        logProducer = producer
-        startProduceLog(logConf.logMetaData)
+        updateLogFilter()
     }
 
     private fun startProduceLog(metadata: LogMetadata) {
         if (metadata.isDeviceLog) {
-            logViewModel.startProduceCustomDeviceLog(logProducer)
+            logViewModel.startProduceCustomDeviceLog()
         } else {
-            logViewModel.startProduceCustomFileLog(logProducer)
+            logViewModel.startProduceCustomFileLog()
         }
     }
 

@@ -49,6 +49,7 @@ class LogMetadataListPanel : JPanel(), LogMetadataListController, ListSelectionL
         get() = ServiceManager.getContextService(LogMetadataManager::class.java)
 
     private val selectedItemChangeListeners = mutableListOf<(LogMetadataEditModel?) -> Unit>()
+    private var lastSelectedLogMetadata: LogMetadataEditModel? = null
 
     init {
         layout = BorderLayout()
@@ -149,12 +150,12 @@ class LogMetadataListPanel : JPanel(), LogMetadataListController, ListSelectionL
     }
 
     override fun valueChanged(e: ListSelectionEvent) {
-        if (e.valueIsAdjusting) {
-            return
-        }
         val selectedLogMetadata = logMetadataList.selectedValue
-        notifySelectedItemChangeListeners(selectedLogMetadata)
-        checkDeleteButtonState()
+        if (lastSelectedLogMetadata != selectedLogMetadata) {
+            notifySelectedItemChangeListeners(selectedLogMetadata)
+            checkDeleteButtonState()
+            lastSelectedLogMetadata = selectedLogMetadata
+        }
     }
 
     private fun checkDeleteButtonState() {

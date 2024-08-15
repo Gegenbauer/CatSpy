@@ -8,10 +8,10 @@ import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.concurrency.ViewModelScope
 import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.ddmlib.adb.detectAdbPath
 import me.gegenbauer.catspy.file.clone
 import me.gegenbauer.catspy.file.gson
 import me.gegenbauer.catspy.glog.GLog
-import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.globalLocale
 import me.gegenbauer.catspy.utils.file.JsonFileManager
 
@@ -36,7 +36,7 @@ object SettingsManager {
     val adbPath: String
         get() = settings.adbPath.takeIf { it.isNotEmpty() } ?: detectedAdbPath
 
-    private val detectedAdbPath by lazy { currentPlatform.detectAdbPath() }
+    private val detectedAdbPath by lazy { detectAdbPath() }
     private val settingsChangeListeners = mutableListOf<SettingsChangeListener>()
 
     private suspend fun ensureSettingsFile() {

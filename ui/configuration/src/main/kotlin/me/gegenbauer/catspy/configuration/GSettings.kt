@@ -21,7 +21,7 @@ data class GSettings(
 
     var adbPath: String = "",
     private val shownHints: MutableSet<String> = mutableSetOf()
-): ISettings {
+) : ISettings {
 
     override fun init() {
         themeSettings.init()
@@ -40,23 +40,32 @@ data class GSettings(
     data class Theme(
         var theme: String = DEFAULT_THEME,
         var uiFont: Font = Font(),
-        private var accentColor: Int = 0
+        private var accentColor: String = "Default"
     ) : ISettings {
         fun getAccentColor(): Color {
-            if (accentColor == 0) {
-                return UIManager.getColor("CatSpy.accent.default") ?: Color.lightGray
+            if (accentColor.isEmpty()) {
+                accentColor = DEFAULT_ACCENT_COLOR
             }
-            return accentColor.toArgb()
+            return UIManager.getColor(accentColors.firstOrNull { it.second == accentColor }?.first) ?: Color(0, 0, 0)
         }
 
-        fun setAccentColor(color: Color) {
-            accentColor = color.toArgb()
+        fun setAccentColor(color: String) {
+            accentColor = color
         }
 
         override fun resetToDefault() {
             theme = DEFAULT_THEME
             uiFont = Font()
-            accentColor = 0
+            accentColor = DEFAULT_ACCENT_COLOR
+        }
+
+        companion object {
+            private const val DEFAULT_ACCENT_COLOR = "Default"
+            val accentColors = listOf(
+                "CatSpy.accent.default" to DEFAULT_ACCENT_COLOR, "CatSpy.accent.blue" to "Blue",
+                "CatSpy.accent.purple" to "Purple", "CatSpy.accent.red" to "Red", "CatSpy.accent.orange" to "Orange",
+                "CatSpy.accent.yellow" to "Yellow", "CatSpy.accent.green" to "Green"
+            )
         }
     }
 
@@ -90,7 +99,7 @@ data class GSettings(
         var family: String = DEFAULT_FONT_FAMILY,
         var style: Int = DEFAULT_FONT_STYLE,
         var size: Int = DEFAULT_FONT_SIZE
-    ): ISettings {
+    ) : ISettings {
 
         @Transient
         var nativeFont = toNativeFont()
@@ -131,7 +140,11 @@ data class GSettings(
             loadWindowSettings(window, null, extendedState)
         }
 
-        fun loadWindowSettings(window: java.awt.Window, defaultBounds: Rectangle? = null, extendedState: Int = Frame.NORMAL) {
+        fun loadWindowSettings(
+            window: java.awt.Window,
+            defaultBounds: Rectangle? = null,
+            extendedState: Int = Frame.NORMAL
+        ) {
             configurationCache[window.javaClass.name]?.takeIf { isAccessibleInAnyScreen(it) }?.let { windowSettings ->
                 window.bounds = windowSettings.bounds.toNativeBounds()
                 window.preferredSize = windowSettings.bounds.toNativeBounds().size
