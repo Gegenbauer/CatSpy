@@ -267,8 +267,11 @@ class XmlUserPreferences : UserPreferences {
     companion object {
         private const val PREFERENCES_DIR = "preferences"
         private const val DEFAULT_FILE_NAME = "default"
-        private const val KEY_SEPARATOR = "/"
+        const val KEY_SEPARATOR = "/"
     }
 }
 
+fun String.appendKeySeparator(key: String): String {
+    return this + XmlUserPreferences.KEY_SEPARATOR + key
+}
 object Preferences : UserPreferences by XmlUserPreferences()
