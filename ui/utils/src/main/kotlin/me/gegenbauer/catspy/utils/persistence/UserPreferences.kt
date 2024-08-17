@@ -195,7 +195,15 @@ class XmlUserPreferences : UserPreferences {
 
     override fun getStringList(key: String, defaultValue: List<String>): List<String> {
         val cachedKey = getCachedKey(key)
-        return preferenceGroup[cachedKey.path]?.get(cachedKey.storeKey) as? ArrayList<String> ?: defaultValue
+        val value = preferenceGroup[cachedKey.path]?.get(cachedKey.storeKey)
+        if (value is String) {
+            return listOf(value)
+        }
+        if (value is List<*>) {
+            @Suppress("UNCHECKED_CAST")
+            return value as List<String>
+        }
+        return defaultValue
     }
 
     override fun putStringList(key: String, value: List<String>) {

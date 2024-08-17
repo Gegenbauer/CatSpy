@@ -19,6 +19,7 @@ class FilterProperty(
     val name: String,
     val columnId: Int = -1,
     val storeKeyPrefix: String = "",
+    var hasHistory: Boolean = true,
     initialEnabled: Boolean = true
 ) {
     val enabled: ObservableValueProperty<Boolean> = StorableValueProperty(getComposedKey("enabled"), initialEnabled)
@@ -50,6 +51,7 @@ class FilterProperty(
     }
 
     fun addCurrentContentToList() {
+        if (!hasHistory) return
         // wrong filter item should not be added to the list
         if (filterItem.getValueNonNull().errorMessage.isNotEmpty()) return
 

@@ -103,8 +103,8 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
 
         model.addChangeListener {
             val selectedTab = getSelectedTab()
-            getAllTabs().filter { it != selectedTab }.forEach { it.onTabUnselected() }
-            selectedTab.onTabSelected()
+            getAllTabs().filter { it != selectedTab }.forEach { it.isTabSelected = false }
+            selectedTab.isTabSelected = true
         }
 
         selectMenu.onTabSelected = { tabInfo ->

@@ -24,6 +24,8 @@ object Weisj {
     val darklafVisualPadding = Dependency(groupName, "swing-extensions-visual-padding", "0.1.3")
     val darklafExtensitionKotlin = Dependency(groupName, "darklaf-extension-kotlin", "0.3.4")
     val darklafPropertyLoader = Dependency(groupName, "darklaf-property-loader", "3.0.2")
+    val swingExtVisualPadding = Dependency(groupName, "swing-extensions-visual-padding", "0.1.3")
+    val jsvg = Dependency(groupName, "jsvg", "1.4.0")
 }
 
 object Gson {

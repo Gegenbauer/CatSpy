@@ -122,6 +122,8 @@ class FilterPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
         override fun bind(properties: FilterProperty) {
             super.bind(properties)
+            properties.hasHistory = false
+
             enabledProperty(levelSelector) bindDual properties.enabled
             listProperty(levelSelector) bindDual properties.contentList
             textProperty(levelSelector.editorComponent) bindDual properties.content

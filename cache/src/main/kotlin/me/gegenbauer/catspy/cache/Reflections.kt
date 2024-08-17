@@ -9,7 +9,13 @@ interface IReflection {
 
     fun setField(target: Any, fieldName: String, value: Any?)
 
+    fun getFieldValue(target: Any, fieldName: String): Any?
+
+    fun getField(target: Any, fieldName: String): Field?
+
     fun invokeMethod(target: Any, methodName: String, args: List<Pair<Any?, Class<*>>>): Any?
+
+    fun getMethod(target: Any, methodName: String, args: List<Class<*>>): Method?
 }
 
 class Reflections : IReflection, LruCache<ReflectionKey, Any>(INITIAL_MAX_SIZE), ContextService {
@@ -22,23 +28,42 @@ class Reflections : IReflection, LruCache<ReflectionKey, Any>(INITIAL_MAX_SIZE),
         val key = FieldKey(target, fieldName)
         val accessor = get(key)
         if (accessor is Field) {
-            try {
-                accessor[target] = value
-            } catch (e: IllegalAccessException) {
-                CacheLog.d(TAG, "setField: ${e.message}")
-            }
+            accessor[target] = value
         }
+    }
+
+    override fun getFieldValue(target: Any, fieldName: String): Any? {
+        val key = FieldKey(target, fieldName)
+        val accessor = get(key)
+        if (accessor is Field) {
+            return accessor[target]
+        }
+        return null
+    }
+
+    override fun getField(target: Any, fieldName: String): Field? {
+        val key = FieldKey(target, fieldName)
+        val accessor = get(key)
+        if (accessor is Field) {
+            return accessor
+        }
+        return null
     }
 
     override fun invokeMethod(target: Any, methodName: String, args: List<Pair<Any?, Class<*>>>): Any? {
         val key = MethodKey(target, methodName, args.map { it.second })
         val accessor = get(key)
         if (accessor is Method) {
-            try {
-                return accessor.invoke(target, *args.map { it.first }.toTypedArray())
-            } catch (e: Exception) {
-                CacheLog.d(TAG, "invokeMethod: ${e.message}")
-            }
+            return accessor.invoke(target, *args.map { it.first }.toTypedArray())
+        }
+        return null
+    }
+
+    override fun getMethod(target: Any, methodName: String, args: List<Class<*>>): Method? {
+        val key = MethodKey(target, methodName, args)
+        val accessor = get(key)
+        if (accessor is Method) {
+            return accessor
         }
         return null
     }
@@ -53,12 +78,7 @@ class Reflections : IReflection, LruCache<ReflectionKey, Any>(INITIAL_MAX_SIZE),
         override val cachedKey: String = "${KEY_PREFIX_FIELD}_${target.javaClass.name}_${fieldName}"
 
         override fun createAccessor(): Any? {
-            return try {
-                target::class.java.getDeclaredField(fieldName).apply { isAccessible = true }
-            } catch (e: NoSuchFieldException) {
-                CacheLog.d(TAG, "createAccessor: ${e.message}")
-                null
-            }
+            return target::class.java.getDeclaredField(fieldName).apply { isAccessible = true }
         }
     }
 
@@ -75,20 +95,13 @@ class Reflections : IReflection, LruCache<ReflectionKey, Any>(INITIAL_MAX_SIZE),
         }
 
         override fun createAccessor(): Any? {
-            return try {
-                target::class.java.getDeclaredMethod(methodName, *args.toTypedArray()).also {
-                    it.isAccessible = true
-                }
-            } catch (e: NoSuchMethodException) {
-                CacheLog.d(TAG, "createAccessor: ${e.message}")
-                null
+            return target::class.java.getDeclaredMethod(methodName, *args.toTypedArray()).also {
+                it.isAccessible = true
             }
         }
     }
 
     companion object {
-        private const val TAG = "Reflections"
-
         private const val KEY_PREFIX_FIELD = "field_"
         private const val KEY_PREFIX_METHOD = "method_"
 

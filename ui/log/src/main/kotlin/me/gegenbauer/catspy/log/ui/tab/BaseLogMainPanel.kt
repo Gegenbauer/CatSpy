@@ -86,7 +86,6 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     protected var logStatus: StatusBar.LogStatus = StatusBar.LogStatus.NONE
         set(value) {
             field = value
-            statusBar.logStatus = value
             afterLogStatusChanged(value)
         }
     private val statusBar = ServiceManager.getContextService(StatusPanel::class.java)
@@ -552,7 +551,10 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     }
 
     protected open fun afterLogStatusChanged(status: StatusBar.LogStatus) {
-        updateTitleBar(status.status)
+        if (isTabSelected) {
+            updateTitleBar(status.status)
+            statusBar.logStatus = status
+        }
     }
 
     protected open fun afterTaskStateChanged(state: TaskUIState) {
