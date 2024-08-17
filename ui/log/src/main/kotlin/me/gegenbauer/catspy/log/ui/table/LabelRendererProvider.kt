@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.log.ui.table
 
+import me.gegenbauer.catspy.java.ext.maxLength
 import me.gegenbauer.catspy.log.filter.DefaultLogFilter
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.LogMetadata
@@ -120,7 +121,8 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
             val logFilter = table.tableModel.getLogFilter()
             if (logFilter !is DefaultLogFilter) return content
             if (filterIndex >= logFilter.filters.size) return content
-            return content.take(logFilter.filters[filterIndex].column.uiConf.column.charLen)
+            val maxLength = logFilter.filters[filterIndex].column.uiConf.column.charLen
+            return content.maxLength(maxLength)
         }
     }
 
