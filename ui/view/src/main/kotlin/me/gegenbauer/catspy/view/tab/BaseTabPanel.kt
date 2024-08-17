@@ -6,6 +6,16 @@ import javax.swing.JPanel
 
 abstract class BaseTabPanel(override val contexts: Contexts = Contexts.default) : JPanel(), TabPanel {
 
+    override var isTabSelected: Boolean = false
+        set(value) {
+            field = value
+            if (value) {
+                onTabSelected()
+            } else {
+                onTabUnselected()
+            }
+        }
+
     private var tabNameController: (String) -> Unit = {}
     private var tabTooltipController: (String?) -> Unit = {}
 
@@ -34,4 +44,8 @@ abstract class BaseTabPanel(override val contexts: Contexts = Contexts.default) 
     protected fun setTabTooltip(tooltip: String?) {
         tabTooltipController(tooltip)
     }
+
+    protected open fun onTabSelected() {}
+
+    protected open  fun onTabUnselected() {}
 }

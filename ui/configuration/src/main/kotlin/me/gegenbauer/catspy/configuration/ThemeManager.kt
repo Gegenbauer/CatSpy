@@ -1,6 +1,10 @@
 package me.gegenbauer.catspy.configuration
 
-import com.formdev.flatlaf.*
+import com.formdev.flatlaf.FlatDarculaLaf
+import com.formdev.flatlaf.FlatDarkLaf
+import com.formdev.flatlaf.FlatIntelliJLaf
+import com.formdev.flatlaf.FlatLaf
+import com.formdev.flatlaf.FlatLightLaf
 import com.formdev.flatlaf.fonts.inter.FlatInterFont
 import com.formdev.flatlaf.fonts.jetbrains_mono.FlatJetBrainsMonoFont
 import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont
@@ -8,6 +12,7 @@ import com.formdev.flatlaf.fonts.roboto_mono.FlatRobotoMonoFont
 import com.formdev.flatlaf.intellijthemes.FlatAllIJThemes
 import com.formdev.flatlaf.themes.FlatMacDarkLaf
 import com.formdev.flatlaf.themes.FlatMacLightLaf
+import com.github.weisj.darklaf.properties.icons.IconLoader
 import me.gegenbauer.catspy.configuration.GSettings.Companion.DEFAULT_THEME
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.getEnum
@@ -15,8 +20,10 @@ import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.strings.globalLocale
 import javax.swing.LookAndFeel
 import javax.swing.UIManager
+import javax.swing.plaf.ColorUIResource
 
 object ThemeManager : SettingsChangeListener {
+    const val KEY_ACCENT_COLOR = "CatSpy.accent.current"
     private const val TAG = "ThemeManager"
 
     val currentTheme: FlatLaf
@@ -41,15 +48,36 @@ object ThemeManager : SettingsChangeListener {
         SettingsManager.addSettingsChangeListener(this)
         installFonts()
         FlatLaf.registerCustomDefaultsSource(GlobalProperties.APP_ID)
-        setSystemColorGetter()
-        setupLaf(themesMap[DEFAULT_THEME])
-        setupLaf(getThemeClass(settings))
+        firstInstallFlatLaf()
+        updateAccentColor(settings)
+        installCurrentTheme(settings)
         applyLocale(settings)
         applyFont(settings)
     }
 
-    private fun setSystemColorGetter() {
+    /**
+     * First install FlatLaf if it is not already installed.
+     * FlatLaf related properties are not set until the first install.
+     */
+    private fun firstInstallFlatLaf() {
+        if (!isUsingFlatLaf()) {
+            setupLaf(themesMap[DEFAULT_THEME])
+        }
+    }
+
+    private fun installCurrentTheme(settings: GSettings) {
+        setupLaf(getThemeClass(settings))
+    }
+
+    private fun isUsingFlatLaf(): Boolean {
+        return UIManager.getLookAndFeel() is FlatLaf
+    }
+
+    private fun updateAccentColor(settings: GSettings) {
         FlatLaf.setSystemColorGetter { currentSettings.themeSettings.getAccentColor() }
+        // Invoke to trigger its static block, where it registers the laf change listener
+        IconLoader.get()
+        UIManager.put(KEY_ACCENT_COLOR, ColorUIResource(settings.themeSettings.getAccentColor()))
     }
 
     private fun update(originalSettings: GSettings, settings: GSettings) {
@@ -59,7 +87,7 @@ object ThemeManager : SettingsChangeListener {
             originalSettings.themeSettings.getAccentColor() != settings.themeSettings.getAccentColor()
         if (themeChanged || fontChanged || ifAccentColorChanged) {
             updateUIWithAnim {
-                setSystemColorGetter()
+                updateAccentColor(settings)
                 updateLaf(settings)
                 applyFont(settings)
             }

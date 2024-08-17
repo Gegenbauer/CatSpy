@@ -15,7 +15,6 @@ import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.applyTooltip
 import me.gegenbauer.catspy.view.button.IconBarButton
 import me.gegenbauer.catspy.view.container.WrapablePanel
-import me.gegenbauer.catspy.view.icon.DayNightIcon
 import me.gegenbauer.catspy.view.table.PageIndicator
 import me.gegenbauer.catspy.view.table.PageMetadata
 import me.gegenbauer.catspy.view.table.RowNavigation
@@ -45,14 +44,8 @@ abstract class LogPanel(
 
     private val topBtn = IconBarButton(GIcons.Action.Top.get()) applyTooltip STRINGS.toolTip.viewFirstBtn
     private val bottomBtn = IconBarButton(GIcons.Action.Bottom.get()) applyTooltip STRINGS.toolTip.viewLastBtn
-    private val scrollToEndIcon = DayNightIcon(
-        GIcons.State.ScrollEnd.get(24, 24),
-        GIcons.State.ScrollEndDark.get(24, 24)
-    )
-    private val scrollToEndSelectedIcon = DayNightIcon(
-        GIcons.State.ScrollEnd.selected(24, 24),
-        GIcons.State.ScrollEndDark.selected(24, 24)
-    )
+    private val scrollToEndIcon = GIcons.State.ScrollEnd.get(24, 24)
+    private val scrollToEndSelectedIcon = GIcons.State.ScrollEnd.selected(24, 24)
     private val scrollToEndBtn = IconBarButton(tooltip = STRINGS.toolTip.keepScrollToEnd)
 
     private val scrollPane = LogScrollPane(table)

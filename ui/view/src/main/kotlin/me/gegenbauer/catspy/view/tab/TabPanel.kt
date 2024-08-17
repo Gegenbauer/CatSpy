@@ -19,11 +19,9 @@ interface TabPanel : Context {
     val hint: HintManager.Hint?
         get() = null
 
+    var isTabSelected: Boolean
+
     fun setup(bundle: Bundle?)
-
-    fun onTabSelected()
-
-    fun onTabUnselected()
 
     fun setTabNameController(controller: (String) -> Unit)
 
