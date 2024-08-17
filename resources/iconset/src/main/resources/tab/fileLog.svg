@@ -7,7 +7,7 @@
      xml:space="preserve">
 
 	    <defs id="colors">
-        <linearGradient id="questionIconColor"
+        <linearGradient id="CatSpy.accent.current"
                         fallback="%#00FF00">
             <stop offset="0" stop-color="#3592C4"/>
             <stop offset="1" stop-color="#3592C4"/>
@@ -29,9 +29,9 @@
 		c0.214-48.436,35.448-76.108,83.229-76.108c18.814,0,33.292,3.688,40.431,7.139l-6.92,26.37
 		c-7.999-3.457-17.942-6.268-33.942-6.268c-27.449,0-48.209,15.567-48.209,47.134c0,30.049,18.807,47.771,45.831,47.771
 		c7.564,0,13.623-0.852,16.21-2.152v-30.488h-22.478v-25.723h54.258V371.092L461.176,371.092z"
-          fill="url(#questionIconColor)"/>
+          fill="url(#CatSpy.accent.current)"/>
         <path d="M212.533,305.37c0,28.535,13.407,48.64,35.452,48.64c22.268,0,35.021-21.186,35.021-49.5
 		c0-26.153-12.539-48.655-35.237-48.655C225.504,255.854,212.533,277.047,212.533,305.37z"
-              fill="url(#questionIconColor)"/>
+              fill="url(#CatSpy.accent.current)"/>
 </g>
 </svg>

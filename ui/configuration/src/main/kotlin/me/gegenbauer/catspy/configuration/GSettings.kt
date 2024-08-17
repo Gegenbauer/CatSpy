@@ -40,7 +40,7 @@ data class GSettings(
     data class Theme(
         var theme: String = DEFAULT_THEME,
         var uiFont: Font = Font(),
-        private var accentColor: String = "Default"
+        private var accentColor: String = DEFAULT_ACCENT_COLOR
     ) : ISettings {
         fun getAccentColor(): Color {
             if (accentColor.isEmpty()) {
