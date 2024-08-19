@@ -3,11 +3,14 @@ package me.gegenbauer.catspy.log.ui.tab
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
+import me.gegenbauer.catspy.file.toHumanReadableSize
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.recent.RecentFile
 import me.gegenbauer.catspy.log.recent.RecentLogFiles
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.get
 import me.gegenbauer.catspy.utils.ui.findFrameFromParent
+import me.gegenbauer.catspy.utils.ui.isLeftClick
 import me.gegenbauer.catspy.utils.ui.showSelectSingleFileDialog
 import me.gegenbauer.catspy.view.button.CloseButton
 import me.gegenbauer.catspy.view.button.ColorToggleButton
@@ -21,12 +24,13 @@ import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.swing.*
 
 class FileLogGuidancePanel(
-    private val onOpenFile: (String) -> Unit
+    private val onOpenFile: (File) -> Unit
 ) : JPanel() {
     private val openFileButton = GButton(STRINGS.ui.openFile)
     private val recentFilesContainer = JScrollPane()
@@ -73,7 +77,7 @@ class FileLogGuidancePanel(
             RecentLogFiles.getLastOpenDir(),
         )
         files.firstOrNull()?.let {
-            onOpenFile(it.absolutePath)
+            onOpenFile(it)
             RecentLogFiles.onNewFileOpen(it.absolutePath)
         }
     }
@@ -115,22 +119,38 @@ class FileLogGuidancePanel(
             add(itemPanel)
         }
 
-        override fun onFileOpen(file: RecentFile) {
-            onOpenFile(file.path)
-            RecentLogFiles.onNewFileOpen(file.path)
+        override fun onFileOpen(recentFile: RecentFile) {
+            val file = File(recentFile.path)
+            if (file.exists().not()) {
+                showFileNotExistsWarning(recentFile)
+                onFileDelete(recentFile)
+            } else {
+                onOpenFile(file)
+                RecentLogFiles.onNewFileOpen(recentFile.path)
+            }
         }
 
-        override fun onFileStared(file: RecentFile) {
-            val files = fileItems.map { if (it == file) it.copy(isStarred = !it.isStarred) else it.copy() }
+        private fun showFileNotExistsWarning(file: RecentFile) {
+            val message = STRINGS.ui.fileNotExistWarning.get(file.path)
+            JOptionPane.showMessageDialog(
+                this,
+                message,
+                "",
+                JOptionPane.WARNING_MESSAGE
+            )
+        }
+
+        override fun onFileStared(recentFile: RecentFile) {
+            val files = fileItems.map { if (it == recentFile) it.copy(isStarred = !it.isStarred) else it.copy() }
             RecentLogFiles.saveRecentFiles(files)
         }
 
-        override fun onFileDelete(file: RecentFile) {
-            RecentLogFiles.saveRecentFiles(fileItems - file)
+        override fun onFileDelete(recentFile: RecentFile) {
+            RecentLogFiles.saveRecentFiles(fileItems - recentFile)
         }
 
-        override fun onFileHover(file: RecentFile) {
-            val index = fileItems.indexOf(file)
+        override fun onFileHover(recentFile: RecentFile) {
+            val index = fileItems.indexOf(recentFile)
             for (i in 0 until componentCount) {
                 if (i == index) continue
                 val item = getComponent(i) as FileItemPanel
@@ -141,8 +161,11 @@ class FileLogGuidancePanel(
 
     private class FileItemPanel : HoverStateAwarePanel(), ActionListener, FileActionListener {
 
+        var listener: FileActionListener? = null
+
         private val nameLabel = EllipsisLabel()
-        private val lastOpenTimeLabel = JLabel()
+        private val lastOpenTimeLabel = EllipsisLabel()
+        private val fileSizeLabel = EllipsisLabel()
         private val starButton = ColorToggleButton(
             GIcons.State.NotStared.get(STAR_ICON_SIZE, STAR_ICON_SIZE),
             GIcons.State.Stared.get(STAR_ICON_SIZE, STAR_ICON_SIZE)
@@ -151,14 +174,19 @@ class FileLogGuidancePanel(
 
         private val dateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm")
 
-        var listener: FileActionListener? = null
-
         private var fileItem: RecentFile = RecentFile()
+        private val clickToOpenListener = object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent) {
+                if (e.isLeftClick) {
+                    onFileOpen(fileItem)
+                }
+            }
+        }
 
         init {
             layout = TableLayout(
                 arrayOf(
-                    doubleArrayOf(FILL, 200.0, PREFERRED, PREFERRED),
+                    doubleArrayOf(FILL, 200.0, 100.0, PREFERRED, PREFERRED),
                     doubleArrayOf(PREFERRED)
                 )
             )
@@ -169,8 +197,9 @@ class FileLogGuidancePanel(
 
             add(nameLabel, "0,0")
             add(lastOpenTimeLabel, "1,0")
-            add(starButton, "2,0")
-            add(deleteButton, "3,0")
+            add(fileSizeLabel, "2,0")
+            add(starButton, "3,0")
+            add(deleteButton, "4,0")
 
             starButton.addActionListener(this)
             configureOpenFileAction()
@@ -192,17 +221,22 @@ class FileLogGuidancePanel(
         }
 
         private fun configureOpenFileAction() {
-            nameLabel.addMouseListener(object : MouseAdapter() {
-                override fun mouseClicked(e: MouseEvent) {
-                    onFileOpen(fileItem)
-                }
-            })
+            nameLabel.addMouseListener(clickToOpenListener)
+            lastOpenTimeLabel.addMouseListener(clickToOpenListener)
+            fileSizeLabel.addMouseListener(clickToOpenListener)
         }
 
         fun setFile(file: RecentFile) {
             nameLabel.text = file.name
             nameLabel.toolTipText = file.path
-            lastOpenTimeLabel.text = file.lastOpenTime.toDateString()
+            file.lastOpenTime.toDateString().also {
+                lastOpenTimeLabel.text = it
+                lastOpenTimeLabel.toolTipText = it
+            }
+            File(file.path).length().toHumanReadableSize().also {
+                fileSizeLabel.text = it
+                fileSizeLabel.toolTipText = it
+            }
             starButton.isSelected = file.isStarred
 
             fileItem = file
@@ -218,16 +252,16 @@ class FileLogGuidancePanel(
             }
         }
 
-        override fun onFileDelete(file: RecentFile) {
-            listener?.onFileDelete(file)
+        override fun onFileDelete(recentFile: RecentFile) {
+            listener?.onFileDelete(recentFile)
         }
 
-        override fun onFileOpen(file: RecentFile) {
-            listener?.onFileOpen(file)
+        override fun onFileOpen(recentFile: RecentFile) {
+            listener?.onFileOpen(recentFile)
         }
 
-        override fun onFileStared(file: RecentFile) {
-            listener?.onFileStared(file)
+        override fun onFileStared(recentFile: RecentFile) {
+            listener?.onFileStared(recentFile)
         }
 
         companion object {
@@ -238,12 +272,12 @@ class FileLogGuidancePanel(
     }
 
     private interface FileActionListener {
-        fun onFileOpen(file: RecentFile) {}
+        fun onFileOpen(recentFile: RecentFile) {}
 
-        fun onFileStared(file: RecentFile) {}
+        fun onFileStared(recentFile: RecentFile) {}
 
-        fun onFileDelete(file: RecentFile) {}
+        fun onFileDelete(recentFile: RecentFile) {}
 
-        fun onFileHover(file: RecentFile) {}
+        fun onFileHover(recentFile: RecentFile) {}
     }
 }

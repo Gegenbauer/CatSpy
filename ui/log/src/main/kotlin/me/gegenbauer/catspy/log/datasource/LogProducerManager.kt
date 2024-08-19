@@ -26,10 +26,6 @@ interface LogProducerManager {
 
     fun startProduceCustomDeviceLog()
 
-    fun onLogItemReceived(logItem: LogItem)
-
-    fun onLogProduceError(error: Throwable)
-
     fun setPaused(paused: Boolean)
 
     fun isPaused(): Boolean

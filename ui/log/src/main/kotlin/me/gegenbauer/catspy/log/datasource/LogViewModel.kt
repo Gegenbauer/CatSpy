@@ -1,40 +1,43 @@
 package me.gegenbauer.catspy.log.datasource
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.CoroutineSuspender
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ViewModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.databinding.bind.Observer
-import me.gegenbauer.catspy.java.ext.EmptyEvent
 import me.gegenbauer.catspy.java.ext.ErrorEvent
 import me.gegenbauer.catspy.java.ext.Event
 import me.gegenbauer.catspy.java.ext.formatDuration
-import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.filter.LogFilter
 import me.gegenbauer.catspy.log.parse.LogParser
 import me.gegenbauer.catspy.log.ui.LogConfiguration
-import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
-import me.gegenbauer.catspy.log.ui.table.LogPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
 import me.gegenbauer.catspy.utils.file.writeLinesWithProgress
 import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.panel.Task
 import me.gegenbauer.catspy.view.panel.TaskHandle
-import me.gegenbauer.catspy.view.state.ListState
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.read
-import kotlin.concurrent.write
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.system.measureTimeMillis
 
 class LogViewModel(
@@ -49,232 +52,83 @@ class LogViewModel(
     override val filteredLogObservables: LogProducerManager.LogObservables
         get() = filteredLogRepo.logObservables
 
-    private val logParser: LogParser
-        get() = logConf.logMetaData.parser
-    private val logConf: LogConfiguration
-        get() = contexts.getContext(LogConfiguration::class.java)
-            ?: throw IllegalStateException("must put LogConfiguration in context before using it")
-
-    override var logFilter: LogFilter = LogFilter.default
-
-    override var fullMode: Boolean = false
-
-    override var bookmarkMode: Boolean = false
+    override val logFilter: LogFilter
+        get() = logConf.getFilter()
 
     override var fullTableSelectedRows: List<Int> = emptyList()
 
     override var filteredTableSelectedRows: List<Int> = emptyList()
 
     override val tempLogFile: File
-        get() = logProducer.tempFile
+        get() = produceLogTask.logProducer.tempFile
 
     override val device: String
-        get() = (logProducer as? DeviceLogProducer)?.device ?: ""
+        get() = (produceLogTask.logProducer as? DeviceLogProducer)?.device ?: ""
 
-    private var logProducer: LogProducer = EmptyLogProducer
-
+    private val logConf by lazy { contexts.getContext(LogConfiguration::class.java)!! }
     private val _eventFlow = MutableSharedFlow<Event>(
         extraBufferCapacity = 30,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     private val fullLogRepo = FullLogRepo()
     private val filteredLogRepo = FilteredLogRepo()
-
     private val scope = ViewModelScope()
-
-    private lateinit var bookmarkManager: BookmarkManager
-
-    private val fullModeObserver = Observer<Boolean> {
-        fullMode = it ?: false
-        updateFilter(logFilter, true)
-    }
-    private val bookmarkModeObserver = Observer<Boolean> {
-        bookmarkMode = it ?: false
-        updateFilter(logFilter, true)
-    }
-    private val updateFilteredLogTaskSuspender = CoroutineSuspender("updateFilteredLogTaskSuspender")
-    private val globalStatus = ServiceManager.getContextService(StatusPanel::class.java)
-
     private val logUpdater = LogUpdater(fullLogRepo, filteredLogRepo, scope)
-    private var hasPendingUpdateFilterTask = false
-    private var updateFilterTask: Job? = null
-    private var startProducerTask: Job? = null
+    private val logProcessMutex = Mutex()
+
+    private val filterLogTask by lazy {
+        FilterLogTask(
+            fullLogRepo,
+            filteredLogRepo,
+            logUpdater,
+            logProcessMutex,
+            scope,
+            contexts
+        )
+    }
+    private val produceLogTask by lazy {
+        ProduceLogTask(
+            fullLogRepo,
+            filteredLogRepo,
+            logUpdater,
+            _eventFlow,
+            logProcessMutex,
+            scope,
+            contexts
+        )
+    }
+
+    private val updateFilteredLogTaskSuspender = CoroutineSuspender("updateFilteredLogTaskSuspender")
+    private val globalStatus by lazy { ServiceManager.getContextService(StatusPanel::class.java) }
 
     private val paused = AtomicBoolean(false)
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
-        getBindings()?.fullMode?.addObserver(fullModeObserver)
-        getBindings()?.bookmarkMode?.addObserver(bookmarkModeObserver)
-        val logTabPanel = contexts.getContext(BaseLogMainPanel::class.java)
-        logTabPanel?.let {
-            bookmarkManager = ServiceManager.getContextService(logTabPanel, BookmarkManager::class.java)
-        }
-    }
-
-    private fun getBindings(): LogPanel.LogPanelBinding? {
-        return contexts.getContext(LogPanel::class.java)?.binding
+        filterLogTask.registerFilterStateObserver()
+        filterLogTask.logProducerProvider = produceLogTask::logProducer
+        produceLogTask.filterProvider = filterLogTask::composedFilter
+        produceLogTask.filterLogTaskCancellationHandle = filterLogTask::cancelAndJoin
     }
 
     override fun startProduceDeviceLog(device: String) {
-        startProduce(DeviceLogProducer(device, logParser))
+        produceLogTask.startProduceDeviceLog(device)
     }
 
     override fun startProduceFileLog(file: String) {
-        startProduce(FileLogProducer(file, logParser))
+        produceLogTask.startProduceFileLog(file)
     }
 
     override fun startProduceCustomFileLog() {
-        startProduce(CustomFileLogProducer(logConf))
+        produceLogTask.startProduceCustomFileLog()
     }
 
     override fun startProduceCustomDeviceLog() {
-        startProduce(CustomDeviceLogProducer(logConf))
-    }
-
-    private fun startProduce(logProducer: LogProducer) {
-        logUpdater.start()
-        playLoadingAnimation(fullLogRepo)
-        val lastJob = startProducerTask
-        startProducerTask = scope.launch {
-            clear()
-            Log.d(TAG, "[startProduce] cancel previous jobs")
-            lastJob?.cancelAndJoin()
-            // 增加延迟，减少无意义任务的启动
-            delay(START_TASK_INTERVAL)
-
-            this@LogViewModel.logProducer = logProducer
-
-            coroutineContext.job.invokeOnCompletion {
-                Log.d(TAG, "[startProduce] logProducer job completed")
-            }
-
-            Log.d(TAG, "[startProduce]")
-            logUpdater.updateFilteredLogTriggerCount(true)
-            logUpdater.updateFullLogTriggerCount(true)
-
-            launch {
-                observeLogProducerState(logProducer)
-            }.invokeOnCompletion {
-                Log.d(TAG, "[startProduce] observeLogProducerState completed")
-            }
-
-            launch {
-                startProduceInternal(logProducer)
-            }.invokeOnCompletion {
-                Log.d(TAG, "[startProduce] realStartProducerTask completed")
-            }
-        }
-    }
-
-    private fun playLoadingAnimation(logRepo: LogRepo) {
-        scope.launch {
-            logRepo.onLoadingStart()
-            delay(100)
-            logRepo.onLoadingEnd()
-        }
-    }
-
-    private suspend fun observeLogProducerState(producer: LogProducer) {
-        Log.d(TAG, "[observeLogProducerState]")
-        producer.state.collect { state ->
-            if (state == LogProducer.State.COMPLETE) {
-                Log.d(TAG, "[observeLogProducerState] realStartProducerTask completed")
-                _eventFlow.emit(TaskState.IDLE)
-                logUpdater.updateFilteredLogTriggerCount(false)
-                logUpdater.updateFullLogTriggerCount(false)
-                clearCurrentProducer()
-            }
-            _eventFlow.emit(state.toTaskState())
-            Log.d(TAG, "[observeLogProducerState] state=$state")
-        }
-    }
-
-    private fun LogProducer.State.toTaskState(): TaskState {
-        return when (this) {
-            LogProducer.State.RUNNING -> TaskState.RUNNING
-            LogProducer.State.PAUSED -> TaskState.PAUSED
-            LogProducer.State.COMPLETE -> TaskState.IDLE
-            else -> TaskState.IDLE
-        }
-    }
-
-    private fun clearCurrentProducer() {
-        logProducer = EmptyLogProducer
-    }
-
-    override fun onLogProduceError(error: Throwable) {
-        Log.e(TAG, "[onLogProduceError]", error)
-        _eventFlow.tryEmit(ErrorEvent(error))
-    }
-
-    override fun onLogItemReceived(logItem: LogItem) {
-        fullLogRepo.onReceiveLogItem(logItem, getLogFilter())
-        filteredLogRepo.onReceiveLogItem(logItem, getLogFilter())
-    }
-
-    private suspend fun startProduceInternal(logProducer: LogProducer) {
-        Log.d(TAG, "[startProduceInternal] start")
-        val cost = measureTimeMillis {
-            logProducer.start().collect { result ->
-                val exception = result.exceptionOrNull()
-                val item = result.getOrNull()
-
-                exception?.let {
-                    onLogProduceError(it)
-                    return@collect
-                }
-
-                item?.let { onLogItemReceived(it) }
-            }
-        }
-        Log.d(TAG, "[startProduceInternal] end, cost=${formatDuration(cost)}")
-    }
-
-    override fun updateFilter(filter: LogFilter, force: Boolean) {
-        if (!force && filter == logFilter) {
-            return
-        }
-        hasPendingUpdateFilterTask = false
-        logFilter = filter
-        playLoadingAnimation(filteredLogRepo)
-        val producer = logProducer
-        val lastTask = updateFilterTask
-        updateFilterTask = scope.launch {
-            lastTask?.cancelAndJoin()
-
-            // 增加延迟，减少无意义任务的启动
-            delay(START_TASK_INTERVAL)
-
-            Log.d(TAG, "[updateFilter] start")
-
-            logUpdater.updateFilteredLogTriggerCount(true)
-
-            val producerRunning = AtomicBoolean(false)
-            producerRunning.set(producer.isRunning)
-            Log.d(TAG, "[updateFilter] producerRunning=${producerRunning.get()}")
-            launch {
-                producer.pause()
-                val composedFilter = getLogFilter(filter)
-                filteredLogRepo.writeLogItems { filteredItems ->
-                    filteredItems.clear()
-                    fullLogRepo.readLogItems { fullItems ->
-                        fullItems.forEach { item ->
-                            ensureActive()
-                            filteredLogRepo.onReceiveLogItem(item, composedFilter)
-                        }
-                    }
-                }
-            }.invokeOnCompletion {
-                Log.d(TAG, "[updateFilter] realUpdateFilterJob completed")
-                logUpdater.updateFilteredLogTriggerCount(false)
-                producer.takeIf { producerRunning.get() }?.resume()
-            }
-        }
+        produceLogTask.startProduceCustomDeviceLog()
     }
 
     override fun updateFilter(filter: LogFilter) {
-        updateFilter(filter, false)
+        filterLogTask.updateFilter(filter)
     }
 
     /**
@@ -314,34 +168,18 @@ class LogViewModel(
         }
     }
 
-    private fun getLogFilter(filter: LogFilter = logFilter): LogFilter {
-        return LogFilter {
-            return@LogFilter when {
-                fullMode -> true
-                bookmarkMode -> bookmarkManager.isBookmark(it.num)
-                filter.match(it) -> true
-                else -> false
-            }
-        }
-    }
-
     override fun pause() {
         Log.d(TAG, "[pause]")
-        if (updateFilterTask?.isCompleted == false) {
-            Log.d(TAG, "[pause] has active updateFilterCompanyJobs")
-            hasPendingUpdateFilterTask = true
-        }
-        updateFilterTask?.cancel()
-        logProducer.pause()
+        filterLogTask.pause()
+        produceLogTask.pause()
+        logUpdater.pause()
     }
 
     override fun resume() {
         Log.d(TAG, "[resume]")
-        logProducer.resume()
-        if (hasPendingUpdateFilterTask) {
-            Log.d(TAG, "[resume] restart pending updateFilterCompanyJobs")
-            updateFilter(logFilter, true)
-        }
+        produceLogTask.resume()
+        filterLogTask.resume()
+        logUpdater.resume()
     }
 
     override fun setPaused(paused: Boolean) {
@@ -364,191 +202,326 @@ class LogViewModel(
     }
 
     override fun cancel() {
-        setPaused(true)
-        logProducer.cancel()
+        produceLogTask.cancel()
+        filterLogTask.cancel()
+        logUpdater.cancel()
     }
 
     override fun destroy() {
         cancel()
         scope.cancel()
         updateFilteredLogTaskSuspender.disable()
-        getBindings()?.fullMode?.removeObserver(fullModeObserver)
-        getBindings()?.bookmarkMode?.removeObserver(bookmarkModeObserver)
+        filterLogTask.unregisterFilterStateObserver()
     }
 
-    private interface LogRepo {
+    private interface Task {
 
-        val logObservables: LogProducerManager.LogObservables
+        fun pause()
 
-        fun <T> readLogItems(readAction: (List<LogItem>) -> T): T
+        fun resume()
 
-        fun <T> writeLogItems(writeAction: (MutableList<LogItem>) -> T): T
+        fun cancel()
 
-        fun clear()
-
-        fun submitLogItems(force: Boolean)
-
-        fun submitLogItems()
-
-        fun onLoadingStart()
-
-        fun onLoadingEnd()
-
-        fun getLogItemCount(): Int
-
-        fun onReceiveLogItem(logItem: LogItem, logFilter: LogFilter)
+        suspend fun cancelAndJoin()
     }
 
-    abstract class BaseLogRepo : LogRepo {
-        override val logObservables: LogProducerManager.LogObservables
-            get() = _logObservables
+    private class ProduceLogTask(
+        private val fullLogRepo: LogRepo,
+        private val filteredLogRepo: LogRepo,
+        private val logUpdater: LogUpdater,
+        private val eventFlow: MutableSharedFlow<Event>,
+        private val logProcessMutex: Mutex,
+        private val scope: CoroutineScope,
+        private val contexts: Contexts
+    ) : Task {
 
-        private val logItems: MutableList<LogItem> = mutableListOf()
+        var filterProvider: () -> LogFilter = { LogFilter.default }
+        var filterLogTaskCancellationHandle: suspend () -> Unit = {}
+        var logProducer: LogProducer = EmptyLogProducer
 
-        abstract val name: String
+        private val logConf by lazy { contexts.getContext(LogConfiguration::class.java)!! }
+        private var startProducerTask: Job? = null
 
-        private val _logItemsFlow = MutableStateFlow(emptyList<LogItem>())
-        private val _listState = MutableStateFlow(ListState.EMPTY)
-        private val _logRepaintEventFlow = MutableSharedFlow<Event>(extraBufferCapacity = 1)
-        private val _logObservables = LogProducerManager.LogObservables(_logItemsFlow, _listState, _logRepaintEventFlow)
-        private val logItemsAccessLock = ReentrantReadWriteLock()
+        private val logParser: LogParser
+            get() = logConf.logMetaData.parser
 
-        override fun <T> readLogItems(readAction: (List<LogItem>) -> T): T {
-            return logItemsAccessLock.read { readAction(logItems) }
+        fun startProduceDeviceLog(device: String) {
+            startProduce(DeviceLogProducer(device, logParser))
         }
 
-        override fun <T> writeLogItems(writeAction: (MutableList<LogItem>) -> T): T {
-            return logItemsAccessLock.write { writeAction(logItems) }
+        fun startProduceFileLog(file: String) {
+            startProduce(FileLogProducer(file, logParser))
         }
 
-        override fun clear() {
-            logItemsAccessLock.write { logItems.clear() }
-            _logItemsFlow.value = emptyList()
-            _listState.value = ListState.EMPTY
+        fun startProduceCustomFileLog() {
+            startProduce(CustomFileLogProducer(logConf))
         }
 
-        override fun submitLogItems(force: Boolean) {
-            readLogItems {
-                if (logItemsChanged() || force) {
-                    _logItemsFlow.value = it.toList()
-                    if (it.isNotEmpty()) {
-                        onLoadingEnd()
+        fun startProduceCustomDeviceLog() {
+            startProduce(CustomDeviceLogProducer(logConf))
+        }
+
+        private fun startProduce(logProducer: LogProducer) {
+            scope.launch {
+
+                logProcessMutex.withLock {
+                    Log.d(TAG, "[startProduce] cancel previous jobs")
+                    startProducerTask?.cancelAndJoin()
+                    startProducerTask = coroutineContext.job
+
+                    fullLogRepo.onLoadingStart()
+                    coroutineContext.job.invokeOnCompletion {
+                        fullLogRepo.onLoadingEnd()
+                    }
+                }
+
+                // 增加延迟，减少无意义任务的启动
+                delay(START_TASK_INTERVAL)
+
+                logProcessMutex.withLock {
+                    filterLogTaskCancellationHandle()
+                    this@ProduceLogTask.logProducer = logProducer
+                    logUpdater.start()
+                    coroutineContext.job.invokeOnCompletion {
+                        Log.d(TAG, "[startProduce] completed")
+                        onProduceEnd()
+                    }
+
+                    Log.d(TAG, "[startProduce]")
+                    onProduceStart()
+                }
+
+                val observeJob = launch { observeLogProducerState(logProducer) }
+                launch { startProduceInternal(logProducer) }.invokeOnCompletion {
+                    observeJob.cancel()
+                }
+                delay(500)
+                fullLogRepo.onLoadingEnd()
+            }
+        }
+
+        private fun onProduceStart() {
+            logUpdater.updateFilteredLogTriggerCount(true)
+            logUpdater.updateFullLogTriggerCount(true)
+            fullLogRepo.reset()
+            filteredLogRepo.reset()
+        }
+
+        private fun onProduceEnd() {
+            logUpdater.updateFilteredLogTriggerCount(false)
+            logUpdater.updateFullLogTriggerCount(false)
+            logProducer = EmptyLogProducer
+            eventFlow.tryEmit(TaskState.IDLE)
+        }
+
+        private suspend fun observeLogProducerState(producer: LogProducer) {
+            Log.d(TAG, "[observeLogProducerState]")
+            producer.state.collect { state ->
+                eventFlow.emit(state.toTaskState())
+                Log.d(TAG, "[observeLogProducerState] state=$state")
+            }
+        }
+
+        private fun LogProducer.State.toTaskState(): TaskState {
+            return when (this) {
+                LogProducer.State.RUNNING -> TaskState.RUNNING
+                LogProducer.State.PAUSED -> TaskState.PAUSED
+                LogProducer.State.COMPLETE -> TaskState.IDLE
+                else -> TaskState.IDLE
+            }
+        }
+
+        private suspend fun startProduceInternal(logProducer: LogProducer) {
+            val cost = measureTimeMillis {
+                logProducer.start().collect { result ->
+                    val exception = result.exceptionOrNull()
+                    val item = result.getOrNull()
+
+                    exception?.let {
+                        onLogProduceError(it)
+                        return@collect
+                    }
+
+                    item?.let { onLogItemReceived(it) }
+                }
+            }
+            Log.d(TAG, "[startProduceInternal] end, cost=${formatDuration(cost)}")
+        }
+
+        private fun onLogProduceError(error: Throwable) {
+            Log.e(TAG, "[onLogProduceError]", error)
+            eventFlow.tryEmit(ErrorEvent(error))
+        }
+
+        private fun onLogItemReceived(logItem: LogItem) {
+            val logFilter = filterProvider()
+            fullLogRepo.onReceiveLogItem(logItem, logFilter)
+            filteredLogRepo.onReceiveLogItem(logItem, logFilter)
+        }
+
+        override fun pause() {
+            logProducer.pause()
+        }
+
+        override fun resume() {
+            logProducer.resume()
+        }
+
+        override fun cancel() {
+            logProducer.cancel()
+        }
+
+        override suspend fun cancelAndJoin() {
+            // no-op
+        }
+    }
+
+    private class FilterLogTask(
+        private val fullLogRepo: LogRepo,
+        private val filteredLogRepo: LogRepo,
+        private val logUpdater: LogUpdater,
+        private val logProcessMutex: Mutex,
+        private val scope: CoroutineScope,
+        contexts: Contexts
+    ) : Task {
+        var logFilter: LogFilter = LogFilter.default
+
+        var logProducerProvider: () -> LogProducer = { EmptyLogProducer }
+
+        private val fullModeState = FullModeFilterState(contexts)
+        private val bookmarkModeState = BookmarkFilterState(contexts)
+
+        private var hasPendingUpdateFilterTask = false
+        private var updateFilterTask: Job? = null
+
+        var composedFilter: ComposedFilter = ComposedFilter(logFilter, fullModeState, bookmarkModeState)
+
+        fun updateFilter(filter: LogFilter) {
+            updateFilter(filter, false)
+        }
+
+        fun updateFilter(filter: LogFilter, force: Boolean) {
+            val newComposedFilter = ComposedFilter(filter, fullModeState, bookmarkModeState)
+            if (!force && newComposedFilter == composedFilter) {
+                return
+            }
+            scope.launch {
+                logProcessMutex.withLock {
+                    updateFilterTask?.cancelAndJoin()
+                    updateFilterTask = coroutineContext.job
+
+                    filteredLogRepo.onLoadingStart()
+                    coroutineContext.job.invokeOnCompletion {
+                        filteredLogRepo.onLoadingEnd()
+                    }
+                }
+
+                // 增加延迟，减少无意义任务的启动
+                delay(START_TASK_INTERVAL)
+
+                Log.d(TAG, "[updateFilter] start")
+
+                val producerRunning = AtomicBoolean(false)
+                val producer = AtomicReference<LogProducer>()
+                logProcessMutex.withLock {
+                    hasPendingUpdateFilterTask = false
+                    logFilter = filter
+                    composedFilter = newComposedFilter
+                    producer.set(logProducerProvider())
+                    producerRunning.set(producer.get().isRunning)
+                }
+
+                coroutineContext.job.invokeOnCompletion {
+                    Log.d(TAG, "[updateFilter] realUpdateFilterJob completed")
+                    logUpdater.updateFilteredLogTriggerCount(false)
+                    producer.get().takeIf { producerRunning.get() }?.resume()
+                }
+
+                launch { playFakeLoadingAnimation() }
+
+                Log.d(TAG, "[updateFilter] producerRunning=${producerRunning.get()}")
+                producer.get().pause()
+                logUpdater.updateFilteredLogTriggerCount(true)
+                filterLog(newComposedFilter)
+            }
+        }
+
+        private suspend fun playFakeLoadingAnimation() {
+            delay(100)
+            filteredLogRepo.submitLogItems()
+            filteredLogRepo.onLoadingEnd()
+        }
+
+        private fun CoroutineScope.filterLog(filter: LogFilter) {
+            filteredLogRepo.writeLogItems { filteredItems ->
+                filteredItems.clear()
+                filteredLogRepo.submitLogItems()
+                fullLogRepo.readLogItems { fullItems ->
+                    fullItems.forEach { item ->
+                        ensureActive()
+                        filteredLogRepo.onReceiveLogItem(item, filter)
                     }
                 }
             }
         }
 
-        override fun submitLogItems() {
-            submitLogItems(false)
+        fun registerFilterStateObserver() {
+            fullModeState.observe { updateFilter(logFilter, true) }
+            bookmarkModeState.observe { updateFilter(logFilter, true) }
         }
 
-        override fun onLoadingStart() {
-            _listState.value = ListState.LOADING
+        fun unregisterFilterStateObserver() {
+            fullModeState.stopObserving()
+            bookmarkModeState.stopObserving()
         }
 
-        override fun onLoadingEnd() {
-            _listState.value = ListState.NORMAL
-            _logRepaintEventFlow.tryEmit(EmptyEvent)
+        override fun pause() {
+            if (updateFilterTask?.isCompleted == false) {
+                Log.d(TAG, "[pause] has active updateFilterCompanyJobs")
+                hasPendingUpdateFilterTask = true
+            }
+            updateFilterTask?.cancel()
         }
 
-        override fun getLogItemCount(): Int {
-            return readLogItems { it.size }
-        }
-
-        private fun logItemsChanged(): Boolean {
-            return readLogItems {
-                _logItemsFlow.value.count() != it.count()
-                        || _logItemsFlow.value.lastOrNull()?.num != it.lastOrNull()?.num
+        override fun resume() {
+            if (hasPendingUpdateFilterTask) {
+                Log.d(TAG, "[resume] restart pending updateFilterCompanyJobs")
+                updateFilter(logFilter, true)
             }
         }
-    }
 
-    private class FilteredLogRepo : BaseLogRepo() {
+        override fun cancel() {
+            updateFilterTask?.cancel()
+        }
 
-        override val name: String = "FilteredLogRepo"
+        override suspend fun cancelAndJoin() {
+            updateFilterTask?.cancelAndJoin()
+        }
 
-        override fun onReceiveLogItem(logItem: LogItem, logFilter: LogFilter) {
-            if (logFilter.match(logItem)) {
-                writeLogItems {
-                    it.add(logItem)
+        private class ComposedFilter(
+            private val filter: LogFilter,
+            private val fullModeState: FullModeFilterState,
+            private val bookmarkModeState: BookmarkFilterState
+        ) : LogFilter {
+            override fun match(item: LogItem): Boolean {
+                return when {
+                    fullModeState.enabled -> true
+                    bookmarkModeState.enabled -> bookmarkModeState.isBookmark(item.num)
+                    filter.match(item) -> true
+                    else -> false
                 }
             }
-        }
 
-    }
-
-    private class FullLogRepo : BaseLogRepo() {
-
-        override val name: String = "FullLogRepo"
-
-        override fun onReceiveLogItem(logItem: LogItem, logFilter: LogFilter) {
-            writeLogItems { it.add(logItem) }
-        }
-
-    }
-
-    /**
-     * Determine whether to execute the periodic log update task based on the number of triggers that cause log data changes.
-     * The log source may come from the producer or an ongoing filtering task.
-     * If the number of triggers is 0, pause the log update. If the number of triggers is greater than 0, continue the log update task.
-     */
-    private class LogUpdater(
-        private val fullLogRepo: FullLogRepo,
-        private val filteredLogRepo: FilteredLogRepo,
-        private val scope: CoroutineScope
-    ) {
-        private val updateLogTaskSuspender = CoroutineSuspender("LogUpdater")
-        private var updatingFullLogTriggerCount = 0
-        private var updatingFilteredLogTriggerCount = 0
-        private val updateTriggerCountLock = Any()
-        private var notifyDisplayedLogTask: Job? = null
-
-        fun start() {
-            if (notifyDisplayedLogTask.isActive) {
-                return
+            override fun equals(other: Any?): Boolean {
+                if (other !is ComposedFilter) return false
+                return filter == other.filter
+                        && fullModeState.enabled == other.fullModeState.enabled
+                        && bookmarkModeState.enabled == other.bookmarkModeState.enabled
             }
-            notifyDisplayedLogTask = scope.launch {
-                while (isActive) {
-                    updateLogTaskSuspender.checkSuspend()
-                    delay(UPDATE_LOG_ITEMS_DELAY)
-                    fullLogRepo.submitLogItems(true)
-                    filteredLogRepo.submitLogItems(true)
-                }
-            }
-        }
 
-        fun updateFullLogTriggerCount(increase: Boolean) {
-            synchronized(updateTriggerCountLock) {
-                updatingFullLogTriggerCount += if (increase) 1 else -1
-                Log.d(TAG, "[updateFullLogTriggerCount] count=${updatingFullLogTriggerCount}")
-                ensureSuspenderState()
-                if (updatingFullLogTriggerCount == 0) {
-                    fullLogRepo.submitLogItems()
-                }
+            override fun hashCode(): Int {
+                return filter.hashCode() + 31 * fullModeState.hashCode() + 31 * 31 * bookmarkModeState.hashCode()
             }
-        }
-
-        fun updateFilteredLogTriggerCount(increase: Boolean) {
-            synchronized(updateTriggerCountLock) {
-                updatingFilteredLogTriggerCount += if (increase) 1 else -1
-                Log.d(TAG, "[updateFilteredLogTriggerCount] count=${updatingFilteredLogTriggerCount}")
-                ensureSuspenderState()
-                if (updatingFilteredLogTriggerCount == 0) {
-                    filteredLogRepo.submitLogItems()
-                }
-            }
-        }
-
-        private fun ensureSuspenderState() {
-            if (updatingFilteredLogTriggerCount + updatingFullLogTriggerCount > 0) {
-                updateLogTaskSuspender.disable()
-            } else {
-                updateLogTaskSuspender.enable()
-            }
-        }
-
-        companion object {
-            private const val UPDATE_LOG_ITEMS_DELAY = 100L
         }
     }
 
@@ -556,8 +529,6 @@ class LogViewModel(
         private const val TAG = "LogViewModel"
 
         private const val START_TASK_INTERVAL = 100L
-
-        private val Job?.isActive: Boolean
-            get() = this?.isActive == true
     }
 }
+

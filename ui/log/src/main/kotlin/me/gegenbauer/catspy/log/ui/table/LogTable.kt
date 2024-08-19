@@ -1,5 +1,11 @@
 package me.gegenbauer.catspy.log.ui.table
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.gegenbauer.catspy.concurrency.CPU
 import me.gegenbauer.catspy.configuration.GSettings
 import me.gegenbauer.catspy.configuration.SettingsChangeListener
 import me.gegenbauer.catspy.configuration.SettingsManager
@@ -45,9 +51,15 @@ class LogTable(
 
     private val logConf: LogConfiguration
         get() = contexts.getContext(LogConfiguration::class.java) ?: LogConfiguration.default
+    private val scope = MainScope()
 
     private val logMetadataObserver = Observer<LogMetadata> {
-        updateConfigure()
+        scope.launch {
+            withContext(Dispatchers.CPU) {
+                logConf.filterGenerated.compareAndSet(true, true)
+            }
+            updateConfigure()
+        }
     }
 
     init {
@@ -436,6 +448,7 @@ class LogTable(
     override fun destroy() {
         super.destroy()
         logConf.removeObserver(logMetadataObserver)
+        scope.cancel()
     }
 
     internal inner class TableKeyHandler : KeyAdapter() {
