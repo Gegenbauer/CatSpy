@@ -12,22 +12,27 @@ class CoroutineSuspender(private val name: String = "") {
     private var con: CancellableContinuation<Unit>? = null
 
     suspend fun checkSuspend(timeout: Long = Int.MAX_VALUE.toLong()) {
-        Unit.takeIf { enabled.get().not() } ?: suspendCancellableCoroutine { con ->
-            GLog.d(TAG, "[$name] [checkSuspend] start suspend")
-            this.con = con
-            scope.launch {
-                delay(timeout)
-                resumeSuspendPoint()
+        if (enabled.get()) {
+            suspendCancellableCoroutine { con ->
+                GLog.d(TAG, "[$name] [checkSuspend] begin suspend")
+                this.con = con
+                scope.launch {
+                    delay(timeout)
+                    resumeSuspendPoint()
+                }
+                suspended.set(true)
+                enabled.set(true)
             }
-            suspended.set(true)
-            enabled.set(true)
+            GLog.d(TAG, "[$name] [checkSuspend] end suspend")
         }
     }
 
+    @Synchronized
     fun enable() {
         enabled.set(true)
     }
 
+    @Synchronized
     fun disable() {
         enabled.set(false)
         if (suspended.get().not()) {

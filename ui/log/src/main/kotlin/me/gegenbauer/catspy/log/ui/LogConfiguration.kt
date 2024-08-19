@@ -17,6 +17,7 @@ import me.gegenbauer.catspy.log.ui.search.SearchFilterController
 import me.gegenbauer.catspy.log.ui.search.SearchPanel
 import me.gegenbauer.catspy.log.ui.table.ILogRenderer
 import me.gegenbauer.catspy.log.ui.table.LogRenderer
+import java.util.concurrent.atomic.AtomicBoolean
 
 class LogConfiguration(
     private val columnManager: ColumnManager = ColumnManager(),
@@ -48,9 +49,11 @@ class LogConfiguration(
             observableLogMetadata.updateValue(value)
         }
 
-    private var lastFilter = DefaultLogFilter(emptyList(), emptyList())
+    val filterGenerated = AtomicBoolean(false)
+    private var filter = DefaultLogFilter(emptyList(), emptyList())
 
     override fun setLogMetadata(logMetaData: LogMetadata) {
+        filterGenerated.set(false)
         disableObservers()
         this.logMetaData = logMetaData
         reAddExistingObservers()
@@ -89,11 +92,16 @@ class LogConfiguration(
         val filterableColumns = logMetaData.columns.filter { it.supportFilter && it.uiConf.column.isHidden.not() }
         val filters = filterableColumns.map { FilterInfo(it, getFilterItem(it.id), getFilter(it.id)) }
         val newFilter = DefaultLogFilter(filters, filterableColumns)
-        if (newFilter != lastFilter) {
+        if (newFilter != filter) {
             filterPanel.onNewFilterGenerated()
-            lastFilter = newFilter
+            filter = newFilter
         }
+        filterGenerated.set(true)
         return newFilter
+    }
+
+    fun getFilter(): LogFilter {
+        return filter
     }
 
     companion object {

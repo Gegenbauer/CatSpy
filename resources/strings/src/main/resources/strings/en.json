@@ -196,6 +196,7 @@
     "file": "File",
     "fileExistsMessage": "overwrite %s?",
     "fileExistsTitle": "File Already Exists",
+    "fileNotExistWarning": "File %s does not exist, it may have been deleted or moved.",
     "fileSaveErrorMessage": "Failed to save file %s, please try again later.\nDetailed error information: %s",
     "fileSaveSuccessMessage": "File %s saved successfully!",
     "fileSaveTitle": "Save File",

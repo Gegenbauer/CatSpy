@@ -192,6 +192,7 @@
     "file": "文件",
     "fileExistsMessage": "是否覆盖 %s？",
     "fileExistsTitle": "文件已存在",
+    "fileNotExistWarning": "文件 %s 已经不存在，可能被删除或者移动。",
     "fileSaveErrorMessage": "保存文件 %s 失败，请稍后再试。\n详细的错误信息：%s",
     "fileSaveSuccessMessage": "文件 %s 保存成功！",
     "fileSaveTitle": "保存文件",

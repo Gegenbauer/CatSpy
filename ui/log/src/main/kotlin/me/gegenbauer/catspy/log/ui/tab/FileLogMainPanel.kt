@@ -71,7 +71,7 @@ open class FileLogMainPanel : BaseLogMainPanel() {
 
     private fun changeLogMetadata(metadata: LogMetadataModel, needReloadFile: Boolean = false) {
         logConf.setLogMetadata(metadata.toLogMetadata())
-        currentLogFile.takeIf { it.isNotEmpty() && needReloadFile }?.let { openFile(it) }
+        currentLogFile.takeIf { it.isNotEmpty() && needReloadFile }?.let { loadLogsFormFile(it) }
         configureLogTablePopupActions()
         Preferences.putString(LogMetadata.KEY, metadata.logType)
     }
@@ -98,13 +98,17 @@ open class FileLogMainPanel : BaseLogMainPanel() {
     private fun openFile(path: String) {
         stopAll()
 
+        loadLogsFormFile(path)
+
+        currentLogFile = path
+        RecentLogFiles.onNewFileOpen(path)
+    }
+
+    private fun loadLogsFormFile(path: String) {
         logViewModel.startProduceFileLog(path)
 
         GLog.d(tag, "[openFile] Opening: $path")
         updateLogFilter()
-
-        currentLogFile = path
-        RecentLogFiles.onNewFileOpen(path)
     }
 
     override fun afterTaskStateChanged(state: TaskUIState) {

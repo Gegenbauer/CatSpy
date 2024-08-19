@@ -89,16 +89,18 @@ open class ObservableProperty<T>(value: T? = null) : Observable<T>, ValueUpdater
     }
 
     override fun addObserver(observer: Observer<T>) {
-        lock.write { obs.add(observer) }
+        lock.write {
+            if (!obs.contains(observer)) {
+                obs.add(observer)
+            }
+        }
     }
 
     override fun removeObserver(observer: Observer<T>?) {
         if (observer == null) {
             return
         }
-        lock.write {
-            obs.remove(observer)
-        }
+        lock.write { obs.remove(observer) }
     }
 
     override fun getAllObservers(): List<Observer<T>> {

@@ -69,8 +69,6 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
         )
     }
 
-    // tabInfo.id to LogMetaData
-    private val tabHeaders = mutableMapOf<Int, ClosableTabHeader>()
     private val selectMenu = TabSelectorPopupMenu()
     private val scope = MainScope()
     private val addTabButton = JButton().apply {
@@ -210,14 +208,12 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
             false, tabInfo.tooltip
         ).apply {
             onCloseClicked = { removeTab(tabPanel) }
-            tabHeaders[tabPanel.hashCode()] = this
         }
     }
 
     override fun removeTab(tabPanel: TabPanel) {
         tabPanel.destroy()
         remove(tabPanel.getTabContent())
-        tabHeaders.remove(tabPanel.hashCode())
     }
 
     override fun getTab(index: Int): TabPanel {
