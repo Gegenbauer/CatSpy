@@ -53,15 +53,15 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
         rows.forEachIndexed { index, row ->
             val logItem = logTable.tableModel.getItemInCurrentPage(row)
             val content = logItem.logLine
-            val matchedList = logFilterItem.getMatchedList(content)
             val renderer = LabelRenderer.obtain()
             renderer.updateRaw(content)
+            val foreground = getLevel(logItem).color
+            renderer.foreground(0, content.length - 1, foreground)
+            val matchedList = logFilterItem.getMatchedList(content)
             matchedList.forEach {
                 renderer.highlight(it.first, it.second, logMetadata.colorScheme.filterContentBg)
                 renderer.foreground(it.first, it.second, logMetadata.colorScheme.filterContentFg)
             }
-            val foreground = getLevel(logItem).color
-            renderer.foreground(0, content.length - 1, foreground)
             renderedContent.append(renderer.renderWithoutTags())
             if (index != rows.lastIndex) renderedContent.addSingleTag(Tag.LINE_BREAK)
             renderer.recycle()
