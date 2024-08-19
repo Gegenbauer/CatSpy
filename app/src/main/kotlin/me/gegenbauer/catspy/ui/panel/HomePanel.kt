@@ -63,9 +63,9 @@ class HomePanel : BaseTabPanel() {
         return true
     }
 
-    private fun openFile(file: String) {
+    private fun openFile(file: File) {
         val fileLogMainPanel = tabManager.addTab(FileLogMainPanel::class.java)
-        fileLogMainPanel.pendingOpenFiles(listOf(File(file)))
+        fileLogMainPanel.pendingOpenFiles(listOf(file))
     }
 
     override fun destroy() {

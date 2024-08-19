@@ -193,6 +193,7 @@
     "file": "파일",
     "fileExistsMessage": "%s를 덮어쓰시겠습니까?",
     "fileExistsTitle": "파일이 이미 존재합니다",
+    "fileNotExistWarning": "파일 %s이(가) 존재하지 않습니다, 삭제되었거나 이동되었을 수 있습니다.",
     "fileSaveErrorMessage": "파일 %s 저장에 실패했습니다. 나중에 다시 시도해 주세요.\n자세한 오류 정보: %s",
     "fileSaveSuccessMessage": "파일 %s이(가) 성공적으로 저장되었습니다!",
     "fileSaveTitle": "파일 저장",

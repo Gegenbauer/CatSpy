@@ -10,7 +10,7 @@ class CustomDeviceLogProducer(
 
     override fun start(): Flow<Result<LogItem>> {
         return channelFlow {
-            generateLogItems().forEachIndexed { index, log ->
+            generateLogItems().forEachIndexed { _, log ->
                 send(Result.success(log))
             }
             invokeOnClose { moveToState(LogProducer.State.COMPLETE) }
