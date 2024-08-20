@@ -20,8 +20,6 @@ internal interface LogRepo {
 
     fun clear()
 
-    fun reset()
-
     fun submitLogItems(force: Boolean)
 
     fun submitLogItems()
@@ -57,15 +55,9 @@ abstract class BaseLogRepo : LogRepo {
         return logItemsAccessLock.write { writeAction(logItems) }
     }
 
-    override fun reset() {
-        logItemsAccessLock.write { logItems.clear() }
-        _logItemsFlow.value = emptyList()
-    }
-
     override fun clear() {
         logItemsAccessLock.write { logItems.clear() }
         _logItemsFlow.value = emptyList()
-        _listState.value = ListState.EMPTY
     }
 
     override fun submitLogItems(force: Boolean) {

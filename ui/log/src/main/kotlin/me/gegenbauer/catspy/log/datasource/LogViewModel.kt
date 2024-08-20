@@ -16,7 +16,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import me.gegenbauer.catspy.concurrency.CoroutineSuspender
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.ViewModelScope
 import me.gegenbauer.catspy.context.Context
@@ -98,7 +97,6 @@ class LogViewModel(
         )
     }
 
-    private val updateFilteredLogTaskSuspender = CoroutineSuspender("updateFilteredLogTaskSuspender")
     private val globalStatus by lazy { ServiceManager.getContextService(StatusPanel::class.java) }
 
     private val paused = AtomicBoolean(false)
@@ -175,6 +173,10 @@ class LogViewModel(
         logUpdater.pause()
     }
 
+    override fun isRunning(): Boolean {
+        return produceLogTask.logProducer.isRunning
+    }
+
     override fun resume() {
         Log.d(TAG, "[resume]")
         produceLogTask.resume()
@@ -210,7 +212,6 @@ class LogViewModel(
     override fun destroy() {
         cancel()
         scope.cancel()
-        updateFilteredLogTaskSuspender.disable()
         filterLogTask.unregisterFilterStateObserver()
     }
 
@@ -303,8 +304,8 @@ class LogViewModel(
         private fun onProduceStart() {
             logUpdater.updateFilteredLogTriggerCount(true)
             logUpdater.updateFullLogTriggerCount(true)
-            fullLogRepo.reset()
-            filteredLogRepo.reset()
+            fullLogRepo.clear()
+            filteredLogRepo.clear()
         }
 
         private fun onProduceEnd() {
