@@ -39,6 +39,7 @@ import me.gegenbauer.catspy.view.combobox.readOnlyComboBox
 import me.gegenbauer.catspy.view.dialog.FileSaveHandler
 import me.gegenbauer.catspy.view.panel.StatusBar
 import me.gegenbauer.catspy.view.panel.StatusPanel
+import me.gegenbauer.catspy.view.state.ListState
 import me.gegenbauer.catspy.view.state.StatefulPanel
 import me.gegenbauer.catspy.view.tab.BaseTabPanel
 import raven.toast.Notifications
@@ -342,9 +343,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
 
     private fun observeFullLogListState() {
         scope.launch {
-            logViewModel.fullLogObservables.listState.collect {
-                splitLogWithStatefulPanel.listState = it
-            }
+            logViewModel.fullLogObservables.listState.collect(::setLogPanelState)
         }
     }
 
@@ -490,6 +489,13 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
 
     protected open fun clearAllLogs() {
         logViewModel.clear()
+        if (logViewModel.isRunning().not()) {
+            setLogPanelState(ListState.EMPTY)
+        }
+    }
+
+    private fun setLogPanelState(state: ListState) {
+        splitLogWithStatefulPanel.listState = state
     }
 
     private fun saveLog() {
