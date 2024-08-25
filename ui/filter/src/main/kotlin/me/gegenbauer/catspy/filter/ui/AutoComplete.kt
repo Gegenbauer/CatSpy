@@ -16,11 +16,16 @@ fun JTextComponent.enableAutoComplete(suggestions: List<String>, onCompletionsSh
     putClientProperty(CLIENT_PROPERTY_AUTO_COMPLETE_HELPER, autoCompleteHelper)
 }
 
+fun JTextComponent.isAutoCompleteShowing(): Boolean {
+    val autoCompleteHelper = getClientProperty(CLIENT_PROPERTY_AUTO_COMPLETE_HELPER) as? AutoCompleteHelper
+    return autoCompleteHelper?.autoCompletion?.isPopupVisible == true
+}
+
 internal class AutoCompleteHelper {
     private val suggestions = arrayListOf<String>()
     private var textComponent: JTextComponent? = null
     private var keyInterceptor: KeyEventInterceptor? = null
-    private var autoCompletion: FilterAutoCompletion? = null
+    internal var autoCompletion: FilterAutoCompletion? = null
 
     fun enableAutoComplete(
         textComponent: JTextComponent,

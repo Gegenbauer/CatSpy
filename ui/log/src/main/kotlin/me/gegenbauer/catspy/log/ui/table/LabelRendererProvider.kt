@@ -143,9 +143,10 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
 }
 
 private abstract class LabelLogTableCellRenderer(protected val logMetadata: LogMetadata) : DefaultTableCellRenderer(), LogCellRenderer {
-    private val emptyBorder = BorderFactory.createEmptyBorder(0, 5, 0, 0)
     override var maxLength: Int = Int.MAX_VALUE
     override lateinit var logTable: LogTable
+
+    private val emptyBorder = BorderFactory.createEmptyBorder(0, 5, 0, 0)
 
     override fun getTableCellRendererComponent(
         table: JTable,

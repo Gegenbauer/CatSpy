@@ -22,6 +22,10 @@ class FilterComboBoxModel<T>(items: List<T> = emptyList()) : AbstractListModel<T
         fireContentsChanged(this, -1, -1)
     }
 
+    fun getItems(): List<T> {
+        return items
+    }
+
     override fun getSize(): Int {
         return items.size
     }
