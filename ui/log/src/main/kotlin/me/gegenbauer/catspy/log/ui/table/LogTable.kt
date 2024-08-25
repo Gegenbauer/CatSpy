@@ -56,7 +56,7 @@ class LogTable(
     private val logMetadataObserver = Observer<LogMetadata> {
         scope.launch {
             withContext(Dispatchers.CPU) {
-                logConf.filterGenerated.compareAndSet(true, true)
+                logConf.filterCreatedAfterMetadataChanged.compareAndSet(true, true)
             }
             updateConfigure()
         }
@@ -67,6 +67,7 @@ class LogTable(
         autoscrolls = false
         intercellSpacing = Dimension(0, 0)
         getTableHeader().resizingAllowed = true
+        getTableHeader().reorderingAllowed = false
         setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION)
         setRowSelectionAllowed(true)
         setAutoResizeMode(AUTO_RESIZE_OFF)

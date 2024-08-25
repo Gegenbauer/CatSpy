@@ -20,13 +20,20 @@ interface LogCellRendererProvider {
 
     fun setLevelPartIndex(index: Int)
 
-    fun createRenderer(column: Column): TableCellRenderer
+    fun createRenderer(column: Column): LogCellRenderer
 
     fun showSelectedRowsInDialog(
         logTable: LogTable,
         rows: List<Int>,
         popupActions: List<LogDetailDialog.PopupAction>
     )
+}
+
+interface LogCellRenderer : TableCellRenderer {
+
+    var maxLength: Int
+
+    var logTable: LogTable
 }
 
 abstract class BaseLogCellRendererProvider : LogCellRendererProvider {

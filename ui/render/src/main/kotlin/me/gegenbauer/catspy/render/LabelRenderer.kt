@@ -3,29 +3,16 @@ package me.gegenbauer.catspy.render
 import me.gegenbauer.catspy.cache.ObjectPool
 import me.gegenbauer.catspy.context.MemoryState
 import java.awt.Color
-import javax.swing.JLabel
-import kotlin.math.roundToInt
 
 /**
  * Renders a string with HTML tags.
  */
-class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
+class LabelRenderer : StringRenderer {
 
     override var raw: String = ""
         private set
 
     private val spans = mutableListOf<Span>()
-
-    fun setLabel(label: JLabel): LabelRenderer {
-        clear()
-        this.label = label
-        return this
-    }
-
-    private fun requireLabel(): JLabel {
-        val target = label ?: throw IllegalStateException("Label not set")
-        return target
-    }
 
     override fun updateRaw(raw: String): StringRenderer {
         this.raw = raw
@@ -41,12 +28,22 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
         return this
     }
 
+    override fun bold(): StringRenderer {
+        spans.add(Span(0, raw.length - 1, SpanType.BOLD))
+        return this
+    }
+
     /**
      * @param start inclusive
      * @param end inclusive
      */
     override fun italic(start: Int, end: Int): StringRenderer {
         spans.add(Span(start, end, SpanType.ITALIC))
+        return this
+    }
+
+    override fun italic(): StringRenderer {
+        spans.add(Span(0, raw.length - 1, SpanType.ITALIC))
         return this
     }
 
@@ -59,12 +56,22 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
         return this
     }
 
+    override fun strikethrough(): StringRenderer {
+        spans.add(Span(0, raw.length - 1, SpanType.STRIKETHROUGH))
+        return this
+    }
+
     /**
      * @param start inclusive
      * @param end inclusive
      */
     override fun highlight(start: Int, end: Int, color: Color): StringRenderer {
         spans.add(Span(start, end, SpanType.HIGHLIGHT, color))
+        return this
+    }
+
+    override fun highlight(color: Color): StringRenderer {
+        spans.add(Span(0, raw.length - 1, SpanType.HIGHLIGHT, color))
         return this
     }
 
@@ -77,6 +84,11 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
         return this
     }
 
+    override fun foreground(color: Color): StringRenderer {
+        spans.add(Span(0, raw.length - 1, SpanType.FOREGROUND, color))
+        return this
+    }
+
     /**
      * @param start inclusive
      * @param end inclusive
@@ -86,33 +98,28 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
         return this
     }
 
-    override fun render() {
-        val label = requireLabel()
-        if (spans.isEmpty()) {
-            label.text = raw
-            return
-        }
+    override fun underline(): StringRenderer {
+        spans.add(Span(0, raw.length - 1, SpanType.UNDERLINE))
+        return this
+    }
 
+    override fun processRenderResult(result: RenderResult) {
+        val backgroundColor = getBackgroundColor()
+        if (backgroundColor.isValid()) {
+            result.background = backgroundColor
+        }
         if (isComplexityLow()) {
             val foreground = getForegroundColor()
-            if (foreground != INVALID_COLOR) {
-                label.foreground = foreground
+            if (foreground.isValid()) {
+                result.foreground = foreground
             }
-            val backgroundColor = getBackgroundColor()
-            if (backgroundColor != INVALID_COLOR) {
-                label.background = backgroundColor
-            }
-            label.text = raw
+            result.rendered = raw
             return
         }
 
         val builder = HtmlStringBuilder()
         builder.append(renderWithoutTags())
-        val renderedText = builder.build()
-        if (label.text != renderedText) {
-            label.text = renderedText
-        }
-        label.background = getBackgroundColor()
+        result.rendered = builder.build()
     }
 
     fun renderWithoutTags(): String {
@@ -209,8 +216,6 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
 
     override fun clear() {
         spans.clear()
-        raw = ""
-        label = null
     }
 
     private fun isComplexityLow(): Boolean {
@@ -246,14 +251,6 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
     private val String.formatted: String
         get() = replace("<", "&lt;").replace(">", "&gt;").replace(" ", "&nbsp;")
 
-    private fun averageColor(colors: List<Color>): Color {
-        val alpha = colors.map { it.alpha }.average().roundToInt()
-        val r = colors.map { it.red }.average().roundToInt()
-        val g = colors.map { it.green }.average().roundToInt()
-        val b = colors.map { it.blue }.average().roundToInt()
-        return Color(r, g, b, alpha)
-    }
-
     private data class Span(
         val start: Int,
         val end: Int,
@@ -286,8 +283,6 @@ class LabelRenderer(private var label: JLabel? = null) : StringRenderer {
     }
 
     companion object {
-        val INVALID_COLOR = Color(66, 66, 66, 66)
-
         private val pool = object : ObjectPool<LabelRenderer>(1000) {
 
             init {

@@ -280,6 +280,7 @@ class LogViewModel(
                 delay(START_TASK_INTERVAL)
 
                 logProcessMutex.withLock {
+                    logConf.filterCreatedAfterMetadataChanged.compareAndSet(true, true)
                     filterLogTaskCancellationHandle()
                     this@ProduceLogTask.logProducer = logProducer
                     logUpdater.start()
@@ -406,6 +407,9 @@ class LogViewModel(
             if (!force && newComposedFilter == composedFilter) {
                 return
             }
+            hasPendingUpdateFilterTask = false
+            logFilter = filter
+            composedFilter = newComposedFilter
             scope.launch {
                 logProcessMutex.withLock {
                     updateFilterTask?.cancelAndJoin()
@@ -425,9 +429,6 @@ class LogViewModel(
                 val producerRunning = AtomicBoolean(false)
                 val producer = AtomicReference<LogProducer>()
                 logProcessMutex.withLock {
-                    hasPendingUpdateFilterTask = false
-                    logFilter = filter
-                    composedFilter = newComposedFilter
                     producer.set(logProducerProvider())
                     producerRunning.set(producer.get().isRunning)
                 }
