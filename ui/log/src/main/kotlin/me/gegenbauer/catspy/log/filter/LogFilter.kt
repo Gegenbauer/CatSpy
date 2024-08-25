@@ -37,6 +37,10 @@ class DefaultLogFilter(
         return filters.sumOf { it.filterItem.hashCode() }
     }
 
+    override fun toString(): String {
+        return "[${filters.joinToString(", ") { it.filterItem.toString() }}]"
+    }
+
     companion object {
         val default = DefaultLogFilter(emptyList(), emptyList())
     }

@@ -87,6 +87,7 @@ compose.desktop {
 
         buildTypes.release {
             proguard {
+                version.set(project.extra["proguardVersion"].toString())
                 isEnabled.set(true)
                 joinOutputJars.set(true)
                 configurationFiles.from(project.file("proguard-rules.pro"))

@@ -424,7 +424,7 @@ class LogViewModel(
                 // 增加延迟，减少无意义任务的启动
                 delay(START_TASK_INTERVAL)
 
-                Log.d(TAG, "[updateFilter] start")
+                Log.d(TAG, "[updateFilter] start, filter=$filter")
 
                 val producerRunning = AtomicBoolean(false)
                 val producer = AtomicReference<LogProducer>()
