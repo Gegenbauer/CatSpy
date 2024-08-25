@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.view.combobox
 
+import me.gegenbauer.catspy.cache.with
 import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.filter.ui.enableAutoComplete
 import me.gegenbauer.catspy.render.LabelRenderer
@@ -181,13 +182,12 @@ class FilterComboBox(
     }
 
     private fun renderLine(content: String, foreground: Color): String {
-        val renderer = LabelRenderer.obtain()
-        renderer.updateRaw(content)
-        renderer.foreground(0, content.length - 1, foreground)
-        renderer.bold(0, content.length - 1)
-        val renderedContent = renderer.renderWithoutTags()
-        renderer.recycle()
-        return renderedContent
+        return LabelRenderer.obtain().with { renderer ->
+            renderer.updateRaw(content)
+            renderer.foreground(foreground)
+            renderer.bold()
+            renderer.renderWithoutTags()
+        }
     }
 
     private inner class DocumentHandler : DefaultDocumentListener() {

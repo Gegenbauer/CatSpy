@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.log.ui.table
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.concurrency.ViewModelScope
@@ -59,6 +60,7 @@ open class LogTableModel(
     private val scope = ViewModelScope()
     private var logItems = mutableListOf<LogItem>()
     private val eventListeners = Collections.synchronizedList(ArrayList<LogTableModelListener>())
+    private val pageLogCache = mutableMapOf<Int, List<LogItem>>()
 
     override fun configureContext(context: Context) {
         super.configureContext(context)
@@ -153,11 +155,24 @@ open class LogTableModel(
         return contexts.getContext(LogTable::class.java)
     }
 
+    private fun checkPageCacheValidity(event: Int, start: Int, end: Int) {
+        if (event == TableModelEvent.INSERT) {
+            val startPage = start / pageSize
+            val endPage = end / pageSize
+            for (i in startPage..endPage) {
+                pageLogCache.remove(i)
+            }
+        } else {
+            pageLogCache.clear()
+        }
+    }
+
     override fun addLogTableModelListener(eventListener: LogTableModelListener) {
         eventListeners.add(eventListener)
     }
 
     override fun fireTableChanged(e: TableModelEvent) {
+        checkPageCacheValidity(e.type, e.firstRow, e.lastRow)
         super.fireTableChanged(e)
         eventListeners.toList().forEach { it.onLogDataChanged(e) }
     }
@@ -171,7 +186,9 @@ open class LogTableModel(
     }
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
-        // 0 列是行号，从 1 列开始是日志内容
+        val columnCount = logConf.getColumnCount()
+        if (columnIndex >= columnCount) return ""
+
         val columnParam = getColumnParam(columnIndex)
         return accessPageData(currentPage) { logItems ->
             if (rowIndex in 0 until rowCount) {
@@ -257,10 +274,15 @@ open class LogTableModel(
     }
 
     override fun <R> accessPageData(page: Int, action: (List<LogItem>) -> R): R {
+        if (pageLogCache.containsKey(page)) {
+            return action(pageLogCache.getOrDefault(page, emptyList()))
+        }
         val start = page * pageSize
         val end = minOf((page + 1) * pageSize, logItems.size)
         if (start > end) return action(emptyList())
-        return action(logItems.subList(start, end))
+        val pageData = logItems.subList(start, end)
+        pageLogCache[page] = pageData
+        return action(pageData)
     }
 
     override fun nextPage() {
@@ -296,6 +318,14 @@ open class LogTableModel(
     private fun onPageChanged() {
         clearSelectedRows()
         fireTableDataChanged()
+    }
+
+    override fun destroy() {
+        super.destroy()
+        scope.cancel()
+        pageLogCache.clear()
+        logItems.clear()
+        eventListeners.clear()
     }
 
     companion object {

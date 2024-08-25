@@ -1,9 +1,11 @@
 package me.gegenbauer.catspy.render
 
 import me.gegenbauer.catspy.cache.CacheableObject
+import me.gegenbauer.catspy.cache.ObjectPool
+import me.gegenbauer.catspy.context.MemoryState
 import java.awt.Color
 
-interface StringRenderer: CacheableObject {
+interface StringRenderer : CacheableObject {
 
     val raw: String
 
@@ -15,11 +17,15 @@ interface StringRenderer: CacheableObject {
      */
     fun bold(start: Int, end: Int): StringRenderer
 
+    fun bold(): StringRenderer
+
     /**
      * @param start inclusive
      * @param end inclusive
      */
     fun italic(start: Int, end: Int): StringRenderer
+
+    fun italic(): StringRenderer
 
     /**
      * @param start inclusive
@@ -27,11 +33,15 @@ interface StringRenderer: CacheableObject {
      */
     fun strikethrough(start: Int, end: Int): StringRenderer
 
+    fun strikethrough(): StringRenderer
+
     /**
      * @param start inclusive
      * @param end inclusive
      */
     fun highlight(start: Int, end: Int, color: Color): StringRenderer
+
+    fun highlight(color: Color): StringRenderer
 
     /**
      * @param start inclusive
@@ -39,13 +49,57 @@ interface StringRenderer: CacheableObject {
      */
     fun foreground(start: Int, end: Int, color: Color): StringRenderer
 
+    fun foreground(color: Color): StringRenderer
+
     /**
      * @param start inclusive
      * @param end inclusive
      */
     fun underline(start: Int, end: Int): StringRenderer
 
-    fun render()
+    fun underline(): StringRenderer
+
+    fun processRenderResult(result: RenderResult)
 
     fun clear()
+}
+
+val INVALID_COLOR = Color(0, 0, 0, 0)
+
+fun Color.isValid(): Boolean {
+    return this !== INVALID_COLOR
+}
+
+data class RenderResult(
+    var raw: String,
+    var rendered: String,
+    var foreground: Color,
+    var background: Color
+) : CacheableObject {
+
+    override fun recycle() {
+        raw = ""
+        rendered = ""
+        foreground = INVALID_COLOR
+        background = INVALID_COLOR
+
+        pool.recycle(this)
+    }
+
+    companion object {
+        private val pool = object : ObjectPool<RenderResult>(1000) {
+
+            init {
+                MemoryState.register(this)
+            }
+
+            override fun create(): RenderResult {
+                return RenderResult("", "", INVALID_COLOR, INVALID_COLOR)
+            }
+        }
+
+        fun obtain(): RenderResult {
+            return pool.obtain()
+        }
+    }
 }

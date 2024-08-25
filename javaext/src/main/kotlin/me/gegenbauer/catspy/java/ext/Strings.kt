@@ -4,14 +4,30 @@ fun String.capitalize() = this.replaceFirstChar { it.uppercase() }
 
 private val stringBuilder = ThreadLocal.withInitial { StringBuilder() }
 
-fun String.maxLength(maxLength: Int, ellipsisEndOrStart: Boolean = true, ellipsis: String = "..."): String {
-    if (this.length <= maxLength) return this
-    val result = stringBuilder.get()
-    result.setLength(0) // Reset the StringBuilder
-    if (ellipsisEndOrStart) {
-        result.append(this, 0, maxLength - ellipsis.length).append(ellipsis)
-    } else {
-        result.append(ellipsis).append(this, this.length - maxLength + ellipsis.length, this.length)
+private const val ELLIPSIS = "..."
+
+enum class EllipsisPosition {
+    START, END, MIDDLE
+}
+
+fun String.truncate(maxLength: Int, ellipsisPosition: EllipsisPosition = EllipsisPosition.END): String {
+    if (this.length <= maxLength || maxLength <= ELLIPSIS.length) {
+        return this
     }
-    return result.toString()
+    val lengthWithoutEllipsis = maxLength - ELLIPSIS.length
+    return when (ellipsisPosition) {
+        EllipsisPosition.START -> ELLIPSIS + this.substring(this.length - lengthWithoutEllipsis)
+        EllipsisPosition.END -> this.substring(0, lengthWithoutEllipsis) + ELLIPSIS
+        EllipsisPosition.MIDDLE -> {
+            val half = maxLength / 2
+            val leftLength = half - ELLIPSIS.length / 2
+            val rightLength = maxLength - ELLIPSIS.length - leftLength
+            val sb = stringBuilder.get()
+            sb.clear()
+            sb.append(this.substring(0, leftLength))
+            sb.append(ELLIPSIS)
+            sb.append(this.substring(this.length - rightLength))
+            sb.toString()
+        }
+    }
 }

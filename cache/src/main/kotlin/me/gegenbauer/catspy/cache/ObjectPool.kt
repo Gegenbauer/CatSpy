@@ -39,3 +39,13 @@ abstract class ObjectPool<T: Any>(maxSize: Int): MemoryAware {
 fun interface CacheableObject {
     fun recycle()
 }
+
+inline fun <T: CacheableObject, R> T.with(block: (T) -> R): R {
+    val result: R
+    try {
+        result = block(this)
+    } finally {
+        recycle()
+    }
+    return result
+}

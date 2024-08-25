@@ -24,8 +24,8 @@ class LogConfiguration(
     private val searchFilterController: SearchFilterController = SearchFilterController(),
     private val searchPanel: SearchPanel = SearchPanel(),
     private val logRenderer: LogRenderer = LogRenderer(),
+    private val observableLogMetadata: ObservableProperty<LogMetadata> = ObservableProperty(),
     override val contexts: Contexts = Contexts.default,
-    private val observableLogMetadata: ObservableProperty<LogMetadata> = ObservableProperty()
 ) : IColumnManager by columnManager,
     ILogRenderer by logRenderer,
     Observable<LogMetadata> by observableLogMetadata,
@@ -49,11 +49,11 @@ class LogConfiguration(
             observableLogMetadata.updateValue(value)
         }
 
-    val filterGenerated = AtomicBoolean(false)
+    val filterCreatedAfterMetadataChanged = AtomicBoolean(false)
     private var filter = DefaultLogFilter(emptyList(), emptyList())
 
     override fun setLogMetadata(logMetaData: LogMetadata) {
-        filterGenerated.set(false)
+        filterCreatedAfterMetadataChanged.set(false)
         disableObservers()
         this.logMetaData = logMetaData
         reAddExistingObservers()
@@ -96,7 +96,7 @@ class LogConfiguration(
             filterPanel.onNewFilterGenerated()
             filter = newFilter
         }
-        filterGenerated.set(true)
+        filterCreatedAfterMetadataChanged.set(true)
         return newFilter
     }
 

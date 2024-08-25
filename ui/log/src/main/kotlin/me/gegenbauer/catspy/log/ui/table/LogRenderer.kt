@@ -4,16 +4,16 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.LogMetadata
+import me.gegenbauer.catspy.utils.persistence.Preferences
+import java.awt.FontMetrics
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 import javax.swing.JTable
-import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableColumn
-import kotlin.math.max
 
 interface ILogRenderer {
 
     fun setColumns(logMetadata: LogMetadata)
-
-    fun getRenderer(columnIndex: Int): TableCellRenderer
 
     fun getColumn(columnIndex: Int): Column
 
@@ -24,9 +24,9 @@ interface ILogRenderer {
     fun showSelectedRowsInDialog(logTable: LogTable, rows: List<Int>, popupActions: List<LogDetailDialog.PopupAction>)
 }
 
-class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRenderer, Context {
+class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRenderer, Context, PropertyChangeListener {
 
-    private val renderers = mutableMapOf<Int, TableCellRenderer>()
+    private val renderers = mutableMapOf<Int, LogCellRenderer>()
 
     private val columns = mutableListOf<Column>()
     private val indexColumn = Column.DefaultColumn(
@@ -34,12 +34,15 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
         supportFilter = false,
         uiConf = Column.UIConf(Column.ColumnUIConf(charLen = COLUMN_INDEX_CHAR_LEN))
     )
+    private var logType: String = ""
 
     private val logCellRendererProvider: LogCellRendererProvider = LabelRendererProvider()
+    private val columnWidthManager = ColumnWidthManager()
 
     override fun setColumns(logMetadata: LogMetadata) {
         if (logMetadata.columns.isEmpty()) return
 
+        logType = logMetadata.logType
         val displayedColumns = mutableListOf(indexColumn) +
                 logMetadata.columns
                     .filter { it.uiConf.column.isHidden.not() }
@@ -53,6 +56,22 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
         updateRendererCache(displayedColumns)
     }
 
+    override fun propertyChange(evt: PropertyChangeEvent) {
+        if (evt.propertyName == PROPERTY_WIDTH) {
+            val newWidth = evt.newValue as Int
+            val column = evt.source as TableColumn
+            val renderer = renderers[column.modelIndex]
+            renderer ?: return
+            val maxLength = getMaxLength(newWidth, renderer.logTable.getFontMetrics(renderer.logTable.font))
+            renderer.maxLength = maxLength
+            columnWidthManager.setMaxLength(logType, columns[column.modelIndex], maxLength)
+        }
+    }
+
+    private fun getMaxLength(width: Int, fontMetrics: FontMetrics): Int {
+        return width / fontMetrics.charWidth(BASE_CHAR)
+    }
+
     private fun updateColumnCache(columns: List<Column>) {
         this.columns.clear()
         this.columns.addAll(columns)
@@ -63,12 +82,8 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
         renderers.putAll(columns.mapIndexed { index, column -> index to createRenderer(column) })
     }
 
-    private fun createRenderer(column: Column): TableCellRenderer {
+    private fun createRenderer(column: Column): LogCellRenderer {
         return logCellRendererProvider.createRenderer(column)
-    }
-
-    override fun getRenderer(columnIndex: Int): TableCellRenderer {
-        return renderers[columnIndex]!!
     }
 
     override fun getColumn(columnIndex: Int): Column {
@@ -85,13 +100,17 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
         fun removeAllColumns(table: JTable) {
             table.columnModel.columns.toList().forEach {
                 table.removeColumn(it)
+                it.removePropertyChangeListener(this)
             }
         }
 
         fun addColumns(table: JTable, columns: List<Column>) {
             columns.forEachIndexed { index, column ->
                 val tableColumn = TableColumn(index)
-                tableColumn.setCellRenderer(renderers[index])
+                tableColumn.addPropertyChangeListener(this)
+                val renderer = renderers[index] as LogCellRenderer
+                renderer.logTable = table as LogTable
+                tableColumn.setCellRenderer(renderer)
                 tableColumn.headerValue = column.name
                 table.addColumn(tableColumn)
             }
@@ -99,12 +118,12 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
 
         fun configureColumnWidth(table: JTable) {
             table.columnModel.columns.toList().forEachIndexed { index, tableColumn ->
-                val headerWidth = table.tableHeader.columnModel.getColumn(index).preferredWidth
-                val expectLen = columns[index].uiConf.column.charLen
+                val expectLen = columnWidthManager.getMaxLength(
+                    logType, columns[index], columns[index].uiConf.column.charLen
+                )
                 val fontMetrics = table.getFontMetrics(table.font)
-                val expectRowWidth = fontMetrics.charWidth('A') * expectLen
-                val targetWidth = max(headerWidth, expectRowWidth)
-                tableColumn.minWidth = targetWidth
+                val expectColumnWidth = fontMetrics.charWidth(BASE_CHAR) * expectLen
+                tableColumn.preferredWidth = expectColumnWidth
             }
         }
 
@@ -113,12 +132,40 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
         configureColumnWidth(table)
     }
 
-    override fun showSelectedRowsInDialog(logTable: LogTable, rows: List<Int>, popupActions: List<LogDetailDialog.PopupAction>) {
+    override fun showSelectedRowsInDialog(
+        logTable: LogTable,
+        rows: List<Int>,
+        popupActions: List<LogDetailDialog.PopupAction>
+    ) {
         logCellRendererProvider.showSelectedRowsInDialog(logTable, rows, popupActions)
+    }
+
+    private class ColumnWidthManager {
+        fun setMaxLength(logType: String, column: Column, maxLength: Int) {
+            val key = getKey(logType, column)
+            Preferences.putInt(key, maxLength)
+        }
+
+        fun getMaxLength(logType: String, column: Column, default: Int): Int {
+            val key = getKey(logType, column)
+            return Preferences.getInt(key, default)
+        }
+
+        private fun getKey(logType: String, column: Column): String {
+            return "$PREFERENCE_NAME/${KEY_PREFIX}_${logType.hashCode()}_${column.name}"
+        }
+
+        companion object {
+            private const val PREFERENCE_NAME = "columnMaxLength"
+            // key start with integer is not allowed in xml
+            private const val KEY_PREFIX = "len"
+        }
     }
 
     companion object {
         private const val COLUMN_INDEX_NAME = "Index"
         private const val COLUMN_INDEX_CHAR_LEN = 7
+        private const val PROPERTY_WIDTH = "width"
+        private const val BASE_CHAR = 'A'
     }
 }
