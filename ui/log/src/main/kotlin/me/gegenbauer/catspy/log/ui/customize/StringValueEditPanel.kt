@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.log.ui.customize
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.serialize.LogMetadataModel
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -71,9 +72,9 @@ abstract class StringValueEditPanel(
 }
 
 class StringValueEditPanelBuilder {
-    private var label: String = ""
+    private var label: String = EMPTY_STRING
     private var maxCharCount: Int = Int.MAX_VALUE
-    private var tooltip: String = ""
+    private var tooltip: String = EMPTY_STRING
     private var editorVerifier: ParamVerifier = ParamVerifier.default
     private var alwaysUnEditablePredicate: (LogMetadataModel) -> Boolean = { false }
     private var logMetadataHandler: StringValueEditPanel.(LogMetadataModel) -> Unit = {}
@@ -104,9 +105,16 @@ class StringValueEditPanelBuilder {
 
     fun build(): StringValueEditPanel {
         return object : StringValueEditPanel(label, tooltip, maxCharCount, editorVerifier) {
+            private var content: String = EMPTY_STRING
+
             override fun setLogMetadata(metadata: LogMetadataEditModel) {
                 logMetadataHandler(metadata.model)
+                content = value
                 alwaysUnEditable = alwaysUnEditablePredicate(metadata.model)
+            }
+
+            override fun isModified(): Boolean {
+                return content != value
             }
         }
     }

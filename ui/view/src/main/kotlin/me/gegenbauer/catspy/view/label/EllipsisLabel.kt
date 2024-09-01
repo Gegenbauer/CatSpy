@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.view.label
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.FontMetrics
@@ -9,7 +10,7 @@ import javax.swing.JLabel
 import kotlin.math.min
 
 class EllipsisLabel(
-    text: String = "",
+    text: String = EMPTY_STRING,
     private val ellipsisAtEnd: Boolean = true,
     icon: Icon? = null,
     private val maxWidth: Int = Int.MAX_VALUE
@@ -24,7 +25,7 @@ class EllipsisLabel(
     }
 
     constructor(
-        text: String = "",
+        text: String = EMPTY_STRING,
         icon: Icon? = null,
         maxWidth: Int = Int.MAX_VALUE
     ) : this(text, true, icon, maxWidth)

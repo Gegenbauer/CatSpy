@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.glog.interceptor
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.glog.GLogger
 import me.gegenbauer.catspy.glog.logback.LogbackLogger
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import org.slf4j.Marker
 import org.slf4j.event.Level
 import org.slf4j.helpers.LegacyAbstractLogger
@@ -61,7 +62,7 @@ class GSlf4jLoggerAdapter(loggerName: String): LegacyAbstractLogger(), GLogger {
             arguments?.fold(message) { acc, argument ->
                 acc.replaceFirst("{}", argument.toString())
             } ?: message
-        } ?: ""
+        } ?: EMPTY_STRING
     }
 
     override fun v(tag: String, msg: String) {

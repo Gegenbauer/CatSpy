@@ -11,6 +11,7 @@ import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.*
 import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.filter.FilterProperty
 import me.gegenbauer.catspy.log.filter.FilterProperty.Companion.FILTER_ID_MATCH_CASE
 import me.gegenbauer.catspy.log.ui.filter.FilterPropertyObserver
@@ -199,7 +200,7 @@ class SearchPanel(override val contexts: Contexts = Contexts.default) : JPanel()
             searchCombo.requestFocus()
             searchCombo.editor.selectAll()
         } else {
-            searchCombo.editorComponent.text = ""
+            searchCombo.editorComponent.text = EMPTY_STRING
             searchCombo.hidePopup()
         }
     }

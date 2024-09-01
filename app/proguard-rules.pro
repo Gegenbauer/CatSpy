@@ -82,6 +82,11 @@
 -keepclassmembers class **$TypeAdapterFactory { <fields>; }
 # Gson End
 
+# occupies 260kb
+# Okio Start
+-keep class okio.** { *; }
+# Okio End
+
 # Commons Start
 # Ignore warnings
 -ignorewarnings

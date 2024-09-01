@@ -2,8 +2,8 @@ package me.gegenbauer.catspy.platform
 
 import com.formdev.flatlaf.FlatClientProperties
 import com.formdev.flatlaf.util.SystemInfo
+import me.gegenbauer.catspy.concurrency.runCommandIgnoreResult
 import me.gegenbauer.catspy.file.appendPath
-import me.gegenbauer.catspy.java.ext.runCommandIgnoreResult
 import java.awt.Toolkit
 import java.awt.event.KeyEvent
 import java.io.File
@@ -11,7 +11,6 @@ import java.lang.management.ManagementFactory
 import javax.swing.JDialog
 import javax.swing.JFrame
 import javax.swing.JRootPane
-import javax.swing.ToolTipManager
 import javax.swing.TransferHandler.TransferSupport
 
 interface IPlatform {

@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.log.ui.customize
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.DisplayedLevel
 import me.gegenbauer.catspy.log.serialize.ColumnModel
@@ -135,7 +136,7 @@ class FiltersEditPanel : BaseEditableTablePanel<ColumnModel.FilterUIConf>() {
             layoutWidth = Column.LAYOUT_WIDTH_PREFERRED,
             position = Column.FilterPosition(0, 0),
             -1,
-            ""
+            EMPTY_STRING
         )
     }
 
@@ -234,7 +235,7 @@ class FiltersEditPanel : BaseEditableTablePanel<ColumnModel.FilterUIConf>() {
         ): Component {
             val component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
             if (value == null || value as? Double == 0.0) {
-                text = ""
+                text = EMPTY_STRING
             } else {
                 text = value.toString()
             }

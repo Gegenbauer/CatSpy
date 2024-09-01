@@ -2,9 +2,10 @@ package me.gegenbauer.catspy.concurrency
 
 import kotlinx.coroutines.*
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.util.concurrent.atomic.AtomicBoolean
 
-class CoroutineSuspender(private val name: String = "") {
+class CoroutineSuspender(private val name: String = EMPTY_STRING) {
     private val enabled = AtomicBoolean(false)
     private val suspended = AtomicBoolean(false)
 

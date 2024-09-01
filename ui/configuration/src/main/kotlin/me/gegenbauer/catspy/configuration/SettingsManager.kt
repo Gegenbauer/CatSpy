@@ -26,8 +26,6 @@ object SettingsManager {
     val string: String
         get() = gson.toJson(settings)
 
-    private val migrations = emptyList<Migration>()
-
     private val scope = ViewModelScope()
 
     private val jsonFileManager: JsonFileManager
@@ -49,6 +47,7 @@ object SettingsManager {
     }
 
     suspend fun init() {
+        addMigrations()
         ensureSettingsFile()
         GLog.d(TAG, "[init] $settings") // trigger settings init
         withContext(Dispatchers.UI) {
@@ -57,28 +56,26 @@ object SettingsManager {
         saveInternal()
     }
 
+    private fun addMigrations() {
+
+    }
+
     private fun loadSettings(): GSettings {
         return kotlin.runCatching {
-            gson.fromJson(jsonFileManager.read(KEY_SETTINGS_FILE), GSettings::class.java).apply {
+            val settingsJsonStr = jsonFileManager.read(KEY_SETTINGS_FILE)
+            val settingsJsonObj = JsonParser.parseString(settingsJsonStr).asJsonObject
+            val migratedJsonObj = SettingsMigrations.migrate(settingsJsonObj, GSettings.SETTINGS_VERSION)
+            if (migratedJsonObj == null) {
+                GLog.w(TAG, "[loadSettings] Failed to migrate local settings, use default settings")
+                return@runCatching GSettings()
+            }
+            gson.fromJson(migratedJsonObj, GSettings::class.java).apply {
                 init()
-                checkSettingsUpdate(this)
                 GLog.i(TAG, "[loadSettings] $this")
             }
         }.onFailure {
             GLog.e(TAG, "[loadSettings] $it")
         }.getOrDefault(GSettings())
-    }
-
-    private fun checkSettingsUpdate(settings: GSettings) {
-        val jsonObject = kotlin.runCatching {
-            jsonFileManager.read(KEY_SETTINGS_FILE).let { JsonParser.parseString(it).asJsonObject }
-        }.onFailure {
-            GLog.e(TAG, "[checkSettingsUpdate] $it")
-        }.getOrNull() ?: return
-        val migrationsToApply = migrations.filter { it.version > settings.version }.sortedBy { it.version }
-        for (migration in migrationsToApply) {
-            migration.migrate(settings, jsonObject)
-        }
     }
 
     fun updateSettings(editAction: GSettings.() -> Unit) {

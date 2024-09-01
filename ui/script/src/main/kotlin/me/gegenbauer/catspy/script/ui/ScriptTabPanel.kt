@@ -6,6 +6,7 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.java.ext.Bundle
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.script.model.Script
 import me.gegenbauer.catspy.script.model.ScriptType
 import me.gegenbauer.catspy.script.parser.DirectRule
@@ -123,6 +124,6 @@ class ScriptTabPanel : BaseTabPanel() {
 
 
     companion object {
-        val defaultDevice = Device("", DeviceState.DEVICE)
+        val defaultDevice = Device(EMPTY_STRING, DeviceState.DEVICE)
     }
 }

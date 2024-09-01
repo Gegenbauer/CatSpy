@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.log.ui.customize
 import info.clearthought.layout.TableLayout
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.metadata.LogColorScheme
+import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.log.metadata.LogMetadataManager
 import me.gegenbauer.catspy.log.serialize.ColumnModel
 import me.gegenbauer.catspy.log.serialize.LogMetadataModel
@@ -66,7 +67,14 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
         get() = ServiceManager.getContextService(LogMetadataManager::class.java)
 
     private val editPanels = listOf<JPanel>(
-        logTypePanel, descriptionPanel, samplePanel, columnsPanel, levelPanel, filterPanel, parserPanel, colorSchemePanel
+        logTypePanel,
+        descriptionPanel,
+        samplePanel,
+        columnsPanel,
+        levelPanel,
+        filterPanel,
+        parserPanel,
+        colorSchemePanel
     )
     private var logMetadata: LogMetadataEditModel = LogMetadataModel.default.toEditModel()
 
@@ -98,15 +106,15 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
     }
 
     override fun startEditing() {
-        editPanels.forEach { (it as LogMetadataEditor).startEditing() }
+        editPanels.filterIsInstance<LogMetadataEditor>().forEach { it.startEditing() }
     }
 
     override fun stopEditing() {
-        editPanels.map { (it as LogMetadataEditor).stopEditing() }
+        editPanels.filterIsInstance<LogMetadataEditor>().forEach { it.stopEditing() }
     }
 
     override fun isEditValid(): Boolean {
-        return editPanels.map { (it as LogMetadataEditor).isEditValid() }.all { it }
+        return editPanels.filterIsInstance<LogMetadataEditor>().all { it.isEditValid() }
     }
 
     private fun addEditPanels(panels: List<JPanel>) {
@@ -116,8 +124,12 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
     }
 
     override fun setLogMetadata(metadata: LogMetadataEditModel) {
-        editPanels.forEach { (it as LogMetadataEditor).setLogMetadata(metadata) }
+        editPanels.filterIsInstance<LogMetadataEditor>().forEach { it.setLogMetadata(metadata) }
         logMetadata = metadata
+    }
+
+    override fun isModified(): Boolean {
+        return editPanels.filterIsInstance<LogMetadataEditor>().any { it.isModified() }
     }
 
     fun getUpdatedLogMetadata(old: LogMetadataModel): LogMetadataModel {
@@ -136,12 +148,16 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
             levels = levelPanel.items,
             isDeviceLog = old.isDeviceLog,
             colorScheme = colorScheme,
+            version = LogMetadata.VERSION
         )
         parser.setLogMetadata(metadata)
         return metadata
     }
 
-    private fun getUpdatedColumns(columns: List<ColumnModel>, filters: List<ColumnModel.FilterUIConf>): List<ColumnModel> {
+    private fun getUpdatedColumns(
+        columns: List<ColumnModel>,
+        filters: List<ColumnModel.FilterUIConf>
+    ): List<ColumnModel> {
         return columns.map { column ->
             if (column.uiConf.column.isHidden || column.supportFilter.not()) {
                 return@map column.copy(
@@ -156,7 +172,14 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
             val filterUIConf = filters.firstOrNull { it.columnId == column.id }
             if (filterUIConf != null) {
                 val filterName = filterUIConf.name.ifBlank { column.name }
-                column.copy(uiConf = column.uiConf.copy(filter = filterUIConf.copy(name = filterName, columnName = column.name)))
+                column.copy(
+                    uiConf = column.uiConf.copy(
+                        filter = filterUIConf.copy(
+                            name = filterName,
+                            columnName = column.name
+                        )
+                    )
+                )
             } else {
                 column.copy(
                     uiConf = column.uiConf.copy(
@@ -173,10 +196,9 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
     private fun getUpdatedColorScheme(colorSchemeItems: List<ColorSchemeItem>): LogColorScheme {
         return LogColorScheme().apply {
             colorSchemeItems.forEach {
-                val color = DarkThemeAwareColor(it.lightColor, it.darkColor)
                 val field = javaClass.getDeclaredField(it.name)
                 field.isAccessible = true
-                field.set(this, color)
+                field.set(this, it.color)
             }
         }
     }
@@ -202,6 +224,7 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
                     getUpdatedLogMetadata(logMetadata.model).toEditModel(
                         id = logMetadata.id,
                         isDeleted = logMetadata.isDeleted,
+                        isNightMode = logMetadata.isNightMode,
                         isNew = logMetadata.isNew,
                     )
                 )

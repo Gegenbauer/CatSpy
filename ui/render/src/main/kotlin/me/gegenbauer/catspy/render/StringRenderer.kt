@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.render
 
 import me.gegenbauer.catspy.cache.CacheableObject
 import me.gegenbauer.catspy.cache.ObjectPool
-import me.gegenbauer.catspy.context.MemoryState
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.awt.Color
 
 interface StringRenderer : CacheableObject {
@@ -78,8 +78,8 @@ data class RenderResult(
 ) : CacheableObject {
 
     override fun recycle() {
-        raw = ""
-        rendered = ""
+        raw = EMPTY_STRING
+        rendered = EMPTY_STRING
         foreground = INVALID_COLOR
         background = INVALID_COLOR
 
@@ -87,15 +87,8 @@ data class RenderResult(
     }
 
     companion object {
-        private val pool = object : ObjectPool<RenderResult>(1000) {
-
-            init {
-                MemoryState.register(this)
-            }
-
-            override fun create(): RenderResult {
-                return RenderResult("", "", INVALID_COLOR, INVALID_COLOR)
-            }
+        private val pool = ObjectPool.createMemoryAwarePool(1000) {
+            RenderResult(EMPTY_STRING, EMPTY_STRING, INVALID_COLOR, INVALID_COLOR)
         }
 
         fun obtain(): RenderResult {

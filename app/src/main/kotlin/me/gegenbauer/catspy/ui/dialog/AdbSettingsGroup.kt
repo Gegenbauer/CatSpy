@@ -14,9 +14,11 @@ import me.gegenbauer.catspy.configuration.SettingsManager.settings
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.ddmlib.adb.*
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.DefaultDocumentListener
+import me.gegenbauer.catspy.utils.ui.getDefaultFileChooser
 import java.awt.Component
 import java.io.File
 import javax.swing.*
@@ -27,7 +29,7 @@ class AdbSettingsGroup(
     container: SettingsContainer
 ): BaseSettingsGroup(STRINGS.ui.adb, scope, container) {
 
-    private var adbPath: String = ""
+    private var adbPath: String = EMPTY_STRING
         set(value) {
             field = value
             ServiceManager.getContextService(AdamDeviceMonitor::class.java).configure(AdbConf(value))
@@ -68,12 +70,10 @@ class AdbSettingsGroup(
         })
         val adbPathSelectBtn = JButton(STRINGS.ui.change)
         adbPathSelectBtn.addActionListener {
-            val fileChooser = JFileChooser()
+            val fileChooser = getDefaultFileChooser()
             fileChooser.currentDirectory = currentAdbDir
-            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
             fileChooser.dialogTitle = STRINGS.ui.selectAdbPath
             fileChooser.isAcceptAllFileFilterUsed = false
-            fileChooser.isFileHidingEnabled = false
             fileChooser.fileFilter = adbFileFilter
             val result = fileChooser.showOpenDialog(container as Component)
             if (result == JFileChooser.APPROVE_OPTION) {
@@ -152,7 +152,7 @@ class AdbSettingsGroup(
             JOptionPane.showMessageDialog(
                 container as Component,
                 adbStatus,
-                "",
+                EMPTY_STRING,
                 JOptionPane.INFORMATION_MESSAGE
             )
         }
@@ -168,7 +168,7 @@ class AdbSettingsGroup(
             JOptionPane.showMessageDialog(
                 container as Component,
                 STRINGS.ui.adbPathValid,
-                "",
+                EMPTY_STRING,
                 JOptionPane.INFORMATION_MESSAGE
             )
         } else {
@@ -181,7 +181,7 @@ class AdbSettingsGroup(
             JOptionPane.showMessageDialog(
                 container as Component,
                 message,
-                "",
+                EMPTY_STRING,
                 JOptionPane.ERROR_MESSAGE
             )
         }

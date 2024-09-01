@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.glog
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -111,7 +112,7 @@ abstract class BaseLogFormatter : LogFormatter {
         // Print cause, if any
         val cause = throwable.cause
         if (cause != null) {
-            printEnclosedStackTrace(builder, cause, trace, "Caused by: ", "", dejaVu)
+            printEnclosedStackTrace(builder, cause, trace, "Caused by: ", EMPTY_STRING, dejaVu)
         }
     }
 

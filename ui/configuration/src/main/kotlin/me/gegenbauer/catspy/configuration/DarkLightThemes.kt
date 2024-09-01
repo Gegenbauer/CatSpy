@@ -1,5 +1,7 @@
 package me.gegenbauer.catspy.configuration
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+
 object DarkLightThemes {
     private val lightToDarkThemes = mapOf(
         "FlatLaf Light" to "FlatLaf Dark",
@@ -17,10 +19,10 @@ object DarkLightThemes {
     )
 
     fun getLightTheme(darkTheme: String): String {
-        return lightToDarkThemes.entries.find { it.value == darkTheme }?.key ?: ""
+        return lightToDarkThemes.entries.find { it.value == darkTheme }?.key ?: EMPTY_STRING
     }
 
     fun getDarkTheme(lightTheme: String): String {
-        return lightToDarkThemes[lightTheme] ?: ""
+        return lightToDarkThemes[lightTheme] ?: EMPTY_STRING
     }
 }

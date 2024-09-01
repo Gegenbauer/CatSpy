@@ -1,7 +1,7 @@
 package me.gegenbauer.catspy.context
 
+import me.gegenbauer.catspy.concurrency.Event
 import me.gegenbauer.catspy.file.GB
-import me.gegenbauer.catspy.java.ext.Event
 
 data class Memory(
     val allocated: Float,

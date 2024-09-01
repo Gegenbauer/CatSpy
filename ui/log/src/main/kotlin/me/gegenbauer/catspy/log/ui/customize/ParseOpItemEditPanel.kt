@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.log.ui.customize
 
 import info.clearthought.layout.TableLayout
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.serialize.*
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.OnScrollToEndListener
@@ -385,7 +386,7 @@ class ParseOpItemEditPanel(
 
         private fun onOpSelectChanged(newOp: ParseOp?) {
             opDetailEditor = createEditorPanel(newOp)
-            opSelector.toolTipText = newOp?.description ?: ""
+            opSelector.toolTipText = newOp?.description ?: EMPTY_STRING
             if (isEditing) {
                 opDetailEditor.startEditing()
             } else {

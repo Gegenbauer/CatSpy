@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.log.ui.customize
 import com.alexandriasoftware.swing.JInputValidator
 import com.alexandriasoftware.swing.JInputValidatorPreferences
 import com.alexandriasoftware.swing.Validation
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
 import javax.swing.JComponent
@@ -11,7 +12,7 @@ import javax.swing.JTextField
 fun interface ParamVerifier {
     fun verify(input: JComponent): Result
 
-    sealed class Result(val isValid: Boolean, val warning: String = "") {
+    sealed class Result(val isValid: Boolean, val warning: String = EMPTY_STRING) {
         object Valid : Result(true)
         class Invalid(warning: String) : Result(false, warning)
     }

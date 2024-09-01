@@ -1,9 +1,7 @@
 package me.gegenbauer.catspy.filter.ui
 
 import me.gegenbauer.catspy.java.ext.getFieldDeeply
-import me.gegenbauer.catspy.java.ext.invokeMethod
 import org.fife.ui.autocomplete.AutoCompletion
-import org.fife.ui.autocomplete.Completion
 import org.fife.ui.autocomplete.CompletionProvider
 import javax.swing.JWindow
 

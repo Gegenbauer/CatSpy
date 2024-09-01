@@ -7,4 +7,5 @@ plugins {
 dependencies {
     implementation(projects.context)
     implementation(projects.glog)
+    implementation(projects.javaext)
 }

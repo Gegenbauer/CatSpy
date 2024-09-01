@@ -1,7 +1,9 @@
 package me.gegenbauer.catspy.filter.parser
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+
 open class FilterExpression internal constructor(
-    open val wholeExpression: String = "",
+    open val wholeExpression: String = EMPTY_STRING,
     open val start: Int = 0,
     open val end: Int = 0,
 ) : IQuoteAnalyzer by QuoteAnalyzer(), IParenthesesAnalyzer by ParenthesesAnalyzer() {

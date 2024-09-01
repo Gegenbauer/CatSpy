@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.log.serialize
 
 import com.google.gson.*
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.DisplayedLevel
 import me.gegenbauer.catspy.log.parse.LogParser
 import me.gegenbauer.catspy.strings.STRINGS
@@ -24,20 +25,14 @@ class LogParserSerializer : Serializer<SerializableLogParser, JsonElement> {
             context: JsonDeserializationContext
         ): SplitToPartsOp {
             val jsonObject = json.asJsonObject
-            val opType = jsonObject[KEY_SPLIT_TO_PARTS_OP_TYPE].asInt
+            val opType = jsonObject[JSON_KEY_TYPE].asInt
             val opClass = splitToPartsOps[opType] ?: throw IllegalArgumentException("Unknown op type: $opType")
             return gson.fromJson(json, opClass)
         }
 
         override fun serialize(src: SplitToPartsOp, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
             val jsonObject = gson.toJsonTree(src).asJsonObject
-            jsonObject.addProperty(
-                KEY_SPLIT_TO_PARTS_OP_TYPE, when (src) {
-                    is SplitByWordSeparatorOp -> OP_SPLIT_BY_WORD_SEPARATOR
-                    is EmptySplitToPartsOp -> OP_EMPTY_SPLIT_TO_PARTS
-                    else -> throw IllegalArgumentException("Unknown op type: $src")
-                }
-            )
+            jsonObject.addProperty(JSON_KEY_TYPE, src.type)
             return jsonObject
         }
     }
@@ -49,7 +44,7 @@ class LogParserSerializer : Serializer<SerializableLogParser, JsonElement> {
             context: JsonDeserializationContext
         ): SplitPostProcessOp {
             val jsonObject = json.asJsonObject
-            val opType = jsonObject[KEY_SPLIT_POST_PROCESS_OP_TYPE].asInt
+            val opType = jsonObject[JSON_KEY_TYPE].asInt
             val opClass = preProcessPostOps[opType] ?: throw IllegalArgumentException("Unknown op type: $opType")
             return gson.fromJson(json, opClass)
         }
@@ -60,15 +55,7 @@ class LogParserSerializer : Serializer<SerializableLogParser, JsonElement> {
             context: JsonSerializationContext
         ): JsonElement {
             val jsonObject = gson.toJsonTree(src).asJsonObject
-            jsonObject.addProperty(
-                KEY_SPLIT_POST_PROCESS_OP_TYPE, when (src) {
-                    is SplitPartWithCharOp -> OP_SPLIT_PART_WITH_CHAR
-                    is MergeNearbyPartsOp -> OP_MERGE_NEARBY_PARTS
-                    is RemoveBlankPartOp -> OP_REMOVE_BLANK_PART
-                    is MergeUntilCharOp -> OP_MERGE_UNTIL_CHAR
-                    else -> throw IllegalArgumentException("Unknown op type: $src")
-                }
-            )
+            jsonObject.addProperty(JSON_KEY_TYPE, src.type)
             return jsonObject
         }
     }
@@ -76,39 +63,20 @@ class LogParserSerializer : Serializer<SerializableLogParser, JsonElement> {
     class TrimOpAdapter : JsonDeserializer<TrimOp>, JsonSerializer<TrimOp> {
         override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): TrimOp {
             val jsonObject = json.asJsonObject
-            val opType = jsonObject[KEY_TRIM_OP_TYPE].asInt
+            val opType = jsonObject[JSON_KEY_TYPE].asInt
             val opClass = parseOps[opType] ?: throw IllegalArgumentException("Unknown op type: $opType")
             return gson.fromJson(json, opClass)
         }
 
         override fun serialize(src: TrimOp, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
             val jsonObject = gson.toJsonTree(src).asJsonObject
-            jsonObject.addProperty(
-                KEY_TRIM_OP_TYPE, when (src) {
-                    is TrimWithCharOp -> OP_TRIM_WITH_CHAR
-                    is TrimWithIndexOp -> OP_TRIM_WITH_INDEX
-                    else -> throw IllegalArgumentException("Unknown op type: $src")
-                }
-            )
+            jsonObject.addProperty(JSON_KEY_TYPE, src.type)
             return jsonObject
         }
     }
 
     companion object {
-        private const val OP_EMPTY_SPLIT_TO_PARTS = 0
-        private const val OP_SPLIT_BY_WORD_SEPARATOR = 1
-
-        private const val OP_SPLIT_PART_WITH_CHAR = 10
-        private const val OP_MERGE_NEARBY_PARTS = 11
-        private const val OP_REMOVE_BLANK_PART = 12
-        private const val OP_MERGE_UNTIL_CHAR = 13
-
-        private const val OP_TRIM_WITH_CHAR = 100
-        private const val OP_TRIM_WITH_INDEX = 101
-
-        private const val KEY_SPLIT_TO_PARTS_OP_TYPE = "splitToPartsOpType"
-        private const val KEY_SPLIT_POST_PROCESS_OP_TYPE = "splitPostProcessOpType"
-        private const val KEY_TRIM_OP_TYPE = "trimOpType"
+        private const val JSON_KEY_TYPE = "type"
 
         private val splitToPartsOps = mutableMapOf<Int, Class<out SplitToPartsOp>>()
         private val preProcessPostOps = mutableMapOf<Int, Class<out SplitPostProcessOp>>()
@@ -140,27 +108,27 @@ class SerializableLogParser(
 
     private var partCount: Int = 0
     private var levelPartIndex: Int = 0
-    private var defaultLevelTag: String = DisplayedLevel.default.level.tag
+    private var defaultLevelKeyword: String = DisplayedLevel.default.level.keyword
 
     fun setLogMetadata(logMetadataModel: LogMetadataModel) {
         val parsedColumns = logMetadataModel.columns.sortedBy { it.partIndex }.filter { it.isParsed }
         val columnCount = parsedColumns.size
         val levelPartIndex = parsedColumns.indexOfFirst { it.isLevel }
-        val defaultLevelTag = logMetadataModel.levels.minByOrNull { it.level.value }?.level?.tag ?: ""
+        val defaultLevelTag = logMetadataModel.levels.minByOrNull { it.level.value }?.level?.keyword ?: EMPTY_STRING
         configure(columnCount, levelPartIndex, defaultLevelTag)
     }
 
     private fun configure(partCount: Int, levelPartIndex: Int, defaultLevelTag: String) {
         this.partCount = partCount
         this.levelPartIndex = levelPartIndex
-        this.defaultLevelTag = defaultLevelTag
+        this.defaultLevelKeyword = defaultLevelTag
     }
 
     override fun parse(line: String): List<String> {
         val splitResult = splitToPartsOp.process(sequenceOf(line))
         val defaultResult = run {
-            val default = Array(partCount) { "" }
-            if (levelPartIndex > 0) default[levelPartIndex] = defaultLevelTag
+            val default = Array(partCount) { EMPTY_STRING }
+            if (levelPartIndex > 0) default[levelPartIndex] = defaultLevelKeyword
             default[default.size - 1] = line
             default.toList()
         }
@@ -192,6 +160,8 @@ interface ParseOp {
 
     val description: String
 
+    val type: Int
+
     fun process(parts: Sequence<String>): Sequence<String>
 }
 
@@ -208,8 +178,24 @@ interface SplitToPartsOp : ParseOp {
  */
 interface SplitPostProcessOp : ParseOp
 
+private const val TYPE_EMPTY = -1
+
+private const val OP_EMPTY_SPLIT_TO_PARTS = 0
+private const val OP_SPLIT_BY_WORD_SEPARATOR = 1
+
+private const val OP_SPLIT_PART_WITH_CHAR = 10
+private const val OP_MERGE_NEARBY_PARTS = 11
+private const val OP_REMOVE_BLANK_PART = 12
+private const val OP_MERGE_UNTIL_CHAR = 13
+
+private const val OP_TRIM_WITH_CHAR = 100
+private const val OP_TRIM_WITH_INDEX = 101
+
+
 class EmptyParseOp : ParseOp {
     override val name: String = "Empty"
+
+    override val type: Int = TYPE_EMPTY
 
     override val description: String
         get() = STRINGS.parser.emptyParser
@@ -224,6 +210,8 @@ class EmptyParseOp : ParseOp {
  */
 class EmptySplitToPartsOp : SplitToPartsOp {
     override val name: String = "EmptySplitToParts"
+
+    override val type: Int = OP_EMPTY_SPLIT_TO_PARTS
 
     override val description: String
         get() = STRINGS.parser.emptySplitToParts
@@ -248,6 +236,8 @@ class SplitByWordSeparatorOp(
     override val splitPostProcessOps: List<SplitPostProcessOp> = emptyList()
 ) : SplitToPartsOp {
     override val name: String = "SplitByWordSeparator"
+
+    override val type: Int = OP_SPLIT_BY_WORD_SEPARATOR
 
     override val description: String
         get() = STRINGS.parser.splitByWordSeparator
@@ -280,6 +270,8 @@ class SplitPartWithCharOp(val splitChar: Char?, val partIndex: Int) : SplitPostP
 
     override val name: String = "SplitPartWithChar"
 
+    override val type: Int = OP_SPLIT_PART_WITH_CHAR
+
     override val description: String
         get() = STRINGS.parser.splitPartWithChar
 
@@ -311,6 +303,8 @@ class SplitPartWithCharOp(val splitChar: Char?, val partIndex: Int) : SplitPostP
 class MergeNearbyPartsOp(val from: Int, val to: Int) : SplitPostProcessOp {
 
     override val name: String = "MergeNearbyParts"
+
+    override val type: Int = OP_MERGE_NEARBY_PARTS
 
     override val description: String
         get() = STRINGS.parser.mergeNearbyParts
@@ -349,6 +343,8 @@ class MergeNearbyPartsOp(val from: Int, val to: Int) : SplitPostProcessOp {
 class MergeUntilCharOp(val start: Int, val targetChar: Char?) : SplitPostProcessOp {
 
     override val name: String = "MergeUntilChar"
+
+    override val type: Int = OP_MERGE_UNTIL_CHAR
 
     override val description: String
         get() = STRINGS.parser.mergeUntilChar
@@ -399,6 +395,8 @@ class MergeUntilCharOp(val start: Int, val targetChar: Char?) : SplitPostProcess
 class RemoveBlankPartOp : SplitPostProcessOp {
     override val name: String = "RemoveBlankPart"
 
+    override val type: Int = OP_REMOVE_BLANK_PART
+
     override val description: String
         get() = STRINGS.parser.removeBlankPart
 
@@ -428,6 +426,8 @@ class TrimWithCharOp(
     val trailing: Char?
 ) : TrimOp {
     override val name: String = "TrimWithChar"
+
+    override val type: Int = OP_TRIM_WITH_CHAR
 
     override val description: String
         get() = STRINGS.parser.trimWithChar
@@ -469,10 +469,10 @@ class TrimWithIndexOp(
     override val partIndex: Int,
     val removedLeadingCharCount: Int,
     val removedTrailingCharCount: Int
-) :
-    TrimOp {
-
+) : TrimOp {
     override val name: String = "TrimWithIndex"
+
+    override val type: Int = OP_TRIM_WITH_INDEX
 
     override val description: String
         get() = STRINGS.parser.trimWithIndex
@@ -481,7 +481,7 @@ class TrimWithIndexOp(
         return parts.mapIndexed { index, s ->
             if (index == partIndex) {
                 if (removedTrailingCharCount + removedLeadingCharCount > s.length) {
-                    ""
+                    EMPTY_STRING
                 } else {
                     s.substring(removedLeadingCharCount, s.length - removedTrailingCharCount)
                 }

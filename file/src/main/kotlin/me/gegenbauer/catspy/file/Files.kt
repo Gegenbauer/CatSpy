@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.file
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -72,18 +73,17 @@ fun File.copy(targetFile: File) {
     Files.copy(toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
 }
 
-fun String.getFileName(): String {
-    return substringAfterLast(File.separator)
-}
-
 fun getFilePath(key: String): FilePath {
     val lastSeparator = key.lastIndexOf(File.separator)
     return if (lastSeparator == -1) {
-        FilePath("", key)
+        FilePath(EMPTY_STRING, key)
     } else {
         FilePath(key.substring(0, lastSeparator), key.substring(lastSeparator + 1))
     }
 }
+
+inline val String.fileName: String
+    get() = substringAfterLast(File.separator)
 
 data class FilePath(
     val parentDir: String,

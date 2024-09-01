@@ -2,8 +2,8 @@ package me.gegenbauer.catspy.configuration
 
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.glog.LogLevel
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.strings.Locale
-import me.gegenbauer.catspy.utils.ui.toArgb
 import java.awt.Color
 import java.awt.Frame
 import java.awt.GraphicsEnvironment
@@ -19,7 +19,7 @@ data class GSettings(
     val mainUISettings: Main = Main(),
     val windowSettings: Window = Window(),
 
-    var adbPath: String = "",
+    var adbPath: String = EMPTY_STRING,
     private val shownHints: MutableSet<String> = mutableSetOf()
 ) : ISettings {
 

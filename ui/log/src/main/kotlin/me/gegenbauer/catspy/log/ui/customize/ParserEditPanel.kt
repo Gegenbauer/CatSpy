@@ -26,7 +26,7 @@ class ParserEditPanel : JPanel(), LogMetadataEditor, ParseOpEventListener, Scrol
         logMetadataHandler { value = it.sample }
         alwaysUnEditable { it.isBuiltIn }
     }
-    private var logMetadata: LogMetadataModel = LogMetadataModel.default
+    private var logMetadata: LogMetadataEditModel = LogMetadataModel.default.toEditModel()
     private val parseOpGroupEditor = ParseOpGroupEditor(this)
     private var lastValidParser: SerializableLogParser? = null
 
@@ -73,18 +73,21 @@ class ParserEditPanel : JPanel(), LogMetadataEditor, ParseOpEventListener, Scrol
     }
 
     override fun setLogMetadata(metadata: LogMetadataEditModel) {
-        val model = metadata.model
-        logMetadata = model
+        logMetadata = metadata
         rawLogPanel.setLogMetadata(metadata)
         actionPanel.setLogMetadata(metadata)
-        if (model.parser !is SerializableLogParser) return
+        if (metadata.model.parser !is SerializableLogParser) return
 
-        lastValidParser = model.parser
+        lastValidParser = metadata.model.parser
 
-        val ops = model.parser.opList
+        val ops = metadata.model.parser.opList
         parseOpGroupEditor.setParseOps(ops)
         val sample = rawLogPanel.value
         parseOpGroupEditor.parsedLogParts = listOf(sample)
+    }
+
+    override fun isModified(): Boolean {
+        return getParser() != lastValidParser
     }
 
     override fun onOpChanged(parseOpPanel: ParseOpItemEditPanel) {
@@ -133,7 +136,7 @@ class ParserEditPanel : JPanel(), LogMetadataEditor, ParseOpEventListener, Scrol
     }
 
     override fun startEditing() {
-        if (!logMetadata.isBuiltIn) {
+        if (!logMetadata.model.isBuiltIn) {
             parseOpGroupEditor.startEditing()
             actionPanel.startEditing()
         }
@@ -145,7 +148,7 @@ class ParserEditPanel : JPanel(), LogMetadataEditor, ParseOpEventListener, Scrol
     }
 
     override fun isEditValid(): Boolean {
-        return logMetadata.isBuiltIn || parseOpGroupEditor.isEditValid()
+        return logMetadata.model.isBuiltIn || parseOpGroupEditor.isEditValid()
     }
 
     override fun addOnScrollToEndListener(listener: OnScrollToEndListener) {
@@ -180,9 +183,9 @@ class ParserEditPanel : JPanel(), LogMetadataEditor, ParseOpEventListener, Scrol
             this@ParserEditPanel.setLogMetadata(
                 metadata.copy(
                     isBuiltIn = false,
-                    sample = logMetadata.sample,
-                    logType = logMetadata.logType
-                ).toEditModel()
+                    sample = logMetadata.model.sample,
+                    logType = logMetadata.model.logType
+                ).toEditModel(isNightMode = logMetadata.isNightMode)
             )
         }
 
@@ -213,6 +216,10 @@ class ParserEditPanel : JPanel(), LogMetadataEditor, ParseOpEventListener, Scrol
         override fun setLogMetadata(metadata: LogMetadataEditModel) {
             templateLoaderButton.isVisible = !metadata.model.isBuiltIn
             templateLoaderButton.setExcludedMetadata(metadata.model.logType)
+        }
+
+        override fun isModified(): Boolean {
+            return false
         }
 
         override fun startEditing() {

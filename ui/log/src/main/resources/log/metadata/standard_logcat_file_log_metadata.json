@@ -6,23 +6,23 @@
       "splitPostProcessOps": [
         {
           "name": "RemoveBlank",
-          "splitPostProcessOpType": 12
+          "type": 12
         },
         {
           "from": 0,
           "to": 1,
           "name": "MergeNearbyParts",
-          "splitPostProcessOpType": 11
+          "type": 11
         },
         {
           "start": 4,
           "targetChar": ":",
           "name": "MergeUntilChar",
-          "splitPostProcessOpType": 13
+          "type": 13
         }
       ],
       "name": "SplitByWordSeparator",
-      "splitToPartsOpType": 1
+      "type": 1
     },
     "trimOps": [],
     "partCount": 6,
@@ -174,114 +174,169 @@
       "level": {
         "value": 0,
         "name": "Verbose",
-        "tag": "V"
+        "abbreviation": "V",
+        "keyword": "V"
       },
-      "color": {
-        "color": "0x-1000000",
-        "darkThemeColor": "0x-f0f10"
+      "logForeground": {
+        "color": "#000000",
+        "darkThemeColor": "#BBBBBB"
+      },
+      "levelColumnForeground": {
+        "color": "#000000",
+        "darkThemeColor": "#000000"
+      },
+      "levelColumnBackground": {
+        "color": "#D6D6D6",
+        "darkThemeColor": "#D6D6D6"
       }
     },
     {
       "level": {
         "value": 1,
         "name": "Debug",
-        "tag": "D"
+        "abbreviation": "D",
+        "keyword": "D"
       },
-      "color": {
-        "color": "0x-df7000",
-        "darkThemeColor": "0x-93678a"
+      "logForeground": {
+        "color": "#389FD6",
+        "darkThemeColor": "#299999"
+      },
+      "levelColumnForeground": {
+        "color": "#000000",
+        "darkThemeColor": "#BBBBBB"
+      },
+      "levelColumnBackground": {
+        "color": "#CFE7FF",
+        "darkThemeColor": "#305D78"
       }
     },
     {
       "level": {
         "value": 2,
         "name": "Info",
-        "tag": "I"
+        "abbreviation": "I",
+        "keyword": "I"
       },
-      "color": {
-        "color": "0x-ff7f21",
-        "darkThemeColor": "0x-af7b3c"
+      "logForeground": {
+        "color": "#59A869",
+        "darkThemeColor": "#ABC023"
+      },
+      "levelColumnForeground": {
+        "color": "#414D41",
+        "darkThemeColor": "#E9F5E6"
+      },
+      "levelColumnBackground": {
+        "color": "#E9F5E6",
+        "darkThemeColor": "#6A8759"
       }
     },
     {
       "level": {
         "value": 3,
         "name": "Warning",
-        "tag": "W"
+        "abbreviation": "W",
+        "keyword": "W"
       },
-      "color": {
-        "color": "0x-f9000",
-        "darkThemeColor": "0x-3478be"
+      "logForeground": {
+        "color": "#645607",
+        "darkThemeColor": "#BBB529"
+      },
+      "levelColumnForeground": {
+        "color": "#000000",
+        "darkThemeColor": "#000000"
+      },
+      "levelColumnBackground": {
+        "color": "#F5EAC1",
+        "darkThemeColor": "#BBB529"
       }
     },
     {
       "level": {
         "value": 4,
         "name": "Error",
-        "tag": "E"
+        "abbreviation": "E",
+        "keyword": "E"
       },
-      "color": {
-        "color": "0x-300000",
-        "darkThemeColor": "0x-329387"
+      "logForeground": {
+        "color": "#CD0000",
+        "darkThemeColor": "#FF6B68"
+      },
+      "levelColumnForeground": {
+        "color": "#FFFFFF",
+        "darkThemeColor": "#000000"
+      },
+      "levelColumnBackground": {
+        "color": "#CF5B56",
+        "darkThemeColor": "#CF5B56"
       }
     },
     {
       "level": {
         "value": 5,
         "name": "Fatal",
-        "tag": "F"
+        "abbreviation": "F",
+        "keyword": "F"
       },
-      "color": {
-        "color": "0x-900000",
-        "darkThemeColor": "0x-12cfd0"
+      "logForeground": {
+        "color": "#CD0000",
+        "darkThemeColor": "#FF6B68"
+      },
+      "levelColumnForeground": {
+        "color": "#FFFFFF",
+        "darkThemeColor": "#FFFFFF"
+      },
+      "levelColumnBackground": {
+        "color": "#7F0000",
+        "darkThemeColor": "#8B3C3C"
       }
     }
   ],
   "colorScheme": {
-    "searchContentBg": {
-      "color": "0x-cfcf50",
-      "darkThemeColor": "0x-4f4f50"
+    "searchContentBackground": {
+      "color": "#E0E0E0",
+      "darkThemeColor": "#3A3D41"
     },
-    "searchContentFg": {
-      "color": "0x-1",
-      "darkThemeColor": "0x-1000000"
+    "searchContentForeground": {
+      "color": "#FFFFFF",
+      "darkThemeColor": "#01000000"
     },
-    "filterContentBg": {
-      "color": "0x4a20b020",
-      "darkThemeColor": "0x-ff6000"
+    "filterContentBackground": {
+      "color": "#4A20B020",
+      "darkThemeColor": "#00A000"
     },
-    "filterContentFg": {
-      "color": "0x-1",
-      "darkThemeColor": "0x-1000000"
+    "filterContentForeground": {
+      "color": "#FFFFFF",
+      "darkThemeColor": "#000000"
     },
     "indexColumnSeparatorColor": {
-      "color": "0x-333334",
-      "darkThemeColor": "0x-5f5f60"
+      "color": "#333334",
+      "darkThemeColor": "#5f5f60"
     },
     "indexColumnForeground": {
-      "color": "0x-cccccd",
-      "darkThemeColor": "0x-f0f10"
+      "color": "#111111",
+      "darkThemeColor": "#a1b2be"
     },
     "normalLogBackground": {
-      "color": "0x-506",
-      "darkThemeColor": "0x-eaeaeb"
+      "color": "#FFFFFF",
+      "darkThemeColor": "#1E1F22"
     },
     "selectedLogBackground": {
-      "color": "0x-1f1f20",
-      "darkThemeColor": "0x-c5c2bf"
+      "color": "#FCD47E",
+      "darkThemeColor": "#32593D"
     },
     "bookmarkedLogBackground": {
-      "color": "0x-1f1f01",
-      "darkThemeColor": "0x-afeff0"
+      "color": "#ff1f1f01",
+      "darkThemeColor": "#31ffcccc"
     },
     "bookmarkedAndSelectedLogBackground": {
-      "color": "0x-2f2f21",
-      "darkThemeColor": "0x-afcfd0"
+      "color": "#ff2f2f21",
+      "darkThemeColor": "#6affcccc"
     }
   },
   "supportedFileExtensions": [],
   "isDeviceLog": false,
   "isBuiltIn": true,
   "description": "Device log produced from \"adb logcat\"",
-  "sample": "06-05 17:36:15.905  2083  4016 D CompatibilityChangeReporter: Compat change id reported: 161252188; UID 10541; state: DISABLED"
+  "sample": "06-05 17:36:15.905  2083  4016 D CompatibilityChangeReporter: Compat change id reported: 161252188; UID 10541; state: DISABLED",
+  "version": 1
 }

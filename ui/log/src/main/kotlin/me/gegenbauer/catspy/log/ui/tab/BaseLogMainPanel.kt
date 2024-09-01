@@ -12,11 +12,12 @@ import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.customProperty
 import me.gegenbauer.catspy.databinding.property.support.dividerProperty
 import me.gegenbauer.catspy.databinding.property.support.visibilityProperty
-import me.gegenbauer.catspy.file.getFileName
+import me.gegenbauer.catspy.file.fileName
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.java.ext.Bundle
-import me.gegenbauer.catspy.java.ext.ErrorEvent
+import me.gegenbauer.catspy.concurrency.ErrorEvent
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.binding.LogMainBinding
@@ -27,7 +28,14 @@ import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.log.ui.LogConfiguration
 import me.gegenbauer.catspy.log.ui.search.ISearchPanel
-import me.gegenbauer.catspy.log.ui.table.*
+import me.gegenbauer.catspy.log.ui.table.FilteredLogTableModel
+import me.gegenbauer.catspy.log.ui.table.FullLogPanel
+import me.gegenbauer.catspy.log.ui.table.GoToDialog
+import me.gegenbauer.catspy.log.ui.table.LogDetailDialog
+import me.gegenbauer.catspy.log.ui.table.LogTableDialog
+import me.gegenbauer.catspy.log.ui.table.LogTableModel
+import me.gegenbauer.catspy.log.ui.table.SplitLogPane
+import me.gegenbauer.catspy.log.ui.table.nextRotation
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.Key
@@ -50,7 +58,12 @@ import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.nio.file.Path
 import java.nio.file.Paths
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.JComponent
+import javax.swing.JFrame
+import javax.swing.JOptionPane
+import javax.swing.JPanel
+import javax.swing.SwingUtilities
 
 abstract class BaseLogMainPanel : BaseTabPanel() {
 
@@ -299,7 +312,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     }
 
     private fun addContentToFilter(filterProperty: FilterProperty, content: String) {
-        val currentContent = filterProperty.content.value ?: ""
+        val currentContent = filterProperty.content.value ?: EMPTY_STRING
         if (currentContent.isEmpty()) {
             filterProperty.content.updateValue(content)
         } else {
@@ -446,7 +459,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
             }
 
             STRINGS.ui.adb, STRINGS.ui.cmd, "${STRINGS.ui.adb} ${STRINGS.ui.stop}", "${STRINGS.ui.cmd} ${STRINGS.ui.stop}" -> {
-                (logMainBinding.currentDevice.value ?: "").ifEmpty { GlobalProperties.APP_NAME }
+                (logMainBinding.currentDevice.value ?: EMPTY_STRING).ifEmpty { GlobalProperties.APP_NAME }
             }
 
             else -> {
@@ -501,7 +514,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     private fun saveLog() {
         FileSaveHandler.Builder(this)
             .onFileSpecified(logViewModel::saveLog)
-            .setDefaultName(logStatus.path.getFileName())
+            .setDefaultName(logStatus.path.fileName)
             .build()
             .show()
     }

@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.view.combobox.highlight
 
 import com.formdev.flatlaf.FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.utils.ui.DefaultDocumentListener
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
@@ -35,7 +36,7 @@ class HighlighterEditor : BasicComboBoxEditor.UIResource(), Highlightable, UIRes
                 updateHighlighter()
             }
         } else {
-            textEditor.text = ""
+            textEditor.text = EMPTY_STRING
         }
     }
 

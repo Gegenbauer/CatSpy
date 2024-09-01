@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.script.model
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.script.model.ScriptCategory.Companion.android
 import me.gegenbauer.catspy.script.model.ScriptType.Companion.adb
 
@@ -7,7 +8,7 @@ data class Script(
     val name: String,
     val type: ScriptType,
     val sourceCode: String,
-    val description: String = "",
+    val description: String = EMPTY_STRING,
 ) {
     fun getCommand(): String {
         return "${type.prefix} $sourceCode"
@@ -33,7 +34,7 @@ val scriptTypes = mutableListOf(
 
 data class ScriptCategory(
     val name: String,
-    val description: String = "",
+    val description: String = EMPTY_STRING,
     val parentCategory: ScriptCategory? = null,
 ) {
     companion object {

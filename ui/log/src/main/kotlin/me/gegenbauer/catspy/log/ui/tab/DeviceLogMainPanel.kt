@@ -10,8 +10,9 @@ import me.gegenbauer.catspy.ddmlib.device.AdbServerStatusListener
 import me.gegenbauer.catspy.ddmlib.device.DeviceListObserver
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.Bundle
-import me.gegenbauer.catspy.java.ext.GlobalEventManager
-import me.gegenbauer.catspy.java.ext.OpenAdbPathSettingsEvent
+import me.gegenbauer.catspy.concurrency.GlobalEventManager
+import me.gegenbauer.catspy.concurrency.OpenAdbPathSettingsEvent
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.LogMetadataChangeListener
 import me.gegenbauer.catspy.log.metadata.LogMetadataManager
 import me.gegenbauer.catspy.log.serialize.LogMetadataModel
@@ -79,9 +80,9 @@ class DeviceLogMainPanel: BaseLogMainPanel(), LogMetadataChangeListener {
         stopAll()
         if (logMainBinding.connectedDevices.value.isNullOrEmpty()) return
 
-        logViewModel.startProduceDeviceLog(logMainBinding.currentDevice.value ?: "")
+        logViewModel.startProduceDeviceLog(logMainBinding.currentDevice.value ?: EMPTY_STRING)
 
-        GLog.d(tag, "[startLogcat] device: ${logMainBinding.currentDevice.value ?: ""}")
+        GLog.d(tag, "[startLogcat] device: ${logMainBinding.currentDevice.value ?: EMPTY_STRING}")
 
         updateLogFilter()
     }
@@ -115,14 +116,14 @@ class DeviceLogMainPanel: BaseLogMainPanel(), LogMetadataChangeListener {
         when (state) {
             is TaskStarted -> {
                 logStatus =
-                    StatusBar.LogStatusRunning(STRINGS.ui.adb, logViewModel.tempLogFile.absolutePath ?: "")
+                    StatusBar.LogStatusRunning(STRINGS.ui.adb, logViewModel.tempLogFile.absolutePath ?: EMPTY_STRING)
             }
 
             is TaskIdle -> {
                 if (isLogTableEmpty) {
                     logStatus = StatusBar.LogStatusIdle(idleStatus)
                 } else {
-                    logStatus = StatusBar.LogStatusIdle(idleStatus, logViewModel.tempLogFile.absolutePath ?: "")
+                    logStatus = StatusBar.LogStatusIdle(idleStatus, logViewModel.tempLogFile.absolutePath ?: EMPTY_STRING)
                 }
             }
         }
@@ -130,7 +131,7 @@ class DeviceLogMainPanel: BaseLogMainPanel(), LogMetadataChangeListener {
 
     override fun afterLogStatusChanged(status: StatusBar.LogStatus) {
         super.afterLogStatusChanged(status)
-        setTabName(logMainBinding.currentDevice.value ?: "")
+        setTabName(logMainBinding.currentDevice.value ?: EMPTY_STRING)
     }
 
     override fun clearAllLogs() {

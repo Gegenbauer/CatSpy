@@ -4,10 +4,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
 import me.gegenbauer.catspy.utils.persistence.Preferences
+import me.gegenbauer.catspy.utils.ui.getDefaultFileChooser
 import java.awt.Component
 import java.io.File
 import javax.swing.JFileChooser
@@ -16,18 +18,15 @@ import javax.swing.JOptionPane
 class FileSaveHandler private constructor(
     private val onFileSpecified: suspend (File) -> Result<File?>,
     private val onCancel: () -> Unit = {},
-    private val defaultName: String = "",
+    private val defaultName: String = EMPTY_STRING,
     private val parent: Component
 ) {
 
-    private val fileChooser = JFileChooser()
+    private val fileChooser = getDefaultFileChooser()
     private val scope = MainScope()
 
     init {
         fileChooser.dialogTitle = STRINGS.ui.saveFileTitle
-        fileChooser.isMultiSelectionEnabled = false
-        fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-        fileChooser.isAcceptAllFileFilterUsed = false
     }
 
     fun show() {
@@ -44,7 +43,7 @@ class FileSaveHandler private constructor(
     }
 
     private fun checkAndSetDefaultFile() {
-        val lastFileSaveDir = Preferences.getString(LAST_OPEN_DIR_STORE_KEY, "")
+        val lastFileSaveDir = Preferences.getString(LAST_OPEN_DIR_STORE_KEY, EMPTY_STRING)
         if (lastFileSaveDir.isNotEmpty()) {
             fileChooser.currentDirectory = File(lastFileSaveDir)
         } else {
@@ -128,7 +127,7 @@ class FileSaveHandler private constructor(
     class Builder(private val parent: Component) {
         private var onFileSpecified: suspend (File) -> Result<File?> = { Result.success(null) }
         private var onCancel: () -> Unit = {}
-        private var defaultName: String = ""
+        private var defaultName: String = EMPTY_STRING
 
         fun onFileSpecified(onFileSpecified: suspend (File) -> Result<File?>) = apply {
             this.onFileSpecified = onFileSpecified

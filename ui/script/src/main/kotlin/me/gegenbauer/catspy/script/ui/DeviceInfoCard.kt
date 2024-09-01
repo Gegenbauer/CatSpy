@@ -12,6 +12,7 @@ import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.script.executor.CommandExecutor
 import me.gegenbauer.catspy.task.PeriodicTask
 import me.gegenbauer.catspy.task.TaskManager
@@ -62,7 +63,7 @@ class DeviceInfoCard(
                         val parsedResult = item.parseRule.parse(it.output)
                         withContext(Dispatchers.UI) {
                             val label = getComponent(index * 2 + 1) as JLabel
-                            label.text = parsedResult.firstOrNull() ?: ""
+                            label.text = parsedResult.firstOrNull() ?: EMPTY_STRING
                         }
                     }
                 }

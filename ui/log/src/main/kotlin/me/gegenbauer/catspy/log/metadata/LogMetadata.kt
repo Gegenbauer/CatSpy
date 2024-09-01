@@ -1,8 +1,10 @@
 package me.gegenbauer.catspy.log.metadata
 
 import me.gegenbauer.catspy.configuration.GlobalStrings
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.parse.LogParser
 import me.gegenbauer.catspy.log.serialize.LogMetadataModel
+import me.gegenbauer.catspy.log.serialize.LogMetadataSerializer
 import me.gegenbauer.catspy.utils.IdGenerator
 import me.gegenbauer.catspy.view.color.DarkThemeAwareColor
 import java.awt.Color
@@ -18,16 +20,25 @@ class LogMetadata(
     val supportedFileExtensions: Set<String>,
     val isDeviceLog: Boolean = false,
     val isBuiltIn: Boolean = true,
-    val description: String = "",
-    val sample: String = "",
+    val description: String = EMPTY_STRING,
+    val sample: String = EMPTY_STRING,
     val levels: List<DisplayedLevel> = emptyList(),
     val colorScheme: LogColorScheme = LogColorScheme(),
 ) {
 
+    val version: Int
+        get() = VERSION
+
+    fun deepCopy(): LogMetadata {
+        val serializer = LogMetadataSerializer()
+        return serializer.deserialize(serializer.serialize(this))
+    }
+
     companion object {
         const val KEY = "logMetaData"
+        const val VERSION = 1
 
-        val default = LogMetadata("", LogParser.empty, emptyList(), emptySet())
+        val default = LogMetadata(EMPTY_STRING, LogParser.empty, emptyList(), emptySet())
     }
 }
 
@@ -90,11 +101,11 @@ interface Column {
     ) : DefaultColumn(name, supportFilter, true, uiConf, partIndex)
 
     open class CommonFilterUIConf(
-        val name: String = "",
+        val name: String = EMPTY_STRING,
         val layoutWidth: Double = 0.0,
         val position: FilterPosition = FilterPosition(0, 0),
         val columnId: Int = -1,
-        val columnName: String = ""
+        val columnName: String = EMPTY_STRING
     )
 
     class LevelFilterUIConf(
@@ -103,7 +114,7 @@ interface Column {
         layoutWidth: Double = LAYOUT_WIDTH_PREFERRED,
         position: FilterPosition = FilterPosition(0, 0),
         columnId: Int = -1,
-        columnName: String = ""
+        columnName: String = EMPTY_STRING
     ) : CommonFilterUIConf(name, layoutWidth, position, columnId, columnName)
 
     class MatchCaseFilterInfoConf :
@@ -120,7 +131,7 @@ interface Column {
         private const val DEFAULT_COLUMN_CHAR_LEN = 10
 
         val default = DefaultColumn(
-            "",
+            EMPTY_STRING,
             supportFilter = true,
             isParsed = true,
             uiConf = UIConf(ColumnUIConf(), CommonFilterUIConf()),
@@ -141,29 +152,35 @@ fun LogMetadata.getFilterUIConfs(): List<Column.CommonFilterUIConf> {
 data class Level(
     val value: Int,
     val name: String,
-    val tag: String,
+    val abbreviation: String,
+    val keyword: String,
 ) {
     companion object {
-        val default: Level = Level(0, "Default", "D")
+        val default: Level = Level(0, "Default", "D", "D")
     }
 }
 
-fun Level.toDisplayedLevel(color: DarkThemeAwareColor): DisplayedLevel = DisplayedLevel(this, color)
-
 data class DisplayedLevel(
     val level: Level,
-    val color: DarkThemeAwareColor
+    val logForeground: DarkThemeAwareColor,
+    val levelColumnForeground: DarkThemeAwareColor,
+    val levelColumnBackground: DarkThemeAwareColor
 ) {
     companion object {
-        val default: DisplayedLevel = DisplayedLevel(Level.default, DarkThemeAwareColor(Color.BLACK))
+        val default: DisplayedLevel = DisplayedLevel(
+            Level.default,
+            DarkThemeAwareColor(Color.BLACK),
+            DarkThemeAwareColor(Color.BLACK),
+            DarkThemeAwareColor(Color.BLACK)
+        )
     }
 }
 
 data class LogColorScheme(
-    val searchContentBg: DarkThemeAwareColor = defaultColor,
-    val searchContentFg: DarkThemeAwareColor = defaultColor,
-    val filterContentBg: DarkThemeAwareColor = defaultColor,
-    val filterContentFg: DarkThemeAwareColor = defaultColor,
+    val searchContentBackground: DarkThemeAwareColor = defaultColor,
+    val searchContentForeground: DarkThemeAwareColor = defaultColor,
+    val filterContentBackground: DarkThemeAwareColor = defaultColor,
+    val filterContentForeground: DarkThemeAwareColor = defaultColor,
     val indexColumnSeparatorColor: DarkThemeAwareColor = defaultColor,
     val indexColumnForeground: DarkThemeAwareColor = defaultColor,
     val normalLogBackground: DarkThemeAwareColor = defaultColor,
@@ -172,7 +189,7 @@ data class LogColorScheme(
     val bookmarkedAndSelectedLogBackground: DarkThemeAwareColor = defaultColor,
 ) {
     companion object {
-        private val defaultColor = DarkThemeAwareColor(Color.BLACK)
+        private val defaultColor = DarkThemeAwareColor(Color.WHITE, Color.BLACK)
     }
 }
 

@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.ddmlib.adb
 
 import me.gegenbauer.catspy.ddmlib.log.DdmLog
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.util.*
 
 class AdbDeviceInfo(info: String, host: String, port: Int) {
@@ -36,7 +37,7 @@ class AdbDeviceInfo(info: String, host: String, port: Int) {
         } else {
             DdmLog.e(TAG, "[parseDeviceInfo] invalid device info: $info")
 
-            serial = ""
+            serial = EMPTY_STRING
             state = STATE_UNKNOWN
             model = STATE_UNKNOWN
         }

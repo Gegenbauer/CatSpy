@@ -10,6 +10,7 @@ dependencies {
     implementation(projects.resources)
     implementation(projects.file)
     implementation(projects.javaext)
+    implementation(projects.concurrency)
 }
 
 val generateGlobalProperties by tasks.registering {

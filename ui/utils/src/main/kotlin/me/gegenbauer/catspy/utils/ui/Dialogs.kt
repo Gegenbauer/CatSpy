@@ -98,7 +98,8 @@ private fun chooseMultiFiles(
     dir: String,
     multiSelection: Boolean,
 ): List<File> {
-    val chooser = JFileChooser(dir.ifEmpty { userHome })
+    val chooser = getDefaultFileChooser()
+    chooser.currentDirectory = chooser.fileSystemView.createFileObject(dir.ifEmpty { userHome })
     chooser.dialogTitle = title
     chooser.preferredSize = Dimension(
         (frame.size.width / 2).coerceAtLeast(600),
