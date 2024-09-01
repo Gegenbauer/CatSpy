@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.Log
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -44,7 +45,7 @@ class AndroidProcessFetcher(private val  device: String) {
             return pidToPackageMap[pid]!!
         }
         updatePidToPackageMap()
-        val packageName = pidToPackageMap[pid] ?: ""
+        val packageName = pidToPackageMap[pid] ?: EMPTY_STRING
         pidToPackageMap.getOrPut(pid) { packageName }
         return packageName
     }

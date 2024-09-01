@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.network.update
 
-import me.gegenbauer.catspy.java.ext.Event
+import me.gegenbauer.catspy.concurrency.Event
 import me.gegenbauer.catspy.network.update.data.Release
 
 sealed class ReleaseEvent: Event {

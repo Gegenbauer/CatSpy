@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.log.serialize
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.Column.Companion.LAYOUT_WIDTH_PREFERRED
 import me.gegenbauer.catspy.log.metadata.Column.FilterPosition
@@ -25,10 +26,12 @@ data class LogMetadataModel(
     val isBuiltIn: Boolean,
     val description: String,
     val sample: String,
+    // used to check if the metadata is outdated and update or discard it if necessary
+    val version: Int
 ) {
     companion object {
         val default = LogMetadataModel(
-            "",
+            EMPTY_STRING,
             LogParser.empty,
             emptyList(),
             emptyList(),
@@ -36,8 +39,9 @@ data class LogMetadataModel(
             emptySet(),
             isDeviceLog = false,
             isBuiltIn = false,
-            description = "",
-            sample = ""
+            description = EMPTY_STRING,
+            sample = EMPTY_STRING,
+            version = LogMetadata.VERSION
         )
     }
 }
@@ -72,16 +76,16 @@ data class ColumnModel(
     ) {
         companion object {
             val default = FilterUIConf(
-                "", LAYOUT_WIDTH_PREFERRED, FilterPosition(
+                EMPTY_STRING, LAYOUT_WIDTH_PREFERRED, FilterPosition(
                     0, 0
-                ), -1, ""
+                ), -1, EMPTY_STRING
             )
         }
     }
 
     companion object {
         val default = ColumnModel(
-            "",
+            EMPTY_STRING,
             supportFilter = true,
             isParsed = true,
             UIConf(
@@ -107,7 +111,8 @@ fun LogMetadata.toLogMetadataModel(): LogMetadataModel {
         isDeviceLog,
         isBuiltIn,
         description,
-        sample
+        sample,
+        version
     )
 }
 
@@ -163,7 +168,7 @@ fun LogMetadataModel.toLogMetadata(): LogMetadata {
         description,
         sample,
         levels,
-        colorScheme
+        colorScheme,
     )
 }
 

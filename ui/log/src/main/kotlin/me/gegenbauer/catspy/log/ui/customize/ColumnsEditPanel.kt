@@ -141,7 +141,7 @@ class ColumnsEditPanel : BaseEditableTablePanel<ColumnModel>() {
         )
     }
 
-    override fun isContentModified(): Boolean {
+    override fun isModified(): Boolean {
         val currentItems = items
         if (originalItems.size != currentItems.size) return true
         for (original in originalItems) {

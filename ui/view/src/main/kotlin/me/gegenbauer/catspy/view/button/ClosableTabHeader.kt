@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.view.button
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
 import me.gegenbauer.catspy.utils.ui.*
@@ -16,7 +17,7 @@ class ClosableTabHeader(
     icon: Icon? = null,
     private val closeable: Boolean = true,
     private val editable: Boolean = false,
-    private val tabTooltip: String? = "",
+    private val tabTooltip: String? = EMPTY_STRING,
 ) : JPanel() {
 
     var onCloseClicked: (() -> Unit)? = null
@@ -58,7 +59,7 @@ class ClosableTabHeader(
         title.name = TAB_NAME_KEY
         editor.border = BorderFactory.createLineBorder(editor.foreground)
         editor.margin = Insets(0, 0, 0, 0)
-        setTooltipInternal(tabTooltip ?: "")
+        setTooltipInternal(tabTooltip ?: EMPTY_STRING)
 
         add(title)
         if (closeable) {
@@ -70,7 +71,7 @@ class ClosableTabHeader(
         if (tooltip.isNotEmpty()) {
             setTooltipInternal(tooltip)
         } else {
-            setTooltipInternal(tabTooltip ?: "")
+            setTooltipInternal(tabTooltip ?: EMPTY_STRING)
         }
     }
 

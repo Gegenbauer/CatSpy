@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.log.ui.customize
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.serialize.*
 import me.gegenbauer.catspy.strings.STRINGS
 import java.awt.Dimension
@@ -89,7 +90,7 @@ private class CharParamEditor(tooltip: String? = null) : ParamEditor(tooltip) {
     var value: Char?
         get() = text.firstOrNull()
         set(value) {
-            text = value?.toString() ?: ""
+            text = value?.toString() ?: EMPTY_STRING
         }
 
     init {

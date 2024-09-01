@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.io.File
 
 interface LogProducer {
@@ -48,7 +49,7 @@ object EmptyLogProducer : LogProducer {
 
     override val state: StateFlow<LogProducer.State> = MutableStateFlow(LogProducer.State.CREATED)
 
-    override val tempFile: File = File("")
+    override val tempFile: File = File(EMPTY_STRING)
 
     override fun start(): Flow<Result<LogItem>> {
         return emptyFlow()

@@ -1,12 +1,14 @@
 package me.gegenbauer.catspy.strings
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+
 
 class HelpText {
     companion object {
-        val textCn = ""
+        val textCn = EMPTY_STRING
 
-        val textEn = ""
+        val textEn = EMPTY_STRING
 
-        val textKo = ""
+        val textKo = EMPTY_STRING
     }
 }

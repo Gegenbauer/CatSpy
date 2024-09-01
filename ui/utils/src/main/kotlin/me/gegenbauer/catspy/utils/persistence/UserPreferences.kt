@@ -8,6 +8,7 @@ import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.file.getFilePath
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.utils.file.StringFileManager
 import me.gegenbauer.catspy.utils.file.XMLFileManager
@@ -21,7 +22,7 @@ interface UserPreferences {
     fun getString(key: String, defaultValue: String): String
 
     fun getString(key: String): String {
-        return getString(key, "")
+        return getString(key, EMPTY_STRING)
     }
 
     fun putString(key: String, value: String)
@@ -141,7 +142,7 @@ class XmlUserPreferences : UserPreferences {
             val filePath = getFilePath(key.substringBeforeLast(KEY_SEPARATOR))
             return Key(filePath.parentDir, filePath.fileName, storeKey)
         }
-        return Key("", DEFAULT_FILE_NAME, key)
+        return Key(EMPTY_STRING, DEFAULT_FILE_NAME, key)
     }
 
     private data class Key(

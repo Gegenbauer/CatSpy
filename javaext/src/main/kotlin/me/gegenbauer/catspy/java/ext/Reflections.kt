@@ -1,31 +1,13 @@
 package me.gegenbauer.catspy.java.ext
 
-import me.gegenbauer.catspy.glog.GLog
 import java.lang.reflect.Field
 import java.lang.reflect.Method
-import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.kotlinProperty
 
-private const val TAG = "Reflection"
-
-fun Any.invokeMethod(methodName: String, vararg args: Any?): Any? {
-    return kotlin.runCatching {
-        val method = this::class.declaredMemberFunctions.firstOrNull { it.name == methodName }
-        method?.isAccessible = true
-        if (method != null && method.isAccessible) {
-            method.call(this, *args)
-        } else {
-            GLog.w(TAG, "[invokeMethod] no such method: $methodName")
-            null
-        }
-    }.onFailure {
-        GLog.e(TAG, "[invokeMethod] failed! methodName: $methodName, args: $args", it)
-    }.getOrNull()
-}
+class SetFieldException(message: String) : RuntimeException(message)
 
 fun Any.setField(fieldName: String, value: Any?) {
     kotlin.runCatching {
@@ -33,7 +15,7 @@ fun Any.setField(fieldName: String, value: Any?) {
         method?.isAccessible = true
         method?.invoke(this, value)
     }.onFailure {
-        GLog.e(TAG, "[setField] failed! $this fieldName: $fieldName, value: $value", it)
+        throw SetFieldException("[setField] failed! $this fieldName: $fieldName, value: $value")
     }
 }
 

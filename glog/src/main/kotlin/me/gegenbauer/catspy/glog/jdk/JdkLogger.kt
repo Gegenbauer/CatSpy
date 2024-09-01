@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.glog.jdk
 
 import me.gegenbauer.catspy.glog.GLogger
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.net.UnknownHostException
@@ -40,7 +41,7 @@ class JdkLogger(tag: String): GLogger {
     private inline val Throwable?.stackTraceString: String
         get() = run {
             if (this == null) {
-                return ""
+                return EMPTY_STRING
             }
 
             // This is to reduce the amount of log spew that apps do in the non-error
@@ -48,7 +49,7 @@ class JdkLogger(tag: String): GLogger {
             var t = this
             while (t != null) {
                 if (t is UnknownHostException) {
-                    return ""
+                    return EMPTY_STRING
                 }
                 t = t.cause
             }

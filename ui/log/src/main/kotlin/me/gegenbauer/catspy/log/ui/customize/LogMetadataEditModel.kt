@@ -8,6 +8,7 @@ data class LogMetadataEditModel(
     val isEdited: Boolean,
     val isNew: Boolean,
     val isDeleted: Boolean = false,
+    val isNightMode: Boolean = false,
     val id: Int
 ) {
 
@@ -22,8 +23,9 @@ fun LogMetadataModel.toEditModel(
     isEdited: Boolean = false,
     isNew: Boolean = false,
     isDeleted: Boolean = false,
+    isNightMode: Boolean = false,
     id: Int = LogMetadataEditModel.generateNewId()
-) = LogMetadataEditModel(this, isEdited, isNew, isDeleted, id)
+) = LogMetadataEditModel(this, isEdited, isNew, isDeleted, isNightMode, id)
 
 fun createNewLogMetadataEditModel(id: Int = LogMetadataEditModel.generateNewId()) =
     LogMetadataModel.default.toEditModel(isNew = true, id = id)

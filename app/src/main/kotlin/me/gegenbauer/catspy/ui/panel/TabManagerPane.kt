@@ -10,6 +10,7 @@ import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.java.ext.Bundle
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.log.metadata.LogMetadataManager
 import me.gegenbauer.catspy.log.serialize.toLogMetadata
@@ -176,7 +177,7 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
         selectTab(tabPanel)
         val tabHeader = createTabHeader(tabPanel, tabInfo)
         tabPanel.setTabNameController { tabHeader.setTabName(it) }
-        tabPanel.setTabTooltipController { tabHeader.setTabTooltip(it ?: "") }
+        tabPanel.setTabTooltipController { tabHeader.setTabTooltip(it ?: EMPTY_STRING) }
         setTabComponentAt(indexOfComponent(tabPanel.getTabContent()), tabHeader)
         return tabPanel
     }

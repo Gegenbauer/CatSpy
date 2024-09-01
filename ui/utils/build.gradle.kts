@@ -11,6 +11,9 @@ dependencies {
     implementation(projects.context)
     implementation(projects.concurrency)
     implementation(projects.platform)
+    implementation(projects.cache)
     implementation(FormDev.flatLaf)
     implementation(Weisj.darklafCore)
+
+    testImplementation(kotlinTestApi())
 }

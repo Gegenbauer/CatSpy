@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.log.datasource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import me.gegenbauer.catspy.concurrency.GIO
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.Level
 import me.gegenbauer.catspy.log.ui.LogConfiguration
@@ -13,12 +14,12 @@ abstract class BaseCustomLogProducer(
     override val dispatcher: CoroutineDispatcher = Dispatchers.GIO
 ) : BaseLogProducer(logConfiguration.logMetaData.parser) {
 
-    override val tempFile: File = File("")
+    override val tempFile: File = File(EMPTY_STRING)
 
     protected fun generateLogItems(): List<LogItem> {
         val sampleLog = getSampleLogItem()
         val allLevelLogs = getAllLevelLogs(sampleLog)
-        return listOf(sampleLog) + allLevelLogs
+        return allLevelLogs
     }
 
     protected open fun getSampleLogItem(): LogItem {
@@ -29,7 +30,7 @@ abstract class BaseCustomLogProducer(
         val logPartCount = logConfiguration.logMetaData.columns.size
         val levelColumnIndex = logConfiguration.logMetaData.columns.indexOfFirst { it is Column.LevelColumn }
         if (levelColumnIndex == -1) {
-            return emptyList()
+            return listOf(sampleLog)
         }
         val levels = logConfiguration.logMetaData.levels
         val logItems = mutableListOf<LogItem>()
@@ -41,7 +42,7 @@ abstract class BaseCustomLogProducer(
 
     private fun generateTargetLevelLogItem(sampleLog: LogItem, level: Level, logPartCount: Int, levelColumnIndex: Int, rowIndex: Int): LogItem {
         val logParts = (0 until logPartCount).map { sampleLog.parts[it] }.toMutableList()
-        logParts[levelColumnIndex] = level.tag
+        logParts[levelColumnIndex] = level.keyword
         return LogItem(rowIndex, logParts.joinToString(" "), logParts)
     }
 }

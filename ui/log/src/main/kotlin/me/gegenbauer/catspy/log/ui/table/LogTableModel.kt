@@ -10,6 +10,7 @@ import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.datasource.LogProducerManager
 import me.gegenbauer.catspy.log.datasource.LogViewModel
@@ -187,7 +188,7 @@ open class LogTableModel(
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
         val columnCount = logConf.getColumnCount()
-        if (columnIndex >= columnCount) return ""
+        if (columnIndex >= columnCount) return EMPTY_STRING
 
         val columnParam = getColumnParam(columnIndex)
         return accessPageData(currentPage) { logItems ->
@@ -216,13 +217,13 @@ open class LogTableModel(
     }
 
     private fun moveToSearch(isNext: Boolean): String {
-        if (searchFilterItem.isEmpty()) return ""
+        if (searchFilterItem.isEmpty()) return EMPTY_STRING
 
         val selectedRow = selectedLogRows.firstOrNull() ?: -1
         val mainUI = contexts.getContext(BaseLogMainPanel::class.java)
-        mainUI ?: return ""
+        mainUI ?: return EMPTY_STRING
         val table = getLogTable()
-        table ?: return ""
+        table ?: return EMPTY_STRING
 
         val targetRow = selectedRow.run { if (isNext) this + 1 else this - 1 }
         val shouldReturn = targetRow.run { if (isNext) this >= rowCount else this < 0 }
@@ -243,7 +244,7 @@ open class LogTableModel(
 
         if (idxFound >= 0) {
             table.moveRowToCenter(idxFound, true)
-            return ""
+            return EMPTY_STRING
         }
         return "\"$searchFilterItem\" ${STRINGS.ui.notFound}"
     }

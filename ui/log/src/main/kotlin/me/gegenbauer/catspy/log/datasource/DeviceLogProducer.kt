@@ -15,7 +15,7 @@ import me.gegenbauer.catspy.file.appendExtension
 import me.gegenbauer.catspy.file.appendName
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.log.Log
-import me.gegenbauer.catspy.log.metadata.LogcatLog
+import me.gegenbauer.catspy.log.metadata.LogcatLogSupport
 import me.gegenbauer.catspy.log.parse.LogParser
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.LOG_DIR
@@ -41,7 +41,7 @@ class DeviceLogProducer(
     private val ipPortSeparator = currentPlatform.wifiAdbIpPortSeparator
 
     private val commandExecutor by lazy {
-        val logcatCommand = LogcatLog.getLogcatCommand(SettingsManager.adbPath, device)
+        val logcatCommand = LogcatLogSupport.getLogcatCommand(SettingsManager.adbPath, device)
         CommandExecutorImpl(CommandProcessBuilder(logcatCommand.toCommandArray()))
     }
 

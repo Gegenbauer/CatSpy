@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import me.gegenbauer.catspy.concurrency.GIO
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.script.model.Script
 import me.gegenbauer.catspy.task.CommandTask
 import me.gegenbauer.catspy.task.TaskManager
@@ -40,7 +41,7 @@ class CommandExecutor(
         if (output.get() == null) {
             countDownLatch.await()
         }
-        emit(ShellCommandResult((output.get() ?: "").toByteArray(), byteArrayOf(0), 0))
+        emit(ShellCommandResult((output.get() ?: EMPTY_STRING).toByteArray(), byteArrayOf(0), 0))
     }.flowOn(dispatcher)
 
 }

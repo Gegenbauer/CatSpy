@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.ddmlib.adb
 import me.gegenbauer.catspy.ddmlib.log.DdmLog
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.platform.currentPlatform
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -120,5 +121,5 @@ fun detectAdbPath(): String {
         }
     }
     GLog.w(TAG, "[detectAdbPath] failed to detect adb path from PATH")
-    return ""
+    return EMPTY_STRING
 }

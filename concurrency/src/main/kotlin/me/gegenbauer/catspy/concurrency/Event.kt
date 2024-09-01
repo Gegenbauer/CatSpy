@@ -1,4 +1,4 @@
-package me.gegenbauer.catspy.java.ext
+package me.gegenbauer.catspy.concurrency
 
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow

@@ -1,10 +1,14 @@
 package me.gegenbauer.catspy.utils.ui
 
 import me.gegenbauer.catspy.java.ext.getFieldDeeply
+import java.awt.datatransfer.DataFlavor
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import java.io.File
 import java.util.*
 import javax.swing.JComponent
+import javax.swing.JFileChooser
+import javax.swing.TransferHandler
 
 open class DefaultFocusListener : FocusListener {
 
@@ -46,3 +50,34 @@ var JComponent.propertyChangeListenerList: MutableMap<String, Array<EventListene
         val listenerMap = changeListenerMap.getFieldDeeply("map")
         listenerMap.set(changeListenerMap, value)
     }
+
+fun getDefaultFileChooser(): JFileChooser {
+    return JFileChooser().apply {
+        isMultiSelectionEnabled = false
+        fileSelectionMode = JFileChooser.FILES_ONLY
+        isFileHidingEnabled = false
+        dragEnabled = true
+        isAcceptAllFileFilterUsed = true
+        transferHandler = FileChooserTransferHandler(this)
+    }
+}
+
+class FileChooserTransferHandler(private val chooser: JFileChooser) : TransferHandler() {
+    override fun canImport(support: TransferSupport): Boolean {
+        return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
+    }
+
+    override fun importData(support: TransferSupport): Boolean {
+        if (!canImport(support)) {
+            return false
+        }
+        val files = support.transferable.getTransferData(DataFlavor.javaFileListFlavor) as List<*>
+        if (files.isNotEmpty()) {
+            val file = files[0] as? File ?: return false
+            chooser.currentDirectory = file.parentFile
+            chooser.selectedFile = file
+            return true
+        }
+        return false
+    }
+}

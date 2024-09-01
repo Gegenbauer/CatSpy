@@ -33,14 +33,14 @@ interface LogCellRenderer : TableCellRenderer {
 
     var maxLength: Int
 
-    var logTable: LogTable
+    var logTable: LogTable?
 }
 
 abstract class BaseLogCellRendererProvider : LogCellRendererProvider {
     protected lateinit var logMetadata: LogMetadata
         private set
 
-    private val levelTagToLevels = mutableMapOf<String, DisplayedLevel>()
+    private val levelKeywordToLevels = mutableMapOf<String, DisplayedLevel>()
     private val columnFilterIndexes = mutableMapOf<Column, Int>()
 
     private var levelPartIndex = 0
@@ -82,12 +82,12 @@ abstract class BaseLogCellRendererProvider : LogCellRendererProvider {
     }
 
     private fun updateLevelCache(logMetadata: LogMetadata) {
-        levelTagToLevels.clear()
-        levelTagToLevels.putAll(logMetadata.levels.map { it.level.tag to it })
+        levelKeywordToLevels.clear()
+        levelKeywordToLevels.putAll(logMetadata.levels.map { it.level.keyword to it })
     }
 
     protected fun getLevel(logItem: LogItem): DisplayedLevel {
-        return levelTagToLevels[logItem.getPart(levelPartIndex)] ?: levelTagToLevels.values.minBy { it.level.value }
+        return levelKeywordToLevels[logItem.getPart(levelPartIndex)] ?: levelKeywordToLevels.values.minBy { it.level.value }
     }
 
     class LineNumBorder(var color: Color, private val thickness: Int) : AbstractBorder() {

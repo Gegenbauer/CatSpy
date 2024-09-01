@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     implementation(projects.file)
+    implementation(projects.javaext)
     implementation(Slf4j.api)
     implementation(Logback.classic)
     implementation(ApacheLogging.log4jCore)

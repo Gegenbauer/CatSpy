@@ -1,7 +1,12 @@
 package me.gegenbauer.catspy.render
 
+import me.gegenbauer.catspy.cache.CacheableObject
 import me.gegenbauer.catspy.cache.ObjectPool
-import me.gegenbauer.catspy.context.MemoryState
+import me.gegenbauer.catspy.cache.use
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.utils.string.CacheableStringBuilder
+import me.gegenbauer.catspy.utils.string.SimpleStringBuilder
+import me.gegenbauer.catspy.utils.ui.toHtml
 import java.awt.Color
 
 /**
@@ -9,7 +14,7 @@ import java.awt.Color
  */
 class LabelRenderer : StringRenderer {
 
-    override var raw: String = ""
+    override var raw: String = EMPTY_STRING
         private set
 
     private val spans = mutableListOf<Span>()
@@ -24,12 +29,16 @@ class LabelRenderer : StringRenderer {
      * @param end inclusive
      */
     override fun bold(start: Int, end: Int): StringRenderer {
-        spans.add(Span(start, end, SpanType.BOLD))
+        val span = Span.obtain()
+        span.set(start, end, SpanType.BOLD)
+        spans.add(span)
         return this
     }
 
     override fun bold(): StringRenderer {
-        spans.add(Span(0, raw.length - 1, SpanType.BOLD))
+        val span = Span.obtain()
+        span.set(0, raw.length - 1, SpanType.BOLD)
+        spans.add(span)
         return this
     }
 
@@ -38,12 +47,16 @@ class LabelRenderer : StringRenderer {
      * @param end inclusive
      */
     override fun italic(start: Int, end: Int): StringRenderer {
-        spans.add(Span(start, end, SpanType.ITALIC))
+        val span = Span.obtain()
+        span.set(start, end, SpanType.ITALIC)
+        spans.add(span)
         return this
     }
 
     override fun italic(): StringRenderer {
-        spans.add(Span(0, raw.length - 1, SpanType.ITALIC))
+        val span = Span.obtain()
+        span.set(0, raw.length - 1, SpanType.ITALIC)
+        spans.add(span)
         return this
     }
 
@@ -52,12 +65,16 @@ class LabelRenderer : StringRenderer {
      * @param end inclusive
      */
     override fun strikethrough(start: Int, end: Int): StringRenderer {
-        spans.add(Span(start, end, SpanType.STRIKETHROUGH))
+        val span = Span.obtain()
+        span.set(start, end, SpanType.STRIKETHROUGH)
+        spans.add(span)
         return this
     }
 
     override fun strikethrough(): StringRenderer {
-        spans.add(Span(0, raw.length - 1, SpanType.STRIKETHROUGH))
+        val span = Span.obtain()
+        span.set(0, raw.length - 1, SpanType.STRIKETHROUGH)
+        spans.add(span)
         return this
     }
 
@@ -66,12 +83,16 @@ class LabelRenderer : StringRenderer {
      * @param end inclusive
      */
     override fun highlight(start: Int, end: Int, color: Color): StringRenderer {
-        spans.add(Span(start, end, SpanType.HIGHLIGHT, color))
+        val span = Span.obtain()
+        span.set(start, end, SpanType.HIGHLIGHT, color)
+        spans.add(span)
         return this
     }
 
     override fun highlight(color: Color): StringRenderer {
-        spans.add(Span(0, raw.length - 1, SpanType.HIGHLIGHT, color))
+        val span = Span.obtain()
+        span.set(0, raw.length - 1, SpanType.HIGHLIGHT, color)
+        spans.add(span)
         return this
     }
 
@@ -80,12 +101,16 @@ class LabelRenderer : StringRenderer {
      * @param end inclusive
      */
     override fun foreground(start: Int, end: Int, color: Color): StringRenderer {
-        spans.add(Span(start, end, SpanType.FOREGROUND, color))
+        val span = Span.obtain()
+        span.set(start, end, SpanType.FOREGROUND, color)
+        spans.add(span)
         return this
     }
 
     override fun foreground(color: Color): StringRenderer {
-        spans.add(Span(0, raw.length - 1, SpanType.FOREGROUND, color))
+        val span = Span.obtain()
+        span.set(0, raw.length - 1, SpanType.FOREGROUND, color)
+        spans.add(span)
         return this
     }
 
@@ -94,12 +119,16 @@ class LabelRenderer : StringRenderer {
      * @param end inclusive
      */
     override fun underline(start: Int, end: Int): StringRenderer {
-        spans.add(Span(start, end, SpanType.UNDERLINE))
+        val span = Span.obtain()
+        span.set(start, end, SpanType.UNDERLINE)
+        spans.add(span)
         return this
     }
 
     override fun underline(): StringRenderer {
-        spans.add(Span(0, raw.length - 1, SpanType.UNDERLINE))
+        val span = Span.obtain()
+        span.set(0, raw.length - 1, SpanType.UNDERLINE)
+        spans.add(span)
         return this
     }
 
@@ -116,10 +145,25 @@ class LabelRenderer : StringRenderer {
             result.rendered = raw
             return
         }
+        // remove highlight if it covers the whole length, as it is handled by background color
+        removeWholeLengthHighlight()
 
-        val builder = HtmlStringBuilder()
-        builder.append(renderWithoutTags())
-        result.rendered = builder.build()
+        result.rendered = HtmlStringBuilder.obtain().use {
+            it.isHtmlTagInitialized = true
+            it.append(renderWithoutTags())
+            it.build()
+        }
+    }
+
+    private fun removeWholeLengthHighlight() {
+        val iterator = spans.iterator()
+        while (iterator.hasNext()) {
+            val span = iterator.next()
+            if (span.type == SpanType.HIGHLIGHT && span.start == 0 && span.end >= raw.length - 1) {
+                iterator.remove()
+                span.recycle()
+            }
+        }
     }
 
     fun renderWithoutTags(): String {
@@ -127,27 +171,39 @@ class LabelRenderer : StringRenderer {
             return raw
         }
 
-        val builder = HtmlStringBuilder(false)
-        spans.add(Span(0, raw.length - 1, SpanType.NORMAL))
+        val builder = HtmlStringBuilder.obtain()
+        val helpSpan = Span.obtain()
+        helpSpan.set(0, raw.length - 1, SpanType.NORMAL)
+        spans.add(helpSpan)
         val splitIntervals = splitStringIntoIntervals(spans)
         val splitSpans = getSplitSpans(splitIntervals)
 
         val mergedSpans = mergeSpans(splitSpans)
         val spansGroupByStart = mergedSpans.groupBy { it.start }.map { it.value }
-        spansGroupByStart.forEach {
-            val start = it.first().start
-            val end = it.first().end
-            val styledSpan = it.filter { span -> span.type != SpanType.NORMAL }
+        spansGroupByStart.forEach { spanGroup ->
+            val start = spanGroup.first().start
+            val end = spanGroup.first().end
+            val styledSpan = spanGroup.filter { span -> span.type != SpanType.NORMAL }
             if (styledSpan.isEmpty()) {
-                builder.append(raw.substring(start, end + 1).formatted)
+                builder.append(
+                    CacheableStringBuilder.obtain().use {
+                        it.set(raw).substring(start, end + 1).formatted.build()
+                    }
+                )
             } else {
-                val css = styledSpan.joinToString("") { span -> span.css() }
+                val css = styledSpan.joinToString(EMPTY_STRING) { span -> span.css() }
                 builder.addTag(Tag.SPAN, "style=\"$css\"")
-                builder.append(raw.substring(start, end + 1).formatted)
+                builder.append(
+                    CacheableStringBuilder.obtain().use {
+                        it.set(raw).substring(start, end + 1).formatted.build()
+                    }
+                )
                 builder.closeTag(Tag.SPAN)
             }
         }
-        return builder.build()
+        mergedSpans.forEach { it.recycle() }
+        splitSpans.forEach { it.recycle() }
+        return builder.use { it.build() }
     }
 
     /**
@@ -186,10 +242,14 @@ class LabelRenderer : StringRenderer {
             val end = splitIntervals[i].last
             val coveringSpans = spans.filter { start >= it.start && end <= it.end }
             coveringSpans.forEach {
-                splitSpans.add(Span(start, end, it.type, it.color))
+                val span = Span.obtain()
+                span.set(start, end, it.type, it.color)
+                splitSpans.add(span)
             }
             if (coveringSpans.isEmpty()) {
-                splitSpans.add(Span(start, end, SpanType.NORMAL))
+                val span = Span.obtain()
+                span.set(start, end, SpanType.NORMAL)
+                splitSpans.add(span)
             }
         }
         return splitSpans
@@ -209,63 +269,82 @@ class LabelRenderer : StringRenderer {
             } else {
                 it.first().color
             }
-            mergedSpan.add(Span(it.first().start, it.first().end, it.first().type, color))
+            val span = Span.obtain()
+            span.set(it.first().start, it.last().end, it.first().type, color)
+            mergedSpan.add(span)
         }
         return mergedSpan
     }
 
     override fun clear() {
+        spans.forEach(Span::recycle)
         spans.clear()
     }
 
     private fun isComplexityLow(): Boolean {
-        val foregroundSpans = spans.filter { it.type == SpanType.FOREGROUND }
-        val highlightSpans = spans.filter { it.type == SpanType.HIGHLIGHT }
+        val isForegroundLowComplexity = spans.none { it.type == SpanType.FOREGROUND } ||
+                spans.all { it.type != SpanType.FOREGROUND || (it.start == 0 && it.end >= raw.length - 1) }
 
-        val isForegroundLowComplexity =
-            foregroundSpans.isEmpty() || (foregroundSpans.all { it.start == 0 && it.end >= raw.length - 1 })
-        val isHighlightLowComplexity =
-            highlightSpans.isEmpty() || (highlightSpans.all { it.start == 0 && it.end >= raw.length - 1 })
+        val isHighlightLowComplexity = spans.none { it.type == SpanType.HIGHLIGHT } ||
+                spans.all { it.type != SpanType.HIGHLIGHT || (it.start == 0 && it.end >= raw.length - 1) }
 
         return isForegroundLowComplexity && isHighlightLowComplexity
     }
 
     private fun getForegroundColor(): Color {
-        val foregroundSpans = spans.filter { it.type == SpanType.FOREGROUND }
-        return if (foregroundSpans.isEmpty()) {
-            INVALID_COLOR
-        } else {
-            foregroundSpans.last().color
-        }
+        val foregroundSpan = spans.lastOrNull { it.type == SpanType.FOREGROUND }
+        return foregroundSpan?.color ?: INVALID_COLOR
     }
 
     private fun getBackgroundColor(): Color {
-        val highlightSpans = spans.filter { it.type == SpanType.HIGHLIGHT && it.start == 0 && it.end >= raw.length - 1 }
-        return if (highlightSpans.isEmpty()) {
-            INVALID_COLOR
-        } else {
-            highlightSpans.last().color
-        }
+        val highlightSpan =
+            spans.lastOrNull { it.type == SpanType.HIGHLIGHT && it.start == 0 && it.end >= raw.length - 1 }
+        return highlightSpan?.color ?: INVALID_COLOR
     }
 
-    private val String.formatted: String
-        get() = replace("<", "&lt;").replace(">", "&gt;").replace(" ", "&nbsp;")
+    private inline val SimpleStringBuilder.formatted: SimpleStringBuilder
+        get() {
+            invalidHtmlChars.forEach { (regex, replacement) ->
+                replace(regex, replacement)
+            }
+            return this
+        }
 
-    private data class Span(
-        val start: Int,
-        val end: Int,
-        val type: SpanType,
-        val color: Color = Color.BLACK,
-        val replace: Boolean = false
-    ) {
+    private class Span private constructor(
+        var start: Int,
+        var end: Int,
+        var type: SpanType,
+        var color: Color = Color.BLACK,
+    ) : CacheableObject {
         fun css(): String = when (type) {
-            SpanType.NORMAL -> ""
+            SpanType.NORMAL -> EMPTY_STRING
             SpanType.BOLD -> "font-weight:bold;"
             SpanType.ITALIC -> "font-style:italic;"
             SpanType.UNDERLINE -> "text-decoration:underline;"
             SpanType.STRIKETHROUGH -> "text-decoration:line-through;"
             SpanType.HIGHLIGHT -> "background-color:${color.toHtml()};"
             SpanType.FOREGROUND -> "color:${color.toHtml()};"
+        }
+
+        fun set(start: Int, end: Int, type: SpanType, color: Color = Color.BLACK) {
+            this.start = start
+            this.end = end
+            this.type = type
+            this.color = color
+        }
+
+        override fun recycle() {
+            pool.recycle(this)
+        }
+
+        companion object {
+            private val pool = ObjectPool.createMemoryAwarePool(1000) {
+                Span(0, 0, SpanType.NORMAL)
+            }
+
+            fun obtain(): Span {
+                return pool.obtain()
+            }
         }
     }
 
@@ -283,16 +362,13 @@ class LabelRenderer : StringRenderer {
     }
 
     companion object {
-        private val pool = object : ObjectPool<LabelRenderer>(1000) {
+        private val invalidHtmlChars = mapOf(
+            "<".toRegex() to "&lt;",
+            ">".toRegex() to "&gt;",
+            " ".toRegex() to "&nbsp;"
+        )
 
-            init {
-                MemoryState.register(this)
-            }
-
-            override fun create(): LabelRenderer {
-                return LabelRenderer()
-            }
-        }
+        private val pool = ObjectPool.createMemoryAwarePool(1000) { LabelRenderer() }
 
         fun obtain(): LabelRenderer {
             return pool.obtain()

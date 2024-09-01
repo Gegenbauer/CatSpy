@@ -21,8 +21,9 @@ import me.gegenbauer.catspy.concurrency.ViewModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.java.ext.ErrorEvent
-import me.gegenbauer.catspy.java.ext.Event
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.concurrency.ErrorEvent
+import me.gegenbauer.catspy.concurrency.Event
 import me.gegenbauer.catspy.java.ext.formatDuration
 import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.filter.LogFilter
@@ -62,7 +63,7 @@ class LogViewModel(
         get() = produceLogTask.logProducer.tempFile
 
     override val device: String
-        get() = (produceLogTask.logProducer as? DeviceLogProducer)?.device ?: ""
+        get() = (produceLogTask.logProducer as? DeviceLogProducer)?.device ?: EMPTY_STRING
 
     private val logConf by lazy { contexts.getContext(LogConfiguration::class.java)!! }
     private val _eventFlow = MutableSharedFlow<Event>(

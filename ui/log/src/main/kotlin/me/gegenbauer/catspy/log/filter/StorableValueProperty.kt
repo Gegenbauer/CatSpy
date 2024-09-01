@@ -2,9 +2,11 @@ package me.gegenbauer.catspy.log.filter
 
 import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.databinding.bind.Observer
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.utils.persistence.Preferences
 import me.gegenbauer.catspy.utils.persistence.UserPreferences
 
+@Suppress("UNCHECKED_CAST")
 class StorableValueProperty<T>(
     override val key: String,
     private val defaultValue: T,
@@ -48,7 +50,7 @@ class StorableValueProperty<T>(
         if (defaultValue is List<*>) {
             Preferences.putStringList(key, newValue as? List<String> ?: emptyList())
         } else {
-            Preferences.putString(key, newValue?.toString() ?: "")
+            Preferences.putString(key, newValue?.toString() ?: EMPTY_STRING)
         }
     }
 
