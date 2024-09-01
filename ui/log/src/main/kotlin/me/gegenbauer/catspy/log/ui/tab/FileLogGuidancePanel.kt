@@ -5,6 +5,7 @@ import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import me.gegenbauer.catspy.file.toHumanReadableSize
 import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.recent.RecentFile
 import me.gegenbauer.catspy.log.recent.RecentLogFiles
 import me.gegenbauer.catspy.strings.STRINGS
@@ -135,7 +136,7 @@ class FileLogGuidancePanel(
             JOptionPane.showMessageDialog(
                 this,
                 message,
-                "",
+                EMPTY_STRING,
                 JOptionPane.WARNING_MESSAGE
             )
         }

@@ -2,7 +2,7 @@ package me.gegenbauer.catspy.log.datasource
 
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import me.gegenbauer.catspy.java.ext.Event
+import me.gegenbauer.catspy.concurrency.Event
 import me.gegenbauer.catspy.view.state.ListState
 import java.io.File
 

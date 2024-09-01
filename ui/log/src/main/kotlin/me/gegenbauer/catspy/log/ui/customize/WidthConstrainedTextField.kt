@@ -1,11 +1,12 @@
 package me.gegenbauer.catspy.log.ui.customize
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.strings.STRINGS
 import java.awt.Dimension
 import javax.swing.JTextField
 
 open class WidthConstrainedTextField(
-    text: String = "",
+    text: String = EMPTY_STRING,
     private val tooltip: String? = null,
     private val maxCharCount: Int = Int.MAX_VALUE
 ) : JTextField(text) {
@@ -18,7 +19,7 @@ open class WidthConstrainedTextField(
         return if (isEditable && tooltip?.isNotEmpty() == true) {
             "$tooltip\n${STRINGS.toolTip.paramEditorConfirmHint}"
         } else {
-            tooltip ?: ""
+            tooltip ?: EMPTY_STRING
         }
     }
 
@@ -27,7 +28,7 @@ open class WidthConstrainedTextField(
         toolTipText = getTooltip()
     }
 
-    constructor(tooltip: String?, maxCharCount: Int) : this("", tooltip, maxCharCount)
+    constructor(tooltip: String?, maxCharCount: Int) : this(EMPTY_STRING, tooltip, maxCharCount)
 
     override fun getMaximumSize(): Dimension {
         if (text.length > maxCharCount) return Dimension(getMaxWidth(), super.getMaximumSize().height)

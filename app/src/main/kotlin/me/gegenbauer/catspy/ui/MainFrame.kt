@@ -1,7 +1,13 @@
 package me.gegenbauer.catspy.ui
 
 import kotlinx.coroutines.*
+import me.gegenbauer.catspy.concurrency.FileSaveEvent
 import me.gegenbauer.catspy.concurrency.GIO
+import me.gegenbauer.catspy.concurrency.GlobalEventManager
+import me.gegenbauer.catspy.concurrency.GlobalMessageManager
+import me.gegenbauer.catspy.concurrency.Message
+import me.gegenbauer.catspy.concurrency.NormalEvent
+import me.gegenbauer.catspy.concurrency.OpenAdbPathSettingsEvent
 import me.gegenbauer.catspy.conf.GlobalConfSync
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.configuration.currentSettings
@@ -178,7 +184,7 @@ class MainFrame(
             JOptionPane.showMessageDialog(
                 this@MainFrame,
                 msg,
-                "",
+                EMPTY_STRING,
                 JOptionPane.INFORMATION_MESSAGE
             )
         }
@@ -261,7 +267,7 @@ class MainFrame(
                 JOptionPane.showMessageDialog(
                     this@MainFrame,
                     it.message,
-                    "",
+                    EMPTY_STRING,
                     getMessageBoxType(it)
                 )
             }

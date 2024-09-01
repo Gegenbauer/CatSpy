@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.log.ui.tab
 
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.log.recent.RecentLogFiles
 import me.gegenbauer.catspy.log.serialize.LogMetadataModel
@@ -16,7 +17,6 @@ import me.gegenbauer.catspy.utils.ui.showWarningDialog
 import me.gegenbauer.catspy.view.panel.StatusBar
 import java.awt.Component
 import java.io.File
-import javax.swing.JOptionPane
 import javax.swing.SwingUtilities
 import javax.swing.TransferHandler
 
@@ -44,7 +44,7 @@ open class FileLogMainPanel : BaseLogMainPanel() {
 
     private val pendingLogFiles = mutableListOf<File>()
 
-    private var currentLogFile = ""
+    private var currentLogFile = EMPTY_STRING
 
     override fun onInitialMetadataAcquired(metadata: LogMetadata) {
         super.onInitialMetadataAcquired(metadata)
@@ -84,7 +84,7 @@ open class FileLogMainPanel : BaseLogMainPanel() {
 
         return showWarningDialog(
             this,
-            "",
+            EMPTY_STRING,
             STRINGS.ui.reloadFileLogMetadataWarning,
             actions,
         )
@@ -140,7 +140,7 @@ open class FileLogMainPanel : BaseLogMainPanel() {
         super.clearAllLogs()
         if (taskState is TaskIdle) {
             logStatus = StatusBar.LogStatus.NONE
-            currentLogFile = ""
+            currentLogFile = EMPTY_STRING
         }
     }
 
@@ -183,7 +183,7 @@ open class FileLogMainPanel : BaseLogMainPanel() {
 
         showWarningDialog(
             this,
-            "",
+            EMPTY_STRING,
             STRINGS.ui.dragLogFileWarning,
             listOf(
                 STRINGS.ui.open to { true },

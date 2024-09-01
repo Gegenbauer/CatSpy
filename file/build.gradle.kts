@@ -5,5 +5,6 @@ plugins {
 }
 
 dependencies {
+    implementation(projects.javaext)
     api(Gson.gson)
 }

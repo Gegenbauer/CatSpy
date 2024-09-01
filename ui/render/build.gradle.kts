@@ -8,6 +8,8 @@ dependencies {
     implementation(projects.glog)
     implementation(projects.context)
     implementation(projects.cache)
+    implementation(projects.javaext)
+    implementation(projects.ui.utils)
 
     testImplementation(kotlinTestApi())
     testImplementation(Mockk.mockk)

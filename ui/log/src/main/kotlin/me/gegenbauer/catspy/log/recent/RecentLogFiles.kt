@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.log.recent
 
 import me.gegenbauer.catspy.concurrency.assertInMainThread
 import me.gegenbauer.catspy.file.gson
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.utils.persistence.Preferences
 import me.gegenbauer.catspy.utils.persistence.UserPreferences
 import java.io.File
@@ -27,7 +28,7 @@ object RecentLogFiles: UserPreferences.PreferencesChangeListener {
     }
 
     fun getLastOpenDir(): String {
-        return Preferences.getString(LAST_OPEN_DIR_STORE_KEY, "")
+        return Preferences.getString(LAST_OPEN_DIR_STORE_KEY, EMPTY_STRING)
     }
 
     fun onNewFileOpen(file: String): List<RecentFile> {

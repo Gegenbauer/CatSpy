@@ -1,6 +1,8 @@
 package me.gegenbauer.catspy.log.ui.customize
 
+import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.view.button.ColorToggleButton
 import java.awt.FlowLayout
 import javax.swing.JButton
 import javax.swing.JPanel
@@ -10,6 +12,9 @@ class EditActionPanel : JPanel(), EditableContainer {
     override val isEditing: Boolean
         get() = saveButton.isEnabled
 
+    val isNightMode: Boolean
+        get() = nightModeButton.isSelected
+
     private val editButton = JButton(STRINGS.ui.edit)
     private val saveButton = JButton(STRINGS.ui.save).apply { isEnabled = false }
     private val cancelButton = JButton(STRINGS.ui.cancel).apply { isEnabled = false }
@@ -17,6 +22,7 @@ class EditActionPanel : JPanel(), EditableContainer {
         isEnabled = false
         toolTipText = STRINGS.toolTip.resetMetadata
     }
+    private val nightModeButton = ColorToggleButton(STRINGS.ui.darkTheme)
 
     private lateinit var controller: ILogMetadataDetail
 
@@ -26,6 +32,7 @@ class EditActionPanel : JPanel(), EditableContainer {
         add(saveButton)
         add(cancelButton)
         add(resetButton)
+        add(nightModeButton)
 
         editButton.addActionListener {
             controller.startEditing()
@@ -43,7 +50,11 @@ class EditActionPanel : JPanel(), EditableContainer {
         resetButton.addActionListener {
             controller.resetToBuiltIn()
         }
+        nightModeButton.addActionListener {
+            controller.changeNightMode(nightModeButton.isSelected)
+        }
         setResetButtonVisible(false)
+        nightModeButton.isSelected = ThemeManager.isDarkTheme
     }
 
     fun setEditEnabled(enabled: Boolean) {

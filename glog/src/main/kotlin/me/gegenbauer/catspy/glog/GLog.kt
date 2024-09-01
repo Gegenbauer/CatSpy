@@ -12,6 +12,7 @@ package me.gegenbauer.catspy.glog
 
 import me.gegenbauer.catspy.glog.interceptor.GSlf4jLoggerFactoryAdapter
 import me.gegenbauer.catspy.glog.logback.LogbackConfiguration
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 
 object GLog : GLogger {
     var debug = false
@@ -37,31 +38,31 @@ object GLog : GLogger {
     }
 
     override fun v(tag: String, msg: String) {
-        getLogger(tag).v("", msg)
+        getLogger(tag).v(EMPTY_STRING, msg)
     }
 
     override fun d(tag: String, msg: String) {
-        getLogger(tag).d("", msg)
+        getLogger(tag).d(EMPTY_STRING, msg)
     }
 
     override fun i(tag: String, msg: String) {
-        getLogger(tag).i("", msg)
+        getLogger(tag).i(EMPTY_STRING, msg)
     }
 
     override fun w(tag: String, msg: String) {
-        getLogger(tag).w("", msg)
+        getLogger(tag).w(EMPTY_STRING, msg)
     }
 
     override fun w(tag: String, msg: String, tr: Throwable?) {
-        getLogger(tag).w("", msg, tr)
+        getLogger(tag).w(EMPTY_STRING, msg, tr)
     }
 
     override fun e(tag: String, msg: String) {
-        getLogger(tag).e("", msg)
+        getLogger(tag).e(EMPTY_STRING, msg)
     }
 
     override fun e(tag: String, msg: String, tr: Throwable?) {
-        getLogger(tag).e("", msg, tr)
+        getLogger(tag).e(EMPTY_STRING, msg, tr)
     }
 
     override fun flush() {

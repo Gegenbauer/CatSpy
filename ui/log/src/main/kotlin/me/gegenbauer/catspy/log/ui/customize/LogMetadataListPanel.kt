@@ -1,13 +1,22 @@
 package me.gegenbauer.catspy.log.ui.customize
 
 import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.LogMetadataManager
 import me.gegenbauer.catspy.log.serialize.LogMetadataModel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.showWarningDialog
 import java.awt.BorderLayout
 import java.awt.Component
-import javax.swing.*
+import javax.swing.DefaultListCellRenderer
+import javax.swing.DefaultListModel
+import javax.swing.DefaultListSelectionModel
+import javax.swing.JButton
+import javax.swing.JLabel
+import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.JScrollPane
+import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
@@ -200,7 +209,7 @@ class LogMetadataListPanel : JPanel(), LogMetadataListController, ListSelectionL
         )
         return showWarningDialog(
             this.parent,
-            "",
+            EMPTY_STRING,
             STRINGS.ui.deleteMetadataWarning,
             actions
         )
@@ -240,7 +249,7 @@ class LogMetadataListPanel : JPanel(), LogMetadataListController, ListSelectionL
             )
             return showWarningDialog(
                 this@LogMetadataListPanel.parent,
-                "",
+                EMPTY_STRING,
                 STRINGS.ui.discardEditedMetadataWarning,
                 actions
             )
@@ -257,7 +266,7 @@ class LogMetadataListPanel : JPanel(), LogMetadataListController, ListSelectionL
             )
             return showWarningDialog(
                 this@LogMetadataListPanel.parent,
-                "",
+                EMPTY_STRING,
                 STRINGS.ui.discardCreatedWarning,
                 actions
             )

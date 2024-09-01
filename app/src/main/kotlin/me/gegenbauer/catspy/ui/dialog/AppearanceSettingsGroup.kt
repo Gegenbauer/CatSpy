@@ -6,6 +6,7 @@ import com.formdev.flatlaf.util.ColorFunctions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.configuration.*
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.view.panel.VerticalFlexibleWidthLayout
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.globalLocale
@@ -25,14 +26,14 @@ class AppearanceSettingsGroup(
 ) : BaseSettingsGroup(STRINGS.ui.appearance, scope, container) {
 
     override fun initGroup() {
-        val languageModifiedHint = JLabel("")
+        val languageModifiedHint = JLabel(EMPTY_STRING)
         languageModifiedHint.foreground = UIManager.getColor("CatSpy.accent.red")
         val languageCbx = JComboBox(supportLocales.map { it.displayName }.toTypedArray())
         languageCbx.addActionListener {
             val locale = supportLocales[languageCbx.selectedIndex]
             SettingsManager.updateSettings { this.mainUISettings.locale = locale.ordinal }
             if (locale == globalLocale) {
-                languageModifiedHint.text = ""
+                languageModifiedHint.text = EMPTY_STRING
                 return@addActionListener
             }
             languageModifiedHint.text = STRINGS.ui.languageSettingHint

@@ -1,19 +1,34 @@
 package me.gegenbauer.catspy.log.ui.customize
 
 import info.clearthought.layout.TableLayout
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.serialize.LogMetadataModel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.OnScrollToEndListener
 import me.gegenbauer.catspy.utils.ui.ScrollToEndListenerSupport
 import me.gegenbauer.catspy.utils.ui.addOnScrollToEndListener
 import me.gegenbauer.catspy.utils.ui.showWarningDialog
+import me.gegenbauer.catspy.view.color.DarkThemeAwareColor
 import me.gegenbauer.catspy.view.scrollpane.SingleDirectionScrollPane
 import java.awt.Color
 import java.awt.Component
 import java.util.*
-import javax.swing.*
+import javax.swing.AbstractCellEditor
+import javax.swing.BorderFactory
+import javax.swing.BoxLayout
+import javax.swing.DefaultCellEditor
+import javax.swing.JButton
+import javax.swing.JColorChooser
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JTable
+import javax.swing.ListSelectionModel
 import javax.swing.event.TableModelEvent
-import javax.swing.table.*
+import javax.swing.table.DefaultTableCellRenderer
+import javax.swing.table.DefaultTableModel
+import javax.swing.table.TableCellEditor
+import javax.swing.table.TableCellRenderer
+import javax.swing.table.TableColumn
 
 interface EditableTablePanel<T> {
 
@@ -37,6 +52,9 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
     override val isEditing: Boolean
         get() = actionPanel.isEditing
 
+    protected val isNightMode: Boolean
+        get() = logMetadataEditModel.isNightMode
+
     protected abstract val tableName: String
 
     protected abstract val columnParams: List<ColumnParam>
@@ -51,7 +69,7 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
 
     protected open val customActions: List<EditableTableActionPanel.CustomAction> = emptyList()
 
-    protected open val hint: String = ""
+    protected open val hint: String = EMPTY_STRING
 
     protected abstract fun createNewItem(): T
 
@@ -99,6 +117,15 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
 
         configureColumnHeaderRenderer()
         configureColumnEditor()
+        configureColorColumns(table)
+    }
+
+    private fun configureColorColumns(table: JTable) {
+        columnParams.filter { it.columnClass == Color::class.java }.forEach {
+            val index = columnParams.indexOf(it)
+            table.columnModel.getColumn(index).cellRenderer = ColorRenderer()
+            table.columnModel.getColumn(index).cellEditor = ColorEditor()
+        }
     }
 
     private fun initUI() {
@@ -152,6 +179,22 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
         }
     }
 
+    protected fun getDarkThemeAwareColor(current: DarkThemeAwareColor, new: Color): DarkThemeAwareColor {
+        if (isNightMode) {
+            return DarkThemeAwareColor(current.dayColor, new)
+        } else {
+            return DarkThemeAwareColor(new, current.nightColor)
+        }
+    }
+
+    protected fun getCurrentColor(current: DarkThemeAwareColor): Color {
+        return if (isNightMode) {
+            current.nightColor
+        } else {
+            current.dayColor
+        }
+    }
+
     private fun hideColumn(tableColumn: TableColumn) {
         tableColumn.maxWidth = 0
         tableColumn.minWidth = 0
@@ -163,7 +206,7 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
         scrollPane.addOnScrollToEndListener(listener)
     }
 
-    protected open fun isContentModified(): Boolean {
+    override fun isModified(): Boolean {
         return items != originalItems
     }
 
@@ -175,7 +218,7 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
             logMetadataModel.copy(
                 isBuiltIn = false,
                 logType = logMetadataEditModel.model.logType
-            ).toEditModel()
+            ).toEditModel(isNightMode = logMetadataEditModel.isNightMode)
         )
         notifyEditDone()
     }
@@ -187,7 +230,7 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
         )
         return showWarningDialog(
             this,
-            "",
+            EMPTY_STRING,
             STRINGS.ui.loadingTemplateWarning,
             actions
         )
@@ -263,7 +306,7 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
     protected class ColumnParam(
         val name: String,
         val columnClass: Class<*>,
-        val tooltip: String = "",
+        val tooltip: String = EMPTY_STRING,
         val editorVerifier: ParamVerifier = ParamVerifier.default,
         val editableWhenBuiltIn: Boolean = false,
         val hide: Boolean = false,
@@ -336,7 +379,7 @@ class ColorRenderer : DefaultTableCellRenderer() {
         row: Int,
         column: Int
     ): Component {
-        val component = super.getTableCellRendererComponent(table, "", isSelected, hasFocus, row, column)
+        val component = super.getTableCellRendererComponent(table, EMPTY_STRING, isSelected, hasFocus, row, column)
         if (value is Color) {
             component.background = value
             component.foreground = value
@@ -353,14 +396,16 @@ class ColorEditor : AbstractCellEditor(), TableCellEditor {
                 val color = JColorChooser.showDialog(this, STRINGS.ui.colorEditorTitle, currentColor)
                 if (color != null) {
                     currentColor = color
+                    fireEditingStopped()
+                } else {
+                    fireEditingCanceled()
                 }
-                fireEditingStopped()
             }
             border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
         }
 
         override fun setText(text: String?) {
-            super.setText("")
+            super.setText(EMPTY_STRING)
         }
     }
     override fun getCellEditorValue(): Any? {

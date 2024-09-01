@@ -1,18 +1,19 @@
 package me.gegenbauer.catspy.log.ui.customize
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.LogColorScheme
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.strings.get
 import me.gegenbauer.catspy.view.color.DarkThemeAwareColor
 import java.awt.Color
 import java.lang.reflect.Modifier
-import javax.swing.JTable
 import javax.swing.table.DefaultTableModel
 
 class ColorSchemeEditPanel : BaseEditableTablePanel<ColorSchemeItem>() {
 
     override val tableName: String = STRINGS.ui.tableColorSchemeInfo
-    override val columnParams: List<ColumnParam> =
-        listOf(
+    override val columnParams: List<ColumnParam>
+         = listOf(
             ColumnParam(
                 STRINGS.ui.colorName,
                 java.lang.String::class.java,
@@ -20,16 +21,13 @@ class ColorSchemeEditPanel : BaseEditableTablePanel<ColorSchemeItem>() {
                 neverEditable = true
             ),
             ColumnParam(
-                STRINGS.ui.lightColor,
+                STRINGS.ui.colorEditColorColumn,
                 Color::class.java,
                 editableWhenBuiltIn = true,
-                tooltip = STRINGS.toolTip.lightColor
-            ),
-            ColumnParam(
-                STRINGS.ui.darkColor,
-                Color::class.java,
-                editableWhenBuiltIn = true,
-                tooltip = STRINGS.toolTip.darkColor
+                tooltip = run {
+                    val theme = if (isNightMode) STRINGS.ui.darkTheme else STRINGS.ui.lightTheme
+                    STRINGS.toolTip.colorEditColorColumn.get(theme)
+                },
             )
         )
 
@@ -50,29 +48,17 @@ class ColorSchemeEditPanel : BaseEditableTablePanel<ColorSchemeItem>() {
                 it.isAccessible = true
                 val name = it.name
                 val color = it.get(logColorScheme) as DarkThemeAwareColor
-                ColorSchemeItem(name, color.dayColor, color.nightColor)
+                ColorSchemeItem(name, color)
             }
-    }
-
-    override fun configure() {
-        super.configure()
-        configureTableColorColumns(table)
-    }
-
-    private fun configureTableColorColumns(table: JTable) {
-        COLOR_COLUMN_INDEXES.forEach {
-            table.columnModel.getColumn(it).cellRenderer = ColorRenderer()
-            table.columnModel.getColumn(it).cellEditor = ColorEditor()
-        }
     }
 
     override fun createNewItem(): ColorSchemeItem {
         // will not be used
-        return ColorSchemeItem("", Color.BLACK, Color.BLACK)
+        return ColorSchemeItem(EMPTY_STRING, DarkThemeAwareColor(Color.WHITE, Color.BLACK))
     }
 
     override fun ColorSchemeItem.toRowItem(): List<Any?> {
-        return listOf(name, lightColor, darkColor)
+        return listOf(name, getCurrentColor(color))
     }
 
     override fun getUpdatedItems(): List<ColorSchemeItem> {
@@ -80,21 +66,18 @@ class ColorSchemeEditPanel : BaseEditableTablePanel<ColorSchemeItem>() {
         val items = mutableListOf<ColorSchemeItem>()
         for (i in 0 until tableModel.rowCount) {
             val name = tableModel.getValueAt(i, 0) as String
-            val lightColor = tableModel.getValueAt(i, 1) as Color
-            val darkColor = tableModel.getValueAt(i, 2) as Color
-            items.add(ColorSchemeItem(name, lightColor, darkColor))
+            val newColor = tableModel.getValueAt(i, 1) as Color
+            val currentColor =
+                originalItems.find { it.name == name }?.color ?: DarkThemeAwareColor(Color.WHITE, Color.BLACK)
+            val targetColor = getDarkThemeAwareColor(currentColor, newColor)
+            items.add(ColorSchemeItem(name, targetColor))
         }
         return items
-    }
-
-    companion object {
-        private val COLOR_COLUMN_INDEXES = listOf(1, 2)
     }
 
 }
 
 data class ColorSchemeItem(
     val name: String,
-    val lightColor: Color,
-    val darkColor: Color
+    val color: DarkThemeAwareColor
 )

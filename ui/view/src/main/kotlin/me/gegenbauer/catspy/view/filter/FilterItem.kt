@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.view.filter
 import me.gegenbauer.catspy.cache.PatternProvider
 import me.gegenbauer.catspy.cache.PatternProvider.Companion.toPatternKey
 import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.util.*
 import java.util.regex.Pattern
 
@@ -35,7 +36,7 @@ data class FilterItem(
     }
 
     companion object {
-        val EMPTY_ITEM = FilterItem(PatternProvider.EMPTY_PATTERN, PatternProvider.EMPTY_PATTERN, "")
+        val EMPTY_ITEM = FilterItem(PatternProvider.EMPTY_PATTERN, PatternProvider.EMPTY_PATTERN, EMPTY_STRING)
         private const val STR_PATTERN_EMPTY = "Empty"
 
         fun FilterItem.isEmpty(): Boolean {
@@ -97,16 +98,16 @@ internal fun String.toFilterItem(matchCase: Boolean = false): FilterItem {
     }
     val patterns = parsePattern(this)
     val patternProvider = ServiceManager.getContextService(PatternProvider::class.java)
-    var errorMessage = ""
+    var errorMessage = EMPTY_STRING
     val positiveFilter = runCatching {
         patternProvider[patterns.first.toPatternKey(matchCase)] ?: PatternProvider.EMPTY_PATTERN
     }.onFailure {
-        errorMessage = it.message ?: ""
+        errorMessage = it.message ?: EMPTY_STRING
     }.getOrDefault(PatternProvider.EMPTY_PATTERN)
     val negativeFilter = runCatching {
         patternProvider[patterns.second.toPatternKey(matchCase)] ?: PatternProvider.EMPTY_PATTERN
     }.onFailure {
-        errorMessage += ", ${it.message ?: ""}"
+        errorMessage += ", ${it.message ?: EMPTY_STRING}"
     }.getOrDefault(PatternProvider.EMPTY_PATTERN)
     return FilterItem(positiveFilter, negativeFilter, errorMessage)
 }

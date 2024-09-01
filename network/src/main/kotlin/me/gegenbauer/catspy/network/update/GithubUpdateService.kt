@@ -81,6 +81,7 @@ class GithubUpdateServiceImpl(override val user: String, override val repo: Stri
         withContext(Dispatchers.GIO) {
             downloadJob = coroutineContext.job
             val file = File(downloadPath)
+            file.parentFile.mkdirs()
             coroutineContext.job.invokeOnCompletion {
                 if (it is CancellationException) {
                     downloadListener.onDownloadCanceled()

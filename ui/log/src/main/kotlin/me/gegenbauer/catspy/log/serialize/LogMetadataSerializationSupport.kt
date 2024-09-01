@@ -1,12 +1,20 @@
 package me.gegenbauer.catspy.log.serialize
 
-import com.google.gson.*
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.log.parse.LogParser
 import me.gegenbauer.catspy.utils.IdGenerator
 import me.gegenbauer.catspy.utils.file.Serializer
+import me.gegenbauer.catspy.utils.ui.hexToColor
+import me.gegenbauer.catspy.utils.ui.toHex
 import me.gegenbauer.catspy.view.color.DarkThemeAwareColor
-import java.awt.Color
 import java.lang.reflect.Type
 
 class LogMetadataSerializer : Serializer<LogMetadata, String> {
@@ -45,43 +53,21 @@ private class DarkThemeAwareColorAdapter : JsonDeserializer<DarkThemeAwareColor>
         context: JsonDeserializationContext?
     ): DarkThemeAwareColor {
         val jsonObject = json?.asJsonObject
-        val color = jsonObject?.get(KEY_COLOR)?.toInt() ?: 0
-        val darkThemeColor = jsonObject?.get(KEY_DARK_THEME_COLOR)?.toInt() ?: 0
-        return DarkThemeAwareColor(color.toColor(), darkThemeColor.toColor())
-    }
-
-    private fun JsonElement.toInt(): Int {
-        val formattedString = asString.lowercase()
-        return if (formattedString.startsWith(HEX_PREFIX)) {
-            Integer.parseInt(formattedString.substring(2), 16)
-        } else {
-            Integer.parseInt(formattedString)
-        }
-    }
-
-    private fun Color.toSerializedString(): String {
-        return HEX_PREFIX + toInt().toString(16)
+        val color = jsonObject?.get(KEY_COLOR)?.asString ?: EMPTY_STRING
+        val darkThemeColor = jsonObject?.get(KEY_DARK_THEME_COLOR)?.asString ?: EMPTY_STRING
+        return DarkThemeAwareColor(color.hexToColor(), darkThemeColor.hexToColor())
     }
 
     override fun serialize(src: DarkThemeAwareColor, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
         val jsonObject = JsonObject()
-        jsonObject.addProperty(KEY_COLOR, src.dayColor.toSerializedString())
-        jsonObject.addProperty(KEY_DARK_THEME_COLOR, src.nightColor.toSerializedString())
+        jsonObject.addProperty(KEY_COLOR, src.dayColor.toHex())
+        jsonObject.addProperty(KEY_DARK_THEME_COLOR, src.nightColor.toHex())
         return jsonObject
-    }
-
-    private fun Color.toInt(): Int {
-        return (alpha shl 24) or (red shl 16) or (green shl 8) or blue
-    }
-
-    private fun Int.toColor(): Color {
-        return Color(this, true)
     }
 
     companion object {
         private const val KEY_COLOR = "color"
         private const val KEY_DARK_THEME_COLOR = "darkThemeColor"
-        private const val HEX_PREFIX = "0x"
     }
 }
 

@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.log.ui.table
 
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.utils.persistence.Preferences
@@ -34,9 +35,9 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
         supportFilter = false,
         uiConf = Column.UIConf(Column.ColumnUIConf(charLen = COLUMN_INDEX_CHAR_LEN))
     )
-    private var logType: String = ""
+    private var logType: String = EMPTY_STRING
 
-    private val logCellRendererProvider: LogCellRendererProvider = LabelRendererProvider()
+    private val logCellRendererProvider = LabelRendererProvider()
     private val columnWidthManager = ColumnWidthManager()
 
     override fun setColumns(logMetadata: LogMetadata) {
@@ -62,7 +63,8 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
             val column = evt.source as TableColumn
             val renderer = renderers[column.modelIndex]
             renderer ?: return
-            val maxLength = getMaxLength(newWidth, renderer.logTable.getFontMetrics(renderer.logTable.font))
+            val logTable = renderer.logTable ?: return
+            val maxLength = getMaxLength(newWidth, logTable.getFontMetrics(logTable.font))
             renderer.maxLength = maxLength
             columnWidthManager.setMaxLength(logType, columns[column.modelIndex], maxLength)
         }
@@ -111,18 +113,33 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
                 val renderer = renderers[index] as LogCellRenderer
                 renderer.logTable = table as LogTable
                 tableColumn.setCellRenderer(renderer)
-                tableColumn.headerValue = column.name
+                if (column !is Column.LevelColumn) {
+                    tableColumn.headerValue = column.name
+                } else {
+                    tableColumn.headerValue = EMPTY_STRING
+                }
                 table.addColumn(tableColumn)
             }
         }
 
+        fun measureColumnWidth(table: JTable, length: Int): Int {
+            val fontMetrics = table.getFontMetrics(table.font)
+            return fontMetrics.charWidth(BASE_CHAR) * length
+        }
+
         fun configureColumnWidth(table: JTable) {
             table.columnModel.columns.toList().forEachIndexed { index, tableColumn ->
+                if (columns[index] is Column.LevelColumn) {
+                    val expectColumnWidth = measureColumnWidth(table, 3)
+                    tableColumn.minWidth = expectColumnWidth
+                    tableColumn.preferredWidth = expectColumnWidth
+                    tableColumn.maxWidth = expectColumnWidth
+                    return@forEachIndexed
+                }
                 val expectLen = columnWidthManager.getMaxLength(
                     logType, columns[index], columns[index].uiConf.column.charLen
                 )
-                val fontMetrics = table.getFontMetrics(table.font)
-                val expectColumnWidth = fontMetrics.charWidth(BASE_CHAR) * expectLen
+                val expectColumnWidth = measureColumnWidth(table, expectLen)
                 tableColumn.preferredWidth = expectColumnWidth
             }
         }
@@ -166,6 +183,6 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
         private const val COLUMN_INDEX_NAME = "Index"
         private const val COLUMN_INDEX_CHAR_LEN = 7
         private const val PROPERTY_WIDTH = "width"
-        private const val BASE_CHAR = 'A'
+        private const val BASE_CHAR = 'a'
     }
 }

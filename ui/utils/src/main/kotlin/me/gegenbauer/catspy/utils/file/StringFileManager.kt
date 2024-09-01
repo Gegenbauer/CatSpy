@@ -6,6 +6,7 @@ import me.gegenbauer.catspy.file.appendExtension
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.file.getFilePath
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.platform.filesDir
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -45,15 +46,15 @@ abstract class StringFileManager : ContextService {
             }
 
             if (jsonFile.exists().not()) {
-                jsonCache[key] = ""
-                return ""
+                jsonCache[key] = EMPTY_STRING
+                return EMPTY_STRING
             }
 
             val content = kotlin.runCatching {
                 jsonFile.readText()
             }.onFailure {
                 GLog.e(TAG, "Failed to read json file $jsonFile", it)
-            }.getOrNull() ?: ""
+            }.getOrNull() ?: EMPTY_STRING
 
             jsonCache[key] = content
             return content

@@ -8,6 +8,7 @@ import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.configuration.getLastModifiedLog
+import me.gegenbauer.catspy.file.appendExtension
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.MainViewModel
@@ -72,7 +73,7 @@ class HelpMenu(override val contexts: Contexts = Contexts.default) : GMenu(), Co
             val vm = ServiceManager.getContextService(frame, MainViewModel::class.java)
             FileSaveHandler.Builder(frame)
                 .onFileSpecified(vm::exportLog)
-                .setDefaultName(GlobalStrings.LOG_NAME)
+                .setDefaultName(GlobalStrings.LOG_NAME.appendExtension(GlobalStrings.LOG_FILE_EXTENSION))
                 .build()
                 .show()
         }

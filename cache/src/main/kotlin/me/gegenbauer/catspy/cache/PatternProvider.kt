@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.cache
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.context.MemoryAware
-import java.security.MessageDigest
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.util.regex.Pattern
 
 class PatternProvider(size: Long = DEFAULT_CACHE_SIZE) : ContextService, LruCache<PatternKey, Pattern>(size) {
@@ -21,7 +21,7 @@ class PatternProvider(size: Long = DEFAULT_CACHE_SIZE) : ContextService, LruCach
     }
 
     companion object {
-        val EMPTY_PATTERN: Pattern = Pattern.compile("")
+        val EMPTY_PATTERN: Pattern = Pattern.compile(EMPTY_STRING)
         private const val TAG = "PatternProvider"
         private const val DEFAULT_CACHE_SIZE = 1000L
 

@@ -12,4 +12,5 @@ dependencies {
     implementation(projects.context)
     implementation(projects.platform)
     implementation(projects.file)
+    implementation(projects.javaext)
 }

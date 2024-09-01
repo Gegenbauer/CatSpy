@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.log.metadata
 
+import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.GIO
@@ -10,6 +11,7 @@ import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.log.serialize.*
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.utils.file.JsonFileManager
+import me.gegenbauer.catspy.utils.persistence.Preferences
 import java.io.File
 import java.lang.ref.WeakReference
 
@@ -106,6 +108,13 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
             metadataDir.mkdirs()
             metadataDir.listFiles()?.filter { it.extension == "json" }?.mapNotNull { file ->
                 runCatching {
+                    val jsonObject = JsonParser.parseString(file.readText()).asJsonObject
+                    val migratedJsonObject = LogMetadataMigrations.migrate(jsonObject, LogMetadata.VERSION)
+                    if (migratedJsonObject == null) {
+
+                        GLog.w(TAG, "Failed to migrate metadata file: ${file.name}, discard it")
+                        return@runCatching null
+                    }
                     LogMetadataSerializer().deserialize(file.readText()).toLogMetadataModel()
                 }.onFailure {
                     GLog.w(TAG, "Failed to load customized metadata from file: ${file.name}", it)
@@ -119,10 +128,13 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
         return customizedMetadataGroup.containsKey(logType)
     }
 
+    @SuppressWarnings("UNCHECKED_CAST")
     @Synchronized
     override fun resetToBuiltIn(logType: String): LogMetadataModel {
-        val builtInMetadata = builtInMetadataGroup[logType]!!
-        val customizedMetadata = customizedMetadataGroup[logType]!!
+        val builtInMetadata =
+            builtInMetadataGroup[logType] ?: throw IllegalArgumentException("No built-in metadata found for $logType")
+        val customizedMetadata = customizedMetadataGroup[logType]
+            ?: throw IllegalArgumentException("No customized metadata found for $logType")
         deleteInternal(logType)
         notifyMetadataChange(customizedMetadata, builtInMetadata)
         return builtInMetadata
@@ -223,7 +235,8 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
 
         mergedMetadataGroup.remove(key)
         if (builtInMetadataGroup.containsKey(key)) {
-            mergedMetadataGroup[key] = builtInMetadataGroup[key]!!
+            mergedMetadataGroup[key] = builtInMetadataGroup[key]
+                ?: throw IllegalStateException("Built-in metadata not found")
         }
     }
 

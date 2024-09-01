@@ -3,7 +3,7 @@ package me.gegenbauer.catspy.log.filter
 import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.databinding.bind.Observer
-import me.gegenbauer.catspy.file.appendPath
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.filter.FilterProperty.Companion.FILTER_ID_MATCH_CASE
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.LogMetadata
@@ -18,12 +18,12 @@ import kotlin.concurrent.write
 class FilterProperty(
     val name: String,
     val columnId: Int = -1,
-    val storeKeyPrefix: String = "",
+    val storeKeyPrefix: String = EMPTY_STRING,
     var hasHistory: Boolean = true,
     initialEnabled: Boolean = true
 ) {
     val enabled: ObservableValueProperty<Boolean> = StorableValueProperty(getComposedKey("enabled"), initialEnabled)
-    val content: ObservableValueProperty<String> = ObservableValueProperty("")
+    val content: ObservableValueProperty<String> = ObservableValueProperty(EMPTY_STRING)
     val contentList: ObservableValueProperty<List<String>> =
         StorableValueProperty(getComposedKey("contentList"), emptyList())
     val selectedItem: ObservableValueProperty<String> = ObservableValueProperty(null)
@@ -37,7 +37,7 @@ class FilterProperty(
     }
 
     private fun getComposedKey(key: String): String {
-        val prefix = if (storeKeyPrefix.isEmpty()) "" else "${storeKeyPrefix}_"
+        val prefix = if (storeKeyPrefix.isEmpty()) EMPTY_STRING else "${storeKeyPrefix}_"
         return STORE_KEY_PREFIX.appendKeySeparator("$prefix${name}_$key")
     }
 
@@ -128,7 +128,8 @@ interface FilterFactory {
 }
 
 class LevelColumnFilterFactory(override val column: Column) : FilterFactory {
-    private val levelTagToLevelMap = (column as Column.LevelColumn).levels.associate { it.level.tag to it.level.value }
+    private val levelKeywordToLevelMap =
+        (column as Column.LevelColumn).levels.associate { it.level.keyword to it.level.value }
     private val levelNameToLevelMap =
         (column as Column.LevelColumn).levels.associate { it.level.name to it.level.value }
 
@@ -138,7 +139,7 @@ class LevelColumnFilterFactory(override val column: Column) : FilterFactory {
                 return@ColumnFilter true
             }
             val minLevel = levelNameToLevelMap[properties.content.getValueNonNull()] ?: 0
-            (levelTagToLevelMap[text] ?: Int.MAX_VALUE) >= minLevel
+            (levelKeywordToLevelMap[text] ?: Int.MAX_VALUE) >= minLevel
         }
     }
 }

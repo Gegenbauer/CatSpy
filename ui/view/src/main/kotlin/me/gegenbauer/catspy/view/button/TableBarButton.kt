@@ -1,7 +1,9 @@
 package me.gegenbauer.catspy.view.button
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+
 class TableBarButton(title:String) : GButton(title){
-    var value = ""
+    var value = EMPTY_STRING
 
     init {
         if (title.length > MAX_TITLE) {

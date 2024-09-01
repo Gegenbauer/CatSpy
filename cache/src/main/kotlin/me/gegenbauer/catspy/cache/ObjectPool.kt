@@ -1,9 +1,11 @@
 package me.gegenbauer.catspy.cache
 
 import me.gegenbauer.catspy.context.MemoryAware
+import me.gegenbauer.catspy.context.MemoryState
+
 
 abstract class ObjectPool<T: Any>(maxSize: Int): MemoryAware {
-    private val cache = Array<Any?>(maxSize) { this.create() }
+    private val cache = Array<Any?>(maxSize) { null }
     private var size = 0
 
     @Synchronized
@@ -11,7 +13,9 @@ abstract class ObjectPool<T: Any>(maxSize: Int): MemoryAware {
         if (size == 0) {
             return create()
         }
-        return cache[--size] as T
+        val obj = cache[--size] as T
+        cache[size] = null
+        return obj
     }
 
     @Synchronized
@@ -34,13 +38,25 @@ abstract class ObjectPool<T: Any>(maxSize: Int): MemoryAware {
     override fun onTrimMemory(level: MemoryAware.Level) {
         clear()
     }
+
+    companion object {
+        fun <T: Any> createMemoryAwarePool(maxSize: Int, create: () -> T): ObjectPool<T> {
+            val pool = object : ObjectPool<T>(maxSize) {
+                override fun create(): T {
+                    return create()
+                }
+            }
+            MemoryState.register(pool)
+            return pool
+        }
+    }
 }
 
 fun interface CacheableObject {
     fun recycle()
 }
 
-inline fun <T: CacheableObject, R> T.with(block: (T) -> R): R {
+inline fun <T: CacheableObject, R> T.use(block: (T) -> R): R {
     val result: R
     try {
         result = block(this)

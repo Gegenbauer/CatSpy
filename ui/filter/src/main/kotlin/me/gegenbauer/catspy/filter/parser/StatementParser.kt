@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.filter.parser
 
 import me.gegenbauer.catspy.filter.parser.FilterExpression.Companion.toFilterExpression
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 
 // TODO recognize the invalid expression
 // TODO support value surrounded by double quotes, allow all character except double quotes; Recognize invalid double quotes;
@@ -113,7 +114,7 @@ class StatementParser {
                 Regex(
                     trimmedTokenRightPart
                         .removeSurrounding(TokenType.DOUBLE_QUOTE.value.toString())
-                        .replace(TokenType.ESCAPE.value.toString(), "")
+                        .replace(TokenType.ESCAPE.value.toString(), EMPTY_STRING)
                 )
             }.onFailure {
                 return InvalidLiteralExpression(trimmedExpression, it.localizedMessage)

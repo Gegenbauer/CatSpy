@@ -1,9 +1,10 @@
 package me.gegenbauer.catspy.view.combobox
 
-import me.gegenbauer.catspy.cache.with
+import me.gegenbauer.catspy.cache.use
 import me.gegenbauer.catspy.databinding.bind.Bindings
 import me.gegenbauer.catspy.filter.ui.enableAutoComplete
 import me.gegenbauer.catspy.filter.ui.isAutoCompleteShowing
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.render.HtmlStringBuilder
 import me.gegenbauer.catspy.render.LabelRenderer
 import me.gegenbauer.catspy.render.Tag
@@ -163,7 +164,8 @@ class FilterComboBox(
         if (filterItem.isEmpty() && errorMessage.isEmpty()) {
             return
         }
-        val renderedContent = HtmlStringBuilder()
+        val renderedContent = HtmlStringBuilder.obtain()
+        renderedContent.isHtmlTagInitialized = true
         if (errorMessage.isNotEmpty()) {
             val errorLine = renderLineWithBreak(errorMessage, errorForeground)
             renderedContent.append(errorLine)
@@ -180,7 +182,7 @@ class FilterComboBox(
             renderedContent.addSingleTag(Tag.LINE_BREAK)
             renderedContent.append(renderLine(negativeLine, negativeForeground))
         }
-        editorComponent.toolTipText = renderedContent.build()
+        editorComponent.toolTipText = renderedContent.use { it.build() }
 
         if (isShow && !editorComponent.isAutoCompleteShowing()) {
             showTooltip()
@@ -201,18 +203,18 @@ class FilterComboBox(
 
     private fun renderLineWithBreak(content: String, foreground: Color): String {
         val lines = content.lines()
-        val renderedContent = HtmlStringBuilder(false)
+        val renderedContent = HtmlStringBuilder.obtain()
         lines.forEachIndexed { index, line ->
             renderedContent.append(renderLine(line, foreground))
             if (index != lines.lastIndex) {
                 renderedContent.addSingleTag(Tag.LINE_BREAK)
             }
         }
-        return renderedContent.build()
+        return renderedContent.use { it.build() }
     }
 
     private fun renderLine(content: String, foreground: Color): String {
-        return LabelRenderer.obtain().with { renderer ->
+        return LabelRenderer.obtain().use { renderer ->
             renderer.updateRaw(content)
             renderer.foreground(foreground)
             renderer.bold()
@@ -239,7 +241,7 @@ fun filterComboBox(
     enableHighlight: Boolean = true,
     tooltip: String? = null
 ): FilterComboBox {
-    val finalTooltip = ("$tooltip\n".takeIf { tooltip != null } ?: "") + STRINGS.toolTip.filter
+    val finalTooltip = ("$tooltip\n".takeIf { tooltip != null } ?: EMPTY_STRING) + STRINGS.toolTip.filter
     val comboBox = FilterComboBox(items, enableHighlight, finalTooltip)
     comboBox.isEditable = true
     comboBox.addTooltipUpdateListener()

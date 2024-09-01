@@ -2,8 +2,8 @@ package me.gegenbauer.catspy.log.datasource
 
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import me.gegenbauer.catspy.java.ext.EmptyEvent
-import me.gegenbauer.catspy.java.ext.Event
+import me.gegenbauer.catspy.concurrency.EmptyEvent
+import me.gegenbauer.catspy.concurrency.Event
 import me.gegenbauer.catspy.log.filter.LogFilter
 import me.gegenbauer.catspy.view.state.ListState
 import java.util.concurrent.locks.ReentrantReadWriteLock

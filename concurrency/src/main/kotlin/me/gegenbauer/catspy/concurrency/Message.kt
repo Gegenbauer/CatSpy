@@ -1,7 +1,8 @@
-package me.gegenbauer.catspy.java.ext
+package me.gegenbauer.catspy.concurrency
 
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 
 sealed class Message {
     abstract val message: String
@@ -9,7 +10,7 @@ sealed class Message {
     data class Info(override val message: String) : Message()
     data class Error(override val message: String) : Message()
     data class Warning(override val message: String) : Message()
-    data class Empty(override val message: String = "") : Message()
+    data class Empty(override val message: String = EMPTY_STRING) : Message()
 }
 
 fun interface MessagePublisher {

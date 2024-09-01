@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.log.ui.table
 
-import me.gegenbauer.catspy.cache.with
+import me.gegenbauer.catspy.cache.use
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.java.ext.truncate
 import me.gegenbauer.catspy.log.filter.DefaultLogFilter
 import me.gegenbauer.catspy.log.metadata.Column
@@ -28,6 +29,9 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
         if (column.partIndex < 0) {
             return IndexRenderer(logMetadata)
         }
+        if (column is Column.LevelColumn) {
+            return LevelCellRenderer(logMetadata)
+        }
         if (column.supportFilter && column.uiConf.column.isHidden.not()) {
             return SearchableCellRenderer(logMetadata, getFilterIndex(column))
         }
@@ -51,28 +55,50 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
     }
 
     private fun renderRows(logTable: LogTable, rows: List<Int>): String {
-        val renderedContent = HtmlStringBuilder()
+        val renderedContent = HtmlStringBuilder.obtain()
+        renderedContent.isHtmlTagInitialized = true
         val logFilter = logTable.tableModel.getLogFilter()
-        if (logFilter !is DefaultLogFilter) return ""
-        val messageFilter = logFilter.filters.firstOrNull { it.column is Column.MessageColumn } ?: return ""
+        if (logFilter !is DefaultLogFilter) return EMPTY_STRING
+        val messageFilter = logFilter.filters.firstOrNull { it.column is Column.MessageColumn } ?: return EMPTY_STRING
         val logFilterItem = messageFilter.filterItem
         rows.forEachIndexed { index, row ->
             val logItem = logTable.tableModel.getItemInCurrentPage(row)
             val content = logItem.logLine
-            LabelRenderer.obtain().with { renderer ->
+            LabelRenderer.obtain().use { renderer ->
                 renderer.updateRaw(content)
-                val foreground = getLevel(logItem).color
+                val foreground = getLevel(logItem).logForeground
                 renderer.foreground(foreground)
                 val matchedList = logFilterItem.getMatchedList(content)
                 matchedList.forEach {
-                    renderer.highlight(it.first, it.second, logMetadata.colorScheme.filterContentBg)
-                    renderer.foreground(it.first, it.second, logMetadata.colorScheme.filterContentFg)
+                    renderer.highlight(it.first, it.second, logMetadata.colorScheme.filterContentBackground)
+                    renderer.foreground(it.first, it.second, logMetadata.colorScheme.filterContentForeground)
                 }
                 renderedContent.append(renderer.renderWithoutTags())
                 if (index != rows.lastIndex) renderedContent.addSingleTag(Tag.LINE_BREAK)
             }
         }
-        return renderedContent.build()
+        return renderedContent.use { it.build() }
+    }
+
+    private inner class LevelCellRenderer(logMetadata: LogMetadata) : LabelLogTableCellRenderer(logMetadata) {
+        private val levelKeywordToAbbreviations = logMetadata.levels.associate { it.level.keyword to it.level.abbreviation }
+
+        init {
+            horizontalAlignment = JLabel.CENTER
+            verticalAlignment = JLabel.CENTER
+        }
+
+        override fun render(table: LogTable, renderer: StringRenderer, row: Int, content: String) {
+            super.render(table, renderer, row, content)
+            val level = getLevel(table.tableModel.getItemInCurrentPage(row))
+            renderer.highlight(level.levelColumnBackground)
+            renderer.foreground(level.levelColumnForeground)
+        }
+
+        override fun processContent(table: LogTable, content: String): String {
+            val abbreviation = levelKeywordToAbbreviations[content] ?: return content
+            return abbreviation
+        }
     }
 
     private inner class SimpleLogCellRenderer(logMetadata: LogMetadata) : LabelLogTableCellRenderer(logMetadata) {
@@ -83,7 +109,7 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
 
         override fun render(table: LogTable, renderer: StringRenderer, row: Int, content: String) {
             super.render(table, renderer, row, content)
-            renderer.foreground(getLevel(table.tableModel.getItemInCurrentPage(row)).color)
+            renderer.foreground(getLevel(table.tableModel.getItemInCurrentPage(row)).logForeground)
         }
     }
 
@@ -100,12 +126,12 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
         override fun render(table: LogTable, renderer: StringRenderer, row: Int, content: String) {
             super.render(table, renderer, row, content)
             val logItem = table.tableModel.getItemInCurrentPage(row)
-            val foreground = getLevel(logItem).color
+            val foreground = getLevel(logItem).logForeground
             renderer.foreground(foreground)
 
             table.tableModel.searchFilterItem.getMatchedList(content).forEach {
-                renderer.highlight(it.first, it.second, logMetadata.colorScheme.searchContentBg)
-                renderer.foreground(it.first, it.second, logMetadata.colorScheme.searchContentFg)
+                renderer.highlight(it.first, it.second, logMetadata.colorScheme.searchContentBackground)
+                renderer.foreground(it.first, it.second, logMetadata.colorScheme.searchContentForeground)
             }
 
             val logFilter = table.tableModel.getLogFilter()
@@ -113,8 +139,8 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
             // filter 比 render 更新慢时出现异常
             if (filterIndex >= logFilter.filters.size) return
             logFilter.filters[filterIndex].filterItem.getMatchedList(content).forEach {
-                renderer.highlight(it.first, it.second, logMetadata.colorScheme.filterContentBg)
-                renderer.foreground(it.first, it.second, logMetadata.colorScheme.filterContentFg)
+                renderer.highlight(it.first, it.second, logMetadata.colorScheme.filterContentBackground)
+                renderer.foreground(it.first, it.second, logMetadata.colorScheme.filterContentForeground)
             }
         }
 
@@ -144,7 +170,7 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
 
 private abstract class LabelLogTableCellRenderer(protected val logMetadata: LogMetadata) : DefaultTableCellRenderer(), LogCellRenderer {
     override var maxLength: Int = Int.MAX_VALUE
-    override lateinit var logTable: LogTable
+    override var logTable: LogTable? = null
 
     private val emptyBorder = BorderFactory.createEmptyBorder(0, 5, 0, 0)
 
@@ -158,9 +184,10 @@ private abstract class LabelLogTableCellRenderer(protected val logMetadata: LogM
     ): Component {
         border = emptyBorder
         font = table.font
-        val content = value?.toString() ?: ""
-        logTable = table as LogTable
-        RenderResult.obtain().with { result ->
+        val content = value?.toString() ?: EMPTY_STRING
+        val logTable = table as LogTable
+        this.logTable = logTable
+        RenderResult.obtain().use { result ->
             result.raw = processContent(logTable, content)
             getRenderResult(result, logTable, row)
             if (result.background.isValid()) {
@@ -175,7 +202,7 @@ private abstract class LabelLogTableCellRenderer(protected val logMetadata: LogM
     }
 
     private fun getRenderResult(result: RenderResult, logTable: LogTable, row: Int) {
-        LabelRenderer.obtain().with { renderer ->
+        LabelRenderer.obtain().use { renderer ->
             renderer.updateRaw(result.raw)
             val logItem = logTable.tableModel.getItemInCurrentPage(row)
             val logBackground = logTable.getColumnBackground(logItem.num, row, logMetadata)

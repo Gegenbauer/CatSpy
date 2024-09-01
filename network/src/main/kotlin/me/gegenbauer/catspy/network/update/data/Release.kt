@@ -1,5 +1,7 @@
 package me.gegenbauer.catspy.network.update.data
 
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+
 data class Release(
     val id: Int,
     val name: String,
@@ -7,7 +9,7 @@ data class Release(
     val assets: List<Asset>,
 ) {
 
-    constructor(versionName: String) : this(0, versionName, "", emptyList())
+    constructor(versionName: String) : this(0, versionName, EMPTY_STRING, emptyList())
 
     operator fun compareTo(other: Release): Int {
         return compareVersionNames(name, other.name)
@@ -50,7 +52,7 @@ data class Release(
 
     private fun substringFromFirstDigit(text: String): String {
         val matchResult = "\\d.*".toRegex().find(text)
-        return matchResult?.value ?: ""
+        return matchResult?.value ?: EMPTY_STRING
     }
 
     fun isEmpty(): Boolean {
@@ -64,6 +66,6 @@ data class Release(
         private const val VERSION_APPENDIX_SPLITTER = "-"
         private const val VERSION_SPLITTER = "."
 
-        val emptyRelease = Release(0, "", "", emptyList())
+        val emptyRelease = Release(0, EMPTY_STRING, EMPTY_STRING, emptyList())
     }
 }

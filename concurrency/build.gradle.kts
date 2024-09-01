@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     implementation(projects.glog)
+    implementation(projects.javaext)
     api(Kotlin.coroutineCore)
     api(Kotlin.coroutineSwing)
 }

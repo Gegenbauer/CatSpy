@@ -6,8 +6,6 @@ plugins {
 
 dependencies {
     api(kotlinReflectApi())
-    implementation(projects.glog)
-    implementation(projects.concurrency)
     testImplementation(kotlinTestApi())
 }
 

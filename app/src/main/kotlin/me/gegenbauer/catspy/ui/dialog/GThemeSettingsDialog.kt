@@ -5,8 +5,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.configuration.*
 import me.gegenbauer.catspy.file.gson
-import me.gegenbauer.catspy.java.ext.GlobalMessageManager
-import me.gegenbauer.catspy.java.ext.Message
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.concurrency.GlobalMessageManager
+import me.gegenbauer.catspy.concurrency.Message
 import me.gegenbauer.catspy.java.ext.copyFields
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.globalLocale
@@ -131,7 +132,7 @@ class GThemeSettingsDialog(
         )
         return showWarningDialog(
             this,
-            "",
+            EMPTY_STRING,
             STRINGS.ui.applyLanguageWarning,
             actions,
             defaultChoice = 1
@@ -155,7 +156,7 @@ class GThemeSettingsDialog(
         )
         return showWarningDialog(
             this,
-            "",
+            EMPTY_STRING,
             STRINGS.ui.resetToDefaultWarning,
             actions,
         )

@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.log.ui.customize
 
 import info.clearthought.layout.TableLayout
 import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.LogMetadataManager
 import me.gegenbauer.catspy.log.serialize.LogMetadataModel
 import me.gegenbauer.catspy.strings.STRINGS
@@ -22,6 +23,8 @@ interface ILogMetadataDetail : Editor {
 
     fun resetToBuiltIn()
 
+    fun changeNightMode(isDark: Boolean)
+
     fun isEditing(): Boolean
 
     fun isModified(): Boolean
@@ -35,8 +38,8 @@ class LogMetadataDetailPanel : JPanel(), ILogMetadataDetail, EditEventListener {
 
     override var logMetadataEditModel: LogMetadataEditModel = LogMetadataModel.default.toEditModel()
         set(value) {
-            field = value
-            setLogMetadata(value)
+            field = value.copy(isNightMode = editActionPanel.isNightMode)
+            setLogMetadata(field)
         }
 
     private val logMetadataManager: LogMetadataManager
@@ -80,14 +83,12 @@ class LogMetadataDetailPanel : JPanel(), ILogMetadataDetail, EditEventListener {
     private fun setLogMetadata(metadata: LogMetadataEditModel) {
         setContentVisible(metadata.model != LogMetadataModel.default)
         showPreview(metadata.model != LogMetadataModel.default)
-        editActionPanel.setEditEnabled(true)
-        editActionPanel.stopEditing()
         contentPanel.setLogMetadata(metadata)
         editActionPanel.setResetButtonVisible(metadata.model.isBuiltIn && logMetadataManager.isCustomized(metadata.model.logType))
-        updatePreview(metadata.model)
+        updatePreview(metadata)
     }
 
-    private fun updatePreview(metadata: LogMetadataModel) {
+    private fun updatePreview(metadata: LogMetadataEditModel) {
         previewPanel.setMetadata(metadata)
     }
 
@@ -111,7 +112,10 @@ class LogMetadataDetailPanel : JPanel(), ILogMetadataDetail, EditEventListener {
             } else {
                 if (logMetadataModel != logMetadata) {
                     logMetadataManager.modifyLogMetadata(logMetadata, logMetadataModel)
-                    logMetadataEditModel = logMetadataModel.toEditModel(id = logMetadataEditModel.id)
+                    logMetadataEditModel = logMetadataModel.toEditModel(
+                        id = logMetadataEditModel.id,
+                        isNightMode = logMetadataEditModel.isNightMode
+                    )
                     if (logMetadataModel.isBuiltIn) {
                         editActionPanel.setResetButtonVisible(true)
                     }
@@ -129,19 +133,26 @@ class LogMetadataDetailPanel : JPanel(), ILogMetadataDetail, EditEventListener {
         } else {
             contentPanel.setLogMetadata(logMetadataEditModel)
         }
-        updatePreview(logMetadataEditModel.model)
+        updatePreview(logMetadataEditModel)
         stopEditing()
     }
 
     override fun resetToBuiltIn() {
         if (showResetWarning(logMetadata.logType)) {
             val builtInMetadata = logMetadataManager.resetToBuiltIn(logMetadata.logType)
-            val editModel = builtInMetadata.toEditModel(id = logMetadataEditModel.id)
+            val editModel = builtInMetadata.toEditModel(
+                id = logMetadataEditModel.id,
+                isNightMode = editActionPanel.isNightMode
+            )
             if (logMetadata != builtInMetadata) {
                 notifyLogMetadataChanged(editModel)
             }
             logMetadataEditModel = editModel
         }
+    }
+
+    override fun changeNightMode(isDark: Boolean) {
+        logMetadataEditModel = logMetadataEditModel.copy(isNightMode = isDark)
     }
 
     private fun showResetWarning(logType: String): Boolean {
@@ -151,7 +162,7 @@ class LogMetadataDetailPanel : JPanel(), ILogMetadataDetail, EditEventListener {
         )
         return showWarningDialog(
             null,
-            "",
+            EMPTY_STRING,
             STRINGS.ui.resetToBuiltInMetadataWarning.get(logType),
             actions,
             defaultChoice = 1
@@ -179,9 +190,7 @@ class LogMetadataDetailPanel : JPanel(), ILogMetadataDetail, EditEventListener {
     }
 
     override fun isModified(): Boolean {
-        val oldMetadata = logMetadataEditModel.model
-        val newMetadata = contentPanel.getUpdatedLogMetadata(oldMetadata)
-        return oldMetadata != newMetadata
+        return contentPanel.isModified()
     }
 
     override fun addOnLogMetadataChangedListener(listener: (LogMetadataEditModel) -> Unit) {
@@ -201,10 +210,10 @@ class LogMetadataDetailPanel : JPanel(), ILogMetadataDetail, EditEventListener {
     }
 
     override fun onEditDone(component: JComponent) {
-        updatePreview(contentPanel.getUpdatedLogMetadata(logMetadata))
-        notifyLogMetadataChanged(
-            contentPanel.getUpdatedLogMetadata(logMetadata).toEditModel(id = logMetadataEditModel.id)
-        )
+        val editModel = contentPanel.getUpdatedLogMetadata(logMetadata)
+            .toEditModel(id = logMetadataEditModel.id, isNightMode = editActionPanel.isNightMode)
+        updatePreview(editModel)
+        notifyLogMetadataChanged(editModel)
     }
 
     companion object {
