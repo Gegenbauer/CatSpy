@@ -38,7 +38,7 @@ class LogMetadataDetailPanel : JPanel(), ILogMetadataDetail, EditEventListener {
 
     override var logMetadataEditModel: LogMetadataEditModel = LogMetadataModel.default.toEditModel()
         set(value) {
-            field = value.copy(isNightMode = editActionPanel.isNightMode)
+            field = value.copy(isDarkMode = editActionPanel.isNightMode)
             setLogMetadata(field)
         }
 
@@ -114,7 +114,7 @@ class LogMetadataDetailPanel : JPanel(), ILogMetadataDetail, EditEventListener {
                     logMetadataManager.modifyLogMetadata(logMetadata, logMetadataModel)
                     logMetadataEditModel = logMetadataModel.toEditModel(
                         id = logMetadataEditModel.id,
-                        isNightMode = logMetadataEditModel.isNightMode
+                        isNightMode = logMetadataEditModel.isDarkMode
                     )
                     if (logMetadataModel.isBuiltIn) {
                         editActionPanel.setResetButtonVisible(true)
@@ -152,7 +152,8 @@ class LogMetadataDetailPanel : JPanel(), ILogMetadataDetail, EditEventListener {
     }
 
     override fun changeNightMode(isDark: Boolean) {
-        logMetadataEditModel = logMetadataEditModel.copy(isNightMode = isDark)
+        contentPanel.onNightModeChanged(isDark)
+        previewPanel.onNightModeChanged(logMetadataEditModel.copy(isDarkMode = isDark))
     }
 
     private fun showResetWarning(logType: String): Boolean {

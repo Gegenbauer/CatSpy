@@ -35,8 +35,13 @@ class LogMetadataPreviewPanel : FileLogMainPanel() {
         updateLogFilter()
     }
 
+    fun onNightModeChanged(metadataModel: LogMetadataEditModel) {
+        val metadata = generateThemeIgnoredLogMetadata(metadataModel)
+        logConf.setLogMetadata(metadata)
+    }
+
     /**
-     * replace all [DarkThemeAwareColor] with a fixed color according to [LogMetadataEditModel.isNightMode]
+     * replace all [DarkThemeAwareColor] with a fixed color according to [LogMetadataEditModel.isDarkMode]
      */
     @Suppress("UNCHECKED_CAST")
     private fun generateThemeIgnoredLogMetadata(editModel: LogMetadataEditModel): LogMetadata {
@@ -58,9 +63,9 @@ class LogMetadataPreviewPanel : FileLogMainPanel() {
         }
 
         val newMetadata = editModel.model.toLogMetadata().deepCopy()
-        replaceColorFieldsWithFixedColor<LogColorScheme>(newMetadata.colorScheme, editModel.isNightMode)
+        replaceColorFieldsWithFixedColor<LogColorScheme>(newMetadata.colorScheme, editModel.isDarkMode)
         newMetadata.levels.forEach {
-            replaceColorFieldsWithFixedColor<DisplayedLevel>(it, editModel.isNightMode)
+            replaceColorFieldsWithFixedColor<DisplayedLevel>(it, editModel.isDarkMode)
         }
         return newMetadata
     }

@@ -8,7 +8,7 @@ data class LogMetadataEditModel(
     val isEdited: Boolean,
     val isNew: Boolean,
     val isDeleted: Boolean = false,
-    val isNightMode: Boolean = false,
+    val isDarkMode: Boolean = false,
     val id: Int
 ) {
 
