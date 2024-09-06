@@ -11,7 +11,6 @@ import me.gegenbauer.catspy.log.serialize.SerializableLogParser
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.OnScrollToEndListener
 import me.gegenbauer.catspy.utils.ui.ScrollToEndListenerSupport
-import me.gegenbauer.catspy.view.color.DarkThemeAwareColor
 import me.gegenbauer.catspy.view.panel.ScrollConstrainedScrollablePanel
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -128,6 +127,10 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
         logMetadata = metadata
     }
 
+    override fun onNightModeChanged(isDark: Boolean) {
+        editPanels.filterIsInstance<LogMetadataEditor>().forEach { it.onNightModeChanged(isDark) }
+    }
+
     override fun isModified(): Boolean {
         return editPanels.filterIsInstance<LogMetadataEditor>().any { it.isModified() }
     }
@@ -224,7 +227,7 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
                     getUpdatedLogMetadata(logMetadata.model).toEditModel(
                         id = logMetadata.id,
                         isDeleted = logMetadata.isDeleted,
-                        isNightMode = logMetadata.isNightMode,
+                        isNightMode = logMetadata.isDarkMode,
                         isNew = logMetadata.isNew,
                     )
                 )

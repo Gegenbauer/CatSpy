@@ -155,13 +155,12 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
         init {
             horizontalAlignment = JLabel.RIGHT
             verticalAlignment = JLabel.CENTER
-
-            setBorder(border)
         }
 
         override fun render(table: LogTable, renderer: StringRenderer, row: Int, content: String) {
             super.render(table, renderer, row, content)
             border.color = logMetadata.colorScheme.indexColumnSeparatorColor
+            setBorder(border)
             renderer.foreground(logMetadata.colorScheme.indexColumnForeground)
         }
     }

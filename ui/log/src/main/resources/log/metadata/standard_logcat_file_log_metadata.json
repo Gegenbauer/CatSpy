@@ -293,43 +293,43 @@
   ],
   "colorScheme": {
     "searchContentBackground": {
-      "color": "#E0E0E0",
-      "darkThemeColor": "#3A3D41"
+      "color": "#fffcd47e",
+      "darkThemeColor": "#ffccccff"
     },
     "searchContentForeground": {
-      "color": "#FFFFFF",
-      "darkThemeColor": "#01000000"
+      "color": "#ff000000",
+      "darkThemeColor": "#e4000000"
     },
     "filterContentBackground": {
-      "color": "#4A20B020",
-      "darkThemeColor": "#00A000"
+      "color": "#a320b020",
+      "darkThemeColor": "#ff00a000"
     },
     "filterContentForeground": {
-      "color": "#FFFFFF",
-      "darkThemeColor": "#000000"
+      "color": "#ffffffff",
+      "darkThemeColor": "#ff000000"
     },
     "indexColumnSeparatorColor": {
-      "color": "#333334",
-      "darkThemeColor": "#5f5f60"
+      "color": "#c0cccccc",
+      "darkThemeColor": "#3ecccccc"
     },
     "indexColumnForeground": {
-      "color": "#111111",
-      "darkThemeColor": "#a1b2be"
+      "color": "#ff111111",
+      "darkThemeColor": "#ffa1b2be"
     },
     "normalLogBackground": {
-      "color": "#FFFFFF",
-      "darkThemeColor": "#1E1F22"
+      "color": "#ffffffff",
+      "darkThemeColor": "#ff1e1f22"
     },
     "selectedLogBackground": {
-      "color": "#FCD47E",
-      "darkThemeColor": "#32593D"
+      "color": "#ffccff99",
+      "darkThemeColor": "#7032593d"
     },
     "bookmarkedLogBackground": {
-      "color": "#ff1f1f01",
+      "color": "#ffffcccc",
       "darkThemeColor": "#31ffcccc"
     },
     "bookmarkedAndSelectedLogBackground": {
-      "color": "#ff2f2f21",
+      "color": "#ffff9999",
       "darkThemeColor": "#6affcccc"
     }
   },
