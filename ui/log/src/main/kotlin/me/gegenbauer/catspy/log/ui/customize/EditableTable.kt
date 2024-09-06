@@ -53,7 +53,7 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
         get() = actionPanel.isEditing
 
     protected val isNightMode: Boolean
-        get() = logMetadataEditModel.isNightMode
+        get() = logMetadataEditModel.isDarkMode
 
     protected abstract val tableName: String
 
@@ -102,6 +102,12 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
         actionVisibilityParam.setBuiltInState(metadata.model.isBuiltIn)
         actionPanel.setActionVisibilityParam(actionVisibilityParam)
         actionPanel.setExcludedMetadata(metadata.model.logType)
+    }
+
+    override fun onNightModeChanged(isDark: Boolean) {
+        val currentItems = getUpdatedItems()
+        logMetadataEditModel = logMetadataEditModel.copy(isDarkMode = isDark)
+        setItemsToTable(currentItems)
     }
 
     override fun configure() {
@@ -155,7 +161,7 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
 
     private fun configureColumnHeaderRenderer() {
         table.tableHeader.defaultRenderer =
-            CustomActionInjectedCellRenderer(table.tableHeader.defaultRenderer) { table, component, value, row, column ->
+            CustomActionInjectedCellRenderer(table.tableHeader.defaultRenderer) { table, component, _, _, column ->
                 val columnEditable =
                     isEditing && (0 until table.rowCount).map { table.isCellEditable(it, column) }.any { it }
                 component.isEnabled = columnEditable
@@ -218,7 +224,7 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
             logMetadataModel.copy(
                 isBuiltIn = false,
                 logType = logMetadataEditModel.model.logType
-            ).toEditModel(isNightMode = logMetadataEditModel.isNightMode)
+            ).toEditModel(isNightMode = logMetadataEditModel.isDarkMode)
         )
         notifyEditDone()
     }

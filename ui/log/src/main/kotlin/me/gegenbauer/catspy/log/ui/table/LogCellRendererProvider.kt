@@ -92,12 +92,8 @@ abstract class BaseLogCellRendererProvider : LogCellRendererProvider {
 
     class LineNumBorder(var color: Color, private val thickness: Int) : AbstractBorder() {
         override fun paintBorder(c: Component, g: Graphics, x: Int, y: Int, width: Int, height: Int) {
-            if (width > 0) {
-                g.color = color
-                for (i in 1..thickness) {
-                    g.drawLine(width - i, y, width - i, height)
-                }
-            }
+            g.color = color
+            g.fillRect(width - thickness, 0, thickness, height)
         }
 
         override fun getBorderInsets(c: Component): Insets {

@@ -185,7 +185,7 @@ class ParserEditPanel : JPanel(), LogMetadataEditor, ParseOpEventListener, Scrol
                     isBuiltIn = false,
                     sample = logMetadata.model.sample,
                     logType = logMetadata.model.logType
-                ).toEditModel(isNightMode = logMetadata.isNightMode)
+                ).toEditModel(isNightMode = logMetadata.isDarkMode)
             )
         }
 
