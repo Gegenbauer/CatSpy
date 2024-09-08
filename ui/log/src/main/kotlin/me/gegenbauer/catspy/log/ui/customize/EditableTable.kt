@@ -113,7 +113,7 @@ abstract class BaseEditableTablePanel<T> : EditableTablePanel<T>, JPanel(), LogM
     override fun configure() {
         initUI()
 
-        hintComponent.text = hint
+        hintComponent.text = hint.replace("\\","")
 
         actionPanel.bindTable(table) { createNewItem().toRowItem() }
         actionPanel.setCustomActions(customActions)

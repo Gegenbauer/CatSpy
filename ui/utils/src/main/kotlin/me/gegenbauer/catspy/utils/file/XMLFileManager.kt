@@ -1,5 +1,7 @@
 package me.gegenbauer.catspy.utils.file
 
+import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.java.ext.isValidName
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
@@ -44,6 +46,7 @@ class XMLFileManager : StringFileManager() {
             if (node.nodeType == Node.ELEMENT_NODE) {
                 val element = node as Element
                 val tagName = element.tagName
+                if (!isValidName(tagName)) continue
                 val textContent = element.textContent
 
                 if (resultMap.containsKey(tagName)) {
@@ -83,9 +86,13 @@ class XMLFileManager : StringFileManager() {
                     root.appendChild(element)
                 }
             } else {
-                val element = document.createElement(key)
-                element.appendChild(document.createTextNode(value.toString()))
-                root.appendChild(element)
+                kotlin.runCatching {
+                    val element = document.createElement(key)
+                    element.appendChild(document.createTextNode(value.toString()))
+                    root.appendChild(element)
+                }.onFailure {
+                    GLog.e(TAG, "Failed to add element to XML document, key=$key", it)
+                }
             }
         }
 
@@ -102,6 +109,8 @@ class XMLFileManager : StringFileManager() {
     }
 
     companion object {
+        private const val TAG = "XMLFileManager"
+
         const val FILE_EXTENSION = "xml"
     }
 }

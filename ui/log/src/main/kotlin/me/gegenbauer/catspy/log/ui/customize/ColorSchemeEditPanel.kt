@@ -12,8 +12,7 @@ import javax.swing.table.DefaultTableModel
 class ColorSchemeEditPanel : BaseEditableTablePanel<ColorSchemeItem>() {
 
     override val tableName: String = STRINGS.ui.tableColorSchemeInfo
-    override val columnParams: List<ColumnParam>
-         = listOf(
+    override val columnParams: List<ColumnParam> = listOf(
             ColumnParam(
                 STRINGS.ui.colorName,
                 java.lang.String::class.java,
@@ -21,12 +20,11 @@ class ColorSchemeEditPanel : BaseEditableTablePanel<ColorSchemeItem>() {
                 neverEditable = true
             ),
             ColumnParam(
-                STRINGS.ui.colorEditColorColumn,
+                STRINGS.ui.colorColumn,
                 Color::class.java,
                 editableWhenBuiltIn = true,
                 tooltip = run {
-                    val theme = if (isNightMode) STRINGS.ui.darkTheme else STRINGS.ui.lightTheme
-                    STRINGS.toolTip.colorEditColorColumn.get(theme)
+                    STRINGS.toolTip.colorColumn
                 },
             )
         )

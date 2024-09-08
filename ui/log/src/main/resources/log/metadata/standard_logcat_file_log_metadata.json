@@ -1,5 +1,5 @@
 {
-  "logType": "Standard Logcat File Log",
+  "logType": "StandardLogcatFileLog",
   "parser": {
     "splitToPartsOp": {
       "maxParts": 7,

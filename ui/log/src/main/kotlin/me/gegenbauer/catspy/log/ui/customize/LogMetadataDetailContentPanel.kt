@@ -50,7 +50,7 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
         verifier {
             it as JTextField
             if (it.text.isBlank()) {
-                ParamVerifier.Result.Invalid(STRINGS.toolTip.logTypeBlankWarning)
+                ParamVerifier.Result.Invalid(STRINGS.toolTip.contentBlankWarning)
             } else {
                 ParamVerifier.Result.Valid
             }
