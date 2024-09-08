@@ -22,7 +22,7 @@ interface ILogRenderer {
 
     fun configureColumn(table: LogTable)
 
-    fun showSelectedRowsInDialog(logTable: LogTable, rows: List<Int>, popupActions: List<LogDetailDialog.PopupAction>)
+    suspend fun getRenderedContent(logTable: LogTable, rows: List<Int>): String
 }
 
 class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRenderer, Context, PropertyChangeListener {
@@ -149,12 +149,8 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
         configureColumnWidth(table)
     }
 
-    override fun showSelectedRowsInDialog(
-        logTable: LogTable,
-        rows: List<Int>,
-        popupActions: List<LogDetailDialog.PopupAction>
-    ) {
-        logCellRendererProvider.showSelectedRowsInDialog(logTable, rows, popupActions)
+    override suspend fun getRenderedContent(logTable: LogTable, rows: List<Int>): String {
+        return logCellRendererProvider.getRenderedContent(logTable, rows)
     }
 
     private class ColumnWidthManager {

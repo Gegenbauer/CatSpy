@@ -23,7 +23,7 @@ abstract class BaseCustomLogProducer(
     }
 
     protected open fun getSampleLogItem(): LogItem {
-        return LogItem(0, logConfiguration.logMetaData.sample, logParser.parse(logConfiguration.logMetaData.sample))
+        return LogItem(0, logParser.parse(logConfiguration.logMetaData.sample))
     }
 
     private fun getAllLevelLogs(sampleLog: LogItem): List<LogItem> {
@@ -40,9 +40,15 @@ abstract class BaseCustomLogProducer(
         return logItems
     }
 
-    private fun generateTargetLevelLogItem(sampleLog: LogItem, level: Level, logPartCount: Int, levelColumnIndex: Int, rowIndex: Int): LogItem {
-        val logParts = (0 until logPartCount).map { sampleLog.parts[it] }.toMutableList()
+    private fun generateTargetLevelLogItem(
+        sampleLog: LogItem,
+        level: Level,
+        logPartCount: Int,
+        levelColumnIndex: Int,
+        rowIndex: Int
+    ): LogItem {
+        val logParts = (0 until logPartCount).map { sampleLog.getPart(it) }.toMutableList()
         logParts[levelColumnIndex] = level.keyword
-        return LogItem(rowIndex, logParts.joinToString(" "), logParts)
+        return LogItem(rowIndex, logParts)
     }
 }

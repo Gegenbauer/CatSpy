@@ -9,7 +9,6 @@ import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.BookmarkChangeListener
 import me.gegenbauer.catspy.log.BookmarkManager
-import me.gegenbauer.catspy.log.ui.LogConfiguration
 import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.applyTooltip
@@ -54,8 +53,6 @@ abstract class LogPanel(
     private val adjustmentHandler = AdjustmentHandler()
     private val tableModelHandler = TableModelHandler()
     private val bookmarkHandler = BookmarkHandler()
-    private val logConfiguration: LogConfiguration?
-        get() = contexts.getContext(LogConfiguration::class.java)
 
     private var lastPosition = -1
     private var lastPageMetaData: PageMetadata = PageMetadata()

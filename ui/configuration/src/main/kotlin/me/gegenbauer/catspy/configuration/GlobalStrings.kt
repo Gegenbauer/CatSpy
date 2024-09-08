@@ -10,10 +10,5 @@ object GlobalStrings {
     const val DEBUG_CACHE = "Cache"
     const val DEBUG_LOG = "Log"
     const val DEBUG_UI_DEFAULTS_INSPECTOR = "UI Defaults Inspector"
-    const val LOG = "Log"
     const val MATCH_CASE = "Aa"
-    const val PID = "PID"
-    const val PACKAGE = "Package"
-    const val TAG = "Tag"
-    const val TID = "TID"
 }

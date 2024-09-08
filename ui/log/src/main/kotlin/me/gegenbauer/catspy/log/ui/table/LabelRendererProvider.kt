@@ -1,8 +1,13 @@
 package me.gegenbauer.catspy.log.ui.table
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.cache.use
+import me.gegenbauer.catspy.concurrency.CPU
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.java.ext.truncate
+import me.gegenbauer.catspy.log.filter.ContentFilter
 import me.gegenbauer.catspy.log.filter.DefaultLogFilter
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.LogMetadata
@@ -13,75 +18,82 @@ import me.gegenbauer.catspy.render.RenderResult
 import me.gegenbauer.catspy.render.StringRenderer
 import me.gegenbauer.catspy.render.Tag
 import me.gegenbauer.catspy.render.isValid
+import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.getMatchedList
 import java.awt.Component
 import javax.swing.BorderFactory
-import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JTable
-import javax.swing.JTextPane
 import javax.swing.table.DefaultTableCellRenderer
-import javax.swing.text.html.HTMLEditorKit
 
 class LabelRendererProvider : BaseLogCellRendererProvider() {
 
     override fun createRenderer(column: Column): LogCellRenderer {
-        if (column.partIndex < 0) {
-            return IndexRenderer(logMetadata)
-        }
-        if (column is Column.LevelColumn) {
-            return LevelCellRenderer(logMetadata)
-        }
-        if (column.supportFilter && column.uiConf.column.isHidden.not()) {
-            return SearchableCellRenderer(logMetadata, getFilterIndex(column))
-        }
+        return when {
+            column.partIndex < 0 -> IndexRenderer(logMetadata)
+            column is Column.LevelColumn -> LevelCellRenderer(logMetadata)
+            column.supportFilter && column.uiConf.column.isHidden.not() -> {
+                SearchableCellRenderer(logMetadata, getFilterIndex(column))
+            }
 
-        return SimpleLogCellRenderer(logMetadata)
+            else -> SimpleLogCellRenderer(logMetadata)
+        }
     }
 
-    override fun showSelectedRowsInDialog(
+    override suspend fun getRenderedContent(
         logTable: LogTable,
         rows: List<Int>,
-        popupActions: List<LogDetailDialog.PopupAction>
-    ) {
-        val renderedContent = renderRows(logTable, rows)
-        val dialogTextComponent = JTextPane()
-        dialogTextComponent.editorKit = HTMLEditorKit()
-        dialogTextComponent.text = renderedContent
-        val frame = logTable.contexts.getContext(JFrame::class.java) ?: return
-        val logViewDialog = LogDetailDialog(frame, dialogTextComponent, popupActions, logMetadata)
-        logViewDialog.setLocationRelativeTo(frame)
-        logViewDialog.isVisible = true
-    }
-
-    private fun renderRows(logTable: LogTable, rows: List<Int>): String {
-        val renderedContent = HtmlStringBuilder.obtain()
-        renderedContent.isHtmlTagInitialized = true
-        val logFilter = logTable.tableModel.getLogFilter()
-        if (logFilter !is DefaultLogFilter) return EMPTY_STRING
-        val messageFilter = logFilter.filters.firstOrNull { it.column is Column.MessageColumn } ?: return EMPTY_STRING
-        val logFilterItem = messageFilter.filterItem
-        rows.forEachIndexed { index, row ->
-            val logItem = logTable.tableModel.getItemInCurrentPage(row)
-            val content = logItem.logLine
-            LabelRenderer.obtain().use { renderer ->
-                renderer.updateRaw(content)
-                val foreground = getLevel(logItem).logForeground
-                renderer.foreground(foreground)
-                val matchedList = logFilterItem.getMatchedList(content)
-                matchedList.forEach {
-                    renderer.highlight(it.first, it.second, logMetadata.colorScheme.filterContentBackground)
-                    renderer.foreground(it.first, it.second, logMetadata.colorScheme.filterContentForeground)
-                }
-                renderedContent.append(renderer.renderWithoutTags())
-                if (index != rows.lastIndex) renderedContent.addSingleTag(Tag.LINE_BREAK)
+    ): String {
+        fun renderLogFilter(renderer: StringRenderer, logFilterItem: FilterItem, content: String) {
+            val matchedList = logFilterItem.getMatchedList(content)
+            matchedList.forEach {
+                renderer.highlight(it.first, it.second, logMetadata.colorScheme.filterContentBackground)
+                renderer.foreground(it.first, it.second, logMetadata.colorScheme.filterContentForeground)
             }
         }
-        return renderedContent.use { it.build() }
+
+        fun renderSearchFilter(renderer: StringRenderer, searchFilterItem: FilterItem, content: String) {
+            val matchedList = searchFilterItem.getMatchedList(content)
+            matchedList.forEach {
+                renderer.highlight(it.first, it.second, logMetadata.colorScheme.searchContentBackground)
+                renderer.foreground(it.first, it.second, logMetadata.colorScheme.searchContentForeground)
+            }
+        }
+
+        val renderedContent = HtmlStringBuilder.obtain()
+        renderedContent.isHtmlTagInitialized = true
+        val logFilter = logTable.tableModel.getLogFilter() as? DefaultLogFilter
+        val logFilterItems = logFilter?.filters
+            ?.filter { it.filter is ContentFilter }
+            ?.map { it.filterItem }
+            ?: emptyList()
+        val searchFilterItem = logTable.tableModel.searchFilterItem
+
+        return withContext(Dispatchers.CPU) {
+            rows.forEachIndexed { index, row ->
+                ensureActive()
+                val logItem = logTable.tableModel.getItemInCurrentPage(row)
+                val content = logItem.toString()
+                LabelRenderer.obtain().use { renderer ->
+                    renderer.updateRaw(content)
+                    val logBackground = logTable.getColumnBackground(logItem.num, row, logMetadata)
+                    renderer.highlight(logBackground)
+                    val foreground = getLevel(logItem).logForeground
+                    renderer.foreground(foreground)
+                    logFilterItems.forEach { renderLogFilter(renderer, it, content) }
+                    renderSearchFilter(renderer, searchFilterItem, content)
+                    renderedContent.append(renderer.renderWithoutTags())
+                    if (index != rows.lastIndex) renderedContent.addSingleTag(Tag.LINE_BREAK)
+                }
+            }
+            renderedContent.use { it.build() }
+        }
     }
 
     private inner class LevelCellRenderer(logMetadata: LogMetadata) : LabelLogTableCellRenderer(logMetadata) {
-        private val levelKeywordToAbbreviations = logMetadata.levels.associate { it.level.keyword to it.level.abbreviation }
+        private val levelKeywordToAbbreviations = logMetadata.levels.associate {
+            it.level.keyword to it.level.abbreviation
+        }
 
         init {
             horizontalAlignment = JLabel.CENTER
@@ -167,7 +179,8 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
 
 }
 
-private abstract class LabelLogTableCellRenderer(protected val logMetadata: LogMetadata) : DefaultTableCellRenderer(), LogCellRenderer {
+private abstract class LabelLogTableCellRenderer(protected val logMetadata: LogMetadata) : DefaultTableCellRenderer(),
+    LogCellRenderer {
     override var maxLength: Int = Int.MAX_VALUE
     override var logTable: LogTable? = null
 

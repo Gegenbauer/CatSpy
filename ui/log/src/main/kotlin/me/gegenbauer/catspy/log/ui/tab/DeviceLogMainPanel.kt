@@ -20,13 +20,16 @@ import me.gegenbauer.catspy.log.serialize.toLogMetadata
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.view.panel.StatusBar
 
-class DeviceLogMainPanel: BaseLogMainPanel(), LogMetadataChangeListener {
+class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
     override val tag: String = "DeviceLogMainPanel"
 
     private val idleStatus: String = "${STRINGS.ui.adb} ${STRINGS.ui.stop}"
 
     private val logMetadataManager: LogMetadataManager
         get() = ServiceManager.getContextService(LogMetadataManager::class.java)
+
+    private val deviceManager: AdamDeviceMonitor
+        get() = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
 
     override fun onSetup(bundle: Bundle?) {
         super.onSetup(bundle)
@@ -36,7 +39,6 @@ class DeviceLogMainPanel: BaseLogMainPanel(), LogMetadataChangeListener {
             showAdbPathSettings()
         }
 
-        val deviceManager = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
         deviceManager.tryStartMonitor()
 
         logMetadataManager.addOnMetadataChangeListener(this)
@@ -64,10 +66,8 @@ class DeviceLogMainPanel: BaseLogMainPanel(), LogMetadataChangeListener {
         super.registerEvent()
         scope.launch {
             delay(200)
-            ServiceManager.getContextService(AdamDeviceMonitor::class.java).apply {
-                registerDevicesListener(devicesChangeObserver)
-                registerAdbServerStatusListener(adbStatusChangeObserver)
-            }
+            deviceManager.registerDevicesListener(devicesChangeObserver)
+            deviceManager.registerAdbServerStatusListener(adbStatusChangeObserver)
         }
     }
 
@@ -116,14 +116,20 @@ class DeviceLogMainPanel: BaseLogMainPanel(), LogMetadataChangeListener {
         when (state) {
             is TaskStarted -> {
                 logStatus =
-                    StatusBar.LogStatusRunning(STRINGS.ui.adb, logViewModel.tempLogFile.absolutePath ?: EMPTY_STRING)
+                    StatusBar.LogStatusRunning(
+                        STRINGS.ui.adb,
+                        logViewModel.tempLogFile.absolutePath ?: EMPTY_STRING
+                    )
             }
 
             is TaskIdle -> {
                 if (isLogTableEmpty) {
                     logStatus = StatusBar.LogStatusIdle(idleStatus)
                 } else {
-                    logStatus = StatusBar.LogStatusIdle(idleStatus, logViewModel.tempLogFile.absolutePath ?: EMPTY_STRING)
+                    logStatus = StatusBar.LogStatusIdle(
+                        idleStatus,
+                        logViewModel.tempLogFile.absolutePath ?: EMPTY_STRING
+                    )
                 }
             }
         }
@@ -143,7 +149,6 @@ class DeviceLogMainPanel: BaseLogMainPanel(), LogMetadataChangeListener {
 
     override fun destroy() {
         super.destroy()
-        val deviceManager = ServiceManager.getContextService(AdamDeviceMonitor::class.java)
         deviceManager.tryStopMonitor()
         deviceManager.unregisterDevicesListener(devicesChangeObserver)
         deviceManager.unregisterAdbServerStatusListener(adbStatusChangeObserver)

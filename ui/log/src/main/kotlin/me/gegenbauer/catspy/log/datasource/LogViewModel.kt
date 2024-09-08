@@ -16,14 +16,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import me.gegenbauer.catspy.concurrency.CoroutineSuspender
+import me.gegenbauer.catspy.concurrency.ErrorEvent
+import me.gegenbauer.catspy.concurrency.Event
 import me.gegenbauer.catspy.concurrency.GIO
-import me.gegenbauer.catspy.concurrency.ViewModelScope
+import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
-import me.gegenbauer.catspy.concurrency.ErrorEvent
-import me.gegenbauer.catspy.concurrency.Event
 import me.gegenbauer.catspy.java.ext.formatDuration
 import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.filter.LogFilter
@@ -72,7 +73,7 @@ class LogViewModel(
     )
     private val fullLogRepo = FullLogRepo()
     private val filteredLogRepo = FilteredLogRepo()
-    private val scope = ViewModelScope()
+    private val scope = ModelScope()
     private val logUpdater = LogUpdater(fullLogRepo, filteredLogRepo, scope)
     private val logProcessMutex = Mutex()
 
@@ -148,7 +149,7 @@ class LogViewModel(
 
             task.notifyTaskStarted()
             runCatching {
-                writeLinesWithProgress(targetFile, logs.size, { index: Int -> logs[index].logLine }) {
+                writeLinesWithProgress(targetFile, logs.size, { index: Int -> logs[index].toString() }) {
                     task.notifyProgressChanged(it)
                 }
                 task.notifyTaskFinished()
@@ -242,6 +243,7 @@ class LogViewModel(
         var logProducer: LogProducer = EmptyLogProducer
 
         private val logConf by lazy { contexts.getContext(LogConfiguration::class.java)!! }
+        private val suspender = CoroutineSuspender("ProduceLogTask")
         private var startProducerTask: Job? = null
 
         private val logParser: LogParser
@@ -265,7 +267,6 @@ class LogViewModel(
 
         private fun startProduce(logProducer: LogProducer) {
             scope.launch {
-
                 logProcessMutex.withLock {
                     Log.d(TAG, "[startProduce] cancel previous jobs")
                     startProducerTask?.cancelAndJoin()
@@ -281,6 +282,7 @@ class LogViewModel(
                 delay(START_TASK_INTERVAL)
 
                 logProcessMutex.withLock {
+                    suspender.disable()
                     logConf.filterCreatedAfterMetadataChanged.compareAndSet(true, true)
                     filterLogTaskCancellationHandle()
                     this@ProduceLogTask.logProducer = logProducer
@@ -297,8 +299,9 @@ class LogViewModel(
                 val observeJob = launch { observeLogProducerState(logProducer) }
                 launch { startProduceInternal(logProducer) }.invokeOnCompletion {
                     observeJob.cancel()
+                    Log.d(TAG, "[startProduce] startProduceInternal completed")
                 }
-                delay(500)
+                delay(PRODUCE_LOADING_ANIM_MIN_DURATION)
                 fullLogRepo.onLoadingEnd()
             }
         }
@@ -335,8 +338,21 @@ class LogViewModel(
         }
 
         private suspend fun startProduceInternal(logProducer: LogProducer) {
+
+            fun onLogItemReceived(logItem: LogItem) {
+                val logFilter = filterProvider()
+                fullLogRepo.onReceiveLogItem(logItem, logFilter)
+                filteredLogRepo.onReceiveLogItem(logItem, logFilter)
+            }
+
+            fun onLogProduceError(error: Throwable) {
+                Log.e(TAG, "[onLogProduceError]", error)
+                eventFlow.tryEmit(ErrorEvent(error))
+            }
+
             val cost = measureTimeMillis {
                 logProducer.start().collect { result ->
+                    suspender.checkSuspend()
                     val exception = result.exceptionOrNull()
                     val item = result.getOrNull()
 
@@ -351,26 +367,18 @@ class LogViewModel(
             Log.d(TAG, "[startProduceInternal] end, cost=${formatDuration(cost)}")
         }
 
-        private fun onLogProduceError(error: Throwable) {
-            Log.e(TAG, "[onLogProduceError]", error)
-            eventFlow.tryEmit(ErrorEvent(error))
-        }
-
-        private fun onLogItemReceived(logItem: LogItem) {
-            val logFilter = filterProvider()
-            fullLogRepo.onReceiveLogItem(logItem, logFilter)
-            filteredLogRepo.onReceiveLogItem(logItem, logFilter)
-        }
-
         override fun pause() {
             logProducer.pause()
+            suspender.enable()
         }
 
         override fun resume() {
+            suspender.disable()
             logProducer.resume()
         }
 
         override fun cancel() {
+            suspender.disable()
             logProducer.cancel()
         }
 
@@ -425,7 +433,7 @@ class LogViewModel(
                 // 增加延迟，减少无意义任务的启动
                 delay(START_TASK_INTERVAL)
 
-                Log.d(TAG, "[updateFilter] start, filter=$filter")
+                Log.d(TAG, "[updateFilter] start, filter=$composedFilter")
 
                 val producerRunning = AtomicBoolean(false)
                 val producer = AtomicReference<LogProducer>()
@@ -450,7 +458,7 @@ class LogViewModel(
         }
 
         private suspend fun playFakeLoadingAnimation() {
-            delay(100)
+            delay(FILTER_LOADING_ANIM_MIN_DURATION)
             filteredLogRepo.submitLogItems()
             filteredLogRepo.onLoadingEnd()
         }
@@ -501,8 +509,8 @@ class LogViewModel(
             updateFilterTask?.cancelAndJoin()
         }
 
-        private class ComposedFilter(
-            private val filter: LogFilter,
+        class ComposedFilter(
+            val filter: LogFilter,
             private val fullModeState: FullModeFilterState,
             private val bookmarkModeState: BookmarkFilterState
         ) : LogFilter {
@@ -525,6 +533,11 @@ class LogViewModel(
             override fun hashCode(): Int {
                 return filter.hashCode() + 31 * fullModeState.hashCode() + 31 * 31 * bookmarkModeState.hashCode()
             }
+
+            override fun toString(): String {
+                return "ComposedFilter(filter=$filter, fullModeState=${fullModeState.enabled}," +
+                        " bookmarkModeState=${bookmarkModeState.enabled})"
+            }
         }
     }
 
@@ -532,6 +545,8 @@ class LogViewModel(
         private const val TAG = "LogViewModel"
 
         private const val START_TASK_INTERVAL = 100L
+        private const val PRODUCE_LOADING_ANIM_MIN_DURATION = 500L
+        private const val FILTER_LOADING_ANIM_MIN_DURATION = 100L
     }
 }
 

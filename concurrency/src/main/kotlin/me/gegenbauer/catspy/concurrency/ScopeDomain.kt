@@ -1,6 +1,16 @@
 package me.gegenbauer.catspy.concurrency
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.swing.Swing
 import me.gegenbauer.catspy.glog.GLog
 import java.util.concurrent.Executors
@@ -47,11 +57,11 @@ open class ModelScope : CoroutineScope {
 }
 
 /**
- * Scope of ViewModel. Use [Dispatchers.CPU] as default. Its lifecycle is as long as ViewModel.
+ * Scope of ViewModel. Use [Dispatchers.UI] as default. Its lifecycle is as long as ViewModel.
  */
 class ViewModelScope : CoroutineScope {
     override val coroutineContext: CoroutineContext
-        = CoroutineName(TAG) + Dispatchers.CPU + loggingExceptionHandler + SupervisorJob()
+        = CoroutineName(TAG) + Dispatchers.UI + loggingExceptionHandler + SupervisorJob()
 
     private companion object {
         private const val TAG = "ViewModelScope"

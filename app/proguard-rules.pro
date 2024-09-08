@@ -93,3 +93,7 @@
 # Keep attributes
 -keepattributes *Annotation*
 # Commons End
+
+# jna Start
+-keep class com.sun.jna.** { *; }
+# jna End

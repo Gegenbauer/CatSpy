@@ -9,11 +9,11 @@ interface Searchable {
      * Moves to the next search result
      * @return Result of the operation, if no result is found, an error string is returned
      */
-    fun moveToNextSearchResult(): String
+    suspend fun moveToNextSearchResult(): String
 
     /**
      * Moves to the previous search result
      * @return Result of the operation, if no result is found, an error string is returned
      */
-    fun moveToPreviousSearchResult(): String
+    suspend fun moveToPreviousSearchResult(): String
 }

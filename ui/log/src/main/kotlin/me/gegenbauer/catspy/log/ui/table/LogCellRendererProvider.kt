@@ -22,11 +22,7 @@ interface LogCellRendererProvider {
 
     fun createRenderer(column: Column): LogCellRenderer
 
-    fun showSelectedRowsInDialog(
-        logTable: LogTable,
-        rows: List<Int>,
-        popupActions: List<LogDetailDialog.PopupAction>
-    )
+    suspend fun getRenderedContent(logTable: LogTable, rows: List<Int>): String
 }
 
 interface LogCellRenderer : TableCellRenderer {
@@ -87,7 +83,8 @@ abstract class BaseLogCellRendererProvider : LogCellRendererProvider {
     }
 
     protected fun getLevel(logItem: LogItem): DisplayedLevel {
-        return levelKeywordToLevels[logItem.getPart(levelPartIndex)] ?: levelKeywordToLevels.values.minBy { it.level.value }
+        return levelKeywordToLevels[logItem.getPart(levelPartIndex)]
+            ?: levelKeywordToLevels.values.minBy { it.level.value }
     }
 
     class LineNumBorder(var color: Color, private val thickness: Int) : AbstractBorder() {
@@ -114,7 +111,8 @@ abstract class BaseLogCellRendererProvider : LogCellRendererProvider {
         private const val COLUMN_INDEX_CHAR_LEN = 7
 
         fun LogTable.getColumnBackground(num: Int, row: Int, logMetadata: LogMetadata): Color {
-            val context = contexts.getContext(BaseLogMainPanel::class.java) ?: return logMetadata.colorScheme.normalLogBackground
+            val context = contexts.getContext(BaseLogMainPanel::class.java)
+                ?: return logMetadata.colorScheme.normalLogBackground
             val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
             val isRowSelected = tableModel.selectedLogRows.contains(row)
             return if (bookmarkManager.isBookmark(num)) {

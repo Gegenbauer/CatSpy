@@ -324,16 +324,20 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
         val searchPanel = logConf.getSearchPanel()
         searchPanel.setOnSearchRequestReceivedListener(object : ISearchPanel.SearchRequestReceivedListener {
             override fun moveToNextSearchResult(isFilteredLog: Boolean) {
-                val result = getTableModel(isFilteredLog).moveToNextSearchResult()
-                if (result.isNotEmpty()) {
-                    showNotification(result)
+                scope.launch {
+                    val result = getTableModel(isFilteredLog).moveToNextSearchResult()
+                    if (result.isNotEmpty()) {
+                        showNotification(result)
+                    }
                 }
             }
 
             override fun moveToPrevSearchResult(isFilteredLog: Boolean) {
-                val result = getTableModel(isFilteredLog).moveToPreviousSearchResult()
-                if (result.isNotEmpty()) {
-                    showNotification(result)
+                scope.launch {
+                    val result = getTableModel(isFilteredLog).moveToPreviousSearchResult()
+                    if (result.isNotEmpty()) {
+                        showNotification(result)
+                    }
                 }
             }
 
@@ -458,7 +462,8 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
                 path.fileName.toString()
             }
 
-            STRINGS.ui.adb, STRINGS.ui.cmd, "${STRINGS.ui.adb} ${STRINGS.ui.stop}", "${STRINGS.ui.cmd} ${STRINGS.ui.stop}" -> {
+            STRINGS.ui.adb, STRINGS.ui.cmd, "${STRINGS.ui.adb} ${STRINGS.ui.stop}",
+            "${STRINGS.ui.cmd} ${STRINGS.ui.stop}" -> {
                 (logMainBinding.currentDevice.value ?: EMPTY_STRING).ifEmpty { GlobalProperties.APP_NAME }
             }
 
@@ -581,7 +586,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     }
 
     protected open fun onStartClicked() {
-
+        // no-op
     }
 
     protected abstract class TaskUIState(protected val ui: BaseLogMainPanel?) {
