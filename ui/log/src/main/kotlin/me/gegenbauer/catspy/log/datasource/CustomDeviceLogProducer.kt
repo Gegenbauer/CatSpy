@@ -20,7 +20,7 @@ class CustomDeviceLogProducer(
     override fun getSampleLogItem(): LogItem {
         val sampleLogParts = logParser.parse(logConfiguration.logMetaData.sample).toMutableList()
         sampleLogParts.add(PART_INDEX_PACKAGE, FAKE_PROCESS_NAME)
-        return LogItem(0, logConfiguration.logMetaData.sample, sampleLogParts)
+        return LogItem(0, sampleLogParts)
     }
 
     companion object {

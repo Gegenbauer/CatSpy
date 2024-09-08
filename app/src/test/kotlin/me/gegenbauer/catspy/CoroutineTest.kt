@@ -1,25 +1,23 @@
 package me.gegenbauer.catspy
 
-import kotlinx.coroutines.*
-import me.gegenbauer.catspy.concurrency.AppScope
-import me.gegenbauer.catspy.concurrency.UI
-import kotlin.random.Random
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 fun main() {
     runBlocking {
-        val a = getRandom()
-        val b = getRandom()
-        calculateSum(a, b)
-        println("end")
+        launch(Dispatchers.Default) {
+            coroutineContext.job.invokeOnCompletion {
+                println("sub coroutine completed")
+            }
+            delay(100000)
+        }
+        coroutineContext.job.invokeOnCompletion {
+            println("main coroutine completed")
+        }
+        cancel()
     }
-}
-
-suspend fun getRandom(): Int {
-    delay(1000)
-    return Random.Default.nextInt()
-}
-
-suspend fun calculateSum(a: Int, b: Int): Int {
-    delay(1000)
-    return a + b
 }

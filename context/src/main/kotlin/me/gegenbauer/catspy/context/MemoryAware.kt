@@ -61,7 +61,7 @@ object MemoryState {
         if (oldMemoryLevel >= newMemoryLevel) {
             return
         }
-        if (newMemory.freePercentage - newMemoryLevel.freeMemoryPercentage < newMemoryLevel.changeBuffer) {
+        if (newMemory.jvmFreePercentage - newMemoryLevel.freeMemoryPercentage < newMemoryLevel.changeBuffer) {
             return
         }
         notifyMemoryAwareComponents(newMemoryLevel)
@@ -73,7 +73,7 @@ object MemoryState {
     }
 
     private fun getMemoryLevel(memory: Memory): MemoryAware.Level {
-        val freePercentage = memory.free / memory.total
+        val freePercentage = memory.jvmFreePercentage
         return when {
             freePercentage < MemoryAware.Level.CRITICAL.freeMemoryPercentage -> MemoryAware.Level.CRITICAL
             freePercentage < MemoryAware.Level.HIGH.freeMemoryPercentage -> MemoryAware.Level.HIGH

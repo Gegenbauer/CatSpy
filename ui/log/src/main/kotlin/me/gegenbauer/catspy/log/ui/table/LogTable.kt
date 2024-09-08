@@ -30,9 +30,24 @@ import java.awt.Dimension
 import java.awt.Font
 import java.awt.Rectangle
 import java.awt.datatransfer.StringSelection
-import java.awt.event.*
-import javax.swing.*
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import javax.swing.JFrame
+import javax.swing.JMenuItem
+import javax.swing.JOptionPane
+import javax.swing.JPopupMenu
+import javax.swing.JTable
+import javax.swing.JTextPane
+import javax.swing.JViewport
+import javax.swing.KeyStroke
+import javax.swing.ListSelectionModel
+import javax.swing.SwingUtilities
 import javax.swing.event.ListSelectionListener
+import javax.swing.text.html.HTMLEditorKit
 
 class LogTable(
     val tableModel: LogTableModel,
@@ -82,7 +97,6 @@ class LogTable(
                 repaint()
             }
         }
-        SettingsManager.addSettingsChangeListener(this)
         updateConfigure()
     }
 
@@ -131,6 +145,7 @@ class LogTable(
         super.configureContext(context)
         tableModel.setParent(this)
         logConf.addObserver(logMetadataObserver)
+        SettingsManager.addSettingsChangeListener(this)
     }
 
     override fun moveRowToCenter(rowIndex: Int, setSelected: Boolean) {
@@ -247,6 +262,12 @@ class LogTable(
             return
         }
 
+        suspend fun collectRenderedContent(rows: List<Int>): String {
+            return withContext(Dispatchers.CPU) {
+                logConf.getRenderedContent(this@LogTable, rows.toList())
+            }
+        }
+
         fun realShowSelected(rows: IntArray) {
             val displayedRows = if (rows.size > 1) {
                 rows.toList()
@@ -254,17 +275,33 @@ class LogTable(
                 ((rows[0] - 2).coerceAtLeast(0)..(rows[0] + 3)
                     .coerceAtMost(rowCount - 1)).toList()
             }
-            logConf.showSelectedRowsInDialog(this, displayedRows, logDetailPopupActionsProvider.invoke())
+            scope.launch {
+                val content = collectRenderedContent(displayedRows)
+                showSelectedRowsInDialog(this@LogTable, content, logDetailPopupActionsProvider.invoke())
+            }
         }
 
         if (rows.size > MAX_LOG_COUNT_SHOWS_IN_DIALOG) {
             showExceedMaxLogCount(rows.size, MAX_LOG_COUNT_SHOWS_IN_DIALOG) {
                 realShowSelected(rows.take(MAX_LOG_COUNT_SHOWS_IN_DIALOG).toIntArray())
             }
-            return
         } else {
             realShowSelected(rows)
         }
+    }
+
+    private fun showSelectedRowsInDialog(
+        logTable: LogTable,
+        content: String,
+        popupActions: List<LogDetailDialog.PopupAction>
+    ) {
+        val dialogTextComponent = JTextPane()
+        dialogTextComponent.editorKit = HTMLEditorKit()
+        dialogTextComponent.text = content
+        val frame = logTable.contexts.getContext(JFrame::class.java) ?: return
+        val logViewDialog = LogDetailDialog(frame, dialogTextComponent, popupActions, logConf.logMetaData)
+        logViewDialog.setLocationRelativeTo(frame)
+        logViewDialog.isVisible = true
     }
 
     fun setLogDetailPopupActionsProvider(actionsProvider: () -> List<LogDetailDialog.PopupAction>) {
@@ -285,10 +322,6 @@ class LogTable(
         }
     }
 
-    private fun getRowsContent(rows: List<Int>): String {
-        return rows.joinToString("\n") { tableModel.getItemInCurrentPage(it).logLine }
-    }
-
     private fun updateBookmark(rows: List<Int>) {
         val context = contexts.getContext(BaseLogMainPanel::class.java) ?: return
         val bookmarkManager = ServiceManager.getContextService(context, BookmarkManager::class.java)
@@ -307,11 +340,20 @@ class LogTable(
 
     private fun copySelectedRows() {
 
+        suspend fun collectRowsContent(rows: List<Int>): String {
+            return withContext(Dispatchers.CPU) {
+                rows.joinToString("\n") { tableModel.getItemInCurrentPage(it).toString() }
+            }
+        }
+
         fun realCopyRow(rows: IntArray) {
-            toolkit.systemClipboard.setContents(
-                StringSelection(getRowsContent(rows.toList())),
-                null
-            )
+            scope.launch {
+                val content = collectRowsContent(rows.toList())
+                toolkit.systemClipboard.setContents(
+                    StringSelection(content),
+                    null
+                )
+            }
         }
 
         val rows = selectedRows
@@ -448,6 +490,7 @@ class LogTable(
 
     override fun destroy() {
         super.destroy()
+        SettingsManager.removeSettingsChangeListener(this)
         logConf.removeObserver(logMetadataObserver)
         scope.cancel()
     }

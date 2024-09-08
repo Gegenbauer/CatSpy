@@ -6,6 +6,7 @@ import me.gegenbauer.catspy.databinding.bind.Observer
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.filter.FilterProperty.Companion.FILTER_ID_MATCH_CASE
 import me.gegenbauer.catspy.log.metadata.Column
+import me.gegenbauer.catspy.log.metadata.Level
 import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.log.ui.filter.FilterPropertyObserver
 import me.gegenbauer.catspy.utils.persistence.appendKeySeparator
@@ -113,53 +114,44 @@ fun LogMetadata.generateFilterProperties(): List<FilterProperty> {
 
 fun Column.getFilterFactory(): FilterFactory {
     return if (supportFilter.not() || uiConf.column.isHidden) {
-        EmptyColumnFilterFactory(this)
+        EmptyColumnFilterFactory()
     } else if (this is Column.LevelColumn) {
-        LevelColumnFilterFactory(this)
+        LevelColumnFilterFactory(levels.map { it.level })
     } else {
-        ContentColumnFilterFactory(this)
+        ContentColumnFilterFactory()
     }
 }
 
-interface FilterFactory {
-    val column: Column
-
+fun interface FilterFactory {
     fun getColumnFilter(properties: FilterProperty, matchCase: Boolean): ColumnFilter
 }
 
-class LevelColumnFilterFactory(override val column: Column) : FilterFactory {
-    private val levelKeywordToLevelMap =
-        (column as Column.LevelColumn).levels.associate { it.level.keyword to it.level.value }
-    private val levelNameToLevelMap =
-        (column as Column.LevelColumn).levels.associate { it.level.name to it.level.value }
+class LevelColumnFilterFactory(levels: List<Level>) : FilterFactory {
+    private val levelKeywordToLevelMap = levels.associate { it.keyword to it.value }
+    private val levelNameToLevelMap = levels.associate { it.name to it.value }
 
     override fun getColumnFilter(properties: FilterProperty, matchCase: Boolean): ColumnFilter {
-        return ColumnFilter { text ->
-            if (properties.enabled.getValueNonNull().not()) {
-                return@ColumnFilter true
-            }
-            val minLevel = levelNameToLevelMap[properties.content.getValueNonNull()] ?: 0
-            (levelKeywordToLevelMap[text] ?: Int.MAX_VALUE) >= minLevel
+        if (properties.enabled.getValueNonNull().not()) {
+            return ColumnFilter.EMPTY
         }
+        val filterContent = properties.content.getValueNonNull()
+        return LevelFilter(
+            minLevel = levelNameToLevelMap[filterContent] ?: 0,
+            levelGetter = { text ->
+                levelKeywordToLevelMap[text] ?: Int.MAX_VALUE
+            }
+        )
     }
 }
 
-class ContentColumnFilterFactory(override val column: Column) : FilterFactory {
+class ContentColumnFilterFactory : FilterFactory {
 
     override fun getColumnFilter(properties: FilterProperty, matchCase: Boolean): ColumnFilter {
-        if (properties.content.getValueNonNull().isEmpty()) return ColumnFilter.EMPTY
-        return ColumnFilter { text ->
-            if (properties.enabled.getValueNonNull().not()) {
-                return@ColumnFilter true
-            }
-            val filterItem = properties.processToFilterItem(matchCase)
-
-            filterItem.match(text)
-        }
+        return ContentFilter(properties.processToFilterItem(matchCase))
     }
 }
 
-class EmptyColumnFilterFactory(override val column: Column) : FilterFactory {
+class EmptyColumnFilterFactory : FilterFactory {
     override fun getColumnFilter(properties: FilterProperty, matchCase: Boolean): ColumnFilter {
         return ColumnFilter.EMPTY
     }
@@ -175,3 +167,24 @@ fun interface ColumnFilter {
             get() = this == EMPTY
     }
 }
+
+class ContentFilter(private val filterItem: FilterItem) : ColumnFilter {
+    override fun filter(text: String): Boolean {
+        return filterItem.match(text)
+    }
+
+    override fun toString(): String {
+        return "ContentFilter(filterItem=$filterItem)"
+    }
+}
+
+class LevelFilter(private val minLevel: Int, private val levelGetter: (String) -> Int) : ColumnFilter {
+    override fun filter(text: String): Boolean {
+        return levelGetter(text) >= minLevel
+    }
+
+    override fun toString(): String {
+        return "LevelFilter(minLevel=$minLevel)"
+    }
+}
+

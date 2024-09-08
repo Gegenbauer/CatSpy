@@ -41,7 +41,6 @@ interface IPlatform {
     fun showFileInExplorer(file: File) {}
 
     fun configureUIProperties() {
-        // 启用系统抗锯齿，极大提升字体渲染速度
         System.setProperty("awt.useSystemAAFontSettings", "on")
         System.setProperty("swing.aatext", "true")
     }

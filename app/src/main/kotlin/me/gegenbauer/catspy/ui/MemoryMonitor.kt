@@ -7,7 +7,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import me.gegenbauer.catspy.concurrency.GIO
+import me.gegenbauer.catspy.context.DeviceMemory
 import me.gegenbauer.catspy.context.Memory
+import me.gegenbauer.catspy.context.JvmMemory
+import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.platform.isInDebugMode
+import oshi.SystemInfo
 import kotlin.math.min
 
 interface IMemoryMonitor {
@@ -21,6 +26,14 @@ interface IMemoryMonitor {
  */
 class MemoryMonitor(private val dispatcher: CoroutineDispatcher = Dispatchers.GIO) : IMemoryMonitor {
 
+    private val runtime by lazy { Runtime.getRuntime() }
+    private val si by lazy { SystemInfo() }
+    private val process by lazy {
+        val processId = si.operatingSystem.processId
+        GLog.d(TAG, "[getProcessId] processId: $processId")
+        si.operatingSystem.getProcess(processId)
+    }
+
     override fun startMonitor(): Flow<Memory> {
         return channelFlow {
             while (true) {
@@ -31,8 +44,26 @@ class MemoryMonitor(private val dispatcher: CoroutineDispatcher = Dispatchers.GI
     }
 
     override fun calculateMemoryUsage(): Memory {
-        val runtime = Runtime.getRuntime()
+        val jvmMemoryDetail = calculateJvmMemoryDetail()
+        val processMemoryDetail = calculateProcessMemoryDetail()
         return Memory(
+            jvmMemoryDetail,
+            processMemoryDetail,
+        )
+    }
+
+    private fun calculateProcessMemoryDetail(): DeviceMemory {
+        if (!isInDebugMode) return DeviceMemory.EMPTY
+
+        return kotlin.runCatching {
+            val rss = process.residentSetSize
+            val vss = process.virtualSize
+             DeviceMemory(rss.toFloat(), vss.toFloat())
+        }.getOrDefault(DeviceMemory.EMPTY)
+    }
+
+    private fun calculateJvmMemoryDetail(): JvmMemory {
+        return JvmMemory(
             (runtime.totalMemory() - runtime.freeMemory()).toFloat(),
             runtime.freeMemory().toFloat(),
             runtime.totalMemory().toFloat(),
@@ -41,13 +72,7 @@ class MemoryMonitor(private val dispatcher: CoroutineDispatcher = Dispatchers.GI
     }
 
     companion object {
-
-        fun isFreeMemoryAvailable(): Boolean {
-            val runtime = Runtime.getRuntime()
-            val maxMemory = runtime.maxMemory()
-            val totalFree = runtime.freeMemory() + (maxMemory - runtime.totalMemory())
-            return totalFree > minFreeMemory
-        }
+        private const val TAG = "MemoryMonitor"
 
         val minFreeMemory: Double = run {
             val runtime = Runtime.getRuntime()
@@ -57,6 +82,6 @@ class MemoryMonitor(private val dispatcher: CoroutineDispatcher = Dispatchers.GI
 
         private const val MIN_FREE_MEMORY = 512 * 1024L * 1024L
         private const val MIN_FREE_MEMORY_PERCENTAGE = 0.2
-        private const val MEMORY_INFO_REFRESH_INTERVAL = 300L
+        private const val MEMORY_INFO_REFRESH_INTERVAL = 1000L
     }
 }

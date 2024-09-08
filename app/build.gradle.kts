@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
     implementation(Compose.runtime)
+    implementation(Oshi.oshiCore)
     implementation(projects.ui)
     implementation(projects.glog)
     implementation(projects.platform)

@@ -3,7 +3,8 @@ package me.gegenbauer.catspy.log.ui.table
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.concurrency.UI
+import kotlinx.coroutines.withContext
+import me.gegenbauer.catspy.concurrency.CPU
 import me.gegenbauer.catspy.concurrency.ViewModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
@@ -12,11 +13,11 @@ import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.BookmarkManager
+import me.gegenbauer.catspy.log.datasource.LogItem
 import me.gegenbauer.catspy.log.datasource.LogProducerManager
 import me.gegenbauer.catspy.log.datasource.LogViewModel
 import me.gegenbauer.catspy.log.filter.LogFilter
 import me.gegenbauer.catspy.log.metadata.Column
-import me.gegenbauer.catspy.log.datasource.LogItem
 import me.gegenbauer.catspy.log.ui.LogConfiguration
 import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
 import me.gegenbauer.catspy.strings.STRINGS
@@ -71,7 +72,7 @@ open class LogTableModel(
     }
 
     private fun collectLogItems() {
-        scope.launch(Dispatchers.UI) {
+        scope.launch {
             logObservables.itemsFlow.collect { items ->
                 val oldItems = logItems
                 logItems = items.toMutableList()
@@ -81,7 +82,7 @@ open class LogTableModel(
     }
 
     private fun observeRepaintEvent() {
-        scope.launch(Dispatchers.UI) {
+        scope.launch {
             logObservables.repaintEventFlow.collect {
                 getLogTable()?.repaint()
             }
@@ -208,15 +209,15 @@ open class LogTableModel(
         return logConf.getColumn(columnIndex)
     }
 
-    override fun moveToNextSearchResult(): String {
+    override suspend fun moveToNextSearchResult(): String {
         return moveToSearch(true)
     }
 
-    override fun moveToPreviousSearchResult(): String {
+    override suspend fun moveToPreviousSearchResult(): String {
         return moveToSearch(false)
     }
 
-    private fun moveToSearch(isNext: Boolean): String {
+    private suspend fun moveToSearch(isNext: Boolean): String {
         if (searchFilterItem.isEmpty()) return EMPTY_STRING
 
         val selectedRow = selectedLogRows.firstOrNull() ?: -1
@@ -232,21 +233,24 @@ open class LogTableModel(
             return "\"$searchFilterItem\" ${STRINGS.ui.notFound}"
         }
 
-        val idxFound = if (isNext) {
-            (targetRow until rowCount).firstOrNull {
-                searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).logLine).find()
-            } ?: -1
-        } else {
-            (targetRow downTo 0).firstOrNull {
-                searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).logLine).find()
-            } ?: -1
-        }
+        return withContext(Dispatchers.CPU) {
+            val idxFound = if (isNext) {
+                (targetRow until rowCount).firstOrNull {
+                    searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).toString()).find()
+                } ?: -1
+            } else {
+                (targetRow downTo 0).firstOrNull {
+                    searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).toString()).find()
+                } ?: -1
+            }
 
-        if (idxFound >= 0) {
-            table.moveRowToCenter(idxFound, true)
-            return EMPTY_STRING
+            if (idxFound >= 0) {
+                table.moveRowToCenter(idxFound, true)
+                EMPTY_STRING
+            } else {
+                "\"$searchFilterItem\" ${STRINGS.ui.notFound}"
+            }
         }
-        return "\"$searchFilterItem\" ${STRINGS.ui.notFound}"
     }
 
     override fun getItemInCurrentPage(row: Int): LogItem {

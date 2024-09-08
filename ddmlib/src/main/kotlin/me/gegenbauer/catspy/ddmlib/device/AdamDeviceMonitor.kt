@@ -1,12 +1,18 @@
 package me.gegenbauer.catspy.ddmlib.device
 
 import com.malinskiy.adam.AndroidDebugBridgeClientFactory
+import com.malinskiy.adam.exception.RequestRejectedException
 import com.malinskiy.adam.request.device.AsyncDeviceMonitorRequest
 import com.malinskiy.adam.request.device.Device
 import com.malinskiy.adam.request.device.DeviceState
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
@@ -42,6 +48,14 @@ class AdamDeviceMonitor : ContextService, DeviceMonitor, AdbServerStatusMonitor 
     private var monitorJob: Job? = null
     private var adbConf: AdbConf? = null
 
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        if (throwable is RequestRejectedException) {
+            DdmLog.e(TAG, "[exceptionHandler] RequestRejectedException: ${throwable.message}")
+        } else {
+            DdmLog.d(TAG, "[exceptionHandler] ${throwable.message}")
+        }
+    }
+
     override fun configure(adbConf: AdbConf) {
         this.adbConf = adbConf
     }
@@ -70,17 +84,16 @@ class AdamDeviceMonitor : ContextService, DeviceMonitor, AdbServerStatusMonitor 
         adbConf ?: throw AdbConfNotConfiguredException()
     }
 
+    @Synchronized
     private fun startMonitor() {
-        val lastMonitorJob = monitorJob
-        monitorJob = scope.launch {
-            lastMonitorJob?.cancelAndJoin()
-
+        if (isMonitoring) {
+            return
+        }
+        monitorJob = scope.launch(exceptionHandler) {
             coroutineContext.job.invokeOnCompletion {
                 isMonitoring = false
                 it ?: return@invokeOnCompletion
-                if (it is CancellationException) {
-                    DdmLog.v(TAG, "[startMonitor] cancelled")
-                } else {
+                if (it !is CancellationException) {
                     handleMonitorException()
                 }
             }
@@ -89,22 +102,17 @@ class AdamDeviceMonitor : ContextService, DeviceMonitor, AdbServerStatusMonitor 
 
             isMonitoring = true
 
-            try {
-                val deviceEventsChannel: ReceiveChannel<List<Device>> = adb.execute(
-                    request = AsyncDeviceMonitorRequest(),
-                    scope = this
-                )
+            val deviceEventsChannel: ReceiveChannel<List<Device>> = adb.execute(
+                request = AsyncDeviceMonitorRequest(),
+                scope = this
+            )
 
-                receiveChannel = deviceEventsChannel
+            receiveChannel = deviceEventsChannel
 
-                deviceEventsChannel.consumeEach {
-                    _adbServerRunning.set(true)
-                    dispatchAdbServerStatusChange()
-                    dispatchDeviceListChange(it.filterConnected())
-                }
-            } catch (e: Exception) {
-                DdmLog.w(TAG, "[startMonitor] error", e)
-                handleMonitorException()
+            deviceEventsChannel.consumeEach {
+                _adbServerRunning.set(true)
+                dispatchAdbServerStatusChange()
+                dispatchDeviceListChange(it.filterConnected())
             }
         }
     }
@@ -230,7 +238,7 @@ class AdamDeviceMonitor : ContextService, DeviceMonitor, AdbServerStatusMonitor 
     private class AdbConfNotConfiguredException : RuntimeException("AdbConf not configured")
 
     companion object {
-        private const val TAG = "DeviceManager"
+        private const val TAG = "AdamDeviceMonitor"
     }
 }
 
