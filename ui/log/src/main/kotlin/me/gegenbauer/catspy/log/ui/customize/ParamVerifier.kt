@@ -4,6 +4,7 @@ import com.alexandriasoftware.swing.JInputValidator
 import com.alexandriasoftware.swing.JInputValidatorPreferences
 import com.alexandriasoftware.swing.Validation
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.java.ext.isValidName
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
 import javax.swing.JComponent
@@ -71,9 +72,9 @@ open class NameVerifier : ParamVerifier {
         input as JTextField
         val logType = input.text
         return if (logType.isBlank()) {
-            ParamVerifier.Result.Invalid(STRINGS.toolTip.logTypeBlankWarning)
-        } else if (!isValidFileName(logType)) {
-            ParamVerifier.Result.Invalid(STRINGS.toolTip.logTypeInvalidCharWarning)
+            ParamVerifier.Result.Invalid(STRINGS.toolTip.contentBlankWarning)
+        } else if (!isValidName(logType)) {
+            ParamVerifier.Result.Invalid(STRINGS.toolTip.nameInvalidWarning)
         } else {
             ParamVerifier.Result.Valid
         }
@@ -106,8 +107,4 @@ fun JComponent.setTableInputVerifier(
             }
         }
     })
-}
-
-fun isValidFileName(name: String): Boolean {
-    return name.matches(Regex("^[^\\\\/:*?\"<>|]*$"))
 }

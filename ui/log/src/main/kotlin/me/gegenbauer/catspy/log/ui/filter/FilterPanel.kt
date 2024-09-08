@@ -7,7 +7,12 @@ import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.databinding.bind.bindDual
-import me.gegenbauer.catspy.databinding.property.support.*
+import me.gegenbauer.catspy.databinding.property.support.customProperty
+import me.gegenbauer.catspy.databinding.property.support.enabledProperty
+import me.gegenbauer.catspy.databinding.property.support.listProperty
+import me.gegenbauer.catspy.databinding.property.support.selectedItemProperty
+import me.gegenbauer.catspy.databinding.property.support.selectedProperty
+import me.gegenbauer.catspy.databinding.property.support.textProperty
 import me.gegenbauer.catspy.log.filter.FilterProperty
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.utils.ui.editorComponent

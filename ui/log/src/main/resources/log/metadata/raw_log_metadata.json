@@ -1,5 +1,5 @@
 {
-  "logType": "Default Raw Log",
+  "logType": "DefaultRawLog",
   "parser": {
     "splitToPartsOp": {
       "name": "EmptySplitToParts",
