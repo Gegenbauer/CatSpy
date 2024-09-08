@@ -7,6 +7,19 @@ import me.gegenbauer.catspy.log.datasource.LogItem
 import me.gegenbauer.catspy.view.filter.FilterItem
 import java.util.regex.Pattern
 
+fun interface LogFilter {
+
+    /**
+     * @param item the item to be filtered
+     * @return true if the item should be included in the list, false otherwise
+     */
+    fun match(item: LogItem): Boolean
+
+    companion object {
+        val default = LogFilter { true }
+    }
+}
+
 class DefaultLogFilter(
     val filters: List<FilterInfo>,
     val columns: List<Column>,
@@ -14,14 +27,11 @@ class DefaultLogFilter(
 
     override fun match(item: LogItem): Boolean {
         if (filters.isEmpty()) return true
-        for (index in filters.indices) {
-            val partIndex = filters[index].column.partIndex
-            val filter = filters[index].filter
-            if (filter.isEmpty) continue
-            val matchResult = filters[index].filter.filter(item.getPart(partIndex))
-            if (!matchResult) return false
+        return filters.all { filterInfo ->
+            val partIndex = filterInfo.column.partIndex
+            val filter = filterInfo.filter
+            filter.isEmpty || filter.filter(item.getPart(partIndex))
         }
-        return true
     }
 
     override fun equals(other: Any?): Boolean {
@@ -58,17 +68,4 @@ private fun matchShowPattern(pattern: Pattern, text: String): Boolean {
 private fun matchHidePattern(pattern: Pattern, text: String): Boolean {
     if (pattern.isEmpty) return true
     return pattern.matcher(text).find().not()
-}
-
-fun interface LogFilter {
-
-    /**
-     * @param item the item to be filtered
-     * @return true if the item should be included in the list, false otherwise
-     */
-    fun match(item: LogItem): Boolean
-
-    companion object {
-        val default = LogFilter { true }
-    }
 }

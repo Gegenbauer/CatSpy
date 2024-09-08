@@ -82,20 +82,20 @@ object SettingsManager {
         val originalSettings = clone(settings)
         settings.editAction()
         scope.launch {
-            withContext(Dispatchers.UI) {
-                notifySettingsChanged(originalSettings, settings)
-            }
+            notifySettingsChanged(originalSettings, settings)
             saveInternal()
         }
     }
 
     suspend fun suspendedUpdateSettings(editAction: suspend GSettings.() -> Unit) {
-        val originalSettings = clone(settings)
-        settings.editAction()
-        withContext(Dispatchers.UI) {
-            notifySettingsChanged(originalSettings, settings)
+        withContext(Dispatchers.GIO) {
+            val originalSettings = clone(settings)
+            settings.editAction()
+            withContext(Dispatchers.UI) {
+                notifySettingsChanged(originalSettings, settings)
+            }
+            saveInternal()
         }
-        saveInternal()
     }
 
     fun updateLocale() {

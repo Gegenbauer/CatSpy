@@ -37,7 +37,7 @@ abstract class BaseLogRepo : LogRepo {
     override val logObservables: LogProducerManager.LogObservables
         get() = _logObservables
 
-    private val logItems: MutableList<LogItem> = mutableListOf()
+    private var logItems: MutableList<LogItem> = mutableListOf()
 
     abstract val name: String
 
@@ -56,8 +56,10 @@ abstract class BaseLogRepo : LogRepo {
     }
 
     override fun clear() {
-        logItemsAccessLock.write { logItems.clear() }
-        _logItemsFlow.value = emptyList()
+        logItemsAccessLock.write {
+            logItems = mutableListOf()
+            _logItemsFlow.value = emptyList()
+        }
     }
 
     override fun submitLogItems(force: Boolean) {

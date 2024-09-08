@@ -137,6 +137,13 @@ object AlexandriaSoftware {
     val jInputValidator = Dependency(groupName, "jinputvalidator", "0.9.0")
 }
 
+object Oshi {
+    private const val GROUP_NAME = "com.github.oshi"
+    private const val VERSION = "6.6.3"
+
+    val oshiCore = Dependency(GROUP_NAME, "oshi-core", VERSION)
+}
+
 data class Dependency(
     val group: String,
     val artifact: String,

@@ -9,6 +9,7 @@ import me.gegenbauer.catspy.context.*
 import me.gegenbauer.catspy.file.GB
 import me.gegenbauer.catspy.file.KB
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.platform.isInDebugMode
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.MainViewModel
 import me.gegenbauer.catspy.ui.MemoryMonitor
@@ -59,14 +60,17 @@ class MemoryStatusBar(override val contexts: Contexts = Contexts.default) : JPro
     }
 
     private fun setMemoryInfo(memory: Memory) {
-        maximum = (memory.max / KB).toInt()
-        string = memory.readable()
-        value = (memory.allocated / KB).toInt()
+        maximum = (memory.jvm.max / KB).toInt()
+        string = memory.jvm.readable()
+        value = (memory.jvm.allocated / KB).toInt()
+        if (memory.device.isNotEmpty() && isInDebugMode) {
+            toolTipText = "Used: ${memory.device.readable()}"
+        }
         setMemoryState(memory)
     }
 
     private fun setMemoryState(memory: Memory) {
-        val property = if (memory.allocated < memoryLimit) {
+        val property = if (memory.jvm.allocated < memoryLimit) {
             PROGRESS_BAR_STATUS_PROPERTY_PASS
         } else {
             PROGRESS_BAR_STATUS_PROPERTY_FAIL

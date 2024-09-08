@@ -55,7 +55,7 @@ class DeviceLogProducer(
                 val parts = logParser.parse(line).toMutableList()
                 val packageName = processFetcher.queryPackageName(parts[PART_INDEX_PID])
                 parts.add(PART_INDEX_PACKAGE, packageName)
-                LogItem(num, line, parts)
+                LogItem(num, parts)
             }
         }.onStart {
             moveToState(LogProducer.State.RUNNING)
