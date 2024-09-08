@@ -8,10 +8,14 @@ import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.glog.GLog
-import me.gegenbauer.catspy.log.serialize.*
+import me.gegenbauer.catspy.java.ext.getUniqueName
+import me.gegenbauer.catspy.log.serialize.LogMetadataModel
+import me.gegenbauer.catspy.log.serialize.LogMetadataModelSerializer
+import me.gegenbauer.catspy.log.serialize.LogMetadataSerializer
+import me.gegenbauer.catspy.log.serialize.toLogMetadata
+import me.gegenbauer.catspy.log.serialize.toLogMetadataModel
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.utils.file.JsonFileManager
-import me.gegenbauer.catspy.utils.persistence.Preferences
 import java.io.File
 import java.lang.ref.WeakReference
 
@@ -161,13 +165,10 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
     }
 
     override fun getUniqueLogType(logType: String): String {
-        var newLogType = logType
-        var count = 1
-        while (customizedMetadataGroup.containsKey(newLogType) || builtInMetadataGroup.containsKey(newLogType)) {
-            newLogType = "$logType ($count)"
-            count++
-        }
-        return newLogType
+        val usedNames = (customizedMetadataGroup.values.toSet() + builtInMetadataGroup.values)
+            .map { it.logType }
+            .toSet()
+        return getUniqueName(logType, usedNames)
     }
 
     override fun addNewLogMetadata(logMetadataModel: LogMetadataModel) {
@@ -261,8 +262,8 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
     companion object {
         private const val TAG = "LogMetadataManager"
 
-        const val LOG_TYPE_RAW = "Default Raw Log"
-        const val LOG_TYPE_DEVICE = "Standard Logcat Device Log"
+        const val LOG_TYPE_RAW = "DefaultRawLog"
+        const val LOG_TYPE_DEVICE = "StandardLogcatDeviceLog"
 
         private const val CUSTOMIZED_METADATA_FILE_PATH = "metadata"
     }

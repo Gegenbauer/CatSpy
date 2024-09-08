@@ -33,3 +33,24 @@ fun String.truncate(maxLength: Int, ellipsisPosition: EllipsisPosition = Ellipsi
         }
     }
 }
+
+fun getUniqueName(name: String, existingNames: Set<String>): String {
+    if (!existingNames.contains(name)) {
+        return name
+    }
+    val baseName = name.substringBeforeLast('_')
+    val number = name.substringAfterLast('_').toIntOrNull() ?: 0
+    var newName = name
+    var i = number
+    while (existingNames.contains(newName)) {
+        newName = "${baseName}_${++i}"
+    }
+    return newName
+}
+
+/**
+ * 只允许有字母与数字还有下划线
+ */
+fun isValidName(name: String): Boolean {
+    return name.matches(Regex("^[a-zA-Z0-9_]*$"))
+}

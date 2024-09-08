@@ -13,7 +13,7 @@ class LogMetadataSerializerTest {
         val json = Resources.loadResourceAsStream(jsonFilePath).readBytes().decodeToString()
         val metadata = LogMetadataSerializer().deserialize(json)
         assertEquals(1, metadata.version)
-        assertEquals("Standard Logcat Device Log", metadata.logType)
+        assertEquals("StandardLogcatDeviceLog", metadata.logType)
         assertEquals(7, metadata.columns.size)
         assertEquals(6, metadata.levels.size)
     }

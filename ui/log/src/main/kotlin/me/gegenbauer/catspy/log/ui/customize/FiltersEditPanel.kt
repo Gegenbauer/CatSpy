@@ -16,6 +16,7 @@ import javax.swing.event.ChangeEvent
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellEditor
+import javax.swing.text.JTextComponent
 
 class FiltersEditPanel : BaseEditableTablePanel<ColumnModel.FilterUIConf>() {
 
@@ -27,7 +28,17 @@ class FiltersEditPanel : BaseEditableTablePanel<ColumnModel.FilterUIConf>() {
             java.lang.String::class.java,
             editableWhenBuiltIn = false,
             tooltip = STRINGS.toolTip.filterName,
-            editorVerifier = NameVerifier()
+            editorVerifier = {
+                val name = NameVerifier()
+                val nameValidResult = name.verify(it)
+                if (nameValidResult.isValid.not()) {
+                    return@ColumnParam nameValidResult
+                }
+                if (isNameAlreadyUsed((it as JTextComponent).text)) {
+                    return@ColumnParam ParamVerifier.Result.Invalid(STRINGS.toolTip.nameUsedWarning)
+                }
+                ParamVerifier.Result.Valid
+            }
         ),
         ColumnParam(
             STRINGS.ui.correspondingColumnName,
@@ -148,7 +159,8 @@ class FiltersEditPanel : BaseEditableTablePanel<ColumnModel.FilterUIConf>() {
         for (i in 0 until tableModel.rowCount) {
             val name = tableModel.getValueAt(i, COLUMN_INDEX_NAME) as String
             val columnName = tableModel.getValueAt(i, COLUMN_INDEX_COLUMN_NAME) as String
-            val layoutWidthType = getLayoutWidthTypeWithName(tableModel.getValueAt(i, COLUMN_INDEX_LAYOUT_WIDTH_TYPE) as String)
+            val layoutWidthType =
+                getLayoutWidthTypeWithName(tableModel.getValueAt(i, COLUMN_INDEX_LAYOUT_WIDTH_TYPE) as String)
             val layoutWidthValue = (tableModel.getValueAt(i, COLUMN_INDEX_LAYOUT_WIDTH) as? Double) ?: 0.0
             val rowOrder = tableModel.getValueAt(i, COLUMN_INDEX_ROW_ORDER) as Int
             val columnId = tableModel.getValueAt(i, COLUMN_INDEX_COLUMN_ID) as Int
@@ -178,7 +190,8 @@ class FiltersEditPanel : BaseEditableTablePanel<ColumnModel.FilterUIConf>() {
 
     override fun customCellEditableCondition(row: Int, column: Int): Boolean {
         if (column != COLUMN_INDEX_LAYOUT_WIDTH) return true
-        val layoutWidthType = getLayoutWidthTypeWithName(table.getValueAt(row, COLUMN_INDEX_LAYOUT_WIDTH_TYPE) as String)
+        val layoutWidthType =
+            getLayoutWidthTypeWithName(table.getValueAt(row, COLUMN_INDEX_LAYOUT_WIDTH_TYPE) as String)
         return layoutWidthType == LayoutWidthType.Specified
     }
 
@@ -201,6 +214,16 @@ class FiltersEditPanel : BaseEditableTablePanel<ColumnModel.FilterUIConf>() {
             return value
         }
         return this.value
+    }
+
+    private fun isNameAlreadyUsed(name: String): Boolean {
+        val model = table.model as DefaultTableModel
+        for (i in 0 until model.rowCount) {
+            if (model.getValueAt(i, COLUMN_INDEX_NAME) == name) {
+                return true
+            }
+        }
+        return false
     }
 
     private enum class LayoutWidthType(val value: Double) {

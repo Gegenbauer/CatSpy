@@ -1,5 +1,5 @@
 {
-  "logType": "Standard Logcat Device Log",
+  "logType": "StandardLogcatDeviceLog",
   "parser": {
     "splitToPartsOp": {
       "maxParts": 7,
