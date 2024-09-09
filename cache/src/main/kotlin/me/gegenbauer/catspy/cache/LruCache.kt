@@ -57,7 +57,7 @@ open class LruCache<T, K>(private val initialMaxSize: Long) {
         }
 
         val itemSize = getSize(item)
-        if (itemSize >= maxSize) {
+        if (itemSize > maxSize) {
             onItemEvicted(key, item)
             return null
         }
