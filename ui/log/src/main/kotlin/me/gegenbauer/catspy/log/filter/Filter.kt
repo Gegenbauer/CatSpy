@@ -23,7 +23,7 @@ class FilterProperty(
     var hasHistory: Boolean = true,
     initialEnabled: Boolean = true
 ) {
-    val enabled: ObservableValueProperty<Boolean> = StorableValueProperty(getComposedKey("enabled"), initialEnabled)
+    val enabled: ObservableValueProperty<Boolean> = ObservableValueProperty(initialEnabled)
     val content: ObservableValueProperty<String> = ObservableValueProperty(EMPTY_STRING)
     val contentList: ObservableValueProperty<List<String>> =
         StorableValueProperty(getComposedKey("contentList"), emptyList())
