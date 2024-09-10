@@ -19,7 +19,6 @@ class FilterComboBoxModel<T>(items: List<T> = emptyList()) : AbstractListModel<T
     fun setItems(items: List<T>) {
         this.items.clear()
         this.items.addAll(items.take(MAX_SIZE))
-        fireContentsChanged(this, -1, -1)
     }
 
     fun getItems(): List<T> {
