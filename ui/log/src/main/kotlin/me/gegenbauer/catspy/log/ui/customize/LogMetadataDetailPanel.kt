@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.log.ui.customize
 
+import com.github.weisj.darklaf.listener.AncestorAdapter
 import info.clearthought.layout.TableLayout
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
@@ -13,6 +14,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JSplitPane
+import javax.swing.event.AncestorEvent
 
 interface ILogMetadataDetail : Editor {
     var logMetadataEditModel: LogMetadataEditModel
@@ -78,13 +80,21 @@ class LogMetadataDetailPanel : JPanel(), ILogMetadataDetail, EditEventListener {
         contentPanel.addEditEventListener(this)
         setContentVisible(false)
         showPreview(false)
+
+        addAncestorListener(object : AncestorAdapter() {
+            override fun ancestorRemoved(event: AncestorEvent?) {
+                previewPanel.destroy()
+            }
+        })
     }
 
     private fun setLogMetadata(metadata: LogMetadataEditModel) {
         setContentVisible(metadata.model != LogMetadataModel.default)
         showPreview(metadata.model != LogMetadataModel.default)
         contentPanel.setLogMetadata(metadata)
-        editActionPanel.setResetButtonVisible(metadata.model.isBuiltIn && logMetadataManager.isCustomized(metadata.model.logType))
+        editActionPanel.setResetButtonVisible(
+            metadata.model.isBuiltIn && logMetadataManager.isCustomized(metadata.model.logType)
+        )
         updatePreview(metadata)
     }
 

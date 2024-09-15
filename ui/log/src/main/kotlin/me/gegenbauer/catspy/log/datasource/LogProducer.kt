@@ -18,6 +18,9 @@ interface LogProducer {
     val isRunning: Boolean
         get() = state.value == State.RUNNING
 
+    val isActive: Boolean
+        get() = state.value == State.RUNNING || state.value == State.PAUSED
+
     val isPaused: Boolean
         get() = state.value == State.PAUSED
 

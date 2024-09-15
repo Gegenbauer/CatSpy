@@ -8,73 +8,72 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import me.gegenbauer.catspy.log.datasource.LogProducer.State
 
 abstract class BaseLogProducer(protected val logParser: LogParser) : LogProducer {
 
-    override val state: StateFlow<LogProducer.State>
+    override val state: StateFlow<State>
         get() = sync.read { _state }
 
-    protected val logNum = AtomicInteger(0)
-    protected val suspender = CoroutineSuspender("LogProducer")
+    protected val name: String = this.javaClass.simpleName
 
-    private val _state: MutableStateFlow<LogProducer.State> = MutableStateFlow(LogProducer.State.CREATED)
+    protected val logNum = AtomicInteger(0)
+    protected val suspender = CoroutineSuspender(name)
+
+    private val _state: MutableStateFlow<State> = MutableStateFlow(State.CREATED)
 
     private val sync = ReentrantReadWriteLock()
 
     override fun pause() {
         suspender.enable()
-        moveToState(LogProducer.State.PAUSED)
+        moveToState(State.PAUSED)
     }
 
     override fun resume() {
         suspender.disable()
-        moveToState(LogProducer.State.RUNNING)
+        moveToState(State.RUNNING)
     }
 
     override fun cancel() {
         suspender.disable()
-        moveToState(LogProducer.State.CANCELED)
+        moveToState(State.CANCELED)
     }
 
     override fun destroy() {
         suspender.disable()
     }
 
-    override fun moveToState(state: LogProducer.State) {
+    override fun moveToState(state: State) {
         sync.write {
             when (this.state.value) {
-                LogProducer.State.CREATED -> {
-                    if (state == LogProducer.State.RUNNING) {
-                        this._state.value = LogProducer.State.RUNNING
+                State.CREATED -> {
+                    if (state == State.RUNNING) {
+                        this._state.value = State.RUNNING
                     }
                 }
 
-                LogProducer.State.RUNNING -> {
-                    if (state == LogProducer.State.PAUSED || state == LogProducer.State.CANCELED || state == LogProducer.State.COMPLETE) {
+                State.RUNNING -> {
+                    if (state in setOf(State.PAUSED, State.CANCELED, State.COMPLETE)) {
                         this._state.value = state
                     }
                 }
 
-                LogProducer.State.PAUSED -> {
-                    if (state == LogProducer.State.RUNNING || state == LogProducer.State.CANCELED || state == LogProducer.State.COMPLETE) {
+                State.PAUSED -> {
+                    if (state in setOf(State.RUNNING, State.CANCELED, State.COMPLETE)) {
                         this._state.value = state
                     }
                 }
 
-                LogProducer.State.CANCELED -> {
-                    if (state == LogProducer.State.COMPLETE) {
+                State.CANCELED -> {
+                    if (state == State.COMPLETE) {
                         this._state.value = state
                     }
                 }
 
-                LogProducer.State.COMPLETE -> {
+                State.COMPLETE -> {
                     // no-op
                 }
             }
         }
-    }
-
-    companion object {
-        private const val TAG = "BaseLogProducer"
     }
 }

@@ -8,9 +8,10 @@ import org.slf4j.Marker
 import org.slf4j.event.Level
 import org.slf4j.helpers.LegacyAbstractLogger
 
-class GSlf4jLoggerAdapter(loggerName: String): LegacyAbstractLogger(), GLogger {
-    val gLogger = LogbackLogger(loggerName)
-
+class GSlf4jLoggerAdapter(
+    loggerName: String,
+    val gLogger: LogbackLogger = LogbackLogger(loggerName)
+) : LegacyAbstractLogger(), GLogger by gLogger {
     init {
         this.name = loggerName
     }
@@ -63,33 +64,5 @@ class GSlf4jLoggerAdapter(loggerName: String): LegacyAbstractLogger(), GLogger {
                 acc.replaceFirst("{}", argument.toString())
             } ?: message
         } ?: EMPTY_STRING
-    }
-
-    override fun v(tag: String, msg: String) {
-        gLogger.v(tag, msg)
-    }
-
-    override fun d(tag: String, msg: String) {
-        gLogger.d(tag, msg)
-    }
-
-    override fun i(tag: String, msg: String) {
-        gLogger.i(tag, msg)
-    }
-
-    override fun w(tag: String, msg: String) {
-        gLogger.w(tag, msg)
-    }
-
-    override fun w(tag: String, msg: String, tr: Throwable?) {
-        gLogger.w(tag, msg, tr)
-    }
-
-    override fun e(tag: String, msg: String) {
-        gLogger.e(tag, msg)
-    }
-
-    override fun e(tag: String, msg: String, tr: Throwable?) {
-        gLogger.e(tag, msg, tr)
     }
 }

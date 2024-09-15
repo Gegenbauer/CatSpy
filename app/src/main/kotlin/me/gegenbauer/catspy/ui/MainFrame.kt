@@ -298,7 +298,6 @@ class MainFrame(
     override fun destroy() {
         super.destroy()
         scope.cancel()
-        ServiceManager.dispose(this)
         ServiceManager.dispose(Context.process)
         saveSettings()
         dispose()

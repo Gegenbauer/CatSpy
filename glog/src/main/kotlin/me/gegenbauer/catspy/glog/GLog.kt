@@ -37,6 +37,10 @@ object GLog : GLogger {
         GSlf4jLoggerFactoryAdapter.logConfig = LogbackConfiguration(path, name)
     }
 
+    override fun setFilter(filter: LogFilter) {
+        GSlf4jLoggerFactoryAdapter.setFilter(filter)
+    }
+
     override fun v(tag: String, msg: String) {
         getLogger(tag).v(EMPTY_STRING, msg)
     }

@@ -1,6 +1,11 @@
 package me.gegenbauer.catspy.concurrency
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.util.concurrent.atomic.AtomicBoolean
@@ -46,7 +51,7 @@ class CoroutineSuspender(private val name: String = EMPTY_STRING) {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun resumeSuspendPoint() {
-        GLog.d(TAG, "[resumeSuspendPoint]")
+        GLog.d(TAG, "[$name] [resumeSuspendPoint]")
         con?.resume(Unit, null)
         con = null
         suspended.set(false)

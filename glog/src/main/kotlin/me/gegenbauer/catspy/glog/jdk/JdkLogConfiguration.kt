@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.glog.jdk
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.glog.ColoredLogFormatter
 import me.gegenbauer.catspy.glog.LogConfiguration
+import me.gegenbauer.catspy.glog.LogFilter
 import me.gegenbauer.catspy.glog.LogLevel
 import me.gegenbauer.catspy.glog.PlainLogFormatter
 import java.util.logging.*
@@ -37,6 +38,10 @@ internal class JdkLogConfiguration(
         parentLogger.level = jdkLogLevel
         consoleHandler.level = jdkLogLevel
         fileHandler.level = jdkLogLevel
+    }
+
+    override fun setFilter(filter: LogFilter) {
+        // no-op
     }
 
     override fun configure(logger: JdkLogger) {

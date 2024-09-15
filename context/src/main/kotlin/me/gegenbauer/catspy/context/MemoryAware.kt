@@ -68,7 +68,7 @@ object MemoryState {
     }
 
     private fun notifyMemoryAwareComponents(level: MemoryAware.Level) {
-        GLog.i(TAG, "[notifyMemoryAwareComponents] Notify memory aware components of level $level")
+        GLog.i(TAG, "[notifyMemoryAwareComponents] notify memory aware components of level $level")
         memoryAwareComponents.forEach { it.get()?.onTrimMemory(level) }
     }
 
