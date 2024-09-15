@@ -4,16 +4,24 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.classic.turbo.TurboFilter
 import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder
 import ch.qos.logback.core.rolling.FixedWindowRollingPolicy
 import ch.qos.logback.core.rolling.RollingFileAppender
 import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy
+import ch.qos.logback.core.spi.FilterReply
 import ch.qos.logback.core.util.FileSize
 import me.gegenbauer.catspy.file.appendExtension
 import me.gegenbauer.catspy.file.appendPath
-import me.gegenbauer.catspy.glog.*
+import me.gegenbauer.catspy.glog.ColoredLogFormatter
+import me.gegenbauer.catspy.glog.LogConfiguration
+import me.gegenbauer.catspy.glog.LogFilter
+import me.gegenbauer.catspy.glog.LogFormatter
+import me.gegenbauer.catspy.glog.LogLevel
+import me.gegenbauer.catspy.glog.PlainLogFormatter
 import org.slf4j.LoggerFactory
+import org.slf4j.Marker
 
 class LogbackConfiguration(
     override val logPath: String,
@@ -58,8 +66,7 @@ class LogbackConfiguration(
         get() = logContext.getLogger(Logger.ROOT_LOGGER_NAME)
 
     init {
-        val loggerContext = LoggerFactory.getILoggerFactory() as LoggerContext
-        loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).detachAndStopAllAppenders()
+        logContext.getLogger(Logger.ROOT_LOGGER_NAME).detachAndStopAllAppenders()
     }
 
     override fun configure(logger: LogbackLogger) {
@@ -78,6 +85,26 @@ class LogbackConfiguration(
         }
     }
 
+    override fun setFilter(filter: LogFilter) {
+        logContext.resetTurboFilterList()
+        logContext.addTurboFilter(object : TurboFilter() {
+            override fun decide(
+                marker: Marker?,
+                logger: Logger,
+                level: Level,
+                format: String?,
+                params: Array<out Any>?,
+                t: Throwable?
+            ): FilterReply {
+                return if (filter.filter(logger.name, format ?: "", level.toLogLevel())) {
+                    FilterReply.ACCEPT
+                } else {
+                    FilterReply.DENY
+                }
+            }
+        })
+    }
+
     private fun getEncoder(formatter: LogFormatter): LayoutWrappingEncoder<ILoggingEvent> {
         return LayoutWrappingEncoder<ILoggingEvent>().apply {
             context = logContext
@@ -92,6 +119,15 @@ class LogbackConfiguration(
         LogLevel.INFO -> Level.INFO
         LogLevel.DEBUG -> Level.DEBUG
         LogLevel.VERBOSE, LogLevel.NONE -> Level.TRACE
+    }
+
+    private fun Level.toLogLevel(): LogLevel = when (this) {
+        Level.ERROR -> LogLevel.ERROR
+        Level.WARN -> LogLevel.WARN
+        Level.INFO -> LogLevel.INFO
+        Level.DEBUG -> LogLevel.DEBUG
+        Level.TRACE -> LogLevel.VERBOSE
+        else -> LogLevel.VERBOSE
     }
 
     override fun flush() {

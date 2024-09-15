@@ -507,7 +507,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
 
     protected open fun clearAllLogs() {
         logViewModel.clear()
-        if (logViewModel.isRunning().not()) {
+        if (logViewModel.isActive().not()) {
             setLogPanelState(ListState.EMPTY)
         }
     }
@@ -564,7 +564,6 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     override fun destroy() {
         super.destroy()
         stopAll()
-        ServiceManager.dispose(this)
         logViewModel.destroy()
         clearAllLogs()
         splitLogPane.destroy()

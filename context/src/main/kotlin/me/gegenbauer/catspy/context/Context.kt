@@ -36,6 +36,7 @@ interface Context: Disposable {
 
     override fun destroy() {
         contexts.getAllContexts().filter { it.parentContext == this }.forEach { it.destroy() }
+        ServiceManager.dispose(this)
     }
 
     companion object {

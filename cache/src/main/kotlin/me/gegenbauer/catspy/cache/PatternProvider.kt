@@ -3,6 +3,7 @@ package me.gegenbauer.catspy.cache
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.context.MemoryAware
+import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.util.regex.Pattern
 
@@ -17,6 +18,7 @@ class PatternProvider(size: Long = DEFAULT_CACHE_SIZE) : ContextService, LruCach
     }
 
     override fun onTrimMemory(level: MemoryAware.Level) {
+        GLog.d(TAG, "[onTrimMemory] $level")
         setSizeMultiplier(0.8f)
     }
 

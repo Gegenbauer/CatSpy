@@ -175,8 +175,8 @@ class LogViewModel(
         logUpdater.pause()
     }
 
-    override fun isRunning(): Boolean {
-        return produceLogTask.logProducer.isRunning
+    override fun isActive(): Boolean {
+        return produceLogTask.logProducer.isActive
     }
 
     override fun resume() {

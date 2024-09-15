@@ -1,6 +1,6 @@
 package me.gegenbauer.catspy.glog
 
-interface GLogger {
+interface GLogger: LogFilterable {
     fun v(tag: String, msg: String)
 
     fun d(tag: String, msg: String)
@@ -32,4 +32,6 @@ object EmptyLogger : GLogger {
     override fun e(tag: String, msg: String) {}
 
     override fun e(tag: String, msg: String, tr: Throwable?) {}
+
+    override fun setFilter(filter: LogFilter) {}
 }

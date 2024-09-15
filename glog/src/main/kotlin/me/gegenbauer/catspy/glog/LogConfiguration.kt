@@ -7,6 +7,8 @@ interface LogConfiguration<T: GLogger> {
 
     fun setLevel(level: LogLevel)
 
+    fun setFilter(filter: LogFilter)
+
     fun configure(logger: T)
 
     fun flush()

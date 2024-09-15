@@ -32,7 +32,7 @@ interface LogProducerManager {
 
     fun pause()
 
-    fun isRunning(): Boolean
+    fun isActive(): Boolean
 
     fun resume()
 

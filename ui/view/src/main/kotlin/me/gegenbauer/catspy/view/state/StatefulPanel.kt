@@ -6,7 +6,11 @@ import me.gegenbauer.catspy.view.button.IconBarButton
 import java.awt.CardLayout
 import java.awt.Dimension
 import java.awt.GridBagLayout
-import javax.swing.*
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JProgressBar
+import javax.swing.SwingUtilities
+import javax.swing.TransferHandler
 
 class StatefulPanel : JPanel() {
     var onClickOpen: (JComponent) -> Unit = { _ -> }

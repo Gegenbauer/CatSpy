@@ -16,6 +16,7 @@ import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.log.CatSpyLogFilter
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
@@ -45,6 +46,8 @@ object Application : WindowAdapter() {
 
             withContext(Dispatchers.APP_LAUNCH) {
                 GLog.init(filesDir, GlobalStrings.LOG_NAME)
+                GLog.setFilter(CatSpyLogFilter())
+                GLog.i(TAG, "[main] start")
                 Preferences.loadFromDisk()
                 SettingsManager.init()
                 GlobalConfSync.init()

@@ -14,7 +14,7 @@ class LogbackFormatter(private val formatter: LogFormatter): LayoutBase<ILogging
             event.timeStamp,
             event.level.getLogLevel(),
             event.loggerName,
-            event.message,
+            event.formattedMessage,
             (event.throwableProxy as? ThrowableProxy)?.throwable
         )
         return formatter.format(logRecord)

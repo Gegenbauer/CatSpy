@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.glog.jdk
 
 import me.gegenbauer.catspy.glog.GLogger
+import me.gegenbauer.catspy.glog.LogFilter
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -36,6 +37,10 @@ class JdkLogger(tag: String): GLogger {
 
     override fun e(tag: String, msg: String, tr: Throwable?) {
         loggerImpl.severe(msg + '\n' + tr.stackTraceString)
+    }
+
+    override fun setFilter(filter: LogFilter) {
+        // no-op
     }
 
     private inline val Throwable?.stackTraceString: String
