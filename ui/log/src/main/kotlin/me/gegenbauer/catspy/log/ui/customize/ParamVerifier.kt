@@ -3,8 +3,9 @@ package me.gegenbauer.catspy.log.ui.customize
 import com.alexandriasoftware.swing.JInputValidator
 import com.alexandriasoftware.swing.JInputValidatorPreferences
 import com.alexandriasoftware.swing.Validation
+import me.gegenbauer.catspy.file.FILE_NAME_INVALID_CHARS
+import me.gegenbauer.catspy.file.isValidFileName
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
-import me.gegenbauer.catspy.java.ext.isValidName
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
 import javax.swing.JComponent
@@ -73,8 +74,8 @@ open class NameVerifier : ParamVerifier {
         val logType = input.text
         return if (logType.isBlank()) {
             ParamVerifier.Result.Invalid(STRINGS.toolTip.contentBlankWarning)
-        } else if (!isValidName(logType)) {
-            ParamVerifier.Result.Invalid(STRINGS.toolTip.nameInvalidWarning)
+        } else if (!isValidFileName(logType)) {
+            ParamVerifier.Result.Invalid(STRINGS.toolTip.nameInvalidWarning.get(FILE_NAME_INVALID_CHARS))
         } else {
             ParamVerifier.Result.Valid
         }
@@ -101,7 +102,7 @@ fun JComponent.setTableInputVerifier(
         override fun getValidation(p0: JComponent, p1: JInputValidatorPreferences?): Validation {
             val result = verifier.verify(p0)
             return if (result.isValid) {
-                noneValidation
+                Validation(Validation.Type.SUCCESS, EMPTY_STRING)
             } else {
                 Validation(Validation.Type.DANGER, result.warning)
             }

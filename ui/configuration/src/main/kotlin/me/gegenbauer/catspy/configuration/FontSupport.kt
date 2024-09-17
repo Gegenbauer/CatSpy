@@ -1,16 +1,12 @@
 package me.gegenbauer.catspy.configuration
 
-import com.formdev.flatlaf.FlatLaf
-import com.formdev.flatlaf.extras.FlatAnimatedLafChange
 import com.formdev.flatlaf.util.FontUtils
 import me.gegenbauer.catspy.common.Resources
 import me.gegenbauer.catspy.glog.GLog
 import java.awt.Font
 import java.awt.GraphicsEnvironment
 import javax.swing.UIManager
-import javax.swing.plaf.FontUIResource
 import javax.swing.text.StyleContext
-
 
 object FontSupport {
     private const val TAG = "FontSupport"
@@ -73,8 +69,6 @@ object FontSupport {
     }
 
     fun setUIFont(font: Font) {
-        UIManager.getDefaults().asSequence().filter { it.value is FontUIResource }.forEach { entry ->
-            UIManager.put("defaultFont", FontUtils.getCompositeFont(font.family, font.style, font.size))
-        }
+        UIManager.put("defaultFont", FontUtils.getCompositeFont(font.family, font.style, font.size))
     }
 }

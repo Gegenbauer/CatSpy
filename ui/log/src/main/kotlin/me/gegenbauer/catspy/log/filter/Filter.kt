@@ -19,7 +19,7 @@ import kotlin.concurrent.write
 class FilterProperty(
     val name: String,
     val columnId: Int = -1,
-    val storeKeyPrefix: String = EMPTY_STRING,
+    val keyPrefix: String = EMPTY_STRING,
     var hasHistory: Boolean = true,
     initialEnabled: Boolean = true
 ) {
@@ -38,7 +38,7 @@ class FilterProperty(
     }
 
     private fun getComposedKey(key: String): String {
-        val prefix = if (storeKeyPrefix.isEmpty()) EMPTY_STRING else "${storeKeyPrefix}_"
+        val prefix = if (keyPrefix.isEmpty()) EMPTY_STRING else "${keyPrefix}_"
         return STORE_KEY_PREFIX.appendKeySeparator("$prefix${name}_$key")
     }
 
@@ -105,7 +105,7 @@ class FilterProperty(
 fun LogMetadata.generateFilterProperties(): List<FilterProperty> {
     val properties = columns
         .filter { it.supportFilter && it.uiConf.column.isHidden.not() }
-        .map { FilterProperty(it.name, it.id) }
+        .map { FilterProperty(it.uiConf.filter.name, it.id) }
         .toMutableList()
 
     properties.add(FilterProperty(GlobalStrings.MATCH_CASE, FILTER_ID_MATCH_CASE))

@@ -4,7 +4,15 @@ import java.awt.Component
 import java.awt.Dimension
 import javax.swing.JPanel
 
-open class CenteredDualDirectionPanel : JPanel() {
+open class CenteredDualDirectionPanel(hGap: Int = 0) : JPanel() {
+
+    var hGap: Int = hGap
+        set(value) {
+            field = value
+            revalidate()
+            repaint()
+        }
+
     private val leftComponents = arrayListOf<Component>()
     private val rightComponents = arrayListOf<Component>()
 
@@ -24,36 +32,39 @@ open class CenteredDualDirectionPanel : JPanel() {
 
     override fun doLayout() {
         super.doLayout()
+        val insets = insets
         var maxHeight = 0
         for (comp in this.components.filter { it.isVisible }) {
             val compSize = comp.preferredSize
             maxHeight = maxOf(maxHeight, compSize.height)
         }
 
-        var leftOffset = 0
+        var leftOffset = insets.left
         for (comp in leftComponents.filter { it.isVisible }) {
             val compSize = comp.preferredSize
-            val y = (maxHeight - compSize.height) / 2
+            val y = insets.top + (maxHeight - compSize.height) / 2
             comp.setBounds(leftOffset, y, compSize.width, compSize.height)
-            leftOffset += compSize.width
+            leftOffset += compSize.width + hGap
         }
 
-        var rightOffset = width
+        var rightOffset = width - insets.right
         for (comp in rightComponents.filter { it.isVisible }) {
             val compSize = comp.preferredSize
             rightOffset -= compSize.width
-            val y = (maxHeight - compSize.height) / 2
+            val y = insets.top + (maxHeight - compSize.height) / 2
             comp.setBounds(rightOffset, y, compSize.width, compSize.height)
+            rightOffset -= hGap
         }
     }
 
     override fun getPreferredSize(): Dimension {
-        var totalWidth = 0
-        var maxHeight = 0
-        for (comp in this.components) {
+        val insets = insets
+        var totalWidth = insets.left + insets.right
+        var maxHeight = insets.top + insets.bottom
+        for (comp in this.components.filter { it.isVisible }) {
             val compSize = comp.preferredSize
-            maxHeight = maxOf(maxHeight, compSize.height)
-            totalWidth += compSize.width
+            maxHeight = maxOf(maxHeight, compSize.height + insets.top + insets.bottom)
+            totalWidth += compSize.width + hGap
         }
         return Dimension(totalWidth, maxHeight)
     }

@@ -1,6 +1,8 @@
 package me.gegenbauer.catspy.utils.ui
 
 import me.gegenbauer.catspy.java.ext.getFieldDeeply
+import java.awt.Dimension
+import java.awt.Insets
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
@@ -9,6 +11,7 @@ import java.util.*
 import javax.swing.JComponent
 import javax.swing.JFileChooser
 import javax.swing.TransferHandler
+import javax.swing.border.Border
 
 open class DefaultFocusListener : FocusListener {
 
@@ -79,5 +82,33 @@ class FileChooserTransferHandler(private val chooser: JFileChooser) : TransferHa
             return true
         }
         return false
+    }
+}
+
+val EMPTY_INSETS = Insets(0, 0, 0, 0)
+
+fun JComponent.getSizeWithPadding(size: Dimension): Dimension {
+    return if (isVisible) {
+        Dimension(size.width + horizontalPadding(), size.height + verticalPadding())
+    } else {
+        Dimension(0, 0)
+    }
+}
+
+fun JComponent.horizontalPadding(): Int {
+    val insets = insets
+    return if (isVisible) {
+        insets.left + insets.right
+    } else {
+        0
+    }
+}
+
+fun JComponent.verticalPadding(): Int {
+    val insets = insets
+    return if (isVisible) {
+        insets.top + insets.bottom
+    } else {
+        0
     }
 }

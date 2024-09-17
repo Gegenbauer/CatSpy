@@ -6,11 +6,12 @@ import me.gegenbauer.catspy.databinding.bind.Observable
 import me.gegenbauer.catspy.databinding.bind.ObservableProperty
 import me.gegenbauer.catspy.databinding.bind.Observer
 import me.gegenbauer.catspy.log.filter.DefaultLogFilter
-import me.gegenbauer.catspy.log.filter.FilterInfo
+import me.gegenbauer.catspy.log.filter.ColumnFilterInfo
 import me.gegenbauer.catspy.log.filter.LogFilter
 import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.log.metadata.LogMetadataOwner
 import me.gegenbauer.catspy.log.ui.filter.FilterPanel
+import me.gegenbauer.catspy.log.ui.filter.IFavoriteFilterPanel
 import me.gegenbauer.catspy.log.ui.search.ISearchFilterController
 import me.gegenbauer.catspy.log.ui.search.ISearchPanel
 import me.gegenbauer.catspy.log.ui.search.SearchFilterController
@@ -20,13 +21,14 @@ import me.gegenbauer.catspy.log.ui.table.LogRenderer
 import java.util.concurrent.atomic.AtomicBoolean
 
 class LogConfiguration(
-    private val columnManager: ColumnManager = ColumnManager(),
+    private val filterManager: FilterManager = FilterManager(),
     private val searchFilterController: SearchFilterController = SearchFilterController(),
     private val searchPanel: SearchPanel = SearchPanel(),
     private val logRenderer: LogRenderer = LogRenderer(),
     private val observableLogMetadata: ObservableProperty<LogMetadata> = ObservableProperty(),
     override val contexts: Contexts = Contexts.default,
-) : IColumnManager by columnManager,
+) : IFilterManager by filterManager,
+    IFavoriteFilterPanel by filterManager,
     ILogRenderer by logRenderer,
     Observable<LogMetadata> by observableLogMetadata,
     ISearchFilterController by searchFilterController,
@@ -40,8 +42,8 @@ class LogConfiguration(
         searchFilterController.bind(searchPanel)
     }
 
-    override val filterPanel: FilterPanel
-        get() = columnManager.filterPanel
+    val filterPanel: FilterPanel
+        get() = filterManager.filterPanel
 
     override var logMetaData: LogMetadata
         get() = observableLogMetadata.value ?: LogMetadata.default
@@ -57,14 +59,13 @@ class LogConfiguration(
         disableObservers()
         this.logMetaData = logMetaData
         reAddExistingObservers()
-        columnManager.setLogMetadata(logMetaData)
+        filterManager.setLogMetadata(logMetaData)
         logRenderer.setColumns(logMetaData)
         this.observableLogMetadata.forceUpdateValue(logMetaData)
     }
 
     override fun configureContext(context: Context) {
-        super.configureContext(context)
-        columnManager.setParent(this)
+        filterManager.setParent(this)
         searchPanel.setParent(this)
         logRenderer.setParent(this)
         filterPanel.setParent(this)
@@ -90,17 +91,17 @@ class LogConfiguration(
 
     fun generateLogFilter(): LogFilter {
         val filterableColumns = logMetaData.columns.filter { it.supportFilter && it.uiConf.column.isHidden.not() }
-        val filters = filterableColumns.map { FilterInfo(it, getFilterItem(it.id), getFilter(it.id)) }
+        val filters = filterableColumns.map { ColumnFilterInfo(it, getFilterItem(it.id), getFilter(it.id)) }
         val newFilter = DefaultLogFilter(filters, filterableColumns)
         if (newFilter != filter) {
-            filterPanel.onNewFilterGenerated()
+            filterPanel.delayAddFilterToHistory()
             filter = newFilter
         }
         filterCreatedAfterMetadataChanged.set(true)
         return newFilter
     }
 
-    fun getFilter(): LogFilter {
+    fun getCurrentFilter(): LogFilter {
         return filter
     }
 

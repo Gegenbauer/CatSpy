@@ -12,6 +12,7 @@ dependencies {
     implementation(projects.concurrency)
     implementation(projects.platform)
     implementation(projects.cache)
+    implementation(projects.resources.strings)
     implementation(FormDev.flatLaf)
     implementation(Weisj.darklafCore)
 

@@ -206,7 +206,8 @@ class FileLogGuidancePanel(
             configureOpenFileAction()
         }
 
-        override fun onHoverStateChanged(isHover: Boolean) {
+        override fun onHoverStateChanged(isHover: Boolean, e: MouseEvent) {
+            super.onHoverStateChanged(isHover, e)
             setHover(isHover)
             if (isHover) {
                 listener?.onFileHover(fileItem)

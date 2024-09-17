@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.net.Socket
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 private const val TAG = "AdbSupport"
@@ -31,7 +30,6 @@ enum class AdbServerStartResult {
 inline val AdbServerStartResult.isSuccess: Boolean
     get() = this == AdbServerStartResult.SUCCESS
 
-@Throws(IOException::class)
 fun startServer(adbConf: AdbConf): AdbServerStartResult {
     val adbExecutable = File(adbConf.path)
     if (adbExecutable.exists().not() || adbExecutable.isDirectory) {

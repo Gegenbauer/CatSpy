@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.view.color
 
 import me.gegenbauer.catspy.configuration.ThemeManager
 import java.awt.Color
+import java.util.Objects
 
 data class DarkThemeAwareColor(
     val dayColor: Color,
@@ -25,8 +26,6 @@ data class DarkThemeAwareColor(
     }
 
     override fun hashCode(): Int {
-        var result = dayColor.hashCode()
-        result = 31 * result + nightColor.hashCode()
-        return result
+        return Objects.hash(dayColor, nightColor)
     }
 }

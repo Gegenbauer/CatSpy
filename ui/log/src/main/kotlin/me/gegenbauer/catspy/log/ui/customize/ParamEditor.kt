@@ -86,6 +86,7 @@ open class ParamEditor(
 
     fun setVerifier(verifier: ParamVerifier) {
         inputVerifier = verifier
+        reVerify()
     }
 
     protected fun reVerify() {

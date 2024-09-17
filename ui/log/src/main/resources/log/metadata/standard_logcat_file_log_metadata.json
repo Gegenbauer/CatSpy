@@ -2,7 +2,7 @@
   "logType": "StandardLogcatFileLog",
   "parser": {
     "splitToPartsOp": {
-      "maxParts": 7,
+      "maxParts": 6,
       "splitPostProcessOps": [
         {
           "name": "RemoveBlank",

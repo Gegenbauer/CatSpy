@@ -1,12 +1,17 @@
 package me.gegenbauer.catspy.log.serialize
 
-import com.google.gson.*
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
-import me.gegenbauer.catspy.log.metadata.DisplayedLevel
 import me.gegenbauer.catspy.log.parse.LogParser
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.file.Serializer
 import java.lang.reflect.Type
+import java.util.*
 
 class LogParserSerializer : Serializer<SerializableLogParser, JsonElement> {
 
@@ -106,42 +111,57 @@ class SerializableLogParser(
     val trimOps: List<TrimOp>,
 ) : LogParser {
 
+    @Transient
     private var partCount: Int = 0
+    @Transient
     private var levelPartIndex: Int = 0
-    private var defaultLevelKeyword: String = DisplayedLevel.default.level.keyword
+    @Transient
+    private lateinit var defaultLevelKeyword: String
+    @Transient
+    private lateinit var levelKeywords: Set<String>
 
     fun setLogMetadata(logMetadataModel: LogMetadataModel) {
         val parsedColumns = logMetadataModel.columns.sortedBy { it.partIndex }.filter { it.isParsed }
         val columnCount = parsedColumns.size
         val levelPartIndex = parsedColumns.indexOfFirst { it.isLevel }
         val defaultLevelTag = logMetadataModel.levels.minByOrNull { it.level.value }?.level?.keyword ?: EMPTY_STRING
-        configure(columnCount, levelPartIndex, defaultLevelTag)
+        val levelKeywords = logMetadataModel.levels.map { it.level.keyword }.toSet()
+        configure(columnCount, levelPartIndex, defaultLevelTag, levelKeywords)
     }
 
-    private fun configure(partCount: Int, levelPartIndex: Int, defaultLevelTag: String) {
+    private fun configure(partCount: Int, levelPartIndex: Int, defaultLevelTag: String, levelKeywords: Set<String>) {
         this.partCount = partCount
         this.levelPartIndex = levelPartIndex
         this.defaultLevelKeyword = defaultLevelTag
+        this.levelKeywords = levelKeywords
     }
 
     override fun parse(line: String): List<String> {
         val splitResult = splitToPartsOp.process(sequenceOf(line))
-        val defaultResult = run {
-            val default = Array(partCount) { EMPTY_STRING }
-            if (levelPartIndex > 0) default[levelPartIndex] = defaultLevelKeyword
-            default[default.size - 1] = line
-            default.toList()
+        val defaultResult = Array(partCount) { EMPTY_STRING }.apply {
+            if (levelPartIndex > 0) this[levelPartIndex] = defaultLevelKeyword
+            this[this.size - 1] = line
         }
-        val result = kotlin.runCatching {
+
+        val parsedResult = kotlin.runCatching {
             if (trimOps.isEmpty()) {
                 splitResult
             } else {
                 trimOps.fold(splitResult) { parts, op ->
                     op.process(parts)
                 }
+            }.toList()
+        }.getOrDefault(defaultResult.toList())
+        val isValidLog = parsedResult.size > levelPartIndex && levelKeywords.contains(parsedResult[levelPartIndex])
+        if (isValidLog) {
+            // fill default result with parsed parts
+            parsedResult.forEachIndexed { index, part ->
+                if (index < partCount) {
+                    defaultResult[index] = part
+                }
             }
-        }.getOrDefault(defaultResult.asSequence()).toList()
-        return result.takeIf { it.size >= partCount } ?: defaultResult
+        }
+        return defaultResult.toList()
     }
 
     override fun equals(other: Any?): Boolean {
@@ -151,7 +171,7 @@ class SerializableLogParser(
     }
 
     override fun hashCode(): Int {
-        return javaClass.name.hashCode() * 31 + splitToPartsOp.hashCode() * 31 + trimOps.hashCode()
+        return Objects.hash(javaClass.name, splitToPartsOp, trimOps)
     }
 }
 
@@ -257,7 +277,7 @@ class SplitByWordSeparatorOp(
     }
 
     override fun hashCode(): Int {
-        return javaClass.name.hashCode() * 31 + maxParts.hashCode() * 31 + splitPostProcessOps.hashCode()
+        return Objects.hash(javaClass.name, maxParts, splitPostProcessOps)
     }
 
     companion object {
@@ -295,7 +315,7 @@ class SplitPartWithCharOp(val splitChar: Char?, val partIndex: Int) : SplitPostP
     }
 
     override fun hashCode(): Int {
-        return javaClass.name.hashCode() * 31 + splitChar.hashCode() * 31 + partIndex.hashCode()
+        return Objects.hash(javaClass.name, splitChar, partIndex)
     }
 
 }
@@ -335,7 +355,7 @@ class MergeNearbyPartsOp(val from: Int, val to: Int) : SplitPostProcessOp {
     }
 
     override fun hashCode(): Int {
-        return javaClass.name.hashCode() * 31 + from.hashCode() * 31 + to.hashCode()
+        return Objects.hash(javaClass.name, from, to)
     }
 
 }
@@ -387,7 +407,7 @@ class MergeUntilCharOp(val start: Int, val targetChar: Char?) : SplitPostProcess
     }
 
     override fun hashCode(): Int {
-        return javaClass.name.hashCode() * 31 + start.hashCode() * 31 + targetChar.hashCode()
+        return Objects.hash(javaClass.name, start, targetChar)
     }
 
 }
@@ -456,7 +476,7 @@ class TrimWithCharOp(
     }
 
     override fun hashCode(): Int {
-        return javaClass.name.hashCode() * 31 + partIndex.hashCode() * 31 + leading.hashCode() * 31 + trailing.hashCode()
+        return Objects.hash(javaClass.name, partIndex, leading, trailing)
     }
 
 }
@@ -499,7 +519,7 @@ class TrimWithIndexOp(
     }
 
     override fun hashCode(): Int {
-        return javaClass.name.hashCode() * 31 + partIndex.hashCode() * 31 + removedLeadingCharCount.hashCode() * 31 + removedTrailingCharCount.hashCode()
+        return Objects.hash(javaClass.name, partIndex, removedLeadingCharCount, removedTrailingCharCount)
     }
 
 }

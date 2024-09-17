@@ -14,6 +14,8 @@ import me.gegenbauer.catspy.databinding.property.support.selectedItemProperty
 import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.databinding.property.support.textProperty
 import me.gegenbauer.catspy.log.filter.FilterProperty
+import me.gegenbauer.catspy.log.filter.FilterRecord
+import me.gegenbauer.catspy.log.filter.applyFilterRecord
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.utils.ui.editorComponent
 import me.gegenbauer.catspy.view.button.ColorToggleButton
@@ -24,13 +26,23 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class FilterPanel(override val contexts: Contexts = Contexts.default) : JPanel(), Context {
+interface IFilterPanel {
+    fun configure(filterUIConfs: List<Column.CommonFilterUIConf>, properties: List<FilterProperty>)
+
+    fun applyFilterRecord(filterRecord: FilterRecord)
+
+    fun delayAddFilterToHistory()
+
+    fun getFilterPanel(): JPanel
+}
+
+class FilterPanel(override val contexts: Contexts = Contexts.default) : JPanel(), IFilterPanel, Context {
     private val filterUIConfs = mutableListOf<Column.CommonFilterUIConf>()
     private val filterGroups = mutableMapOf<Column.CommonFilterUIConf, FilterGroup>()
     private val properties = mutableMapOf<Column.CommonFilterUIConf, FilterProperty>()
-    private val ignoreFastCallbackScheduler = IgnoreFastCallbackScheduler(Dispatchers.UI, 2000)
+    private val ignoreFastCallbackScheduler = IgnoreFastCallbackScheduler(Dispatchers.UI, 3000)
 
-    fun setFilters(filterUIConfs: List<Column.CommonFilterUIConf>, properties: List<FilterProperty>) {
+    override fun configure(filterUIConfs: List<Column.CommonFilterUIConf>, properties: List<FilterProperty>) {
         require(filterUIConfs.size == properties.size) { "Columns and properties must have the same size" }
         this.filterUIConfs.clear()
         this.filterUIConfs.addAll(filterUIConfs)
@@ -39,10 +51,18 @@ class FilterPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         processColumnsChange()
     }
 
-    fun onNewFilterGenerated() {
+    override fun applyFilterRecord(filterRecord: FilterRecord) {
+        properties.values.toList().applyFilterRecord(filterRecord)
+    }
+
+    override fun delayAddFilterToHistory() {
         ignoreFastCallbackScheduler.schedule {
             properties.values.forEach { it.addCurrentContentToList() }
         }
+    }
+
+    override fun getFilterPanel(): JPanel {
+        return this
     }
 
     private fun processColumnsChange() {

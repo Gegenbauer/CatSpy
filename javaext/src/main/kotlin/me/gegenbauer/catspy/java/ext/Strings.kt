@@ -47,10 +47,3 @@ fun getUniqueName(name: String, existingNames: Set<String>): String {
     }
     return newName
 }
-
-/**
- * 只允许有字母与数字还有下划线
- */
-fun isValidName(name: String): Boolean {
-    return name.matches(Regex("^[a-zA-Z0-9_]*$"))
-}

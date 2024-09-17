@@ -2,6 +2,7 @@
 # CatSpy Start
 -keep class me.gegenbauer.catspy.view.combobox.FilterComboBox { *; }
 -keep class me.gegenbauer.catspy.view.combobox.FilterComboBoxModel { *; }
+-keep class me.gegenbauer.catspy.log.ui.table.SplitLogPane { *; }
 # CatSpy End
 
 # occupies 9.3mb
