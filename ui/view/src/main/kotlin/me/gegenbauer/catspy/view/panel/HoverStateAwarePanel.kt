@@ -3,12 +3,14 @@ package me.gegenbauer.catspy.view.panel
 import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.LayoutManager
+import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionListener
 import javax.swing.JPanel
 
-open class HoverStateAwarePanel(layoutManager: LayoutManager = FlowLayout()) : JPanel(layoutManager), MouseMotionListener {
+open class HoverStateAwarePanel(layoutManager: LayoutManager = FlowLayout()) : JPanel(layoutManager),
+    MouseMotionListener {
 
     private val hoverListener = HoverListener(this)
 
@@ -28,26 +30,45 @@ open class HoverStateAwarePanel(layoutManager: LayoutManager = FlowLayout()) : J
     }
 
     override fun mouseMoved(e: MouseEvent) {
-        if (!contains(e.point)) {
-            hoverListener.mouseExited(e)
-        } else {
+        if (e.isInComponent(this)) {
             hoverListener.mouseEntered(e)
+        } else {
+            hoverListener.mouseExited(e)
         }
     }
 
-    protected open fun onHoverStateChanged(isHover: Boolean) {
+    protected open fun onHoverStateChanged(isHover: Boolean, e: MouseEvent) {
         // no-op
     }
 
     class HoverListener(private val panel: HoverStateAwarePanel) : MouseAdapter() {
         override fun mouseEntered(e: MouseEvent) {
-            panel.onHoverStateChanged(true)
+            if (e.isInComponent(panel)) {
+                panel.onHoverStateChanged(true, e)
+            }
         }
 
         override fun mouseExited(e: MouseEvent) {
-            if (!panel.contains(e.point)) {
-                panel.onHoverStateChanged(false)
+            if (!e.isInComponent(panel)) {
+                panel.onHoverStateChanged(false, e)
             }
+        }
+    }
+
+    companion object {
+
+        private fun MouseEvent.isInComponent(component: Component): Boolean {
+            return locationOnScreen.isInComponent(component)
+        }
+
+        /**
+         * use screen coordinate to check if the point is in the component
+         */
+        private fun Point.isInComponent(component: Component): Boolean {
+            val screenPoint = component.locationOnScreen
+            val screenRect = component.bounds
+            screenRect.location = screenPoint
+            return screenRect.contains(this)
         }
     }
 }

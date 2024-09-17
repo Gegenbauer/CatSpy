@@ -2,7 +2,6 @@ package me.gegenbauer.catspy.view.combobox
 
 import me.gegenbauer.catspy.cache.use
 import me.gegenbauer.catspy.databinding.bind.Bindings
-import me.gegenbauer.catspy.filter.ui.enableAutoComplete
 import me.gegenbauer.catspy.filter.ui.isAutoCompleteShowing
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.render.HtmlStringBuilder
@@ -10,7 +9,6 @@ import me.gegenbauer.catspy.render.LabelRenderer
 import me.gegenbauer.catspy.render.Tag
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.DefaultDocumentListener
-import me.gegenbauer.catspy.utils.ui.DefaultListDataListener
 import me.gegenbauer.catspy.utils.ui.Key
 import me.gegenbauer.catspy.utils.ui.applyTooltip
 import me.gegenbauer.catspy.utils.ui.registerStrokeWhenFocused
@@ -27,7 +25,6 @@ import javax.swing.JComponent
 import javax.swing.JToolTip
 import javax.swing.ToolTipManager
 import javax.swing.UIManager
-import javax.swing.event.ListDataEvent
 import javax.swing.plaf.ComboBoxUI
 import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.text.JTextComponent
@@ -83,7 +80,6 @@ class FilterComboBox(
 
     init {
         configureEditorComponent(editorComponent)
-        configureItemsChangeListener()
         updateUI()
     }
 
@@ -128,23 +124,6 @@ class FilterComboBox(
                     undo.redo()
                 }
             }
-        }
-        updateSuggestions(editorComponent)
-    }
-
-    private fun configureItemsChangeListener() {
-        model.addListDataListener(object : DefaultListDataListener() {
-            override fun contentsChanged(e: ListDataEvent) {
-                updateSuggestions(editorComponent)
-            }
-        })
-    }
-
-    private fun updateSuggestions(editorComponent: JTextComponent) {
-        editorComponent.enableAutoComplete(getAllItems().map { it }) {
-            hidePopup()
-            editorComponent.toolTipText = null
-            dismissTooltip()
         }
     }
 
@@ -194,11 +173,6 @@ class FilterComboBox(
             ToolTipManager.sharedInstance()
                 .mouseMoved(MouseEvent(editorComponent, 0, 0, 0, 0, 0, 0, false))
         }
-    }
-
-    private fun dismissTooltip() {
-        ToolTipManager.sharedInstance()
-            .mouseMoved(MouseEvent(editorComponent, 0, 0, 0, 0, 0, 0, false))
     }
 
     private fun renderLineWithBreak(content: String, foreground: Color): String {

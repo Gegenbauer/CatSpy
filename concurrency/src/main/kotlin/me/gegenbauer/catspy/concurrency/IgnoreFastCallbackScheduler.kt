@@ -1,8 +1,16 @@
 package me.gegenbauer.catspy.concurrency
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-class IgnoreFastCallbackScheduler(private val dispatcher: CoroutineDispatcher, private val delay: Long = 10): CallbackSchedule {
+class IgnoreFastCallbackScheduler(
+    private val dispatcher: CoroutineDispatcher,
+    private val delay: Long = 10
+) : CallbackSchedule {
     private val scope = ModelScope()
     private var job: Job? = null
 

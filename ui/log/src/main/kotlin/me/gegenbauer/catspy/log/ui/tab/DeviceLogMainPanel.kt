@@ -1,29 +1,53 @@
 package me.gegenbauer.catspy.log.ui.tab
 
 import com.malinskiy.adam.request.device.Device
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import me.gegenbauer.catspy.concurrency.GlobalEventManager
+import me.gegenbauer.catspy.concurrency.IgnoreFastCallbackScheduler
+import me.gegenbauer.catspy.concurrency.OpenAdbPathSettingsEvent
+import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.databinding.bind.bindDual
+import me.gegenbauer.catspy.databinding.property.support.visibilityProperty
+import me.gegenbauer.catspy.ddmlib.adb.AdbConf
+import me.gegenbauer.catspy.ddmlib.adb.isServerRunning
+import me.gegenbauer.catspy.ddmlib.adb.startServer
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.ddmlib.device.AdbServerStatusListener
 import me.gegenbauer.catspy.ddmlib.device.DeviceListObserver
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.java.ext.Bundle
-import me.gegenbauer.catspy.concurrency.GlobalEventManager
-import me.gegenbauer.catspy.concurrency.OpenAdbPathSettingsEvent
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.log.metadata.LogMetadataChangeListener
 import me.gegenbauer.catspy.log.metadata.LogMetadataManager
 import me.gegenbauer.catspy.log.serialize.LogMetadataModel
 import me.gegenbauer.catspy.log.serialize.toLogMetadata
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.utils.ui.Key
+import me.gegenbauer.catspy.utils.ui.registerStroke
+import me.gegenbauer.catspy.utils.ui.setWidth
+import me.gegenbauer.catspy.view.button.IconBarButton
+import me.gegenbauer.catspy.view.combobox.readOnlyComboBox
 import me.gegenbauer.catspy.view.panel.StatusBar
+import java.awt.Component
 
 class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
     override val tag: String = "DeviceLogMainPanel"
 
+    private val deviceCombo = readOnlyComboBox(STRINGS.toolTip.devicesCombo)
+    private val adbServerStatusWarningBtn = IconBarButton(
+        GIcons.Action.Warning.get(),
+        STRINGS.ui.adbServerNotStartedWarn
+    ).apply {
+        isVisible = false
+    }
     private val idleStatus: String = "${STRINGS.ui.adb} ${STRINGS.ui.stop}"
+    private val adbServiceUpdater = IgnoreFastCallbackScheduler(Dispatchers.UI, 20)
 
     private val logMetadataManager: LogMetadataManager
         get() = ServiceManager.getContextService(LogMetadataManager::class.java)
@@ -40,15 +64,34 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
         }
 
         deviceManager.tryStartMonitor()
+        scope.launch {
+            if (!isServerRunning()) {
+                startServer(AdbConf(SettingsManager.adbPath))
+            }
+        }
 
         logMetadataManager.addOnMetadataChangeListener(this)
     }
 
     override fun createUI() {
         super.createUI()
+        deviceCombo.setWidth(150)
+
         splitLogWithStatefulPanel.hideEmptyImage()
         deviceCombo.isVisible = true
         saveBtn.isVisible = true
+    }
+
+    override fun getCustomToolbarComponents(): List<Component> {
+        return super.getCustomToolbarComponents() + adbServerStatusWarningBtn + deviceCombo
+    }
+
+    override fun bind(binding: LogMainBinding) {
+        super.bind(binding)
+        binding.apply {
+            bindNormalCombo(deviceCombo, connectedDevices, currentDevice)
+            visibilityProperty(adbServerStatusWarningBtn) bindDual adbServerStatusWarningVisibility
+        }
     }
 
     private fun checkAdbPath() {
@@ -69,6 +112,11 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
             deviceManager.registerDevicesListener(devicesChangeObserver)
             deviceManager.registerAdbServerStatusListener(adbStatusChangeObserver)
         }
+    }
+
+    override fun registerStrokes() {
+        super.registerStrokes()
+        registerStroke(Key.C_L, "Device Combo Request Focus") { deviceCombo.requestFocus() }
     }
 
     override fun onStartClicked() {
@@ -92,7 +140,9 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
     }
 
     private val adbStatusChangeObserver = AdbServerStatusListener {
-        logMainBinding.adbServerStatusWarningVisibility.updateValue(it.not())
+        adbServiceUpdater.schedule {
+            logMainBinding.adbServerStatusWarningVisibility.updateValue(it.not())
+        }
     }
 
     private fun refreshDevices(devices: List<Device>) {
@@ -120,6 +170,7 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
                         STRINGS.ui.adb,
                         logViewModel.tempLogFile.absolutePath ?: EMPTY_STRING
                     )
+                deviceCombo.isEnabled = false
             }
 
             is TaskIdle -> {
@@ -131,6 +182,11 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
                         logViewModel.tempLogFile.absolutePath ?: EMPTY_STRING
                     )
                 }
+                deviceCombo.isEnabled = true
+            }
+
+            is TaskPaused -> {
+                deviceCombo.isEnabled = false
             }
         }
     }

@@ -89,3 +89,13 @@ data class FilePath(
     val parentDir: String,
     val fileName: String
 )
+
+/**
+ * Check if the name is a valid file name
+ * macOS, Windows, Linux
+ */
+fun isValidFileName(name: String): Boolean {
+    return name.matches(Regex("^[^/\\\\:*?\"<>|]*$"))
+}
+
+const val FILE_NAME_INVALID_CHARS = "/\\:*?\"<>|"

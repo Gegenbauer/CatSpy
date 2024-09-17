@@ -20,6 +20,7 @@ import me.gegenbauer.catspy.glog.LogFilter
 import me.gegenbauer.catspy.glog.LogFormatter
 import me.gegenbauer.catspy.glog.LogLevel
 import me.gegenbauer.catspy.glog.PlainLogFormatter
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
 
@@ -96,7 +97,7 @@ class LogbackConfiguration(
                 params: Array<out Any>?,
                 t: Throwable?
             ): FilterReply {
-                return if (filter.filter(logger.name, format ?: "", level.toLogLevel())) {
+                return if (filter.filter(logger.name, format ?: EMPTY_STRING, level.toLogLevel())) {
                     FilterReply.ACCEPT
                 } else {
                     FilterReply.DENY

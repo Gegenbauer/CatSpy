@@ -37,6 +37,7 @@ import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.panel.Task
 import me.gegenbauer.catspy.view.panel.TaskHandle
 import java.io.File
+import java.util.Objects
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.system.measureTimeMillis
@@ -54,7 +55,7 @@ class LogViewModel(
         get() = filteredLogRepo.logObservables
 
     override val logFilter: LogFilter
-        get() = logConf.getFilter()
+        get() = logConf.getCurrentFilter()
 
     override var fullTableSelectedRows: List<Int> = emptyList()
 
@@ -531,7 +532,7 @@ class LogViewModel(
             }
 
             override fun hashCode(): Int {
-                return filter.hashCode() + 31 * fullModeState.hashCode() + 31 * 31 * bookmarkModeState.hashCode()
+                return Objects.hash(filter, fullModeState.enabled, bookmarkModeState.enabled)
             }
 
             override fun toString(): String {

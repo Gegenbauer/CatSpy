@@ -22,6 +22,7 @@ class LogMetadataPreviewPanel : FileLogMainPanel() {
         templateSelector.isVisible = false
         logToolBar.isVisible = false
         splitLogPane.fullLogPanel.isVisible = false
+        logConf.getFavoriteFilterPanel().isVisible = false
         configureContext(this)
         onSetup(Bundle().apply {
             put(LogMetadata.KEY, LogMetadataModel.default.toLogMetadata())

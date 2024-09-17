@@ -36,7 +36,7 @@ class LogMetadata(
 
     companion object {
         const val KEY = "logMetaData"
-        const val VERSION = 1
+        const val VERSION = 2
 
         val default = LogMetadata(EMPTY_STRING, LogParser.empty, emptyList(), emptySet())
     }

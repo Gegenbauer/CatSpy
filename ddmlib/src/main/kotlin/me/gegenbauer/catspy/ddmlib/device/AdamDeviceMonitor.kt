@@ -17,6 +17,8 @@ import me.gegenbauer.catspy.concurrency.ModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.ddmlib.adb.AdbConf
+import me.gegenbauer.catspy.ddmlib.adb.isServerRunning
+import me.gegenbauer.catspy.ddmlib.adb.startServer
 import me.gegenbauer.catspy.ddmlib.log.DdmLog
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -100,18 +102,22 @@ class AdamDeviceMonitor : ContextService, DeviceMonitor, AdbServerStatusMonitor 
 
             DdmLog.i(TAG, "[startMonitor]")
 
-            isMonitoring = true
+            val adbConf = adbConf
+            if (!isServerRunning() && adbConf != null) {
+                startServer(adbConf)
+            }
+            _adbServerRunning.set(isServerRunning())
+            dispatchAdbServerStatusChange()
 
             val deviceEventsChannel: ReceiveChannel<List<Device>> = adb.execute(
                 request = AsyncDeviceMonitorRequest(),
                 scope = this
             )
+            isMonitoring = true
 
             receiveChannel = deviceEventsChannel
 
             deviceEventsChannel.consumeEach {
-                _adbServerRunning.set(true)
-                dispatchAdbServerStatusChange()
                 dispatchDeviceListChange(it.filterConnected())
             }
         }

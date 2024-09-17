@@ -6,8 +6,6 @@ import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.common.Resources
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.log.serialize.LogMetadataSerializer
-import me.gegenbauer.catspy.log.serialize.SerializableLogParser
-import me.gegenbauer.catspy.log.serialize.toLogMetadataModel
 
 fun interface LogMetadataProvider {
 
@@ -25,9 +23,7 @@ abstract class StandardLogcatLogMetadataProvider(dispatcher: CoroutineDispatcher
         return withContext(dispatcher) {
             val buildInMetadataJson =
                 Resources.loadResourceAsStream(metadataFilePath).readBytes().decodeToString()
-            val buildInMetadata = serializer.deserialize(buildInMetadataJson)
-            (buildInMetadata.parser as? SerializableLogParser)?.setLogMetadata(buildInMetadata.toLogMetadataModel())
-            buildInMetadata
+            serializer.deserialize(buildInMetadataJson)
         }
     }
 

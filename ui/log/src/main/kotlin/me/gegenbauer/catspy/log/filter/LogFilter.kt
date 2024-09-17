@@ -21,7 +21,7 @@ fun interface LogFilter {
 }
 
 class DefaultLogFilter(
-    val filters: List<FilterInfo>,
+    val filters: List<ColumnFilterInfo>,
     val columns: List<Column>,
 ) : LogFilter {
 

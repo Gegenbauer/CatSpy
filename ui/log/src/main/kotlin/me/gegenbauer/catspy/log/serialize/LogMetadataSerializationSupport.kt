@@ -24,7 +24,9 @@ class LogMetadataSerializer : Serializer<LogMetadata, String> {
     }
 
     override fun deserialize(serialized: String): LogMetadata {
-        return logMetadataModelSerializer.deserialize(serialized).toLogMetadata()
+        return logMetadataModelSerializer.deserialize(serialized).toLogMetadata().apply {
+            (parser as? SerializableLogParser)?.setLogMetadata(toLogMetadataModel())
+        }
     }
 
     companion object {

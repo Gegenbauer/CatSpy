@@ -3,13 +3,28 @@ package me.gegenbauer.catspy.view.button
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
-import me.gegenbauer.catspy.utils.ui.*
+import me.gegenbauer.catspy.utils.ui.Key
+import me.gegenbauer.catspy.utils.ui.isDoubleClick
+import me.gegenbauer.catspy.utils.ui.isLeftClick
+import me.gegenbauer.catspy.utils.ui.isSingleClick
+import me.gegenbauer.catspy.utils.ui.keyEventInfo
+import me.gegenbauer.catspy.utils.ui.registerStrokeWhenFocused
 import me.gegenbauer.catspy.view.label.EllipsisLabel
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Insets
-import java.awt.event.*
-import javax.swing.*
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import javax.swing.BorderFactory
+import javax.swing.Icon
+import javax.swing.JOptionPane
+import javax.swing.JPanel
+import javax.swing.JTabbedPane
+import javax.swing.JTextField
 
 class ClosableTabHeader(
     private val tabName: String,
@@ -26,7 +41,7 @@ class ClosableTabHeader(
     private val closeButton = CloseButton(::closeTab)
     private val editor = JTextField()
     private var titleLen = 0
-    private var editorMinDimen: Dimension = Dimension(0, 0)
+    private var editorMinDimension: Dimension = Dimension(0, 0)
 
     private val clickListener = object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
@@ -104,7 +119,7 @@ class ClosableTabHeader(
                     Key.ENTER -> renameTabTitle()
                     Key.ESCAPE -> cancelEditing()
                     else -> {
-                        editor.preferredSize = if (editor.text.length > titleLen) null else editorMinDimen
+                        editor.preferredSize = if (editor.text.length > titleLen) null else editorMinDimension
                         parent.revalidate()
                     }
                 }
@@ -133,8 +148,8 @@ class ClosableTabHeader(
         editor.text = title.text
         editor.selectAll()
         titleLen = editor.text.length
-        editorMinDimen = editor.preferredSize
-        editor.minimumSize = editorMinDimen
+        editorMinDimension = editor.preferredSize
+        editor.minimumSize = editorMinDimension
 
         remove(title)
         add(editor, 0)

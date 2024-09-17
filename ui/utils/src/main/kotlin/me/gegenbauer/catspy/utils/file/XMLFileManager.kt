@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.utils.file
 
 import me.gegenbauer.catspy.glog.GLog
-import me.gegenbauer.catspy.java.ext.isValidName
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
@@ -15,13 +14,13 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 
-class XMLFileManager : StringFileManager() {
+class XMLFileManager : KeyValuesFileManager() {
 
     override val fileExtension: String = FILE_EXTENSION
 
-    fun parseXMLString(xmlString: String): Map<String, Any> {
+    override fun deserialize(raw: String): Map<String, Any?> {
         val resultMap = HashMap<String, Any>()
-        if (xmlString.isEmpty()) return resultMap
+        if (raw.isEmpty()) return resultMap
 
         // Create a DocumentBuilderFactory
         val factory = DocumentBuilderFactory.newInstance()
@@ -31,7 +30,7 @@ class XMLFileManager : StringFileManager() {
         val builder = factory.newDocumentBuilder()
 
         // Parse the XML string into a Document
-        val document: Document = builder.parse(InputSource(StringReader(xmlString)))
+        val document: Document = builder.parse(InputSource(StringReader(raw)))
 
         // Normalize the XML structure
         document.documentElement.normalize()
@@ -46,7 +45,7 @@ class XMLFileManager : StringFileManager() {
             if (node.nodeType == Node.ELEMENT_NODE) {
                 val element = node as Element
                 val tagName = element.tagName
-                if (!isValidName(tagName)) continue
+                if (!isValidXmlKey(tagName)) continue
                 val textContent = element.textContent
 
                 if (resultMap.containsKey(tagName)) {
@@ -68,7 +67,7 @@ class XMLFileManager : StringFileManager() {
         return resultMap
     }
 
-    fun mapToXMLString(map: Map<String, Any>): String {
+    override fun serialize(data: Map<String, Any?>): String {
         val factory = DocumentBuilderFactory.newInstance()
         val builder = factory.newDocumentBuilder()
         val document: Document = builder.newDocument()
@@ -78,7 +77,7 @@ class XMLFileManager : StringFileManager() {
         document.appendChild(root)
 
         // Traverse the map and add elements to the document
-        map.forEach { (key, value) ->
+        data.forEach { (key, value) ->
             if (value is List<*>) {
                 value.forEach { item ->
                     val element = document.createElement(key)
@@ -112,5 +111,12 @@ class XMLFileManager : StringFileManager() {
         private const val TAG = "XMLFileManager"
 
         const val FILE_EXTENSION = "xml"
+
+        /**
+         * 只允许有字母与数字还有下划线
+         */
+        private fun isValidXmlKey(name: String): Boolean {
+            return name.matches(Regex("^[a-zA-Z0-9_]*$"))
+        }
     }
 }

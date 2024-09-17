@@ -115,7 +115,6 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
                     val jsonObject = JsonParser.parseString(file.readText()).asJsonObject
                     val migratedJsonObject = LogMetadataMigrations.migrate(jsonObject, LogMetadata.VERSION)
                     if (migratedJsonObject == null) {
-
                         GLog.w(TAG, "Failed to migrate metadata file: ${file.name}, discard it")
                         return@runCatching null
                     }

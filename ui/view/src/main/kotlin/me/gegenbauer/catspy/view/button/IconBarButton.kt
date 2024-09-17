@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.view.button
 
+import me.gegenbauer.catspy.utils.ui.EMPTY_INSETS
 import me.gegenbauer.catspy.utils.ui.setBorderless
 import java.awt.Dimension
 import javax.swing.Icon
@@ -17,6 +18,7 @@ class IconBarButton(
         isRolloverEnabled = true
         this.disabledIcon = disabledIcon
         setBorderless()
-        preferredSize = Dimension(24, 24)
+        preferredSize = Dimension(30, 30)
+        margin = EMPTY_INSETS
     }
 }

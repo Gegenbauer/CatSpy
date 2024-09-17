@@ -1,7 +1,6 @@
 package me.gegenbauer.catspy.view.panel
 
 import com.github.weisj.darklaf.iconset.AllIcons
-import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import com.malinskiy.adam.request.device.Device
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants
@@ -9,9 +8,19 @@ import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.ddmlib.device.DeviceObserver
 import me.gegenbauer.catspy.iconset.GIcons
+import me.gegenbauer.catspy.utils.ui.findFrameFromParentOrNull
 import me.gegenbauer.catspy.view.button.IconBarButton
 import java.awt.Component
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.DefaultListModel
+import javax.swing.Icon
+import javax.swing.JButton
+import javax.swing.JDialog
+import javax.swing.JFrame
+import javax.swing.JLabel
+import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.JScrollPane
 
 class DevicePanel : JPanel(), DeviceObserver {
     private val refreshButton: JButton = IconBarButton(AllIcons.Action.Refresh.get())
@@ -105,7 +114,7 @@ class DeviceIcon: StatusIcon {
     }
 
     private fun createDeviceDialog(): JDialog {
-        val frame = DarkUIUtil.getParentOfType(JFrame::class.java, this.devicePanel) ?: return JDialog()
+        val frame = this.devicePanel.findFrameFromParentOrNull<JFrame>() ?: return JDialog()
         return JDialog(frame).apply {
             isResizable = true
             defaultCloseOperation = JDialog.HIDE_ON_CLOSE

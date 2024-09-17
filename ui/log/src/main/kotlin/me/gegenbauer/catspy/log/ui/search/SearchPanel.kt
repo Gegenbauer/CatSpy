@@ -9,14 +9,25 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.databinding.bind.bindDual
-import me.gegenbauer.catspy.databinding.property.support.*
+import me.gegenbauer.catspy.databinding.property.support.customProperty
+import me.gegenbauer.catspy.databinding.property.support.listProperty
+import me.gegenbauer.catspy.databinding.property.support.selectedItemProperty
+import me.gegenbauer.catspy.databinding.property.support.selectedProperty
+import me.gegenbauer.catspy.databinding.property.support.textProperty
+import me.gegenbauer.catspy.databinding.property.support.visibilityProperty
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.filter.FilterProperty
 import me.gegenbauer.catspy.log.filter.FilterProperty.Companion.FILTER_ID_MATCH_CASE
 import me.gegenbauer.catspy.log.ui.filter.FilterPropertyObserver
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.utils.ui.*
+import me.gegenbauer.catspy.utils.ui.Key
+import me.gegenbauer.catspy.utils.ui.applyTooltip
+import me.gegenbauer.catspy.utils.ui.editorComponent
+import me.gegenbauer.catspy.utils.ui.keyEventInfo
+import me.gegenbauer.catspy.utils.ui.registerStrokeWhenFocused
+import me.gegenbauer.catspy.utils.ui.released
+import me.gegenbauer.catspy.utils.ui.setWidth
 import me.gegenbauer.catspy.view.button.ColorToggleButton
 import me.gegenbauer.catspy.view.button.IconBarButton
 import me.gegenbauer.catspy.view.combobox.filterComboBox
@@ -67,11 +78,11 @@ interface ISearchFilterController {
 
 class SearchFilterController : ISearchFilterController, FilterPropertyObserver {
 
-    private val contentProperty = FilterProperty("SearchContent")
+    private val contentProperty = FilterProperty(FILTER_KEY_CONTENT)
     private val matchCaseProperty =
-        FilterProperty(GlobalStrings.MATCH_CASE, FILTER_ID_MATCH_CASE, storeKeyPrefix = "Search")
+        FilterProperty(GlobalStrings.MATCH_CASE, FILTER_ID_MATCH_CASE, keyPrefix = FILTER_KEY_PREFIX)
     private val visibilityProperty = ObservableValueProperty(false)
-    private val ignoreFastCallbackScheduler = IgnoreFastCallbackScheduler(Dispatchers.UI, 2000)
+    private val ignoreFastCallbackScheduler = IgnoreFastCallbackScheduler(Dispatchers.UI, UPDATE_HISTORY_INTERVAL)
 
     override fun bind(searchPanel: SearchPanel) {
         searchPanel.bindProperties(contentProperty, matchCaseProperty, visibilityProperty)
@@ -110,12 +121,19 @@ class SearchFilterController : ISearchFilterController, FilterPropertyObserver {
     override fun onFilterPropertyChanged(property: ObservableValueProperty<*>) {
         contentProperty.processToFilterItem(matchCaseProperty.enabled.getValueNonNull())
     }
+
+    companion object {
+        private const val FILTER_KEY_PREFIX = "Search"
+        private const val FILTER_KEY_CONTENT = "SearchContent"
+        private const val UPDATE_HISTORY_INTERVAL = 2000L
+    }
 }
 
 class SearchPanel(override val contexts: Contexts = Contexts.default) : JPanel(), ISearchPanel, Context {
     private val closeBtn = IconBarButton(AllIcons.Navigation.Close.get()) applyTooltip STRINGS.toolTip.searchCloseBtn
     private val searchCombo = filterComboBox()
-    private val searchMatchCaseToggle = ColorToggleButton(GlobalStrings.MATCH_CASE) applyTooltip STRINGS.toolTip.searchCaseToggle
+    private val searchMatchCaseToggle = ColorToggleButton(GlobalStrings.MATCH_CASE) applyTooltip
+            STRINGS.toolTip.searchCaseToggle
 
     private val upBtn = IconBarButton(GIcons.Action.Up.get()) applyTooltip STRINGS.toolTip.searchPrevBtn
     private val downBtn = IconBarButton(GIcons.Action.Down.get()) applyTooltip STRINGS.toolTip.searchNextBtn

@@ -9,7 +9,7 @@ import me.gegenbauer.catspy.log.filter.getFilterFactory
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.view.filter.FilterItem
 
-interface IColumnFilterProvider {
+interface IFilterProvider {
     fun getFilter(columnId: Int): ColumnFilter
 
     fun getFilterItem(columnId: Int): FilterItem
@@ -23,7 +23,7 @@ fun interface FilterPropertyObserver {
     fun onFilterPropertyChanged(property: ObservableValueProperty<*>)
 }
 
-class ColumnFilterProvider : IColumnFilterProvider, FilterPropertyObserver {
+class FilterProvider : IFilterProvider, FilterPropertyObserver {
 
     private val filterProperties = mutableMapOf<Int, FilterProperty>()
     private val columns = mutableMapOf<Int, Column>()

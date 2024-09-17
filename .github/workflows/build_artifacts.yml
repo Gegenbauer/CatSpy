@@ -51,7 +51,7 @@ jobs:
         id: getFilename
         run: |
           find "$(pwd)/app/build/compose/binaries/main-release/deb" -type f -name "*.deb" -exec basename {} \;
-          echo "::set-output name=debFileName::$filename"
+          echo "debFileName=$filename" >> "$GITHUB_OUTPUT"
 
       - name: Build UberJar
         run: ./gradlew packageReleaseUberJarForCurrentOS
@@ -60,7 +60,7 @@ jobs:
         id: getJarFilename
         run: |
           find "$(pwd)/app/build/compose/jars" -type f -name "*.jar" -exec basename {} \;
-          echo "::set-output name=jarFileName::$filename"
+          echo "jarFileName=$filename" >> "$GITHUB_OUTPUT"
 
       - name: Upload JAR Artifact
         uses: actions/upload-artifact@v4
@@ -107,7 +107,7 @@ jobs:
         id: getFilename
         run: |
           Get-ChildItem -Path "$(pwd)/app/build/compose/binaries/main-release/msi" -Filter "*.msi" | Select-Object -ExpandProperty BaseName
-          echo "::set-output name=msiFileName::$filename"
+          echo "msiFileName=$filename" >> "$GITHUB_OUTPUT"
 
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
@@ -140,7 +140,7 @@ jobs:
         id: getDmgFilename
         run: |
           find "$(pwd)/app/build/compose/binaries/main-release/dmg" -type f -name "*.dmg" -exec basename {} \;
-          echo "::set-output name=dmgFileName::$filename"
+          echo "dmgFileName=$filename" >> "$GITHUB_OUTPUT"
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4

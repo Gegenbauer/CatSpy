@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.utils.ui
 
 import me.gegenbauer.catspy.platform.userHome
+import me.gegenbauer.catspy.strings.STRINGS
 import java.awt.Component
 import java.awt.Dimension
 import java.io.File
@@ -53,9 +54,11 @@ fun showInfoDialog(
     parent: Component?,
     title: String,
     message: String,
-    actions: List<Pair<String, () -> Boolean>> = emptyList(),
     defaultChoice: Int = 0
 ): Boolean {
+    val actions = listOf(
+        STRINGS.ui.ok to { true },
+    )
     return showOptionDialog(
         parent,
         title,

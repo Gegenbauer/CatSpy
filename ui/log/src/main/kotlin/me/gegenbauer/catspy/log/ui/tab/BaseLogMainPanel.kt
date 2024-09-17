@@ -1,22 +1,20 @@
 package me.gegenbauer.catspy.log.ui.tab
 
-import com.github.weisj.darklaf.ui.util.DarkUIUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
+import me.gegenbauer.catspy.concurrency.ErrorEvent
 import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.databinding.bind.bindDual
 import me.gegenbauer.catspy.databinding.property.support.customProperty
 import me.gegenbauer.catspy.databinding.property.support.dividerProperty
-import me.gegenbauer.catspy.databinding.property.support.visibilityProperty
 import me.gegenbauer.catspy.file.fileName
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.java.ext.Bundle
-import me.gegenbauer.catspy.concurrency.ErrorEvent
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.Log
@@ -24,9 +22,11 @@ import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.log.datasource.LogViewModel
 import me.gegenbauer.catspy.log.datasource.TaskState
 import me.gegenbauer.catspy.log.filter.FilterProperty
+import me.gegenbauer.catspy.log.filter.FilterRecord
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.log.ui.LogConfiguration
+import me.gegenbauer.catspy.log.ui.customize.CenteredDualDirectionPanel
 import me.gegenbauer.catspy.log.ui.search.ISearchPanel
 import me.gegenbauer.catspy.log.ui.table.FilteredLogTableModel
 import me.gegenbauer.catspy.log.ui.table.FullLogPanel
@@ -41,19 +41,17 @@ import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.Key
 import me.gegenbauer.catspy.utils.ui.findFrameFromParent
 import me.gegenbauer.catspy.utils.ui.registerStroke
-import me.gegenbauer.catspy.utils.ui.setWidth
 import me.gegenbauer.catspy.view.button.IconBarButton
-import me.gegenbauer.catspy.view.combobox.readOnlyComboBox
 import me.gegenbauer.catspy.view.dialog.FileSaveHandler
 import me.gegenbauer.catspy.view.panel.StatusBar
 import me.gegenbauer.catspy.view.panel.StatusPanel
+import me.gegenbauer.catspy.view.panel.VerticalFlexibleWidthLayout
 import me.gegenbauer.catspy.view.state.ListState
 import me.gegenbauer.catspy.view.state.StatefulPanel
 import me.gegenbauer.catspy.view.tab.BaseTabPanel
 import raven.toast.Notifications
 import java.awt.BorderLayout
 import java.awt.Component
-import java.awt.FlowLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.nio.file.Path
@@ -68,26 +66,19 @@ import javax.swing.SwingUtilities
 abstract class BaseLogMainPanel : BaseTabPanel() {
 
     private val topPanel = JPanel()
-    private val toolBarPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 0, 0))
-    protected val logToolBar = JPanel(FlowLayout(FlowLayout.LEFT))
+    protected val logToolBar = CenteredDualDirectionPanel(4)
+    private val resetFilterBtn = IconBarButton(GIcons.Action.ResetFilter.get(), STRINGS.toolTip.resetFilters)
     protected val startBtn = IconBarButton(
         GIcons.Action.Start.get(),
         STRINGS.toolTip.startBtn,
         GIcons.Action.Start.disabled()
     )
-    protected val adbServerStatusWarningBtn = IconBarButton(
-        GIcons.Action.Warning.get(),
-        STRINGS.ui.adbServerNotStartedWarn
-    ).apply {
-        isVisible = false
-    }
     private val stopBtn = IconBarButton(
         GIcons.Action.Stop.get(),
         STRINGS.toolTip.stopBtn,
         GIcons.Action.Stop.disabled()
     )
-    protected val saveBtn = IconBarButton(GIcons.Action.Save.get(), STRINGS.toolTip.saveBtn)
-    protected val deviceCombo = readOnlyComboBox(STRINGS.toolTip.devicesCombo)
+    protected val saveBtn = IconBarButton(GIcons.Action.SaveFile.get(), STRINGS.toolTip.saveBtn)
     private val rotateLogPanelBtn = IconBarButton(GIcons.Action.Rotate.get(), STRINGS.toolTip.rotationBtn)
     private val clearViewsBtn = IconBarButton(GIcons.Action.Clear.get(), STRINGS.toolTip.clearBtn)
 
@@ -148,33 +139,28 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
 
         ServiceManager.getContextService(this, BookmarkManager::class.java)
 
+        logConf.setParent(this)
         splitLogPane.setParent(this)
     }
 
     protected open fun createUI() {
-        deviceCombo.setWidth(150)
+        getCustomToolbarComponents().forEach { logToolBar.addRight(it) }
+        logToolBar.addRight(clearViewsBtn)
+        logToolBar.addRight(rotateLogPanelBtn)
+        logToolBar.addRight(saveBtn)
+        logToolBar.addRight(stopBtn)
+        logToolBar.addRight(startBtn)
+        logToolBar.addRight(resetFilterBtn)
+        logToolBar.border = BorderFactory.createEmptyBorder(0, 0, 0, 20)
 
-        topPanel.layout = BorderLayout()
-        topPanel.add(logConf.filterPanel, BorderLayout.CENTER)
-
-        logToolBar.add(startBtn)
-        logToolBar.add(adbServerStatusWarningBtn)
-        logToolBar.add(stopBtn)
-        logToolBar.add(saveBtn)
-        logToolBar.add(deviceCombo)
-        logToolBar.add(rotateLogPanelBtn)
-        logToolBar.add(clearViewsBtn)
-        getCustomToolbarComponents().forEach { logToolBar.add(it) }
-        logToolBar.border = BorderFactory.createEmptyBorder(0, 0, 0, 50)
-
-        deviceCombo.isVisible = false
         saveBtn.isVisible = false
 
-        toolBarPanel.border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
-        toolBarPanel.add(logToolBar)
-
-        topPanel.add(toolBarPanel, BorderLayout.NORTH)
-        topPanel.add(logConf.getSearchPanel() as JPanel, BorderLayout.SOUTH)
+        topPanel.border = BorderFactory.createEmptyBorder(4, 6, 4, 0)
+        topPanel.layout = VerticalFlexibleWidthLayout(4)
+        topPanel.add(logToolBar)
+        topPanel.add(logConf.filterPanel)
+        topPanel.add(logConf.getFavoriteFilterPanel())
+        topPanel.add(logConf.getSearchPanel() as JPanel)
 
         layout = BorderLayout()
 
@@ -202,6 +188,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
 
         configureSearchPanel()
 
+        resetFilterBtn.addActionListener(actionHandler)
         startBtn.addActionListener(actionHandler)
         stopBtn.addActionListener(actionHandler)
         clearViewsBtn.addActionListener(actionHandler)
@@ -222,7 +209,6 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
             splitLogPane.filteredLogPanel.moveToFirstRow()
             splitLogPane.fullLogPanel.moveToFirstRow()
         }
-        registerStroke(Key.C_L, "Device Combo Request Focus") { deviceCombo.requestFocus() }
         registerStroke(Key.C_G, "Go To Target Log Line") {
             val goToDialog = GoToDialog(findFrameFromParent())
             goToDialog.setLocationRelativeTo(this)
@@ -437,26 +423,17 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
         }
     }
 
-    private fun bind(binding: LogMainBinding) {
+    protected open fun bind(binding: LogMainBinding) {
         binding.apply {
-            bindDeviceComponents(this)
-            visibilityProperty(adbServerStatusWarningBtn) bindDual adbServerStatusWarningVisibility
-
             customProperty(splitLogPane, "rotation", Rotation.ROTATION_LEFT_RIGHT) bindDual rotation
 
             dividerProperty(splitLogPane) bindDual splitPanelDividerLocation
         }
     }
 
-    protected open fun bindDeviceComponents(mainBinding: LogMainBinding) {
-        mainBinding.apply {
-            bindNormalCombo(deviceCombo, connectedDevices, currentDevice)
-        }
-    }
-
     private fun updateTitleBar(statusMethod: String) {
-        val frame = DarkUIUtil.getParentOfType(JFrame::class.java, this)
-        frame?.title = when (statusMethod.trim()) {
+        val frame = findFrameFromParent<JFrame>()
+        frame.title = when (statusMethod.trim()) {
             STRINGS.ui.open -> {
                 val path: Path = Paths.get(logStatus.path)
                 path.fileName.toString()
@@ -476,6 +453,10 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     private inner class ActionHandler : ActionListener {
         override fun actionPerformed(event: ActionEvent) {
             when (event.source) {
+                resetFilterBtn -> {
+                    logConf.applyFilterRecord(FilterRecord.EMPTY)
+                }
+
                 startBtn -> {
                     taskState.onStartClicked()
                 }
@@ -614,7 +595,6 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
             ui.startBtn.toolTipText = STRINGS.toolTip.pauseBtn
             ui.stopBtn.isEnabled = true
             ui.stopBtn.icon = GIcons.Action.Stop.get()
-            ui.deviceCombo.isEnabled = false
         }
 
         override fun onStartClicked() {
@@ -631,7 +611,6 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
             ui.startBtn.toolTipText = STRINGS.toolTip.startBtn
             ui.logMainBinding.pauseAll.updateValue(false)
             ui.stopBtn.isEnabled = false
-            ui.deviceCombo.isEnabled = true
         }
 
         override fun onStartClicked() {
@@ -640,14 +619,13 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
         }
     }
 
-    private class TaskPaused(ui: BaseLogMainPanel) : TaskUIState(ui) {
+    protected class TaskPaused(ui: BaseLogMainPanel) : TaskUIState(ui) {
         override fun updateUI() {
             ui ?: return
             ui.startBtn.icon = GIcons.Action.Start.get()
             ui.startBtn.toolTipText = STRINGS.toolTip.startBtn
             ui.stopBtn.isVisible = true
             ui.stopBtn.icon = GIcons.Action.Stop.get()
-            ui.deviceCombo.isEnabled = false
         }
 
         override fun onStartClicked() {

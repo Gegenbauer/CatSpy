@@ -2,37 +2,51 @@ package me.gegenbauer.catspy.log.ui
 
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.log.ui.filter.FilterPanelProvider
 import me.gegenbauer.catspy.log.filter.FilterProperty
+import me.gegenbauer.catspy.log.filter.FilterRecord
 import me.gegenbauer.catspy.log.filter.generateFilterProperties
+import me.gegenbauer.catspy.log.filter.toFilterRecord
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.log.metadata.getFilterUIConfs
-import me.gegenbauer.catspy.log.ui.filter.ColumnFilterProvider
-import me.gegenbauer.catspy.log.ui.filter.IColumnFilterProvider
+import me.gegenbauer.catspy.log.ui.filter.FavoriteFilterPanel
 import me.gegenbauer.catspy.log.ui.filter.FilterPanel
 import me.gegenbauer.catspy.log.ui.filter.FilterPropertyObserver
+import me.gegenbauer.catspy.log.ui.filter.FilterProvider
+import me.gegenbauer.catspy.log.ui.filter.IFavoriteFilterPanel
+import me.gegenbauer.catspy.log.ui.filter.IFilterPanel
+import me.gegenbauer.catspy.log.ui.filter.IFilterProvider
 import me.gegenbauer.catspy.strings.STRINGS
 
-interface IColumnManager: IColumnFilterProvider, FilterPanelProvider {
+interface IFilterManager: IFilterProvider {
     fun setLogMetadata(logMetaData: LogMetadata)
 
     fun getMessageFilterProperty(): FilterProperty
 
     fun getFilterProperty(column: Column): FilterProperty
+
+    fun applyFilterRecord(filterRecord: FilterRecord)
 }
 
-class ColumnManager(
-    private val filterProvider: ColumnFilterProvider = ColumnFilterProvider(),
+class FilterManager(
+    val filterPanel: FilterPanel = FilterPanel(),
+    private val filterProvider: FilterProvider = FilterProvider(),
+    private val favoriteFilterPanel: FavoriteFilterPanel = FavoriteFilterPanel(),
     override val contexts: Contexts = Contexts.default
-) : IColumnFilterProvider by filterProvider, FilterPanelProvider, IColumnManager, Context {
-
-    override val filterPanel = FilterPanel()
+) : IFilterProvider by filterProvider,
+    IFilterPanel by filterPanel,
+    IFavoriteFilterPanel by favoriteFilterPanel,
+    IFilterManager, Context {
 
     private val filterProperties = mutableMapOf<Int, FilterProperty>()
     private val idToColumns = mutableMapOf<Int, Column>()
     private val indexToColumn = mutableMapOf<Int, Column>()
     private val filterPropertyObservers = mutableListOf<FilterPropertyObserver>()
+
+    init {
+        favoriteFilterPanel.setCurrentFilterRecordProvider(::buildFilterRecord)
+        favoriteFilterPanel.setOnFilterRecordSelectedListener(::applyFilterRecord)
+    }
 
     override fun setLogMetadata(logMetaData: LogMetadata) {
         val filterInfos = logMetaData.getFilterUIConfs()
@@ -44,10 +58,16 @@ class ColumnManager(
         val filterProperties = logMetaData.generateFilterProperties()
         setFilterProperties(filterProperties)
 
-        filterPanel.setFilters(filterInfos, filterProperties)
+        filterPanel.configure(filterInfos, filterProperties)
         filterProvider.setFilterProperties(logMetaData.columns, filterProperties)
 
         reAddExistingObservers(filterProperties)
+    }
+
+    override fun configureContext(context: Context) {
+        super.configureContext(context)
+        filterPanel.setParent(context)
+        favoriteFilterPanel.setParent(context)
     }
 
     private fun setColumns(columns: List<Column>) {
@@ -88,5 +108,13 @@ class ColumnManager(
 
     override fun getFilterProperty(column: Column): FilterProperty {
         return filterProperties[column.id]!!
+    }
+
+    override fun applyFilterRecord(filterRecord: FilterRecord) {
+        filterPanel.applyFilterRecord(filterRecord)
+    }
+
+    private fun buildFilterRecord(name: String): FilterRecord {
+        return filterProperties.values.toList().toFilterRecord(name)
     }
 }
