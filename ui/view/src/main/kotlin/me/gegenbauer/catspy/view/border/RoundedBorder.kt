@@ -24,7 +24,7 @@ class RoundedBorder(radius: Int = 10, color: Color) : Border {
         g2.fillRoundRect(x, y, width - 1, height - 1, radius, radius)
         strokeColor?.let {
             g2.color = it
-            g2.stroke = BasicStroke(4f)
+            g2.stroke = BasicStroke(2f)
         }
         g2.drawRoundRect(x, y, width - 2, height - 2, radius, radius)
     }

@@ -5,10 +5,11 @@ import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.log.filter.FilterRecord
 import me.gegenbauer.catspy.utils.persistence.Preferences
 import me.gegenbauer.catspy.utils.persistence.UserPreferences
+import me.gegenbauer.catspy.utils.ui.adjustScrollPaneHeight
 import java.awt.BorderLayout
-import java.awt.Dimension
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 
@@ -24,7 +25,7 @@ class FavoriteFilterPanel(override val contexts: Contexts = Contexts.default) : 
     override val key: String = KEY_FILTER_RECORDS
 
     private val filterRecordChipsPanel = FilterRecordChipsPanel()
-    private val chipsScrollPane = JScrollPane(filterRecordChipsPanel)
+    private val chipsScrollPane = NonBorderScrollPane(filterRecordChipsPanel)
     private val filterRecordActionsPanel = FilterRecordActionsPanel()
     private var currentFilterRecordProvider: FilterRecordProvider? = null
     private var onFilterRecordSelectedListener: OnFilterRecordSelectedListener? = null
@@ -44,7 +45,7 @@ class FavoriteFilterPanel(override val contexts: Contexts = Contexts.default) : 
         // 添加 ComponentListener 以调整 JScrollPane 的高度
         chipsScrollPane.viewport.addComponentListener(object : ComponentAdapter() {
             override fun componentResized(e: ComponentEvent) {
-                adjustScrollPaneHeight()
+                adjustScrollPaneHeight(chipsScrollPane)
             }
         })
     }
@@ -66,28 +67,15 @@ class FavoriteFilterPanel(override val contexts: Contexts = Contexts.default) : 
         val filterRecord = currentFilterRecordProvider?.getFilterRecord(filterName)
         if (filterRecord != null) {
             val records = Preferences.get(KEY_FILTER_RECORDS, emptyList<FilterRecord>())
-            val existingRecord = records.find { it.equalsIgnoreName(filterRecord) }
-            if (existingRecord != null) {
-                filterRecordChipsPanel.removeRecord(existingRecord)
+            val equivalentRecord = records.find { it.equalsIgnoreName(filterRecord) }
+            if (equivalentRecord != null) {
+                filterRecordChipsPanel.removeRecord(equivalentRecord)
+            }
+            val sameNameRecord = records.find { it.name == filterRecord.name }
+            if (sameNameRecord != null) {
+                filterRecordChipsPanel.removeRecord(sameNameRecord)
             }
             filterRecordChipsPanel.addRecord(filterRecord)
-        }
-    }
-
-    private fun adjustScrollPaneHeight() {
-        val viewport = chipsScrollPane.viewport
-        val view = viewport.view
-        val preferredHeight = view.preferredSize.height
-        val viewportHeight = viewport.height
-        val scrollBarHeight = if (chipsScrollPane.horizontalScrollBar.isVisible) {
-            chipsScrollPane.horizontalScrollBar.preferredSize.height
-        } else {
-            0
-        }
-        val newHeight = preferredHeight + scrollBarHeight
-        if (newHeight != viewportHeight) {
-            chipsScrollPane.preferredSize = Dimension(chipsScrollPane.width, newHeight)
-            revalidate()
         }
     }
 
@@ -104,14 +92,14 @@ class FavoriteFilterPanel(override val contexts: Contexts = Contexts.default) : 
         val records = Preferences.get(KEY_FILTER_RECORDS, emptyList<FilterRecord>()).toMutableList()
         records.add(0, filterRecord)
         Preferences.put(KEY_FILTER_RECORDS, records)
-        adjustScrollPaneHeight()
+        adjustScrollPaneHeight(chipsScrollPane)
     }
 
     override fun onFilterRecordRemoved(filterRecord: FilterRecord) {
         val records = Preferences.get(KEY_FILTER_RECORDS, emptyList<FilterRecord>()).toMutableList()
         records.removeIf { it.name == filterRecord.name }
         Preferences.put(KEY_FILTER_RECORDS, records)
-        adjustScrollPaneHeight()
+        adjustScrollPaneHeight(chipsScrollPane)
     }
 
     override fun onFilterRecordSelected(filterRecord: FilterRecord) {
@@ -120,7 +108,14 @@ class FavoriteFilterPanel(override val contexts: Contexts = Contexts.default) : 
 
     override fun onPreferencesChanged() {
         loadFilterRecords()
-        adjustScrollPaneHeight()
+        adjustScrollPaneHeight(chipsScrollPane)
+    }
+
+    private class NonBorderScrollPane(viewPort: JComponent) : JScrollPane(viewPort) {
+        override fun updateUI() {
+            super.updateUI()
+            border = null
+        }
     }
 
     companion object {

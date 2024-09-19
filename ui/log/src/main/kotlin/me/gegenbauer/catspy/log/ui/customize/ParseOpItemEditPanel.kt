@@ -7,9 +7,11 @@ import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.OnScrollToEndListener
 import me.gegenbauer.catspy.utils.ui.ScrollToEndListenerSupport
 import me.gegenbauer.catspy.utils.ui.addOnScrollToEndListener
+import me.gegenbauer.catspy.utils.ui.adjustScrollPaneHeight
 import me.gegenbauer.catspy.view.panel.ScrollConstrainedScrollablePanel
 import me.gegenbauer.catspy.view.panel.VerticalFlexibleWidthLayout
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.ItemEvent
@@ -408,7 +410,11 @@ class ParseOpItemEditPanel(
                 )
 
                 is MergeNearbyPartsOp -> MergeNearbyPartsOpParamsEditor(parseOp.from, parseOp.to, maxPartCountAllowed)
-                is MergeUntilCharOp -> MergeUntilCharOpParamsEditor(parseOp.start, maxPartCountAllowed, parseOp.targetChar)
+                is MergeUntilCharOp -> MergeUntilCharOpParamsEditor(
+                    parseOp.start,
+                    maxPartCountAllowed,
+                    parseOp.targetChar
+                )
                 is TrimWithCharOp -> TrimWithCharOpParamsEditor(
                     parseOp.partIndex,
                     maxPartCountAllowed,
@@ -459,23 +465,11 @@ class ParseOpItemEditPanel(
             layout = VerticalFlexibleWidthLayout()
             add(scrollPane)
 
-            container.addComponentListener(object : ComponentAdapter() {
+            scrollPane.viewport.addComponentListener(object : ComponentAdapter() {
                 override fun componentResized(e: ComponentEvent) {
-                    ensureScrollBarBottomSpace()
+                    adjustScrollPaneHeight(scrollPane)
                 }
             })
-        }
-
-        private fun ensureScrollBarBottomSpace() {
-            val viewPrefSize = scrollPane.preferredSize
-            val viewportSize = container
-            val isHorizontalScrollBarVisible = viewPrefSize.width > viewportSize.width
-
-            if (isHorizontalScrollBarVisible) {
-                container.border = BorderFactory.createEmptyBorder(0, 0, 10, 0)
-            } else {
-                container.border = BorderFactory.createEmptyBorder()
-            }
         }
 
         fun setResults(parts: List<String>) {
@@ -486,8 +480,8 @@ class ParseOpItemEditPanel(
             }
             container.revalidate()
             container.repaint()
-            ensureScrollBarBottomSpace()
             scrollPane.horizontalScrollBar.value = 0
+            adjustScrollPaneHeight(scrollPane)
         }
 
         override fun addOnScrollToEndListener(listener: OnScrollToEndListener) {

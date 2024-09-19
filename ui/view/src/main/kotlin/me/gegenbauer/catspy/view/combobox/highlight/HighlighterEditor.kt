@@ -19,7 +19,7 @@ import javax.swing.text.JTextComponent
 class HighlighterEditor : BasicComboBoxEditor.UIResource(), Highlightable, UIResource {
 
     override val painterInclude: HighlightPainter
-        get() = DefaultHighlightPainter(UIManager.getColor("ComboBox.editableBackground"))
+        get() = DefaultHighlightPainter(UIManager.getColor("ComboBox.background"))
     override val painterExclude: HighlightPainter
         get() = DefaultHighlightPainter(UIManager.getColor("FilterComboBox.excludeFilterBackground"))
     override val painterSeparator: HighlightPainter

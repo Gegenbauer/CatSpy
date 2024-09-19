@@ -1,5 +1,8 @@
 package me.gegenbauer.catspy.utils.ui
 
+import java.awt.Dimension
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.MouseWheelEvent
 import javax.swing.JScrollBar
 import javax.swing.JScrollPane
@@ -58,5 +61,22 @@ private fun isScrollBarAtEnd(scrollBar: JScrollBar, downOrUp: Boolean): Boolean 
         scrollBar.value + scrollBar.visibleAmount >= scrollBar.maximum
     } else {
         scrollBar.value == 0
+    }
+}
+
+fun adjustScrollPaneHeight(scrollPane: JScrollPane) {
+    val viewport = scrollPane.viewport
+    val view = viewport.view
+    val preferredHeight = view.preferredSize.height
+    val viewportHeight = viewport.height
+    val scrollBarHeight = if (scrollPane.horizontalScrollBar.isVisible) {
+        scrollPane.horizontalScrollBar.preferredSize.height
+    } else {
+        0
+    }
+    val newHeight = preferredHeight + scrollBarHeight
+    if (newHeight != viewportHeight) {
+        scrollPane.preferredSize = Dimension(scrollPane.width, newHeight)
+        scrollPane.parent?.revalidate()
     }
 }

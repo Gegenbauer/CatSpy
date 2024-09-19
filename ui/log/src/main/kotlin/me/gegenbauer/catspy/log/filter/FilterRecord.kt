@@ -17,9 +17,7 @@ data class FilterRecord(
     }
 
     override fun toString(): String {
-        return filters.map {
-            if (it.enabled && it.content.isNotEmpty()) "${it.name}=${it.content}" else EMPTY_STRING
-        }.filter { it.isNotEmpty() }.joinToString(", ")
+        return filters.map { it.toString() }.filter { it.isNotEmpty() }.joinToString(separator = ", ")
     }
 
     override fun equals(other: Any?): Boolean {
@@ -46,7 +44,9 @@ data class FilterRecord(
 data class FilterPart(
     val name: String,
     val enabled: Boolean,
-    val content: String
+    val content: String,
+    val isLevel: Boolean = false,
+    val isMatchCase: Boolean = false
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -54,6 +54,8 @@ data class FilterPart(
         if (other !is FilterPart) return false
 
         if (name != other.name) return false
+        if (isLevel != other.isLevel) return false
+        if (isMatchCase != other.isMatchCase) return false
         if (enabled != other.enabled) return false
         if (enabled && content != other.content) return false
 
@@ -61,7 +63,15 @@ data class FilterPart(
     }
 
     override fun hashCode(): Int {
-        return Objects.hash(name, enabled, content)
+        return Objects.hash(name, enabled, content, isLevel, isMatchCase)
+    }
+
+    override fun toString(): String {
+        return if (isMatchCase) {
+            "matchCase=$enabled"
+        } else {
+            "$name=$content".takeIf { enabled && content.isNotEmpty() } ?: EMPTY_STRING
+        }
     }
 }
 
@@ -70,20 +80,48 @@ fun List<FilterProperty>.applyFilterRecord(filterRecord: FilterRecord) {
         val filter = filterRecord.filters.find { it.name == property.name }
         if (filter != null) {
             property.enabled.updateValue(filter.enabled)
-            property.content.updateValue(filter.content)
+            val content = if (property.isLevel && filter.content.isEmpty()) {
+                property.contentList.getValueNonNull().firstOrNull() ?: EMPTY_STRING
+            } else {
+                filter.content
+            }
+            property.content.updateValue(content)
+            property.selectedItem.updateValue(content)
         } else {
-            property.enabled.updateValue(false)
-            property.content.updateValue(EMPTY_STRING)
+            property.enabled.updateValue(property.columnId != FilterProperty.FILTER_ID_MATCH_CASE)
+            val content = if (property.isLevel) {
+                property.contentList.getValueNonNull().firstOrNull() ?: EMPTY_STRING
+            } else {
+                EMPTY_STRING
+            }
+            property.content.updateValue(content)
+            property.selectedItem.updateValue(content)
         }
     }
 }
 
 fun List<FilterProperty>.toFilterRecord(name: String = EMPTY_STRING): FilterRecord {
-    return FilterRecord(name, map { property ->
-        FilterPart(
-            property.name,
-            property.enabled.getValueNonNull(),
-            property.content.getValueNonNull().takeIf { it.isNotEmpty() } ?: EMPTY_STRING
-        )
-    })
+    return FilterRecord(
+        name,
+        filter {
+            it.enabled.getValueNonNull()
+        }.map { property ->
+            val content = if (property.isLevel) {
+                property.content.getValueNonNull().takeIf {
+                    it.isNotEmpty()
+                            && it != property.contentList.getValueNonNull().firstOrNull()
+                            && property.enabled.getValueNonNull()
+                } ?: EMPTY_STRING
+            } else {
+                property.content.getValueNonNull().takeIf { it.isNotEmpty() } ?: EMPTY_STRING
+            }
+            FilterPart(
+                property.name,
+                property.enabled.getValueNonNull(),
+                content,
+                property.isLevel,
+                property.columnId == FilterProperty.FILTER_ID_MATCH_CASE
+            )
+        }
+    )
 }

@@ -98,7 +98,7 @@ abstract class LogPanel(
     }
 
     class LogPanelBinding {
-        val scrollToEnd = ObservableValueProperty(false)
+        val scrollToEnd = ObservableValueProperty(true)
         val fullMode = ObservableValueProperty(false)
         val bookmarkMode = ObservableValueProperty(false)
     }

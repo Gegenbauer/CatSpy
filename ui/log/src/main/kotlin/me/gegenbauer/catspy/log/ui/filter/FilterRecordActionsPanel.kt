@@ -62,7 +62,7 @@ class FilterRecordActionsPanel : JPanel(), OnAddRequestListener {
                 STRINGS.ui.cancel to { false }
             )
             val res = showWarningDialog(
-                findFrameFromParent(), "",
+                findFrameFromParent(), EMPTY_STRING,
                 STRINGS.ui.clearFilterRecordsWarningContent, actions, 1
             )
             if (res) {
@@ -87,7 +87,7 @@ class FilterRecordActionsPanel : JPanel(), OnAddRequestListener {
         val parent = findFrameFromParent<JFrame>()
         val currentFilterRecord = currentFilterRecordProvider?.getFilterRecord(EMPTY_STRING) ?: return EMPTY_STRING
         if (currentFilterRecord.isEmpty()) {
-            showInfoDialog(parent, "", STRINGS.ui.saveEmptyFilterWarning)
+            showInfoDialog(parent, EMPTY_STRING, STRINGS.ui.saveEmptyFilterWarning)
             return EMPTY_STRING
         }
         val records = Preferences.get<List<FilterRecord>>(KEY_FILTER_RECORDS, emptyList())
@@ -97,19 +97,19 @@ class FilterRecordActionsPanel : JPanel(), OnAddRequestListener {
                 STRINGS.ui.ok to { true },
                 STRINGS.ui.cancel to { false }
             )
-            if (!showWarningDialog(parent, "", STRINGS.ui.saveDuplicationFilterRecordWarning, actions)) {
+            if (!showWarningDialog(parent, EMPTY_STRING, STRINGS.ui.saveDuplicationFilterRecordWarning, actions)) {
                 return EMPTY_STRING
             }
         }
-        val dialog = NameEditDialog(records, parent, equivalentRecord?.name ?: "")
+        val dialog = NameEditDialog(records, parent, equivalentRecord?.name ?: EMPTY_STRING)
         dialog.isVisible = true
         return dialog.getNewName()
     }
 
     private class NameEditDialog(
         private val records: List<FilterRecord>,
-        parent: Window,
-        oldName: String = "",
+        private val parent: Window,
+        oldName: String = EMPTY_STRING,
     ) : JDialog(parent) {
         private val nameTextField = ParamEditor(STRINGS.toolTip.filterRecordName)
         private val okButton = GButton(STRINGS.ui.ok)
@@ -124,9 +124,6 @@ class FilterRecordActionsPanel : JPanel(), OnAddRequestListener {
             if (filterName.length > 20) {
                 val message = STRINGS.toolTip.nameLengthExceedLimitWarning.get(MAX_NAME_LENGTH.toString())
                 return@ParamVerifier ParamVerifier.Result.Invalid(message)
-            }
-            if (records.any { it.name == filterName }) {
-                return@ParamVerifier ParamVerifier.Result.Invalid(STRINGS.toolTip.nameUsedWarning)
             }
             return@ParamVerifier ParamVerifier.Result.Valid
         }
@@ -153,6 +150,10 @@ class FilterRecordActionsPanel : JPanel(), OnAddRequestListener {
                 if (!nameTextField.isEditValid()) {
                     return@addActionListener
                 }
+                val isNameExist = records.any { it.name == nameTextField.text }
+                if (isNameExist && !showNameExistWarning()) {
+                    nameTextField.text = EMPTY_STRING
+                }
                 isVisible = false
             }
 
@@ -172,6 +173,19 @@ class FilterRecordActionsPanel : JPanel(), OnAddRequestListener {
 
         fun getNewName(): String {
             return nameTextField.text.takeIf { nameTextField.isEditValid() } ?: EMPTY_STRING
+        }
+
+        private fun showNameExistWarning(): Boolean {
+            val actions = listOf(
+                STRINGS.ui.ok to { true },
+                STRINGS.ui.cancel to { false }
+            )
+            return showWarningDialog(
+                parent,
+                EMPTY_STRING,
+                STRINGS.ui.filterRecordNameAlreadyExistWarning,
+                actions
+            )
         }
 
         companion object {

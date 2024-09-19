@@ -170,7 +170,6 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
 
         companion object {
             private const val PREFERENCE_NAME = "columnMaxLength"
-            // key start with integer is not allowed in xml
             private const val KEY_PREFIX = "len"
         }
     }

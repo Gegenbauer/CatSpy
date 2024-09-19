@@ -21,6 +21,7 @@ class FilterProperty(
     val columnId: Int = -1,
     val keyPrefix: String = EMPTY_STRING,
     var hasHistory: Boolean = true,
+    val isLevel: Boolean = false,
     initialEnabled: Boolean = true
 ) {
     val enabled: ObservableValueProperty<Boolean> = ObservableValueProperty(initialEnabled)
@@ -105,10 +106,10 @@ class FilterProperty(
 fun LogMetadata.generateFilterProperties(): List<FilterProperty> {
     val properties = columns
         .filter { it.supportFilter && it.uiConf.column.isHidden.not() }
-        .map { FilterProperty(it.uiConf.filter.name, it.id) }
+        .map { FilterProperty(it.uiConf.filter.name, it.id, isLevel = it is Column.LevelColumn) }
         .toMutableList()
 
-    properties.add(FilterProperty(GlobalStrings.MATCH_CASE, FILTER_ID_MATCH_CASE))
+    properties.add(FilterProperty(GlobalStrings.MATCH_CASE, FILTER_ID_MATCH_CASE, initialEnabled = false))
     return properties
 }
 

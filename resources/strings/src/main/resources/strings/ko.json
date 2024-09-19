@@ -209,6 +209,7 @@
     "filterInfoTableHint": "이 테이블은 모든 필터 정보를 정의합니다\n필터의 수는 \\\"열 정보\\\" 테이블에 표시되고 필터링을 지원하는 열의 수와 일치하며 일대일로 대응합니다\n필터의 행 번호가 작을수록 위치가 왼쪽에 가깝고, 필터의 행 정렬 번호가 클수록 위치가 아래에 있습니다",
     "filterLayoutWidthType": "필터 레이아웃 너비 유형",
     "filterName": "필터 이름",
+    "filterRecordNameAlreadyExistWarning": "동일한 이름의 필터 레코드가 이미 존재합니다. 덮어쓰시겠습니까?",
     "filterRowOrder": "행 순서",
     "filterWidth": "너비",
     "filteredLog": "필터링된 로그",

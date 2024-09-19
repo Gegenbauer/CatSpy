@@ -212,6 +212,7 @@
     "filterInfoTableHint": "This table defines all filter information\nThe number of filters is consistent with the number of columns that are displayed and support filtering in the \\\"Column Information\\\" table, and they correspond one-to-one\nThe smaller the row number of the filter, the more to the left its position; the larger the row sorting number, the lower its position",
     "filterLayoutWidthType": "Filter Layout Width Type",
     "filterName": "Filter Name",
+    "filterRecordNameAlreadyExistWarning": "Filter Record with the same name already exists. Do you want to overwrite it?",
     "filterRowOrder": "Row Order",
     "filterWidth": "Width",
     "filteredLog": "Filtered Log",

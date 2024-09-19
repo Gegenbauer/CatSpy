@@ -47,13 +47,15 @@ class DeviceLogProducer(
 
     override fun start(): Flow<Result<LogItem>> {
         val logcatOutput = commandExecutor.execute()
-        return logcatOutput.map { result ->
+        return logcatOutput.onStart {
+            processFetcher.init()
+        }.map { result ->
             result.map { line ->
                 suspender.checkSuspend()
                 writeToFile(line)
                 val num = logNum.getAndIncrement()
                 val parts = logParser.parse(line).toMutableList()
-                val packageName = processFetcher.queryPackageName(parts[PART_INDEX_PID])
+                val packageName = processFetcher.queryPackageName(parts[PART_INDEX_PID], parts[PART_INDEX_TIME])
                 parts.add(PART_INDEX_PACKAGE, packageName)
                 LogItem(num, parts)
             }
@@ -63,6 +65,11 @@ class DeviceLogProducer(
             moveToState(LogProducer.State.COMPLETE)
             flushTempFile()
         }
+    }
+
+    override fun pause() {
+        super.pause()
+        processFetcher.invalidateTimeOnDevice()
     }
 
     private fun writeToFile(line: String) {
@@ -119,6 +126,7 @@ class DeviceLogProducer(
     companion object {
         private const val TAG = "DeviceLogProducer"
 
+        private const val PART_INDEX_TIME = 0
         private const val PART_INDEX_PID = 1
         private const val PART_INDEX_PACKAGE = 2
         private const val LOG_FILE_SUFFIX = "txt"

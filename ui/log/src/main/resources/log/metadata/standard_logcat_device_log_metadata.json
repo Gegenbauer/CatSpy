@@ -154,7 +154,7 @@
         },
         "filter": {
           "name": "Tag",
-          "layoutWidth": 200.0,
+          "layoutWidth": 300.0,
           "position": {
             "columnIndex": 1,
             "rowIndex": 0

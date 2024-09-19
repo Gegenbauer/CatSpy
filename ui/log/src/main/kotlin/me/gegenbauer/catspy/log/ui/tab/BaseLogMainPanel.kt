@@ -2,6 +2,7 @@ package me.gegenbauer.catspy.log.ui.tab
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ErrorEvent
@@ -545,6 +546,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     override fun destroy() {
         super.destroy()
         stopAll()
+        scope.cancel()
         logViewModel.destroy()
         clearAllLogs()
         splitLogPane.destroy()

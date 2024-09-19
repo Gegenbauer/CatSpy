@@ -208,6 +208,7 @@
     "filterInfoTableHint": "该表格定义了所有过滤器信息\n过滤器数目与表格“列信息”中，显示而且支持过滤的列数目一致，且一一对应\n过滤器的行号越小，它的位置越靠左，过滤器的行排序号越大，它的位置越靠下",
     "filterLayoutWidthType": "过滤器布局宽度类型",
     "filterName": "过滤器名称",
+    "filterRecordNameAlreadyExistWarning": "相同名称的过滤器记录已存在，是否覆盖？",
     "filterRowOrder": "行次序",
     "filterWidth": "宽度",
     "filteredLog": "过滤后日志",
