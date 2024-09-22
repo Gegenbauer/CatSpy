@@ -23,6 +23,7 @@ import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.isEmpty
+import me.gegenbauer.catspy.view.filter.matches
 import me.gegenbauer.catspy.view.table.PageMetadata
 import me.gegenbauer.catspy.view.table.Pageable
 import me.gegenbauer.catspy.view.table.Searchable
@@ -236,11 +237,11 @@ open class LogTableModel(
         return withContext(Dispatchers.CPU) {
             val idxFound = if (isNext) {
                 (targetRow until rowCount).firstOrNull {
-                    searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).toString()).find()
+                    searchFilterItem.matches(getItemInCurrentPage(it).toString())
                 } ?: -1
             } else {
                 (targetRow downTo 0).firstOrNull {
-                    searchFilterItem.positiveFilter.matcher(getItemInCurrentPage(it).toString()).find()
+                    searchFilterItem.matches(getItemInCurrentPage(it).toString())
                 } ?: -1
             }
 

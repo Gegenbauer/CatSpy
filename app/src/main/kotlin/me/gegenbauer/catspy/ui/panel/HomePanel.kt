@@ -7,7 +7,8 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.java.ext.Bundle
-import me.gegenbauer.catspy.log.ui.tab.AndroidDeviceGuidePanel
+import me.gegenbauer.catspy.log.ui.tab.DeviceLogGuidancePanel
+import me.gegenbauer.catspy.log.ui.tab.DeviceLogMainPanel
 import me.gegenbauer.catspy.log.ui.tab.FileLogGuidancePanel
 import me.gegenbauer.catspy.log.ui.tab.FileLogMainPanel
 import me.gegenbauer.catspy.ui.MainFrame
@@ -24,7 +25,7 @@ class HomePanel : BaseTabPanel() {
     override val tag: String = "HomePanel"
 
     private val fileLogGuidancePanel = FileLogGuidancePanel(::openFile)
-    private val androidDeviceGuidePanel = AndroidDeviceGuidePanel()
+    private val androidDeviceGuidePanel = DeviceLogGuidancePanel(::openDeviceLogPanel)
 
     private val tabManager: TabManager
         get() = contexts.getContext(MainFrame::class.java)!!
@@ -37,7 +38,7 @@ class HomePanel : BaseTabPanel() {
             doubleArrayOf(0.4, PREFERRED, PREFERRED, 0.2)
         )
         add(fileLogGuidancePanel, "1,1")
-        //add(androidDeviceGuidePanel, "1,2")
+        add(androidDeviceGuidePanel, "1,2")
     }
 
     override fun onTabSelected() {
@@ -66,6 +67,10 @@ class HomePanel : BaseTabPanel() {
     private fun openFile(file: File) {
         val fileLogMainPanel = tabManager.addTab(FileLogMainPanel::class.java)
         fileLogMainPanel.pendingOpenFiles(listOf(file))
+    }
+
+    private fun openDeviceLogPanel() {
+        tabManager.addTab(DeviceLogMainPanel::class.java)
     }
 
     override fun destroy() {

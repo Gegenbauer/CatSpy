@@ -4,6 +4,7 @@ import me.gegenbauer.catspy.cache.PatternProvider
 import me.gegenbauer.catspy.cache.PatternProvider.Companion.toPatternKey
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.view.filter.FilterItem.Companion.isEmpty
 import java.util.*
 import java.util.regex.Pattern
 
@@ -138,4 +139,10 @@ private fun StringBuilder.appendPattern(pattern: String) {
         }
         this.append(pattern)
     }
+}
+
+fun FilterItem.matches(text: String): Boolean {
+    val positiveMatcher = this.positiveFilter.matcher(text)
+    val negativeMatcher = this.negativeFilter.matcher(text)
+    return positiveMatcher.find() && !negativeMatcher.find()
 }

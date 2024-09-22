@@ -61,12 +61,6 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
                 DeviceLogMainPanel::class.java,
                 STRINGS.toolTip.tabDeviceLog
             ),
-            FunctionTab(
-                STRINGS.ui.tabScript,
-                GIcons.Tab.Script.get(TAB_ICON_SIZE, TAB_ICON_SIZE),
-                ScriptTabPanel::class.java,
-                STRINGS.toolTip.tabScript
-            ),
         )
     }
 

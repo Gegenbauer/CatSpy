@@ -269,6 +269,7 @@
     "notFound": "未找到",
     "ok": "确定",
     "open": "打开",
+    "openAndroidDeviceLogPanel": "打开 Android 设备日志",
     "openFile": "打开文件",
     "openFileMessage": "文件",
     "openRecents": "打开最近的",

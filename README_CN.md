@@ -37,8 +37,11 @@
 ### 主页
 ![home_page.png](pic%2Fhome_page.png)
 
-### 日志页面
-![log_main_interface.png](pic%2Flog_main_interface.png)
+### 文件日志页面
+![file_log_main_interface.png](pic%2Ffile_log_main_interface.png)
+
+### 设备日志页面
+![device_log_main_interface.png](pic%2Fdevice_log_main_interface.png)
 
 ### 日志定制面板
 ![log_customization_dialog.png](pic%2Flog_customization_dialog.png)
@@ -59,9 +62,11 @@
 3. 关闭弹出的警告框
   
   ![macOS_open_warning.png](pic%2FmacOS_open_warning.png)
+
 4. 打开系统设置 -> 隐私与安全 -> 找到安全 -> 点击打开
   
   ![macOS_grant_open_permission.png](pic%2FmacOS_grant_open_permission.png)
+
 5. 再次打开应用
 
 #### Linux
@@ -76,6 +81,54 @@
 java -jar CatSpy-${version}.jar
 ```
 
+## 使用
+### 加载文件日志
+在主页点击“打开文件”，选择日志文件后会打开文件日志页并加载选择的日志文件。
+也可以通过直接将文件拖入首页或者文件日志页来进行加载。
+
+![operation_open_file](pic%2Foperation_open_file.png)
+### 文件日志切换解析器
+在文件日志页，右上角下拉框，可以切换解析器，默认为 DefaultRawLog，它将每行日志作为一个整体，过滤时也只能对整行内容进行匹配。
+如果查看标准 Android Logcat 日志，请切换到“StandardLogcatFileLog”，它将日志划分为 time，message，tag，pid，tid，log level，并且可以对每个部分单独进行过滤。
+你也可以前往 菜单->设置->日志定制 创建自己的日志解析器。
+
+![operation_choose_log_metadata](pic%2Foperation_choose_log_metadata.png)
+### 读取设备日志
+在首页点击“打开 Android 设备日志面板”，会打开设备日志页，默认会查找 adb 路径，如果没有找到 adb 路径，会提示设置 adb 路径。
+
+![warning_configure_adb_path](pic%2Fwarning_configure_adb_path.png)
+点击“设置”按钮，选择 adb 路径，点击“启动 Adb 服务”按钮，成功启动 Adb 服务后，点击保存，下次打开设备日志页，如果 adb 服务未启动则会自动启动。
+
+![operation_configure_adb_path](pic%2Foperation_configure_adb_path.png)
+成功启动 Adb 服务后，下拉框会展示已连接的设备，选择设备后，点击“启动”按钮，会读取设备 logcat 日志。
+
+![operation_device_list](pic%2Foperation_device_list.png)
+### 过滤器标签
+过滤器组内容不为空时，点击“存储”按钮，输入标签名，点击“确定”按钮，即可存储过滤器组。
+点击存储的标签，则可将其应用为当前过滤器组。
+
+![operation_save_filter](pic%2Foperation_save_filter.png)
+### 日志过滤
+过滤器有内容过滤器，级别过滤器，和匹配大小写过滤器。
+可启用过滤器和禁用过滤器，禁用的过滤器不生效。
+内容过滤器对相应的列进行过滤，支持正则匹配，单个过滤器支持多个条件，条件之间是或的关系，不同过滤器之间是与的关系。支持正向匹配和反向匹配。
+![operation_filter](pic%2Foperation_filter.png)
+
+过滤器的大小和位置可以调整，在 菜单->设置->日志定制->对应解析器->过滤器 中进行设置。
+
+![operation_configure_filter_ui](pic%2Foperation_configure_filter_ui.png)
+### 日志搜索
+按下 `Ctrl + F` 打开搜索面板，输入搜索内容，点击上一项和下一项，即可查找到对应的日志。
+日志搜索支持正则匹配，支持条件以或的形式叠加，支持正向匹配和反向匹配。
+
+![operation_search_log](pic%2Foperation_search_log.png)
+### 常用快捷键
+#### 日志搜索
+- `Ctrl + F`: 打开搜索面板，如果搜索面板已打开，则搜索编辑器获取焦点
+- `Esc`: 如果搜索面板已打开且获取焦点，则关闭搜索面板
+- `Enter`: 如果搜索面板已打开且获取焦点，则搜索下一个匹配项
+- `Shift + Enter`: 如果搜索面板已打开且获取焦点，则搜索上一个匹配项
+- `Ctrl + G`: 打开跳转到指定行号弹框，跳转到第一个行号大于等于输入行号的日志
 ## 构建和运行
 ### 环境
 - JDK17 及以上

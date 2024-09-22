@@ -273,6 +273,7 @@
     "notFound": "Not Found",
     "ok": "OK",
     "open": "Open",
+    "openAndroidDeviceLogPanel": "Open Android Device Log Panel",
     "openFile": "Open File",
     "openRecents": "Open Recents",
     "parserEditorTitle": "Parser",

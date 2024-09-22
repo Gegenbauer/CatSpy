@@ -37,8 +37,12 @@ English | [简体中文](README_CN.md)
 ### Home Page
 ![home_page.png](pic%2Fhome_page.png)
 
-### Log Main Interface
-![log_main_interface.png](pic%2Flog_main_interface.png)
+### File Log Page
+![file_log_main_interface.png](pic%2Ffile_log_main_interface.png)
+
+### Device Log Page
+![device_log_main_interface.png](pic%2Fdevice_log_main_interface.png)
+
 
 ### Log Customization Panel
 ![log_customization_dialog.png](pic%2Flog_customization_dialog.png)
@@ -59,9 +63,11 @@ On macOS, due to the application being unsigned, you may encounter an error indi
 3. Dismiss the warning box that appears.
    
    ![macOS_open_warning.png](pic%2FmacOS_open_warning.png)
+
 4. Navigate to System Preferences -> Privacy & Security -> Security and click "Open".
    
    ![macOS_grant_open_permission.png](pic%2FmacOS_grant_open_permission.png)
+
 5. Attempt to open the application again.
 
 #### Linux
@@ -76,6 +82,64 @@ However, please note that it's advisable not to install the application in the C
 ```bash
 java -jar CatSpy-${version}.jar
 ```
+## Usage
+### Load File Log
+On the homepage, click "Open File", select the log file, and it will open the file log page and load the selected log file.  
+You can also load files by directly dragging the file into the homepage or file log page.
+
+![operation_open_file](pic%2Foperation_open_file.png)
+
+### Switch Log Parser for File Logs
+On the file log page, you can switch parsers using the drop-down menu in the upper right corner. The default parser is `DefaultRawLog`, which treats each line of the log as a whole, and filtering can only be done on the entire line.  
+If you are viewing a standard Android Logcat log, switch to `StandardLogcatFileLog`, which divides the log into `time`, `message`, `tag`, `pid`, `tid`, and `log level`, allowing you to filter each part individually.  
+You can also go to `Menu -> Settings -> Log Customization` to create your own log parser.
+
+![operation_choose_log_metadata](pic%2Foperation_choose_log_metadata.png)
+
+### Read Device Logs
+On the homepage, click "Open Android Device Log Panel" to open the device log page. By default, it will search for the `adb` path. If the `adb` path is not found, a prompt will ask you to set it.
+
+![warning_configure_adb_path](pic%2Fwarning_configure_adb_path.png)
+
+Click the "Set" button, choose the `adb` path, and click the "Start Adb Server" button. After successfully starting the Adb service, click Save. The next time you open the device log page, if the Adb service is not running, it will start automatically.
+
+![operation_configure_adb_path](pic%2Foperation_configure_adb_path.png)
+
+After successfully starting the Adb service, the drop-down menu will display connected devices. Select a device and click the "Start" button to read the device's logcat log.
+
+![operation_device_list](pic%2Foperation_device_list.png)
+
+### Filter Tags
+When the filter group contains content, click the "Save" button, enter the tag name, and click the "Confirm" button to save the filter group.  
+Click the saved tag to apply it as the current filter group.
+
+![operation_save_filter](pic%2Foperation_save_filter.png)
+
+### Log Filtering
+There are content filters, level filters, and case sensitivity filters.  
+Filters can be enabled or disabled; disabled filters will not take effect.  
+Content filters apply to corresponding columns and support regex matching. A single filter supports multiple conditions, which are in an OR relationship. Different filters are in an AND relationship. Both positive and negative matching are supported.
+
+![operation_filter](pic%2Foperation_filter.png)
+
+The size and position of filters can be adjusted in `Menu -> Settings -> Log Customization -> Corresponding Parser -> Filter`.
+
+![operation_configure_filter_ui](pic%2Foperation_configure_filter_ui.png)
+
+### Log Search
+Press `Ctrl + F` to open the search panel, enter the search content, and click "Previous" or "Next" to locate the corresponding log.  
+Log search supports regex matching, condition stacking in OR form, and both positive and negative matching.
+
+![operation_search_log](pic%2Foperation_search_log.png)
+
+### Common Shortcuts
+#### Log Search
+- `Ctrl + F`: Open the search panel, or focus the search editor if already open
+- `Esc`: If the search panel is open and focused, close the search panel
+- `Enter`: If the search panel is open and focused, search for the next match
+- `Shift + Enter`: If the search panel is open and focused, search for the previous match
+- `Ctrl + G`: Open the "Go to Line" dialog and jump to the first log entry with a line number greater than or equal to the input
+
 
 ## Build and Run
 ### Environment

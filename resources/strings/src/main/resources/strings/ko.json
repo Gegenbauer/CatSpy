@@ -270,6 +270,7 @@
     "notFound": "찾을 수 없음",
     "ok": "확인",
     "open": "열기",
+    "openAndroidDeviceLogPanel": "안드로이드 디바이스 로그 패널 열기",
     "openFile": "파일 열기",
     "openRecents": "최근 항목 열기",
     "parserEditorTitle": "파서",

@@ -28,7 +28,11 @@ import java.awt.event.MouseEvent
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.JOptionPane
+import javax.swing.JPanel
+import javax.swing.JScrollPane
+import javax.swing.UIManager
 
 class FileLogGuidancePanel(
     private val onOpenFile: (File) -> Unit
