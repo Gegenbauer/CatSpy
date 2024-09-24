@@ -64,7 +64,7 @@ On macOS, due to the application being unsigned, you may encounter an error indi
    
    ![macOS_open_warning.png](pic%2FmacOS_open_warning.png)
 
-4. Navigate to System Preferences -> Privacy & Security -> Security and click "Open".
+4. Navigate to System Preferences -> Privacy & Security -> Security and click `Open`.
    
    ![macOS_grant_open_permission.png](pic%2FmacOS_grant_open_permission.png)
 
@@ -84,7 +84,7 @@ java -jar CatSpy-${version}.jar
 ```
 ## Usage
 ### Load File Log
-On the homepage, click "Open File", select the log file, and it will open the file log page and load the selected log file.  
+On the homepage, click `Open File`, select the log file, and it will open the file log page and load the selected log file.  
 You can also load files by directly dragging the file into the homepage or file log page.
 
 ![operation_open_file](pic%2Foperation_open_file.png)
@@ -97,20 +97,20 @@ You can also go to `Menu -> Settings -> Log Customization` to create your own lo
 ![operation_choose_log_metadata](pic%2Foperation_choose_log_metadata.png)
 
 ### Read Device Logs
-On the homepage, click "Open Android Device Log Panel" to open the device log page. By default, it will search for the `adb` path. If the `adb` path is not found, a prompt will ask you to set it.
+On the homepage, click `Open Android Device Log Panel` to open the device log page. By default, it will search for the `adb` path. If the `adb` path is not found, a prompt will ask you to set it.
 
 ![warning_configure_adb_path](pic%2Fwarning_configure_adb_path.png)
 
-Click the "Set" button, choose the `adb` path, and click the "Start Adb Server" button. After successfully starting the Adb service, click Save. The next time you open the device log page, if the Adb service is not running, it will start automatically.
+Click the `Set` button, choose the `adb` path, and click the `Start ADB Server` button. After successfully starting the Adb service, click Save. The next time you open the device log page, if the Adb service is not running, it will start automatically.
 
 ![operation_configure_adb_path](pic%2Foperation_configure_adb_path.png)
 
-After successfully starting the Adb service, the drop-down menu will display connected devices. Select a device and click the "Start" button to read the device's logcat log.
+After successfully starting the Adb service, the drop-down menu will display connected devices. Select a device and click the `Start` button to read the device's logcat log.
 
 ![operation_device_list](pic%2Foperation_device_list.png)
 
 ### Filter Tags
-When the filter group contains content, click the "Save" button, enter the tag name, and click the "Confirm" button to save the filter group.  
+When the filter group contains content, click the `Save` button, enter the tag name, and click the `Confirm` button to save the filter group.  
 Click the saved tag to apply it as the current filter group.
 
 ![operation_save_filter](pic%2Foperation_save_filter.png)
@@ -126,8 +126,23 @@ The size and position of filters can be adjusted in `Menu -> Settings -> Log Cus
 
 ![operation_configure_filter_ui](pic%2Foperation_configure_filter_ui.png)
 
+### View Full Content of Selected Logs
+The logs are displayed in a table format. If the content is too long, it may not fit in the table. You can double-click on the corresponding log line or 
+select some logs and press `ENTER` to open the log detail dialog.
+After opening the log detail dialog, you can press `ESC` to close it.
+
+![operation_open_log_detail_dialog](pic%2Foperation_open_log_detail_dialog.png)
+
+### Add Bookmarks to Logs
+Double-click on the corresponding log line or select some logs and press `Ctrl + B` (or right-click the menu item) to add a bookmark to the selected logs. 
+After adding a bookmark, the background color of the log line will change.
+You can check the `Bookmark` filter above the log table to only display logs with bookmarks. In this case, the filter will be disabled.
+For logs with bookmarks, you can press `DELETE` (or right-click the menu item) to remove the bookmark.
+
+![operation_log_bookmark](pic%2Foperation_log_bookmark.png)
+
 ### Log Search
-Press `Ctrl + F` to open the search panel, enter the search content, and click "Previous" or "Next" to locate the corresponding log.  
+Press `Ctrl + F` to open the search panel, enter the search content, and click `Previous` or `Next` to locate the corresponding log.  
 Log search supports regex matching, condition stacking in OR form, and both positive and negative matching.
 
 ![operation_search_log](pic%2Foperation_search_log.png)
@@ -138,8 +153,11 @@ Log search supports regex matching, condition stacking in OR form, and both posi
 - `Esc`: If the search panel is open and focused, close the search panel
 - `Enter`: If the search panel is open and focused, search for the next match
 - `Shift + Enter`: If the search panel is open and focused, search for the previous match
-- `Ctrl + G`: Open the "Go to Line" dialog and jump to the first log entry with a line number greater than or equal to the input
+- `Ctrl + G`: Open the `Go to Line` dialog and jump to the first log entry with a line number greater than or equal to the input
 
+#### Log Bookmarks
+- `Ctrl + B`: Add a bookmark to the selected logs
+- `Delete`: Remove the bookmark from the selected logs
 
 ## Build and Run
 ### Environment

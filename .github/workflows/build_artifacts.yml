@@ -11,8 +11,8 @@ on:
       - 'LICENSE'
       - 'README.md'
       - 'README_CN.md'
-      - 'docs'
-      - 'pic'
+      - 'docs/**'
+      - 'pic/**'
   pull_request:
     branches:
       - main
@@ -23,8 +23,8 @@ on:
       - 'LICENSE'
       - 'README.md'
       - 'README_CN.md'
-      - 'docs'
-      - 'pic'
+      - 'docs/**'
+      - 'pic/**'
 
 jobs:
   build-linux:

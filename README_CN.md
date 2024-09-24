@@ -88,8 +88,8 @@ java -jar CatSpy-${version}.jar
 
 ![operation_open_file](pic%2Foperation_open_file.png)
 ### 文件日志切换解析器
-在文件日志页，右上角下拉框，可以切换解析器，默认为 DefaultRawLog，它将每行日志作为一个整体，过滤时也只能对整行内容进行匹配。
-如果查看标准 Android Logcat 日志，请切换到“StandardLogcatFileLog”，它将日志划分为 time，message，tag，pid，tid，log level，并且可以对每个部分单独进行过滤。
+在文件日志页，右上角下拉框，可以切换解析器，默认为`DefaultRawLog`，它将每行日志作为一个整体，过滤时也只能对整行内容进行匹配。
+如果查看标准`Android Logcat`日志，请切换到`StandardLogcatFileLog`，它将日志划分为`time`，`message`，`tag`，`pid`，`tid`，`log level`，并且可以对每个部分单独进行过滤。
 你也可以前往 菜单->设置->日志定制 创建自己的日志解析器。
 
 ![operation_choose_log_metadata](pic%2Foperation_choose_log_metadata.png)
@@ -97,7 +97,7 @@ java -jar CatSpy-${version}.jar
 在首页点击“打开 Android 设备日志面板”，会打开设备日志页，默认会查找 adb 路径，如果没有找到 adb 路径，会提示设置 adb 路径。
 
 ![warning_configure_adb_path](pic%2Fwarning_configure_adb_path.png)
-点击“设置”按钮，选择 adb 路径，点击“启动 Adb 服务”按钮，成功启动 Adb 服务后，点击保存，下次打开设备日志页，如果 adb 服务未启动则会自动启动。
+点击`设置`按钮，选择 adb 路径，点击`启动 ADB 服务器`按钮，成功启动 adb 服务后，点击保存，下次打开设备日志页，如果 adb 服务未启动则会自动启动。
 
 ![operation_configure_adb_path](pic%2Foperation_configure_adb_path.png)
 成功启动 Adb 服务后，下拉框会展示已连接的设备，选择设备后，点击“启动”按钮，会读取设备 logcat 日志。
@@ -117,11 +117,26 @@ java -jar CatSpy-${version}.jar
 过滤器的大小和位置可以调整，在 菜单->设置->日志定制->对应解析器->过滤器 中进行设置。
 
 ![operation_configure_filter_ui](pic%2Foperation_configure_filter_ui.png)
+
+### 查看选中日志的完整内容
+日志以表格的形式展示，如果内容太长可能会显示不下，可以双击对应日志行，或者选中一些日志后按下 `ENTER` 键，就会打开日志详情弹框。
+打开日志详情弹框后，可以通过按下 ESC 键来关闭。
+
+![operation_open_log_detail_dialog](pic%2Foperation_open_log_detail_dialog.png)
+
+### 为日志添加书签
+选中一些日志后按下 `Ctrl + B`（或者右键菜单项），即可为选中的日志添加书签，添加书签后，日志行的背景颜色会发生变化。
+可以在日志表格上方勾选“书签”，则日志过滤面板只展示添加过书签的日志，此时过滤器将会失效。
+对于添加了书签的日志，可以按下 `DELETE`（或者右键菜单项）取消书签。
+
+![operation_log_bookmark](pic%2Foperation_log_bookmark.png)
+
 ### 日志搜索
 按下 `Ctrl + F` 打开搜索面板，输入搜索内容，点击上一项和下一项，即可查找到对应的日志。
 日志搜索支持正则匹配，支持条件以或的形式叠加，支持正向匹配和反向匹配。
 
 ![operation_search_log](pic%2Foperation_search_log.png)
+
 ### 常用快捷键
 #### 日志搜索
 - `Ctrl + F`: 打开搜索面板，如果搜索面板已打开，则搜索编辑器获取焦点
@@ -129,6 +144,9 @@ java -jar CatSpy-${version}.jar
 - `Enter`: 如果搜索面板已打开且获取焦点，则搜索下一个匹配项
 - `Shift + Enter`: 如果搜索面板已打开且获取焦点，则搜索上一个匹配项
 - `Ctrl + G`: 打开跳转到指定行号弹框，跳转到第一个行号大于等于输入行号的日志
+#### 日志书签
+- `Ctrl + B`: 为选中的日志添加书签
+- `Delete`: 取消选中的日志的书签
 ## 构建和运行
 ### 环境
 - JDK17 及以上
