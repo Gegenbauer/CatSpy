@@ -123,6 +123,7 @@ object Squareup {
 
     val okhttp = Dependency(groupName, "okhttp", version)
     val okhttpLoggingInterceptor = Dependency(groupName, "logging-interceptor", version)
+    val okio = Dependency("com.squareup.okio", "okio", "3.9.1")
 }
 
 object MigLayout {

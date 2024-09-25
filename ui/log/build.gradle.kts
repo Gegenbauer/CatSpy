@@ -22,6 +22,7 @@ dependencies {
     implementation(projects.javaext)
     implementation(projects.ui.render)
     implementation(projects.ui.databinding)
+    implementation(Squareup.okio)
 
     testImplementation(kotlinTestApi())
 }
