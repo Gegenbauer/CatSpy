@@ -220,15 +220,19 @@ open class LogTableModel(
 
     private suspend fun moveToSearch(isNext: Boolean): String {
         if (searchFilterItem.isEmpty()) return EMPTY_STRING
+        val items = logItems.takeIf { it.isNotEmpty() } ?: return EMPTY_STRING
 
-        val selectedRow = selectedLogRows.firstOrNull() ?: -1
+        val selectedRow = selectedLogRows.firstOrNull() ?: 0
         val mainUI = contexts.getContext(BaseLogMainPanel::class.java)
         mainUI ?: return EMPTY_STRING
         val table = getLogTable()
         table ?: return EMPTY_STRING
 
-        val targetRow = selectedRow.run { if (isNext) this + 1 else this - 1 }
-        val shouldReturn = targetRow.run { if (isNext) this >= rowCount else this < 0 }
+        val minNum = items.first().num
+        val maxNum = items.last().num
+        val selectedLogItem = getItemInCurrentPage(selectedRow)
+        val targetNum = selectedLogItem.run { if (isNext) this.num + 1 else this.num - 1 }
+        val shouldReturn = targetNum < minNum || targetNum > maxNum
 
         if (shouldReturn) {
             return "\"$searchFilterItem\" ${STRINGS.ui.notFound}"
@@ -236,12 +240,12 @@ open class LogTableModel(
 
         return withContext(Dispatchers.CPU) {
             val idxFound = if (isNext) {
-                (targetRow until rowCount).firstOrNull {
-                    searchFilterItem.matches(getItemInCurrentPage(it).toString())
+                (targetNum until maxNum).firstOrNull {
+                    searchFilterItem.matches(items[it - minNum].toString())
                 } ?: -1
             } else {
-                (targetRow downTo 0).firstOrNull {
-                    searchFilterItem.matches(getItemInCurrentPage(it).toString())
+                (targetNum downTo minNum).firstOrNull {
+                    searchFilterItem.matches(items[it - minNum].toString())
                 } ?: -1
             }
 
