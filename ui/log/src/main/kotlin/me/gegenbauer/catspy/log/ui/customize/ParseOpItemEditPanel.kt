@@ -203,7 +203,7 @@ class ParseOpItemEditPanel(
                 MergeNearbyPartsOp(0, 0),
                 MergeUntilCharOp(0, null),
                 RemoveBlankPartOp(),
-                SplitPartWithCharOp(null, 0)
+                SplitPartWithCharOp(null, 0, 0)
             )
         } else {
             listOf(
@@ -406,7 +406,8 @@ class ParseOpItemEditPanel(
                 is SplitPartWithCharOp -> SplitPartWithCharOpParamsEditor(
                     parseOp.splitChar,
                     parseOp.partIndex,
-                    maxPartCountAllowed
+                    maxPartCountAllowed,
+                    parseOp.maxPart,
                 )
 
                 is MergeNearbyPartsOp -> MergeNearbyPartsOpParamsEditor(parseOp.from, parseOp.to, maxPartCountAllowed)

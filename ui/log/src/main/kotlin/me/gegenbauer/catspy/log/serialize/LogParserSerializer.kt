@@ -287,7 +287,7 @@ class SplitByWordSeparatorOp(
     }
 }
 
-class SplitPartWithCharOp(val splitChar: Char?, val partIndex: Int) : SplitPostProcessOp {
+class SplitPartWithCharOp(val splitChar: Char?, val partIndex: Int, val maxPart: Int) : SplitPostProcessOp {
 
     override val name: String = "SplitPartWithChar"
 
@@ -301,7 +301,11 @@ class SplitPartWithCharOp(val splitChar: Char?, val partIndex: Int) : SplitPostP
         return sequence {
             parts.forEachIndexed { index, s ->
                 if (index == partIndex) {
-                    yieldAll(s.splitToSequence(splitChar))
+                    if (maxPart == 0) {
+                        yieldAll(s.splitToSequence(splitChar))
+                    } else {
+                        yieldAll(s.splitToSequence(splitChar, ignoreCase = false, limit = maxPart))
+                    }
                 } else {
                     yield(s)
                 }
@@ -313,10 +317,11 @@ class SplitPartWithCharOp(val splitChar: Char?, val partIndex: Int) : SplitPostP
         return other is SplitPartWithCharOp
                 && other.splitChar == splitChar
                 && other.partIndex == partIndex
+                && other.maxPart == maxPart
     }
 
     override fun hashCode(): Int {
-        return Objects.hash(javaClass.name, splitChar, partIndex)
+        return Objects.hash(javaClass.name, splitChar, partIndex, maxPart)
     }
 
 }
