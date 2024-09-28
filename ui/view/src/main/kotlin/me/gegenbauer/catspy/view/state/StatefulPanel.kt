@@ -1,8 +1,7 @@
 package me.gegenbauer.catspy.view.state
 
-import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.view.button.IconBarButton
+import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Dimension
 import java.awt.GridBagLayout
@@ -13,8 +12,6 @@ import javax.swing.SwingUtilities
 import javax.swing.TransferHandler
 
 class StatefulPanel : JPanel() {
-    var onClickOpen: (JComponent) -> Unit = { _ -> }
-
     var listState: ListState = ListState.NONE
         set(value) {
             if (value == field) return
@@ -25,22 +22,18 @@ class StatefulPanel : JPanel() {
     private val rootLayout = CardLayout()
     private val emptyContainerLayout = CardLayout()
     private var content: JComponent = JPanel()
+    private var emptyContent: JComponent = JPanel()
 
-    private val emptyImage = IconBarButton(GIcons.State.Empty.get(60, 60)).apply {
-        preferredSize = Dimension(120, 120)
-        isBorderPainted = false
-    }
     private val loadingProgress = JProgressBar().apply {
         preferredSize = Dimension(200, 20)
         string = STRINGS.ui.loading
         isStringPainted = true
     }
-    private val emptyContainer = JPanel().apply {
+    private val container = JPanel().apply {
         layout = emptyContainerLayout
     }
-    private val emptyImageContainer = JPanel().apply {
-        layout = GridBagLayout()
-        add(emptyImage)
+    private val emptyContentContainer = JPanel().apply {
+        layout = BorderLayout()
     }
     private val loadingProgressContainer = JPanel().apply {
         layout = GridBagLayout()
@@ -50,19 +43,25 @@ class StatefulPanel : JPanel() {
     init {
         layout = rootLayout
 
-        emptyImage.addActionListener { onClickOpen(it.source as JComponent) }
-
         add(content, "content")
-        add(emptyContainer, "empty")
+        add(container, "empty")
 
-        emptyContainer.add(loadingProgressContainer, "loadingProgress")
-        emptyContainer.add(emptyImageContainer, "emptyImage")
+        container.add(loadingProgressContainer, "loadingProgress")
+        container.add(emptyContentContainer, "emptyImage")
 
         listState = ListState.EMPTY
     }
 
-    fun hideEmptyImage() {
-        emptyImage.isVisible = false
+    fun hideEmptyContent() {
+        emptyContent.isVisible = false
+    }
+
+    fun setEmptyContent(content: JComponent) {
+        emptyContentContainer.removeAll()
+        emptyContentContainer.add(content, BorderLayout.CENTER)
+        emptyContent = content
+        emptyContentContainer.revalidate()
+        emptyContentContainer.repaint()
     }
 
     private fun setStateInternal(listState: ListState) {
@@ -80,15 +79,15 @@ class StatefulPanel : JPanel() {
             }
 
             ListState.NONE -> {
-                emptyContainer.isVisible = false
+                container.isVisible = false
                 content.isVisible = false
             }
         }
 
         if (listState == ListState.LOADING) {
-            emptyContainerLayout.show(emptyContainer, "loadingProgress")
+            emptyContainerLayout.show(container, "loadingProgress")
         } else if (listState == ListState.EMPTY) {
-            emptyContainerLayout.show(emptyContainer, "emptyImage")
+            emptyContainerLayout.show(container, "emptyImage")
         }
         loadingProgress.isIndeterminate = listState == ListState.LOADING
 
@@ -118,10 +117,6 @@ class StatefulPanel : JPanel() {
                 }
             }
         }
-    }
-
-    companion object {
-        private const val TAG = "StatefulPanel"
     }
 }
 

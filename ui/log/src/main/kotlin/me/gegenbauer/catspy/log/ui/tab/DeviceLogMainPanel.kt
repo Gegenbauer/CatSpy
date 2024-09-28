@@ -77,7 +77,7 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
         super.createUI()
         deviceCombo.setWidth(150)
 
-        splitLogWithStatefulPanel.hideEmptyImage()
+        splitLogWithStatefulPanel.hideEmptyContent()
         deviceCombo.isVisible = true
         saveBtn.isVisible = true
     }

@@ -4,7 +4,11 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.Insets
 import java.awt.event.ActionEvent
-import javax.swing.*
+import javax.swing.ButtonGroup
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JToggleButton
+import javax.swing.SwingConstants
 
 class PageIndicator<T>(
     private val pageable: Pageable<T>
@@ -15,7 +19,7 @@ class PageIndicator<T>(
     init {
         minimumSize = Dimension(0, 0)
         refreshPageNavigationButtons()
-        pageable.pageMetaData.addObserver { pageMetaData ->
+        pageable.pageMetadata.addObserver { pageMetaData ->
             pageMetaData ?: return@addObserver
 
             if (lastPageMetaData.isIndicatorDataEquals(pageMetaData)) {

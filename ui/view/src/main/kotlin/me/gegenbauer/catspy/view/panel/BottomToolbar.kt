@@ -1,25 +1,28 @@
 package me.gegenbauer.catspy.view.panel
 
 import com.formdev.flatlaf.FlatLaf
-import me.gegenbauer.catspy.configuration.*
+import me.gegenbauer.catspy.configuration.DarkLightThemes
+import me.gegenbauer.catspy.configuration.GSettings
+import me.gegenbauer.catspy.configuration.GThemeChangeListener
+import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.ThemeManager
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.applyTooltip
-import me.gegenbauer.catspy.view.button.ColorToggleButton
+import me.gegenbauer.catspy.view.button.IconBarToggleButton
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JPanel
-import javax.swing.SwingUtilities
 
 class BottomToolbar : JPanel(), GThemeChangeListener {
 
-    private val darkThemeSwitchButton = ColorToggleButton(
-        unselectedIcon = GIcons.State.DarkMode.get(ICON_SIZE, ICON_SIZE),
+    private val darkThemeSwitchButton = IconBarToggleButton(
+        icon = GIcons.State.DarkMode.get(ICON_SIZE, ICON_SIZE),
         selectedIcon = GIcons.State.LightMode.get(ICON_SIZE, ICON_SIZE)
     ) applyTooltip STRINGS.toolTip.darkTheme
 
     init {
-        border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+        border = BorderFactory.createEmptyBorder(0, 3, 0, 3)
         layout = BoxLayout(this, BoxLayout.X_AXIS)
         add(darkThemeSwitchButton)
         darkThemeSwitchButton.addActionListener {

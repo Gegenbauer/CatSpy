@@ -44,10 +44,19 @@ open class LogTableModel(
             field = value.takeIf { it != field }?.also { getLogTable()?.repaint() } ?: value
         }
 
-    override val pageMetaData: ObservableValueProperty<PageMetadata> = ObservableValueProperty()
+    override val pageMetadata: ObservableValueProperty<PageMetadata> = ObservableValueProperty()
 
     override val pageSize: Int
         get() = DEFAULT_PAGE_SIZE
+
+    override val pageCount: Int
+        get() = _pageMetadata.pageCount
+
+    override val currentPage: Int
+        get() = _pageMetadata.currentPage
+
+    override val dataSize: Int
+        get() = _pageMetadata.dataSize
 
     override var selectedLogRows: List<Int>
         get() = viewModel.fullTableSelectedRows
@@ -60,6 +69,7 @@ open class LogTableModel(
     private val logConf: LogConfiguration
         get() = contexts.getContext(LogConfiguration::class.java) ?: LogConfiguration.default
 
+    private var _pageMetadata = PageMetadata()
     private val scope = ViewModelScope()
     private var logItems = mutableListOf<LogItem>()
     private val eventListeners = Collections.synchronizedList(ArrayList<LogTableModelListener>())
@@ -121,6 +131,8 @@ open class LogTableModel(
             )
             resetSelectedRows()
         }
+
+        pageMetadata.updateValue(_pageMetadata)
 
         val logPanel = contexts.getContext(LogPanel::class.java)
         logPanel?.repaint()
@@ -271,7 +283,7 @@ open class LogTableModel(
         val currentPage = minOf(currentPage, pageCount - 1).coerceAtLeast(0)
         val dataSize = logItems.size
 
-        pageMetaData.updateValue(PageMetadata(currentPage, pageCount, pageSize, dataSize))
+        _pageMetadata = PageMetadata(currentPage, pageCount, pageSize, dataSize)
     }
 
     override fun getRowIndexInAllPages(lineNumber: Int): Int {
@@ -297,37 +309,38 @@ open class LogTableModel(
 
     override fun nextPage() {
         if (currentPage >= pageCount - 1) return
-        pageMetaData.updateValue(PageMetadata(currentPage + 1, pageCount, pageSize, dataSize))
+        _pageMetadata = PageMetadata(currentPage + 1, pageCount, pageSize, dataSize)
         onPageChanged()
     }
 
     override fun previousPage() {
         if (currentPage <= 0) return
-        pageMetaData.updateValue(PageMetadata(currentPage - 1, pageCount, pageSize, dataSize))
+        _pageMetadata = PageMetadata(currentPage - 1, pageCount, pageSize, dataSize)
         onPageChanged()
     }
 
     override fun firstPage() {
-        pageMetaData.updateValue(PageMetadata(0, pageCount, pageSize, dataSize))
+        _pageMetadata = PageMetadata(0, pageCount, pageSize, dataSize)
         onPageChanged()
     }
 
     override fun lastPage() {
-        pageMetaData.updateValue(PageMetadata(pageCount - 1, pageCount, pageSize, dataSize))
+        _pageMetadata = PageMetadata(pageCount - 1, pageCount, pageSize, dataSize)
         onPageChanged()
     }
 
     override fun gotoPage(page: Int) {
         if (page < 0 || page >= pageCount) return
         if (currentPage != page) {
-            pageMetaData.updateValue(PageMetadata(page, pageCount, pageSize, dataSize))
+            _pageMetadata = PageMetadata(page, pageCount, pageSize, dataSize)
             onPageChanged()
         }
     }
 
     private fun onPageChanged() {
         clearSelectedRows()
-        fireTableDataChanged()
+        pageMetadata.updateValue(_pageMetadata)
+        super.fireTableChanged(TableModelEvent(this))
     }
 
     override fun destroy() {

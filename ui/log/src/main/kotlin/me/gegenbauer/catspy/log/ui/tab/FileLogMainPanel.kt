@@ -17,7 +17,7 @@ import me.gegenbauer.catspy.utils.ui.showWarningDialog
 import me.gegenbauer.catspy.view.panel.StatusBar
 import java.awt.Component
 import java.io.File
-import javax.swing.SwingUtilities
+import javax.swing.JComponent
 import javax.swing.TransferHandler
 
 open class FileLogMainPanel : BaseLogMainPanel() {
@@ -25,6 +25,10 @@ open class FileLogMainPanel : BaseLogMainPanel() {
 
     protected val templateSelector = LogMetadataTemplateComboBox()
 
+    override val emptyStateContent: JComponent
+        get() = fileGuidancePanel
+
+    private val fileGuidancePanel = FileLogGuidancePanel { openFile(it.path) }
     private val filePopupMenu = FileOpenPopupMenu().apply {
         onFileSelected = { file ->
             openFile(file.absolutePath)
@@ -62,10 +66,6 @@ open class FileLogMainPanel : BaseLogMainPanel() {
 
     override fun registerEvent() {
         super.registerEvent()
-        splitLogWithStatefulPanel.onClickOpen = {
-            SwingUtilities.updateComponentTreeUI(filePopupMenu)
-            filePopupMenu.onClickFileOpen()
-        }
         templateSelector.addOnSelectedMetadataChangedListener(logMetadataChangeListener)
     }
 

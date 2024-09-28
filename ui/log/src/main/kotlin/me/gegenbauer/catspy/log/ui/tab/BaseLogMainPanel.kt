@@ -1,5 +1,8 @@
 package me.gegenbauer.catspy.log.ui.tab
 
+import info.clearthought.layout.TableLayout
+import info.clearthought.layout.TableLayoutConstants.FILL
+import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -84,6 +87,8 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     private val clearViewsBtn = IconBarButton(GIcons.Action.Clear.get(), STRINGS.toolTip.clearBtn)
 
     protected val splitLogWithStatefulPanel = StatefulPanel()
+    protected open val emptyStateContent: JComponent = JPanel()
+    private val emptyStateContentContainer = JPanel()
     protected val splitLogPane by lazy {
         SplitLogPane(fullTableModel, filteredTableModel)
     }
@@ -171,9 +176,16 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
         splitLogPane.isOneTouchExpandable = false
 
         splitLogWithStatefulPanel.setContent(splitLogPane)
+        splitLogWithStatefulPanel.setEmptyContent(emptyStateContentContainer)
 
         add(topPanel, BorderLayout.NORTH)
         add(splitLogWithStatefulPanel, BorderLayout.CENTER)
+
+        emptyStateContentContainer.layout = TableLayout(
+            doubleArrayOf(0.25, FILL, 0.25),
+            doubleArrayOf(0.3, PREFERRED, 0.25)
+        )
+        emptyStateContentContainer.add(emptyStateContent, "1,1")
     }
 
     protected open fun getCustomToolbarComponents(): List<Component> {

@@ -25,6 +25,7 @@ import me.gegenbauer.catspy.utils.ui.findFrameFromParent
 import me.gegenbauer.catspy.utils.ui.isDoubleClick
 import me.gegenbauer.catspy.utils.ui.keyEventInfo
 import me.gegenbauer.catspy.view.table.RowNavigation
+import me.gegenbauer.catspy.view.table.lastPage
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Font
@@ -248,9 +249,10 @@ class LogTable(
     }
 
     override fun scrollToEnd() {
-        if (rowCount <= 0) {
+        if (tableModel.dataSize <= 0) {
             return
         }
+        tableModel.gotoPage(tableModel.lastPage)
         val targetRect = getCellRect(rowCount - 1, 0, true)
         targetRect.x = visibleRect.x
         targetRect.y += targetRect.height

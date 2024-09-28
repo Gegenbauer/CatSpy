@@ -13,7 +13,9 @@ import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.applyTooltip
 import me.gegenbauer.catspy.view.button.IconBarButton
-import me.gegenbauer.catspy.view.container.WrapablePanel
+import me.gegenbauer.catspy.view.button.IconBarToggleButton
+import me.gegenbauer.catspy.view.panel.HorizontalFlexibleHeightLayout
+import me.gegenbauer.catspy.view.panel.HeightWrapContentPanel
 import me.gegenbauer.catspy.view.table.PageIndicator
 import me.gegenbauer.catspy.view.table.PageMetadata
 import me.gegenbauer.catspy.view.table.RowNavigation
@@ -25,7 +27,6 @@ import java.awt.event.AdjustmentEvent
 import java.awt.event.AdjustmentListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.BoxLayout
 import javax.swing.JPanel
 import javax.swing.JScrollBar
 import javax.swing.event.ListSelectionEvent
@@ -39,13 +40,15 @@ abstract class LogPanel(
 ) : JPanel(), Context, ListSelectionListener, RowNavigation by table {
 
     val binding = LogPanelBinding()
-    protected val ctrlMainPanel: WrapablePanel = WrapablePanel()
+    protected val ctrlMainPanel: JPanel = HeightWrapContentPanel()
 
     private val topBtn = IconBarButton(GIcons.Action.Top.get()) applyTooltip STRINGS.toolTip.viewFirstBtn
     private val bottomBtn = IconBarButton(GIcons.Action.Bottom.get()) applyTooltip STRINGS.toolTip.viewLastBtn
     private val scrollToEndIcon = GIcons.State.ScrollEnd.get(24, 24)
     private val scrollToEndSelectedIcon = GIcons.State.ScrollEnd.selected(24, 24)
-    private val scrollToEndBtn = IconBarButton(tooltip = STRINGS.toolTip.keepScrollToEnd)
+    private val scrollToEndBtn = IconBarToggleButton(scrollToEndIcon, scrollToEndSelectedIcon).apply {
+        toolTipText = STRINGS.toolTip.keepScrollToEnd
+    }
 
     private val scrollPane = LogScrollPane(table)
     private val vStatusPanel = VStatusPanel()
@@ -68,9 +71,6 @@ abstract class LogPanel(
         bottomBtn.addActionListener { moveToLastRow() }
         tableModel.addLogTableModelListener(tableModelHandler)
         scrollPane.verticalScrollBar.addAdjustmentListener(adjustmentHandler)
-        scrollToEndBtn.addActionListener {
-            scrollToEndBtn.isSelected = !scrollToEndBtn.isSelected
-        }
         scrollPane.addMouseListener(object : MouseAdapter() {
             override fun mouseReleased(e: MouseEvent) {
                 table.onReceiveMouseReleaseEvent(e)
@@ -82,15 +82,15 @@ abstract class LogPanel(
     private fun observeViewModelProperty() {
         binding.scrollToEnd.addObserver {
             if (it == true) {
-                table.scrollToEnd()
+                scrollToEnd()
             }
         }
-        tableModel.pageMetaData.addObserver {
+        tableModel.pageMetadata.addObserver {
             it ?: return@addObserver
             if (lastPageMetaData.isIndicatorDataEquals(it)) {
                 return@addObserver
             }
-            if (lastPageMetaData.isPageChanged(it)) {
+            if (lastPageMetaData.isAtLastPage && it.isAtLastPage.not()) {
                 binding.scrollToEnd.updateValue(false)
             }
             lastPageMetaData = it
@@ -126,23 +126,18 @@ abstract class LogPanel(
     protected open fun createUI() {
         layout = BorderLayout()
         scrollPane.minimumSize = Dimension(0, 0)
-        Insets(2, 3, 1, 3).apply {
+        Insets(0, 3, 0, 3).apply {
             topBtn.margin = this
             bottomBtn.margin = this
             scrollToEndBtn.margin = this
         }
-
-        scrollToEndBtn.isRolloverEnabled = false
-        scrollToEndBtn.isContentAreaFilled = false
-        scrollToEndBtn.icon = scrollToEndIcon
-        scrollToEndBtn.selectedIcon = scrollToEndSelectedIcon
 
         table.columnSelectionAllowed = true
         table.listSelectionHandler = this
         scrollPane.verticalScrollBar.unitIncrement = 20
 
         val ctrlPanel = JPanel()
-        ctrlPanel.layout = BoxLayout(ctrlPanel, BoxLayout.Y_AXIS)
+        ctrlPanel.layout = HorizontalFlexibleHeightLayout()
         ctrlPanel.add(ctrlMainPanel)
 
         add(ctrlPanel, BorderLayout.NORTH)
@@ -164,6 +159,12 @@ abstract class LogPanel(
 
     fun setGoToLast(value: Boolean) {
         binding.scrollToEnd.updateValue(value)
+    }
+
+    override fun scrollToEnd() {
+        scrollPane.verticalScrollBar.removeAdjustmentListener(adjustmentHandler)
+        table.scrollToEnd()
+        scrollPane.verticalScrollBar.addAdjustmentListener(adjustmentHandler)
     }
 
     override fun moveToFirstRow() {
@@ -188,7 +189,7 @@ abstract class LogPanel(
                 return
             }
 
-            val isScrollingDown = currentPosition - lastPosition > 0
+            val isScrollingDown = currentPosition - lastPosition >= 0
             takeIf { currentPosition != lastPosition } ?: return
             lastPosition = currentPosition
 

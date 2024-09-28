@@ -32,7 +32,6 @@ class FavoriteFilterPanel(override val contexts: Contexts = Contexts.default) : 
 
     init {
         layout = BorderLayout()
-        chipsScrollPane.border = null
         add(chipsScrollPane, BorderLayout.CENTER)
         add(filterRecordActionsPanel, BorderLayout.EAST)
 
@@ -112,6 +111,10 @@ class FavoriteFilterPanel(override val contexts: Contexts = Contexts.default) : 
     }
 
     private class NonBorderScrollPane(viewPort: JComponent) : JScrollPane(viewPort) {
+        init {
+            border = null
+        }
+
         override fun updateUI() {
             super.updateUI()
             border = null
