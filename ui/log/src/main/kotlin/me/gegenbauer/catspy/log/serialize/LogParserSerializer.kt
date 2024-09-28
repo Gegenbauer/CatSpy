@@ -161,6 +161,9 @@ class SerializableLogParser(
                     defaultResult[index] = part
                 }
             }
+            for (i in parsedResult.size until partCount) {
+                defaultResult[i] = EMPTY_STRING
+            }
         }
         return defaultResult.toList()
     }
@@ -187,8 +190,10 @@ interface ParseOp {
 }
 
 /**
- * Preprocessing operation, which refers to splitting the original log line into multiple parts through extraction or splitting.
- * The final result is a sequence of strings, each representing a part, which can also be considered as a column in a table.
+ * Preprocessing operation, which refers to splitting the original log line into
+ * multiple parts through extraction or splitting.
+ * The final result is a sequence of strings, each representing a part,
+ * which can also be considered as a column in a table.
  */
 interface SplitToPartsOp : ParseOp {
     val splitPostProcessOps: List<SplitPostProcessOp>
@@ -345,7 +350,7 @@ class MergeNearbyPartsOp(val from: Int, val to: Int) : SplitPostProcessOp {
                 index in from until to -> mergedPart.append(part).append(" ")
                 index == to -> {
                     mergedPart.append(part)
-                    yield(mergedPart.toString().trim())
+                    yield(mergedPart.toString())
                 }
 
                 else -> yield(part)
@@ -376,12 +381,24 @@ class MergeUntilCharOp(val start: Int, val targetChar: Char?) : SplitPostProcess
         get() = STRINGS.parser.mergeUntilChar
 
     override fun process(parts: Sequence<String>): Sequence<String> {
-        targetChar ?: return parts
         return sequence {
             val mergedPart = StringBuilder()
+            if (targetChar == null) {
+                parts.forEachIndexed { index, s ->
+                    if (index < start) {
+                        yield(s)
+                    } else {
+                        mergedPart.append(s)
+                    }
+                }
+                if (mergedPart.isNotEmpty()) {
+                    yield(mergedPart.toString())
+                }
+                return@sequence
+            }
+
             var index = 0
             var mergedComplete = false
-
             parts.forEach { part ->
                 if (index < start) {
                     yield(part)

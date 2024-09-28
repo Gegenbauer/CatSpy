@@ -41,8 +41,8 @@
     "filterRowOrder": "같은 값을 가진 필터는 같은 행에 배치되며, 더 큰 값을 가진 필터는 더 낮은 위치에 배치됩니다. 이 값을 증가시켜 필터를 다음 행으로 이동.",
     "filterWidth": "구체적인 너비, LayoutWidthType이 Specified일 때만 유효합니다. 0에서 1 사이의 부동 소수점 숫자는 전체 행 너비의 백분율을 나타내며, 1보다 큰 숫자는 너비 크기를 나타냅니다.",
     "intVerifierWarning": "%s에서 %s 사이의 정수를 입력해 주세요 (제외)",
-    "isLevelColumn": "이 열의 내용이 로그 레벨을 나타내는지 여부. 그렇다면, 로그 테이블의 로그 색상은 이 열의 내용이 나타내는 로그 레벨에 따라 렌더링되며, 해당 필터는 로그 레벨 선택기가 됩니다.",
-    "isMessageColumn": "이 열의 내용이 로그에 인쇄해야 할 내용인지 여부",
+    "isLevelColumn": "현재 열의 내용이 로그 레벨을 나타내는지 여부입니다. 그렇다면 로그 테이블의 로그 색상은 이 열의 내용이 나타내는 로그 레벨에 따라 렌더링되며, 해당 필터도 로그 레벨 선택기로 변경됩니다. 또한 파서의 결과에도 영향을 미치므로 필드를 신중하게 표시해야 합니다.",
+    "isMessageColumn": "현재 열이 메시지 열인지 여부",
     "keepScrollToEnd": "스크롤을 끝까지 유지하세요",
     "levelAbbreviation": "이 로그 레벨의 실제 테이블에 표시되는 내용",
     "levelColumnBackground": "이 레벨의 로그 레벨 열 배경 색상",
@@ -62,10 +62,11 @@
     "logType": "로그 메타데이터의 고유 식별자로서, 중복 및 특수 문자 (\\\\/:*?\\\"\u003c\u003e|) 사용이 금지됩니다",
     "logTypeDuplicateWarning": "로그 유형이 이미 존재합니다",
     "lowerFilterOrder": "이전 행으로 이동.",
+    "maxParts": "로그 샘플의 최대 분할 수, 분할 수가 최대값을 초과하는 경우 마지막 요소는 모든 남은 문자열을 포함합니다",
     "mergeNearByPartsFromIndex": "마지막 작업의 분할 결과에서 병합할 문자의 시작 인덱스",
     "mergeNearByPartsToIndex": "마지막 작업의 분할 결과에서 병합할 문자의 종료 인덱스",
     "mergeUntilCharStartIndex": "在上一步操作的分割结果中，需要合并的字符串的索引起始值",
-    "mergeUntilCharTargetChar": "合并到指定字符，遇到该字符时停止合并",
+    "mergeUntilCharTargetChar": "지정된 문자까지 병합하고, 해당 문자를 만나면 병합을 중지합니다. 비어 있으면 끝까지 병합을 의미합니다",
     "moveColumnToLeft": "테이블에서 열을 왼쪽으로 한 위치 이동.",
     "moveColumnToRight": "테이블에서 열을 오른쪽으로 한 위치 이동.",
     "nameInvalidWarning": "잘못된 내용, %s 포함 불가",
@@ -118,8 +119,7 @@
     "viewPidToggle": "PID 하이라이트",
     "viewTagToggle": "태그 하이라이트",
     "viewTidToggle": "TID 하이라이트",
-    "viewWindowedModeBtn": "뷰를 새 창으로 이동",
-    "wordSeparatorMaxParts": "로그 샘플의 최대 분할 수, 분할 수가 최대값을 초과하는 경우 마지막 요소는 모든 남은 문자열을 포함합니다"
+    "viewWindowedModeBtn": "뷰를 새 창으로 이동"
   },
   "ui": {
     "accentColor": "강조 색상",
@@ -247,6 +247,7 @@
     "logSampleLabel": "샘플",
     "logTypeLabel": "로그 유형",
     "lowerFilterOrder": "이전 행으로 이동",
+    "maxPartsLabel": "최대 분할 수",
     "menuAbout": "소개",
     "menuCheckUpdates": "업데이트 확인",
     "menuDebug": "디버그",
@@ -341,7 +342,6 @@
     "updateDialogConfirm": "다운로드",
     "updateDialogMessage": "새 버전 %s이(가) 사용 가능합니다. 다운로드하시겠습니까?",
     "updateDialogTitle": "새로운 업데이트 사용 가능",
-    "windowedMode": "윈도우 모드",
-    "wordSeparatorMaxPartsLabel": "최대 분할 수"
+    "windowedMode": "윈도우 모드"
   }
 }

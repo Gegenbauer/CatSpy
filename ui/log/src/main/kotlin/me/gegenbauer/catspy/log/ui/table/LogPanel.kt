@@ -14,8 +14,8 @@ import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.applyTooltip
 import me.gegenbauer.catspy.view.button.IconBarButton
 import me.gegenbauer.catspy.view.button.IconBarToggleButton
+import me.gegenbauer.catspy.view.container.WrapablePanel
 import me.gegenbauer.catspy.view.panel.HorizontalFlexibleHeightLayout
-import me.gegenbauer.catspy.view.panel.HeightWrapContentPanel
 import me.gegenbauer.catspy.view.table.PageIndicator
 import me.gegenbauer.catspy.view.table.PageMetadata
 import me.gegenbauer.catspy.view.table.RowNavigation
@@ -40,7 +40,7 @@ abstract class LogPanel(
 ) : JPanel(), Context, ListSelectionListener, RowNavigation by table {
 
     val binding = LogPanelBinding()
-    protected val ctrlMainPanel: JPanel = HeightWrapContentPanel()
+    protected val ctrlMainPanel: JPanel = WrapablePanel()
 
     private val topBtn = IconBarButton(GIcons.Action.Top.get()) applyTooltip STRINGS.toolTip.viewFirstBtn
     private val bottomBtn = IconBarButton(GIcons.Action.Bottom.get()) applyTooltip STRINGS.toolTip.viewLastBtn

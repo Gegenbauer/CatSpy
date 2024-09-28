@@ -16,12 +16,9 @@ import me.gegenbauer.catspy.log.ui.filter.FilterProvider
 import me.gegenbauer.catspy.log.ui.filter.IFavoriteFilterPanel
 import me.gegenbauer.catspy.log.ui.filter.IFilterPanel
 import me.gegenbauer.catspy.log.ui.filter.IFilterProvider
-import me.gegenbauer.catspy.strings.STRINGS
 
 interface IFilterManager: IFilterProvider {
     fun setLogMetadata(logMetaData: LogMetadata)
-
-    fun getMessageFilterProperty(): FilterProperty
 
     fun getFilterProperty(column: Column): FilterProperty
 
@@ -99,11 +96,6 @@ class FilterManager(
     override fun removeFilterPropertyObserver(observer: FilterPropertyObserver) {
         filterProvider.removeFilterPropertyObserver(observer)
         filterPropertyObservers.remove(observer)
-    }
-
-    override fun getMessageFilterProperty(): FilterProperty {
-        val messageColumn = idToColumns.values.firstOrNull { it is Column.MessageColumn }
-        return filterProperties[messageColumn?.id] ?: FilterProperty(STRINGS.ui.log)
     }
 
     override fun getFilterProperty(column: Column): FilterProperty {

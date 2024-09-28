@@ -117,8 +117,8 @@ class SplitByWordSeparatorOpParamsEditor(maxParts: Int) : ParseOpParamsEditor<Sp
             field = value
         }
 
-    private val label = EditorLabel(STRINGS.ui.wordSeparatorMaxPartsLabel)
-    private val editor = NumberParamEditor(STRINGS.toolTip.wordSeparatorMaxParts, 0, maxParts)
+    private val label = EditorLabel(STRINGS.ui.maxPartsLabel)
+    private val editor = NumberParamEditor(STRINGS.toolTip.maxParts, 0, maxParts)
 
     init {
         editor.maximumSize = Dimension(EDITOR_WIDTH, editor.preferredSize.height)

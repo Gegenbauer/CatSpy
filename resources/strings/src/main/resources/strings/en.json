@@ -44,8 +44,8 @@
     "filterRowOrder": "Filters with the same value will be placed in the same row, and filters with a larger value will be placed in a lower position. Increase this value to move the filter to the next row.",
     "filterWidth": "Specific width, only effective when LayoutWidthType is Specified. A floating-point number between 0 and 1 represents the percentage of the entire row width, and a number greater than 1 represents the width size.",
     "intVerifierWarning": "Please enter an integer between %s and %s (exclusive)",
-    "isLevelColumn": "Whether the content of this column represents the log level. If so, the color of the logs in the log table will be rendered based on the log level represented by the content of this column, and the corresponding filter will become a log level selector.",
-    "isMessageColumn": "Whether the content of this column is the content that needs to be printed in the log",
+    "isLevelColumn": "Whether the content of the current column represents the log level. If so, the log color in the log table will be rendered according to the log level represented by the content of this column, and the corresponding filter will also become a log level selector. Note that it will also affect the result of the parser, so the field needs to be marked carefully.",
+    "isMessageColumn": "Whether the current column is a Message column",
     "keepScrollToEnd": "Keep scroll to end",
     "levelAbbreviation": "The actual content displayed in the table for this log level",
     "levelColumnBackground": "The background color of the log level column at this level",
@@ -65,10 +65,11 @@
     "logType": "Serves as a unique identifier for log metadata, duplicates and special characters (\\\\/:*?\\\"\u003c\u003e|) are not allowed",
     "logTypeDuplicateWarning": "Log type already exists",
     "lowerFilterOrder": "Move to the previous row.",
+    "maxParts": "The maximum number of splits for the target string, if the number of splits exceeds the maximum, the last element will contain all remaining strings",
     "mergeNearByPartsFromIndex": "The starting index of the strings to be merged in the results of the last operation",
     "mergeNearByPartsToIndex": "The ending index of the strings to be merged in the results of the last operation",
     "mergeUntilCharStartIndex": "Start index of the string to be merged in the split result of the previous step",
-    "mergeUntilCharTargetChar": "Merge to the specified character, stop merging when encountering this character",
+    "mergeUntilCharTargetChar": "Merge until the specified character, stop merging when encountering this character. If empty, it means to merge until the end",
     "moveColumnToLeft": "Move the column one position to the left in the table.",
     "moveColumnToRight": "Move the column one position to the right in the table.",
     "nameInvalidWarning": "Invalid content, %s is not allowed",
@@ -122,8 +123,7 @@
     "viewPidToggle": "Highlight PID",
     "viewTagToggle": "Highlight tags",
     "viewTidToggle": "Highlight TID",
-    "viewWindowedModeBtn": "Move the view to a new window",
-    "wordSeparatorMaxParts": "The maximum number of splits for the log sample, if the number of splits exceeds the maximum, the last element will contain all remaining strings"
+    "viewWindowedModeBtn": "Move the view to a new window"
   },
   "ui": {
     "accentColor": "Accent Color",
@@ -250,6 +250,7 @@
     "logSampleLabel": "Sample",
     "logTypeLabel": "Log Type",
     "lowerFilterOrder": "Move to Previous Row",
+    "maxPartsLabel": "Maximum Number of Splits",
     "menuAbout": "About",
     "menuCheckUpdates": "Check for Updates",
     "menuDebug": "Debug",
@@ -343,7 +344,6 @@
     "updateDialogConfirm": "Download",
     "updateDialogMessage": "New version %s is available. Would you like to download it?",
     "updateDialogTitle": "New Update Available",
-    "windowedMode": "Windowed Mode",
-    "wordSeparatorMaxPartsLabel": "Maximum Number of Splits"
+    "windowedMode": "Windowed Mode"
   }
 }

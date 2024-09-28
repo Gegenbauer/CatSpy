@@ -41,8 +41,8 @@
     "filterRowOrder": "取值相同的过滤器会放在同一行，取值较大的过滤器会放置在更下方的位置，通过增大改值来将过滤器放置到下一行",
     "filterWidth": "具体宽度，只有 LayoutWidthType 为 Specified 才有效。0 - 1 的浮点数代表占整行宽度的百分比值，大于 1 的数代表宽度大小。",
     "intVerifierWarning": "请输入范围为 %s 到 %s（不包含）之间的整数",
-    "isLevelColumn": "当前列的内容是否代表日志的级别，如果是，日志表格中的日志颜色会根据该列的内容所代表的日志级别进行渲染，并且对应的过滤器也会变成日志界别的选择器。",
-    "isMessageColumn": "当前列的内容存放的是否是日志需要打印的内容",
+    "isLevelColumn": "当前列的内容是否代表日志的级别，如果是，日志表格中的日志颜色会根据该列的内容所代表的日志级别进行渲染，并且对应的过滤器也会变成日志级别的选择器。并且需要注意的是，他也会影响解析器的结果，所以该字段需要慎重标记。",
+    "isMessageColumn": "当前列是否 Message 列",
     "keepScrollToEnd": "持续滚动到结束",
     "levelAbbreviation": "该级别日志实际展示在表格中的内容",
     "levelColumnBackground": "该级别日志级别列背景颜色",
@@ -62,10 +62,11 @@
     "logType": "作为日志元数据的唯一标识，不允许重复，不允许出现特殊字符（\\\\/:*?\\\"\u003c\u003e|）",
     "logTypeDuplicateWarning": "日志类型已存在",
     "lowerFilterOrder": "移动到上一行",
+    "maxParts": "日志样本的最大分割数，如果分割后的数目超出最大值，则最后一个元素将包含剩余的所有字符串",
     "mergeNearByPartsFromIndex": "在上一步操作的分割结果中，需要合并的字符串的索引起始值",
     "mergeNearByPartsToIndex": "在上一步操作的分割结果中，需要合并的字符串的索引结束值",
     "mergeUntilCharStartIndex": "在上一步操作的分割结果中，需要合并的字符串的索引起始值",
-    "mergeUntilCharTargetChar": "合并到指定字符，遇到该字符时停止合并",
+    "mergeUntilCharTargetChar": "合并到指定字符，遇到该字符时停止合并。如果为空则表明一直合并到最后",
     "moveColumnToLeft": "将列在表格中的位置左移一位",
     "moveColumnToRight": "将列在表格中的位置右移一位",
     "nameInvalidWarning": "内容不合法，不允许包含 %s",
@@ -118,8 +119,7 @@
     "viewPidToggle": "突出显示 PID",
     "viewTagToggle": "突出显示标签",
     "viewTidToggle": "突出显示 TID",
-    "viewWindowedModeBtn": "将视图移动至新窗口",
-    "wordSeparatorMaxParts": "日志样本的最大分割数，如果分割后的数目超出最大值，则最后一个元素将包含剩余的所有字符串"
+    "viewWindowedModeBtn": "将视图移动至新窗口"
   },
   "ui": {
     "accentColor": "强调色",
@@ -246,6 +246,7 @@
     "logSampleLabel": "样本",
     "logTypeLabel": "日志类型",
     "lowerFilterOrder": "移动到上一行",
+    "maxPartsLabel": "最大分割数",
     "menuAbout": "关于",
     "menuCheckUpdates": "检查更新",
     "menuDebug": "调试",
@@ -341,7 +342,6 @@
     "updateDialogConfirm": "下载",
     "updateDialogMessage": "新版本 %s 可用。你想下载吗？",
     "updateDialogTitle": "有新的更新可用",
-    "windowedMode": "窗口模式",
-    "wordSeparatorMaxPartsLabel": "最大分割数"
+    "windowedMode": "窗口模式"
   }
 }

@@ -187,6 +187,7 @@ class ParserEditPanel : JPanel(), LogMetadataEditor, ParseOpEventListener, Scrol
                     logType = logMetadata.model.logType
                 ).toEditModel(isNightMode = logMetadata.isDarkMode)
             )
+            notifyEditStateChanged()
         }
 
         fun addOnAddOpClickListener(listener: () -> Unit) {
