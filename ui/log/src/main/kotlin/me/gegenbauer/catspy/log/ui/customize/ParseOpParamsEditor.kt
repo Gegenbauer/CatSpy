@@ -142,11 +142,19 @@ class SplitByWordSeparatorOpParamsEditor(maxParts: Int) : ParseOpParamsEditor<Sp
 class SplitPartWithCharOpParamsEditor(
     char: Char?,
     targetPartIndex: Int,
-    partCount: Int
+    partCount: Int,
+    maxParts: Int,
 ) : ParseOpParamsEditor<SplitPartWithCharOp>() {
 
+    private var maxParts: Int = 0
+        get() = maxPartsEditor.text.toIntOrNull() ?: Int.MAX_VALUE
+        private set(value) {
+            maxPartsEditor.text = value.toString()
+            field = value
+        }
+
     override val parseOp: SplitPartWithCharOp
-        get() = SplitPartWithCharOp(char, targetPartIndex)
+        get() = SplitPartWithCharOp(char, targetPartIndex, maxParts)
 
     private var char: Char? = char
         get() = charEditor.value
@@ -167,6 +175,9 @@ class SplitPartWithCharOpParamsEditor(
     private val targetPartIndexLabel = EditorLabel(STRINGS.ui.targetPartIndexLabel)
     private val partIndexEditor = NumberParamEditor(STRINGS.toolTip.targetPartIndex, 0, partCount)
 
+    private val maxPartsLabel = EditorLabel(STRINGS.ui.maxPartsLabel)
+    private val maxPartsEditor = NumberParamEditor(STRINGS.toolTip.maxParts, 0, 20)
+
     init {
         val fieldWidth = 50
 
@@ -180,8 +191,14 @@ class SplitPartWithCharOpParamsEditor(
         add(charLabel)
         add(charEditor)
 
+        maxPartsEditor.maximumSize = Dimension(fieldWidth, maxPartsEditor.preferredSize.height)
+        maxPartsEditor.minimumSize = Dimension(fieldWidth, maxPartsEditor.preferredSize.height)
+        add(maxPartsLabel)
+        add(maxPartsEditor)
+
         this.char = char
         this.targetPartIndex = targetPartIndex
+        this.maxParts = maxParts
     }
 
     override fun onPartCountChanged(partCount: Int) {
@@ -189,7 +206,7 @@ class SplitPartWithCharOpParamsEditor(
     }
 
     override fun getEditEventObservables(): List<EditEventSource> {
-        return listOf(charEditor, partIndexEditor)
+        return listOf(charEditor, partIndexEditor, maxPartsEditor)
     }
 }
 
