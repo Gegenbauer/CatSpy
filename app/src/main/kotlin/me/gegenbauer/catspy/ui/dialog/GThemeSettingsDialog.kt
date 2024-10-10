@@ -13,6 +13,7 @@ import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.globalLocale
 import me.gegenbauer.catspy.utils.ui.installKeyStrokeEscClosing
 import me.gegenbauer.catspy.utils.ui.showWarningDialog
+import me.gegenbauer.catspy.view.panel.ScrollConstrainedScrollablePanel
 import java.awt.*
 import java.awt.datatransfer.StringSelection
 import javax.swing.*
@@ -40,7 +41,8 @@ class GThemeSettingsDialog(
     }
 
     private fun initUI() {
-        val wrapGroupPanel = JPanel(BorderLayout(10, 10))
+        val wrapGroupPanel = ScrollConstrainedScrollablePanel(false)
+        wrapGroupPanel.layout = BorderLayout(10, 10)
         val groups = ArrayList<ISettingsGroup>()
         groups.add(AppearanceSettingsGroup(scope, this))
         groups.add(AdbSettingsGroup(scope, this))
@@ -50,7 +52,6 @@ class GThemeSettingsDialog(
 
         val rightPane = JScrollPane(wrapGroupPanel)
         rightPane.verticalScrollBar.unitIncrement = 16
-        rightPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
         rightPane.border = BorderFactory.createEmptyBorder(10, 3, 3, 10)
 
         val leftPane = JScrollPane(tree)

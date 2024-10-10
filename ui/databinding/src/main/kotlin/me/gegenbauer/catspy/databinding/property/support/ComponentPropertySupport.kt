@@ -1,11 +1,23 @@
 package me.gegenbauer.catspy.databinding.property.support
 
 import me.gegenbauer.catspy.databinding.bind.ObservableComponentProperty
-import me.gegenbauer.catspy.databinding.property.adapter.*
+import me.gegenbauer.catspy.databinding.property.adapter.AbstractButtonSelectedProperty
+import me.gegenbauer.catspy.databinding.property.adapter.JComboBoxListProperty
+import me.gegenbauer.catspy.databinding.property.adapter.JComboBoxSelectedItemProperty
+import me.gegenbauer.catspy.databinding.property.adapter.JComponentCustomControllerProperty
+import me.gegenbauer.catspy.databinding.property.adapter.JComponentEnabledProperty
+import me.gegenbauer.catspy.databinding.property.adapter.JComponentVisibilityProperty
+import me.gegenbauer.catspy.databinding.property.adapter.JLabelTextProperty
+import me.gegenbauer.catspy.databinding.property.adapter.JSplitPaneDividerProperty
+import me.gegenbauer.catspy.databinding.property.adapter.JTextComponentTextProperty
 import java.awt.event.HierarchyListener
 import java.awt.event.ItemListener
 import java.beans.PropertyChangeListener
-import javax.swing.*
+import javax.swing.AbstractButton
+import javax.swing.JComboBox
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JSplitPane
 import javax.swing.event.DocumentListener
 import javax.swing.event.ListDataListener
 import javax.swing.text.JTextComponent

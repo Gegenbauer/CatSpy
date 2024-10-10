@@ -16,10 +16,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-class FilterProperty(
+class FilterProperty internal constructor(
     val name: String,
     val columnId: Int = -1,
-    val keyPrefix: String = EMPTY_STRING,
+    private val keyPrefix: String = EMPTY_STRING,
     var hasHistory: Boolean = true,
     val isLevel: Boolean = false,
     initialEnabled: Boolean = true
@@ -103,13 +103,54 @@ class FilterProperty(
     }
 }
 
+interface FilterPropertyFactory {
+    fun createColumnFilterProperty(column: Column): FilterProperty
+
+    fun createMatchCaseFilterProperty(): FilterProperty
+
+    fun createFilterProperty(
+        name: String,
+        columnId: Int = -1,
+        keyPrefix: String = EMPTY_STRING,
+        hasHistory: Boolean = true,
+        isLevel: Boolean = false,
+        initialEnabled: Boolean = true
+    ): FilterProperty
+}
+
+object DefaultFilterPropertyFactory : FilterPropertyFactory {
+    override fun createColumnFilterProperty(column: Column): FilterProperty {
+        return FilterProperty(column.uiConf.filter.name, column.id, isLevel = column is Column.LevelColumn)
+    }
+
+    override fun createMatchCaseFilterProperty(): FilterProperty {
+        return FilterProperty(
+            GlobalStrings.MATCH_CASE,
+            FILTER_ID_MATCH_CASE,
+            initialEnabled = false,
+            hasHistory = false
+        )
+    }
+
+    override fun createFilterProperty(
+        name: String,
+        columnId: Int,
+        keyPrefix: String,
+        hasHistory: Boolean,
+        isLevel: Boolean,
+        initialEnabled: Boolean
+    ): FilterProperty {
+        return FilterProperty(name, columnId, keyPrefix, hasHistory, isLevel, initialEnabled)
+    }
+}
+
 fun LogMetadata.generateFilterProperties(): List<FilterProperty> {
     val properties = columns
         .filter { it.supportFilter && it.uiConf.column.isHidden.not() }
-        .map { FilterProperty(it.uiConf.filter.name, it.id, isLevel = it is Column.LevelColumn) }
+        .map(DefaultFilterPropertyFactory::createColumnFilterProperty)
         .toMutableList()
 
-    properties.add(FilterProperty(GlobalStrings.MATCH_CASE, FILTER_ID_MATCH_CASE, initialEnabled = false))
+    properties.add(DefaultFilterPropertyFactory.createMatchCaseFilterProperty())
     return properties
 }
 

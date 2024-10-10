@@ -6,6 +6,10 @@ import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
+import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.log.event.FullLogVisibilityChangedEvent
+import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
+import me.gegenbauer.catspy.utils.event.EventManager
 import me.gegenbauer.catspy.view.state.ListState
 import me.gegenbauer.catspy.view.state.StatefulPanel
 import javax.swing.JSplitPane
@@ -26,6 +30,12 @@ class SplitLogPane(
         }
     private val filterStatefulPanel = StatefulPanel()
     private val scope = MainScope()
+    private val eventManager: EventManager
+        get() = kotlin.run {
+            val logMainPanel = contexts.getContext(BaseLogMainPanel::class.java)
+                ?: error("No BaseLogMainPanel found in contexts")
+            ServiceManager.getContextService(logMainPanel, EventManager::class.java)
+        }
 
     init {
         continuousLayout = true
@@ -33,15 +43,51 @@ class SplitLogPane(
 
         filterStatefulPanel.setContent(filteredLogPanel)
         filterStatefulPanel.listState = ListState.NORMAL
+        observeListState(filteredTableModel)
+        observeFullPanelVisibility()
+
+        add(fullLogPanel, LEFT)
+        add(filterStatefulPanel, RIGHT)
+    }
+
+    private fun observeListState(filteredTableModel: LogTableModel) {
         scope.launch {
             filteredTableModel.logObservables.listState.collect {
                 filterStatefulPanel.listState =
                     if (it == ListState.LOADING) ListState.LOADING else ListState.NORMAL
             }
         }
+    }
 
-        add(fullLogPanel, LEFT)
-        add(filterStatefulPanel, RIGHT)
+    private fun observeFullPanelVisibility() {
+        scope.launch {
+            eventManager.collect {
+                if (it is FullLogVisibilityChangedEvent) {
+                    if (it.isVisible) {
+                        setDividerLocation(0.2)
+                        resetWithCurrentRotation()
+                    } else {
+                        remove(fullLogPanel)
+                    }
+                }
+            }
+        }
+    }
+
+    fun detachFullLogPanel() {
+        if (fullLogPanel.isWindowedMode) {
+            return
+        }
+        fullLogPanel.isWindowedMode = true
+        remove(fullLogPanel)
+        filteredLogPanel.binding.showFullLogBtnEnabled.updateValue(false)
+        SwingUtilities.updateComponentTreeUI(this)
+    }
+
+    fun attachFullLogPanel() {
+        filteredLogPanel.binding.showFullLogBtnEnabled.updateValue(true)
+        fullLogPanel.isWindowedMode = false
+        resetWithCurrentRotation()
     }
 
     private fun changeRotation(rotation: Rotation) {
@@ -85,7 +131,7 @@ class SplitLogPane(
         fullLogPanel.setParent(this)
     }
 
-    fun resetWithCurrentRotation() {
+    private fun resetWithCurrentRotation() {
         changeRotation(rotation)
     }
 
@@ -97,7 +143,6 @@ class SplitLogPane(
     }
 
     companion object {
-        private const val TAG = "SplitLogPane"
         private const val SPLIT_WEIGHT = 0.7
     }
 

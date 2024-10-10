@@ -1,20 +1,23 @@
 package me.gegenbauer.catspy.configuration
 
+import info.clearthought.layout.TableLayout
+import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import me.gegenbauer.catspy.databinding.property.support.PROPERTY_ENABLED
-import java.awt.*
-import javax.swing.*
+import java.awt.BorderLayout
+import javax.swing.BorderFactory
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.SwingConstants
 
 open class SettingsGroup(override val title: String) : ISettingsGroup {
-    private val gridPanel = JPanel(GridBagLayout())
+    private val gridPanel = JPanel()
 
     private val panel = JPanel().apply {
         layout = BorderLayout(5, 5)
         border = BorderFactory.createTitledBorder(title)
     }
-    private val c = GridBagConstraints().apply {
-        insets = Insets(5, 5, 5, 5)
-        weighty = 1.0
-    }
+    private val rows = mutableListOf<Row>()
 
     private var row = 0
 
@@ -31,33 +34,36 @@ open class SettingsGroup(override val title: String) : ISettingsGroup {
     }
 
     override fun addRow(label: String, tooltip: String?, comp: JComponent): JLabel {
-        c.gridy = row++
         val rowLbl = JLabel(label)
         rowLbl.labelFor = comp
         rowLbl.horizontalAlignment = SwingConstants.LEFT
-        c.gridx = 0
-        c.gridwidth = 1
-        c.anchor = GridBagConstraints.LINE_START
-        c.weightx = 0.8
-        c.fill = GridBagConstraints.NONE
-        gridPanel.add(rowLbl, c)
-        c.gridx = 1
-        c.gridwidth = GridBagConstraints.REMAINDER
-        c.anchor = GridBagConstraints.CENTER
-        c.weightx = 0.2
-        c.fill = GridBagConstraints.HORIZONTAL
 
         if (tooltip != null) {
             rowLbl.toolTipText = tooltip
             comp.toolTipText = tooltip
         }
-        gridPanel.add(comp, c)
         comp.addPropertyChangeListener(PROPERTY_ENABLED) { evt -> rowLbl.isEnabled = evt.newValue as Boolean }
+        rows.add(Row(rowLbl, comp))
+        row++
         return rowLbl
     }
 
+    private fun createTableLayout(): TableLayout {
+        val layout = TableLayout(
+            doubleArrayOf(0.25, 0.05, 0.7),
+            DoubleArray(row) { PREFERRED }
+        )
+        layout.hGap = 3
+        layout.vGap = 3
+        return layout
+    }
+
     override fun end() {
-        gridPanel.add(Box.createVerticalGlue())
+        gridPanel.layout = createTableLayout()
+        rows.forEachIndexed { index, row ->
+            gridPanel.add(row.label, "0, $index")
+            gridPanel.add(row.component, "2, $index")
+        }
     }
 
     override fun buildComponent(): JComponent {
@@ -67,4 +73,6 @@ open class SettingsGroup(override val title: String) : ISettingsGroup {
     override fun toString(): String {
         return title
     }
+
+    private class Row(val label: JLabel, val component: JComponent)
 }

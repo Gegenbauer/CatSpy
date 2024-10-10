@@ -27,6 +27,7 @@ dependencies {
     implementation(FormDev.fontJetbrainsMono)
     implementation(FormDev.fontRobotoMono)
     implementation(FormDev.fontRoboto)
+    implementation(TableLayout.tablelayout)
     api(files(FileDependency.jFontChooser))
 }
 

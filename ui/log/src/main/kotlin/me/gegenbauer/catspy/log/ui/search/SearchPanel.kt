@@ -17,8 +17,8 @@ import me.gegenbauer.catspy.databinding.property.support.textProperty
 import me.gegenbauer.catspy.databinding.property.support.visibilityProperty
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.log.filter.DefaultFilterPropertyFactory
 import me.gegenbauer.catspy.log.filter.FilterProperty
-import me.gegenbauer.catspy.log.filter.FilterProperty.Companion.FILTER_ID_MATCH_CASE
 import me.gegenbauer.catspy.log.ui.filter.FilterPropertyObserver
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.Key
@@ -78,9 +78,8 @@ interface ISearchFilterController {
 
 class SearchFilterController : ISearchFilterController, FilterPropertyObserver {
 
-    private val contentProperty = FilterProperty(FILTER_KEY_CONTENT)
-    private val matchCaseProperty =
-        FilterProperty(GlobalStrings.MATCH_CASE, FILTER_ID_MATCH_CASE, keyPrefix = FILTER_KEY_PREFIX)
+    private val contentProperty = DefaultFilterPropertyFactory.createFilterProperty(FILTER_KEY_CONTENT)
+    private val matchCaseProperty = DefaultFilterPropertyFactory.createMatchCaseFilterProperty()
     private val visibilityProperty = ObservableValueProperty(false)
     private val ignoreFastCallbackScheduler = IgnoreFastCallbackScheduler(Dispatchers.UI, UPDATE_HISTORY_INTERVAL)
 
@@ -202,7 +201,7 @@ class SearchPanel(override val contexts: Contexts = Contexts.default) : JPanel()
         selectedItemProperty(searchCombo) bindDual searchContentProperty.selectedItem
         selectedProperty(searchMatchCaseToggle) bindDual matchCaseProperty.enabled
         visibilityProperty(this) bindDual visibilityProperty
-        customProperty<FilterItem>(searchCombo, "filterItem", FilterItem.EMPTY_ITEM) bindDual searchContentProperty.filterItem
+        customProperty(searchCombo, "filterItem", FilterItem.EMPTY_ITEM) bindDual searchContentProperty.filterItem
     }
 
     override fun requestFocusOnSearchEditor() {

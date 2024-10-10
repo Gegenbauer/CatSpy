@@ -5,20 +5,37 @@ import com.formdev.flatlaf.icons.FlatAbstractIcon
 import com.formdev.flatlaf.util.ColorFunctions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import me.gegenbauer.catspy.configuration.*
+import me.gegenbauer.catspy.configuration.FontSupport
+import me.gegenbauer.catspy.configuration.GSettings
+import me.gegenbauer.catspy.configuration.SettingsContainer
+import me.gegenbauer.catspy.configuration.SettingsManager
+import me.gegenbauer.catspy.configuration.ThemeManager
+import me.gegenbauer.catspy.configuration.currentSettings
+import me.gegenbauer.catspy.configuration.updateUIWithAnim
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
-import me.gegenbauer.catspy.view.panel.VerticalFlexibleWidthLayout
+import me.gegenbauer.catspy.log.ui.customize.CenteredDualDirectionPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.globalLocale
 import me.gegenbauer.catspy.strings.supportLocales
+import me.gegenbauer.catspy.utils.ui.setWidth
+import me.gegenbauer.catspy.view.panel.VerticalFlexibleWidthLayout
+import me.gegenbauer.catspy.view.textpane.HintTextPane
 import say.swing.JFontChooser
 import java.awt.Color
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.*
+import javax.swing.ButtonGroup
+import javax.swing.JButton
+import javax.swing.JComboBox
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JToggleButton
+import javax.swing.JToolBar
+import javax.swing.UIManager
 
 class AppearanceSettingsGroup(
     scope: CoroutineScope,
@@ -26,7 +43,8 @@ class AppearanceSettingsGroup(
 ) : BaseSettingsGroup(STRINGS.ui.appearance, scope, container) {
 
     override fun initGroup() {
-        val languageModifiedHint = JLabel(EMPTY_STRING)
+        val languageModifiedHint = HintTextPane()
+        languageModifiedHint.text = EMPTY_STRING
         languageModifiedHint.foreground = UIManager.getColor("CatSpy.accent.red")
         val languageCbx = JComboBox(supportLocales.map { it.displayName }.toTypedArray())
         languageCbx.addActionListener {
@@ -34,6 +52,8 @@ class AppearanceSettingsGroup(
             SettingsManager.updateSettings { this.mainUISettings.locale = locale.ordinal }
             if (locale == globalLocale) {
                 languageModifiedHint.text = EMPTY_STRING
+                languageModifiedHint.parent?.revalidate()
+                languageModifiedHint.parent?.repaint()
                 return@addActionListener
             }
             languageModifiedHint.text = STRINGS.ui.languageSettingHint
@@ -60,22 +80,22 @@ class AppearanceSettingsGroup(
         val changeUIFontBtn = JButton(STRINGS.ui.change)
         val changeLogFontBtn = JButton(STRINGS.ui.change)
 
-        addRow(STRINGS.ui.language, languageEditPanel)
-        addRow(STRINGS.ui.menuTheme, lafCbx)
+        addRow(STRINGS.ui.language, createSingleComponentRow(languageEditPanel))
+        addRow(STRINGS.ui.menuTheme, createSingleComponentRow(lafCbx))
         val uiFontLabel = addRow(
             getFontLabelStr(
                 STRINGS.ui.uiFont,
                 SettingsManager.settings.themeSettings.uiFont.nativeFont
-            ), changeUIFontBtn
+            ), createSingleComponentRow(changeUIFontBtn)
         )
         val logFontLabel = addRow(
             getFontLabelStr(
                 STRINGS.ui.logFont,
                 SettingsManager.settings.logSettings.font.nativeFont
-            ), changeLogFontBtn
+            ), createSingleComponentRow(changeLogFontBtn)
         )
         if (ThemeManager.isAccentColorSupported) {
-            addRow(STRINGS.ui.accentColor, createColorChoosePanel())
+            addRow(STRINGS.ui.accentColor, createSingleComponentRow(createColorChoosePanel()))
         }
         end()
 
@@ -105,6 +125,14 @@ class AppearanceSettingsGroup(
                 }
             }
         })
+    }
+
+    private fun createSingleComponentRow(component: JComponent): JPanel {
+        val panel = CenteredDualDirectionPanel()
+        component.maximumSize = Dimension(250, Int.MAX_VALUE)
+        component.setWidth(300)
+        panel.addRight(component)
+        return panel
     }
 
     private fun createColorChoosePanel(): JToolBar {
@@ -154,7 +182,4 @@ class AppearanceSettingsGroup(
         return "${STRINGS.ui.uiFont}: ${font.fontName} $fontStyleName ${font.size}"
     }
 
-    companion object {
-
-    }
 }

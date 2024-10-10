@@ -35,6 +35,7 @@ import me.gegenbauer.catspy.view.button.IconBarButton
 import me.gegenbauer.catspy.view.combobox.readOnlyComboBox
 import me.gegenbauer.catspy.view.panel.StatusBar
 import java.awt.Component
+import java.io.File
 
 class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
     override val tag: String = "DeviceLogMainPanel"
@@ -94,11 +95,13 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
         }
     }
 
-    private fun checkAdbPath() {
+    private fun checkAdbPath(): Boolean {
         val adbPath = SettingsManager.adbPath
-        if (adbPath.isEmpty()) {
+        if (adbPath.isEmpty() || File(adbPath).exists().not()) {
             showAdbPathSettings()
+            return false
         }
+        return true
     }
 
     private fun showAdbPathSettings() {
@@ -121,7 +124,9 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
 
     override fun onStartClicked() {
         super.onStartClicked()
-        startLogcat()
+        if (checkAdbPath()) {
+            startLogcat()
+        }
     }
 
     private fun startLogcat() {

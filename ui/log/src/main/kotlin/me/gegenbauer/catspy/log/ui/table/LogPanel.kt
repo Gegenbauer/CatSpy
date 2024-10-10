@@ -15,7 +15,6 @@ import me.gegenbauer.catspy.utils.ui.applyTooltip
 import me.gegenbauer.catspy.view.button.IconBarButton
 import me.gegenbauer.catspy.view.button.IconBarToggleButton
 import me.gegenbauer.catspy.view.container.WrapablePanel
-import me.gegenbauer.catspy.view.panel.HorizontalFlexibleHeightLayout
 import me.gegenbauer.catspy.view.table.PageIndicator
 import me.gegenbauer.catspy.view.table.PageMetadata
 import me.gegenbauer.catspy.view.table.RowNavigation
@@ -27,6 +26,7 @@ import java.awt.event.AdjustmentEvent
 import java.awt.event.AdjustmentListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.BorderFactory
 import javax.swing.JPanel
 import javax.swing.JScrollBar
 import javax.swing.event.ListSelectionEvent
@@ -40,7 +40,8 @@ abstract class LogPanel(
 ) : JPanel(), Context, ListSelectionListener, RowNavigation by table {
 
     val binding = LogPanelBinding()
-    protected val ctrlMainPanel: JPanel = WrapablePanel()
+    protected val ctrlMainPanel = WrapablePanel()
+    protected val buttonMargin = Insets(0, 3, 0, 3)
 
     private val topBtn = IconBarButton(GIcons.Action.Top.get()) applyTooltip STRINGS.toolTip.viewFirstBtn
     private val bottomBtn = IconBarButton(GIcons.Action.Bottom.get()) applyTooltip STRINGS.toolTip.viewLastBtn
@@ -101,6 +102,7 @@ abstract class LogPanel(
         val scrollToEnd = ObservableValueProperty(true)
         val fullMode = ObservableValueProperty(false)
         val bookmarkMode = ObservableValueProperty(false)
+        val showFullLogBtnEnabled = ObservableValueProperty(true)
     }
 
     protected open fun bind(binding: LogPanelBinding) {
@@ -126,28 +128,24 @@ abstract class LogPanel(
     protected open fun createUI() {
         layout = BorderLayout()
         scrollPane.minimumSize = Dimension(0, 0)
-        Insets(0, 3, 0, 3).apply {
+        buttonMargin.apply {
             topBtn.margin = this
             bottomBtn.margin = this
             scrollToEndBtn.margin = this
         }
+        ctrlMainPanel.border = BorderFactory.createEmptyBorder(0, 4, 0, 0)
 
         table.columnSelectionAllowed = true
         table.listSelectionHandler = this
         scrollPane.verticalScrollBar.unitIncrement = 20
 
-        val ctrlPanel = JPanel()
-        ctrlPanel.layout = HorizontalFlexibleHeightLayout()
-        ctrlPanel.add(ctrlMainPanel)
-
-        add(ctrlPanel, BorderLayout.NORTH)
+        add(ctrlMainPanel, BorderLayout.NORTH)
         add(vStatusPanel, BorderLayout.WEST)
         add(scrollPane, BorderLayout.CENTER)
         add(pageNavigationPanel, BorderLayout.SOUTH)
     }
 
-    open fun updateTableBar() {
-        ctrlMainPanel.removeAll()
+    open fun createTableBar() {
         ctrlMainPanel.add(topBtn)
         ctrlMainPanel.add(bottomBtn)
         ctrlMainPanel.add(scrollToEndBtn)

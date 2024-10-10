@@ -12,7 +12,11 @@ import me.gegenbauer.catspy.configuration.SettingsContainer
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.configuration.SettingsManager.settings
 import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.ddmlib.adb.*
+import me.gegenbauer.catspy.ddmlib.adb.AdbConf
+import me.gegenbauer.catspy.ddmlib.adb.AdbServerStartResult
+import me.gegenbauer.catspy.ddmlib.adb.isServerRunning
+import me.gegenbauer.catspy.ddmlib.adb.isSuccess
+import me.gegenbauer.catspy.ddmlib.adb.startServer
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.platform.currentPlatform
@@ -21,7 +25,11 @@ import me.gegenbauer.catspy.utils.ui.DefaultDocumentListener
 import me.gegenbauer.catspy.utils.ui.getDefaultFileChooser
 import java.awt.Component
 import java.io.File
-import javax.swing.*
+import javax.swing.JButton
+import javax.swing.JFileChooser
+import javax.swing.JOptionPane
+import javax.swing.JPanel
+import javax.swing.JTextField
 import javax.swing.filechooser.FileFilter
 
 class AdbSettingsGroup(

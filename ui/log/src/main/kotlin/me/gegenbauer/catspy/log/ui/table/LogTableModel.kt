@@ -5,6 +5,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.CPU
+import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.concurrency.ViewModelScope
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
@@ -262,7 +263,9 @@ open class LogTableModel(
             }
 
             if (idxFound >= 0) {
-                table.moveRowToCenter(idxFound, true)
+                withContext(Dispatchers.UI) {
+                    table.moveRowToCenter(idxFound, true)
+                }
                 EMPTY_STRING
             } else {
                 "\"$searchFilterItem\" ${STRINGS.ui.notFound}"

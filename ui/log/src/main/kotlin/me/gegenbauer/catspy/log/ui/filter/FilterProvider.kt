@@ -1,8 +1,8 @@
 package me.gegenbauer.catspy.log.ui.filter
 
-import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.log.filter.ColumnFilter
+import me.gegenbauer.catspy.log.filter.DefaultFilterPropertyFactory
 import me.gegenbauer.catspy.log.filter.FilterFactory
 import me.gegenbauer.catspy.log.filter.FilterProperty
 import me.gegenbauer.catspy.log.filter.getFilterFactory
@@ -31,7 +31,7 @@ class FilterProvider : IFilterProvider, FilterPropertyObserver {
     private val filters = mutableMapOf<Int, ColumnFilter>()
     private val matchCaseFilterProperty: FilterProperty
         get() = filterProperties[FilterProperty.FILTER_ID_MATCH_CASE]
-            ?: FilterProperty(GlobalStrings.MATCH_CASE, FilterProperty.FILTER_ID_MATCH_CASE)
+            ?: DefaultFilterPropertyFactory.createMatchCaseFilterProperty()
 
     private val matchCase: Boolean
         get() = matchCaseFilterProperty.enabled.getValueNonNull()

@@ -25,6 +25,7 @@ import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.log.datasource.LogViewModel
 import me.gegenbauer.catspy.log.datasource.TaskState
+import me.gegenbauer.catspy.log.event.FullLogWindowModeChangedEvent
 import me.gegenbauer.catspy.log.filter.FilterProperty
 import me.gegenbauer.catspy.log.filter.FilterRecord
 import me.gegenbauer.catspy.log.metadata.Column
@@ -33,7 +34,6 @@ import me.gegenbauer.catspy.log.ui.LogConfiguration
 import me.gegenbauer.catspy.log.ui.customize.CenteredDualDirectionPanel
 import me.gegenbauer.catspy.log.ui.search.ISearchPanel
 import me.gegenbauer.catspy.log.ui.table.FilteredLogTableModel
-import me.gegenbauer.catspy.log.ui.table.FullLogPanel
 import me.gegenbauer.catspy.log.ui.table.GoToDialog
 import me.gegenbauer.catspy.log.ui.table.LogDetailDialog
 import me.gegenbauer.catspy.log.ui.table.LogTableDialog
@@ -42,6 +42,7 @@ import me.gegenbauer.catspy.log.ui.table.SplitLogPane
 import me.gegenbauer.catspy.log.ui.table.nextRotation
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.utils.event.EventManager
 import me.gegenbauer.catspy.utils.ui.Key
 import me.gegenbauer.catspy.utils.ui.findFrameFromParent
 import me.gegenbauer.catspy.utils.ui.registerStroke
@@ -65,7 +66,6 @@ import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JOptionPane
 import javax.swing.JPanel
-import javax.swing.SwingUtilities
 
 abstract class BaseLogMainPanel : BaseTabPanel() {
 
@@ -102,6 +102,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     private val statusBar = ServiceManager.getContextService(StatusPanel::class.java)
 
     protected val logMainBinding by lazy { ServiceManager.getContextService(this, LogMainBinding::class.java) }
+    protected val eventManager by lazy { ServiceManager.getContextService(this, EventManager::class.java) }
     protected var taskState: TaskUIState = TaskNone()
         set(value) {
             field = value
@@ -170,8 +171,8 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
 
         layout = BorderLayout()
 
-        splitLogPane.fullLogPanel.updateTableBar()
-        splitLogPane.filteredLogPanel.updateTableBar()
+        splitLogPane.fullLogPanel.createTableBar()
+        splitLogPane.filteredLogPanel.createTableBar()
 
         splitLogPane.isOneTouchExpandable = false
 
@@ -209,7 +210,8 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
         saveBtn.addActionListener(actionHandler)
 
         observeFullLogListState()
-        observeEventFlow()
+        observeLogEvent()
+        observeOtherEvent()
         observeViewModelValue()
     }
 
@@ -363,7 +365,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
         }
     }
 
-    private fun observeEventFlow() {
+    private fun observeLogEvent() {
         scope.launch {
             logViewModel.eventFlow.collect {
                 Log.d(tag, "[observeEventFlow] event: $it")
@@ -402,6 +404,22 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
 
             TaskState.PAUSED -> {
                 TaskPaused(this)
+            }
+        }
+    }
+
+    private fun observeOtherEvent() {
+        scope.launch {
+            eventManager.collect { event ->
+                when (event) {
+                    is FullLogWindowModeChangedEvent -> {
+                        if (event.enabled) {
+                            showLogPanelInWindow()
+                        } else {
+                            splitLogPane.attachFullLogPanel()
+                        }
+                    }
+                }
             }
         }
     }
@@ -518,25 +536,12 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
             .show()
     }
 
-    private fun detachLogPanel(logPanel: FullLogPanel) {
-        if (logPanel.parent == splitLogPane) {
-            logPanel.isWindowedMode = true
-            splitLogPane.remove(logPanel)
-            SwingUtilities.updateComponentTreeUI(splitLogPane)
-        }
-    }
-
-    internal fun showLogPanelInWindow(logPanel: FullLogPanel) {
-        detachLogPanel(logPanel)
-        val logTableDialog = LogTableDialog(logPanel) {
-            attachLogPanel(logPanel)
+    private fun showLogPanelInWindow() {
+        splitLogPane.detachFullLogPanel()
+        val logTableDialog = LogTableDialog(splitLogPane.fullLogPanel) {
+            splitLogPane.attachFullLogPanel()
         }
         logTableDialog.isVisible = true
-    }
-
-    private fun attachLogPanel(logPanel: FullLogPanel) {
-        logPanel.isWindowedMode = false
-        splitLogPane.resetWithCurrentRotation()
     }
 
     override fun onTabSelected() {
