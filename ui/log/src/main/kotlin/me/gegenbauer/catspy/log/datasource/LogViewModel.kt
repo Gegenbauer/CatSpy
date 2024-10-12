@@ -4,6 +4,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.BufferOverflow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -465,16 +467,33 @@ class LogViewModel(
         }
 
         private fun CoroutineScope.filterLog(filter: LogFilter) {
-            filteredLogRepo.writeLogItems { filteredItems ->
-                filteredItems.clear()
-                filteredLogRepo.submitLogItems()
-                fullLogRepo.readLogItems { fullItems ->
-                    fullItems.forEach { item ->
-                        ensureActive()
-                        filteredLogRepo.onReceiveLogItem(item, filter)
+            val batchSize = FILTER_BATCH_SIZE
+            val fullItems = fullLogRepo.readLogItems { it.toList() }
+            val batches = fullItems.chunked(batchSize)
+
+            measureTimeMillis {
+                filteredLogRepo.writeLogItems { filteredItems ->
+                    filteredItems.clear()
+                    filteredLogRepo.submitLogItems()
+
+                    val deferredResults = batches.map { batch ->
+                        async {
+                            batch.filter { item ->
+                                ensureActive()
+                                filter.match(item)
+                            }
+                        }
+                    }
+
+                    runBlocking {
+                        deferredResults.forEach { deferred ->
+                            val filteredBatch = deferred.await()
+                            filteredItems.addAll(filteredBatch)
+                        }
+                        filteredLogRepo.submitLogItems()
                     }
                 }
-            }
+            }.let { Log.d(TAG, "[filterLog] cost=${formatDuration(it)}") }
         }
 
         fun registerFilterStateObserver() {
@@ -548,6 +567,7 @@ class LogViewModel(
         private const val START_TASK_INTERVAL = 100L
         private const val PRODUCE_LOADING_ANIM_MIN_DURATION = 500L
         private const val FILTER_LOADING_ANIM_MIN_DURATION = 100L
+        private const val FILTER_BATCH_SIZE = 100000
     }
 }
 
