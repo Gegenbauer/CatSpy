@@ -241,11 +241,11 @@ open class LogTableModel(
         val table = getLogTable()
         table ?: return EMPTY_STRING
 
-        val minNum = items.first().num
-        val maxNum = items.last().num
-        val selectedLogItem = getItemInCurrentPage(selectedRow)
-        val targetNum = selectedLogItem.run { if (isNext) this.num + 1 else this.num - 1 }
-        val shouldReturn = targetNum < minNum || targetNum > maxNum
+        val minIndex = 0
+        val maxIndex = items.lastIndex
+        val selectedLogIndex = currentPage * pageSize + selectedRow
+        val targetIndex = selectedLogIndex.let { if (isNext) it + 1 else it - 1 }
+        val shouldReturn = targetIndex < minIndex || targetIndex > maxIndex
 
         if (shouldReturn) {
             return "\"$searchFilterItem\" ${STRINGS.ui.notFound}"
@@ -253,12 +253,12 @@ open class LogTableModel(
 
         return withContext(Dispatchers.CPU) {
             val idxFound = if (isNext) {
-                (targetNum until maxNum).firstOrNull {
-                    searchFilterItem.matches(items[it - minNum].toString())
+                (targetIndex until maxIndex).firstOrNull {
+                    searchFilterItem.matches(items[it].toString())
                 } ?: -1
             } else {
-                (targetNum downTo minNum).firstOrNull {
-                    searchFilterItem.matches(items[it - minNum].toString())
+                (targetIndex downTo minIndex).firstOrNull {
+                    searchFilterItem.matches(items[it].toString())
                 } ?: -1
             }
 
