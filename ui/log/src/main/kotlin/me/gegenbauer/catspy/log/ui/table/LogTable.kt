@@ -42,13 +42,12 @@ import javax.swing.JMenuItem
 import javax.swing.JOptionPane
 import javax.swing.JPopupMenu
 import javax.swing.JTable
-import javax.swing.JTextPane
 import javax.swing.JViewport
 import javax.swing.KeyStroke
 import javax.swing.ListSelectionModel
 import javax.swing.SwingUtilities
 import javax.swing.event.ListSelectionListener
-import javax.swing.text.html.HTMLEditorKit
+import javax.swing.text.JTextComponent
 
 class LogTable(
     val tableModel: LogTableModel,
@@ -264,10 +263,8 @@ class LogTable(
             return
         }
 
-        suspend fun collectRenderedContent(rows: List<Int>): String {
-            return withContext(Dispatchers.CPU) {
-                logConf.getRenderedContent(this@LogTable, rows.toList())
-            }
+        suspend fun buildRendererComponent(rows: List<Int>): JTextComponent {
+            return logConf.buildDetailRendererComponent(this@LogTable, rows.toList())
         }
 
         fun realShowSelected(rows: IntArray) {
@@ -278,8 +275,8 @@ class LogTable(
                     .coerceAtMost(rowCount - 1)).toList()
             }
             scope.launch {
-                val content = collectRenderedContent(displayedRows)
-                showSelectedRowsInDialog(this@LogTable, content, logDetailPopupActionsProvider.invoke())
+                val component = buildRendererComponent(displayedRows)
+                showComponentInDialog(this@LogTable, component, logDetailPopupActionsProvider.invoke())
             }
         }
 
@@ -292,16 +289,13 @@ class LogTable(
         }
     }
 
-    private fun showSelectedRowsInDialog(
+    private fun showComponentInDialog(
         logTable: LogTable,
-        content: String,
+        textComponent: JTextComponent,
         popupActions: List<LogDetailDialog.PopupAction>
     ) {
-        val dialogTextComponent = JTextPane()
-        dialogTextComponent.editorKit = HTMLEditorKit()
-        dialogTextComponent.text = content
         val frame = logTable.contexts.getContext(JFrame::class.java) ?: return
-        val logViewDialog = LogDetailDialog(frame, dialogTextComponent, popupActions, logConf.logMetaData)
+        val logViewDialog = LogDetailDialog(frame, textComponent, popupActions, logConf.logMetaData)
         logViewDialog.setLocationRelativeTo(frame)
         logViewDialog.isVisible = true
     }

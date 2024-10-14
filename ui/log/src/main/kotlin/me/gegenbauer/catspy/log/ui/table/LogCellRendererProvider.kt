@@ -13,6 +13,7 @@ import java.awt.Graphics
 import java.awt.Insets
 import javax.swing.border.AbstractBorder
 import javax.swing.table.TableCellRenderer
+import javax.swing.text.JTextComponent
 
 interface LogCellRendererProvider {
 
@@ -22,7 +23,7 @@ interface LogCellRendererProvider {
 
     fun createRenderer(column: Column): LogCellRenderer
 
-    suspend fun getRenderedContent(logTable: LogTable, rows: List<Int>): String
+    suspend fun buildDetailRendererComponent(logTable: LogTable, rows: List<Int>): JTextComponent
 }
 
 interface LogCellRenderer : TableCellRenderer {
@@ -33,7 +34,7 @@ interface LogCellRenderer : TableCellRenderer {
 }
 
 abstract class BaseLogCellRendererProvider : LogCellRendererProvider {
-    protected lateinit var logMetadata: LogMetadata
+    lateinit var logMetadata: LogMetadata
         private set
 
     private val levelKeywordToLevels = mutableMapOf<String, DisplayedLevel>()

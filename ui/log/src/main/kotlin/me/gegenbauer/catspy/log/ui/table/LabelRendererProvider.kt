@@ -24,7 +24,10 @@ import java.awt.Component
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.JTable
+import javax.swing.JTextPane
 import javax.swing.table.DefaultTableCellRenderer
+import javax.swing.text.JTextComponent
+import javax.swing.text.html.HTMLEditorKit
 
 class LabelRendererProvider : BaseLogCellRendererProvider() {
 
@@ -40,10 +43,10 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
         }
     }
 
-    override suspend fun getRenderedContent(
+    override suspend fun buildDetailRendererComponent(
         logTable: LogTable,
         rows: List<Int>,
-    ): String {
+    ): JTextComponent {
         fun renderLogFilter(renderer: StringRenderer, logFilterItem: FilterItem, content: String) {
             val matchedList = logFilterItem.getMatchedList(content)
             matchedList.forEach {
@@ -69,7 +72,9 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
             ?: emptyList()
         val searchFilterItem = logTable.tableModel.searchFilterItem
 
-        return withContext(Dispatchers.CPU) {
+        val dialogTextComponent = JTextPane()
+        dialogTextComponent.editorKit = HTMLEditorKit()
+        dialogTextComponent.text = withContext(Dispatchers.CPU) {
             rows.forEachIndexed { index, row ->
                 ensureActive()
                 val logItem = logTable.tableModel.getItemInCurrentPage(row)
@@ -88,6 +93,7 @@ class LabelRendererProvider : BaseLogCellRendererProvider() {
             }
             renderedContent.use { it.build() }
         }
+        return dialogTextComponent
     }
 
     private inner class LevelCellRenderer(logMetadata: LogMetadata) : LabelLogTableCellRenderer(logMetadata) {

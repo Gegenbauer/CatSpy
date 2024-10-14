@@ -6,9 +6,26 @@ import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.Key
 import me.gegenbauer.catspy.utils.ui.installKeyStrokeEscClosing
 import me.gegenbauer.catspy.utils.ui.keyEventInfo
+import me.gegenbauer.catspy.view.panel.ScrollConstrainedScrollablePanel
+import me.gegenbauer.catspy.view.panel.VerticalFlexibleWidthLayout
 import java.awt.Dimension
-import java.awt.event.*
-import javax.swing.*
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.WindowEvent
+import java.awt.event.WindowFocusListener
+import javax.swing.BorderFactory
+import javax.swing.JDialog
+import javax.swing.JFrame
+import javax.swing.JMenuItem
+import javax.swing.JPopupMenu
+import javax.swing.JScrollPane
+import javax.swing.SwingUtilities
 import javax.swing.text.JTextComponent
 
 open class LogDetailDialog(
@@ -18,10 +35,13 @@ open class LogDetailDialog(
     logMetadata: LogMetadata
 ) : JDialog(parent, false) {
 
-    private val scrollPane = JScrollPane(textComponent)
+    private val contentContainer = ScrollConstrainedScrollablePanel(false)
+    private val scrollPane = JScrollPane(contentContainer)
     private val popupMenu = PopUpLogViewDialog()
 
     init {
+        contentContainer.layout = VerticalFlexibleWidthLayout()
+        contentContainer.add(textComponent)
         isUndecorated = true
         textComponent.isEditable = false
         textComponent.caret.isVisible = true

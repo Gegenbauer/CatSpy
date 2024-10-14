@@ -11,6 +11,7 @@ import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
 import javax.swing.JTable
 import javax.swing.table.TableColumn
+import javax.swing.text.JTextComponent
 
 interface ILogRenderer {
 
@@ -22,7 +23,7 @@ interface ILogRenderer {
 
     fun configureColumn(table: LogTable)
 
-    suspend fun getRenderedContent(logTable: LogTable, rows: List<Int>): String
+    suspend fun buildDetailRendererComponent(logTable: LogTable, rows: List<Int>): JTextComponent
 }
 
 class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRenderer, Context, PropertyChangeListener {
@@ -38,6 +39,7 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
     private var logType: String = EMPTY_STRING
 
     private val logCellRendererProvider = LabelRendererProvider()
+    private val detailRendererProvider = TextPaneRendererProvider()
     private val columnWidthManager = ColumnWidthManager()
 
     override fun setColumns(logMetadata: LogMetadata) {
@@ -51,8 +53,10 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
         updateColumnCache(displayedColumns)
 
         logCellRendererProvider.setLogMetadata(logMetadata)
+        detailRendererProvider.setLogMetadata(logMetadata)
         val levelPartIndex = displayedColumns.firstOrNull { it is Column.LevelColumn }?.partIndex ?: 0
         logCellRendererProvider.setLevelPartIndex(levelPartIndex)
+        detailRendererProvider.setLevelPartIndex(levelPartIndex)
 
         updateRendererCache(displayedColumns)
     }
@@ -149,8 +153,8 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
         configureColumnWidth(table)
     }
 
-    override suspend fun getRenderedContent(logTable: LogTable, rows: List<Int>): String {
-        return logCellRendererProvider.getRenderedContent(logTable, rows)
+    override suspend fun buildDetailRendererComponent(logTable: LogTable, rows: List<Int>): JTextComponent {
+        return detailRendererProvider.buildDetailRendererComponent(logTable, rows)
     }
 
     private class ColumnWidthManager {
