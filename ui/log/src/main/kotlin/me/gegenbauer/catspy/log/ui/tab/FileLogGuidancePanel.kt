@@ -29,6 +29,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.swing.BorderFactory
+import javax.swing.JFrame
 import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JScrollPane
@@ -137,8 +138,9 @@ class FileLogGuidancePanel(
 
         private fun showFileNotExistsWarning(file: RecentFile) {
             val message = STRINGS.ui.fileNotExistWarning.get(file.path)
+            val frame = findFrameFromParent<JFrame>()
             JOptionPane.showMessageDialog(
-                this,
+                frame,
                 message,
                 EMPTY_STRING,
                 JOptionPane.WARNING_MESSAGE
