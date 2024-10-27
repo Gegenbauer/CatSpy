@@ -38,19 +38,35 @@ class TextPaneRendererProvider : BaseLogCellRendererProvider() {
     }
 
     override suspend fun buildDetailRendererComponent(logTable: LogTable, rows: List<Int>): JTextComponent {
-        fun renderLogFilter(renderer: StringRenderer, logFilterItem: FilterItem, content: String) {
+        fun renderLogFilter(renderer: StringRenderer, logFilterItem: FilterItem, content: String, offset: Int) {
             val matchedList = logFilterItem.getMatchedList(content)
             matchedList.forEach {
-                renderer.highlight(it.first, it.second, logMetadata.colorScheme.filterContentBackground)
-                renderer.foreground(it.first, it.second, logMetadata.colorScheme.filterContentForeground)
+                renderer.highlight(
+                    it.first + offset,
+                    it.second + offset,
+                    logMetadata.colorScheme.filterContentBackground
+                )
+                renderer.foreground(
+                    it.first + offset,
+                    it.second + offset,
+                    logMetadata.colorScheme.filterContentForeground
+                )
             }
         }
 
-        fun renderSearchFilter(renderer: StringRenderer, searchFilterItem: FilterItem, content: String) {
+        fun renderSearchFilter(renderer: StringRenderer, searchFilterItem: FilterItem, content: String, offset: Int) {
             val matchedList = searchFilterItem.getMatchedList(content)
             matchedList.forEach {
-                renderer.highlight(it.first, it.second, logMetadata.colorScheme.searchContentBackground)
-                renderer.foreground(it.first, it.second, logMetadata.colorScheme.searchContentForeground)
+                renderer.highlight(
+                    it.first + offset,
+                    it.second + offset,
+                    logMetadata.colorScheme.searchContentBackground
+                )
+                renderer.foreground(
+                    it.first + offset,
+                    it.second + offset,
+                    logMetadata.colorScheme.searchContentForeground
+                )
             }
         }
 
@@ -73,8 +89,8 @@ class TextPaneRendererProvider : BaseLogCellRendererProvider() {
                     it.highlight(offset, offset + line.length - 1, logBackground)
                     val foreground = getLevel(logItem).logForeground
                     it.foreground(offset, offset + line.length - 1, foreground)
-                    logFilterItems.forEach { filterItem -> renderLogFilter(it, filterItem, line) }
-                    renderSearchFilter(it, searchFilterItem, line)
+                    logFilterItems.forEach { filterItem -> renderLogFilter(it, filterItem, line, offset) }
+                    renderSearchFilter(it, searchFilterItem, line, offset)
                     offset += line.length + 1
                 }
                 it.updateRaw(content)
