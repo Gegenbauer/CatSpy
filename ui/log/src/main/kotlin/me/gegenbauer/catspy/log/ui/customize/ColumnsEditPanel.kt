@@ -198,6 +198,9 @@ class ColumnsEditPanel : BaseEditableTablePanel<ColumnModel>() {
     private fun isNameAlreadyUsed(name: String): Boolean {
         val model = table.model as DefaultTableModel
         for (i in 0 until model.rowCount) {
+            if (i == table.selectedRow) {
+                continue
+            }
             if (model.getValueAt(i, COLUMN_NAME_INDEX) == name) {
                 return true
             }
