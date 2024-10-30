@@ -16,13 +16,13 @@ interface LogProducer {
     val tempFile: File
 
     val isRunning: Boolean
-        get() = state.value == State.RUNNING
+        get() = state.value is State.Running
 
     val isActive: Boolean
-        get() = state.value == State.RUNNING || state.value == State.PAUSED
+        get() = state.value is State.Running || state.value == State.Paused
 
     val isPaused: Boolean
-        get() = state.value == State.PAUSED
+        get() = state.value == State.Paused
 
     fun start(): Flow<Result<LogItem>>
 
@@ -41,8 +41,22 @@ interface LogProducer {
      */
     fun moveToState(state: State)
 
-    enum class State {
-        CREATED, RUNNING, PAUSED, CANCELED, COMPLETE
+    sealed class State {
+        object Created : State()
+        class Running(val isIntermediate: Boolean = false, val progress: Int = 0, val max: Int = 100) : State()
+        object Paused : State()
+        object Canceled : State()
+        object Complete : State()
+
+        companion object {
+            fun running(progress: Int, max: Int): Running {
+                return Running(isIntermediate = false, progress = progress, max = max)
+            }
+
+            fun intermediateRunning(): Running {
+                return Running(isIntermediate = true)
+            }
+        }
     }
 }
 
@@ -50,7 +64,7 @@ object EmptyLogProducer : LogProducer {
     override val dispatcher: CoroutineDispatcher
         get() = throw IllegalStateException("EmptyLogProducer should not use dispatcher")
 
-    override val state: StateFlow<LogProducer.State> = MutableStateFlow(LogProducer.State.CREATED)
+    override val state: StateFlow<LogProducer.State> = MutableStateFlow(LogProducer.State.Created)
 
     override val tempFile: File = File(EMPTY_STRING)
 

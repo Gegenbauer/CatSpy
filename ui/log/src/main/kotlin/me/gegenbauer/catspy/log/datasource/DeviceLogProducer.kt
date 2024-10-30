@@ -32,9 +32,9 @@ import java.time.format.DateTimeFormatter
 
 class DeviceLogProducer(
     val device: String,
-    logParser: LogParser,
+    private val logParser: LogParser,
     override val dispatcher: CoroutineDispatcher = Dispatchers.GIO
-) : BaseLogProducer(logParser) {
+) : BaseLogProducer() {
     override val tempFile: File by lazy { getTempLogFile() }
     private val tempFileStream: OutputStream by lazy { BufferedOutputStream(tempFile.outputStream()) }
     private val processFetcher = AndroidProcessFetcher(device)
@@ -46,23 +46,24 @@ class DeviceLogProducer(
     }
 
     override fun start(): Flow<Result<LogItem>> {
-        val logcatOutput = commandExecutor.execute()
-        return logcatOutput.onStart {
-            processFetcher.init()
-        }.map { result ->
-            result.map { line ->
+        return commandExecutor.execute().map { result ->
+            if (result.isFailure) {
+                Result.failure(result.exceptionOrNull() ?: RuntimeException("Unknown error"))
+            } else {
+                val line = result.getOrDefault("")
                 suspender.checkSuspend()
                 writeToFile(line)
                 val num = logNum.getAndIncrement()
                 val parts = logParser.parse(line).toMutableList()
                 val packageName = processFetcher.queryPackageName(parts[PART_INDEX_PID], parts[PART_INDEX_TIME])
                 parts.add(PART_INDEX_PACKAGE, packageName)
-                LogItem(num, parts)
+                Result.success(LogItem(num, parts))
             }
         }.onStart {
-            moveToState(LogProducer.State.RUNNING)
+            processFetcher.init()
+            moveToState(LogProducer.State.intermediateRunning())
         }.onCompletion {
-            moveToState(LogProducer.State.COMPLETE)
+            moveToState(LogProducer.State.Complete)
             flushTempFile()
         }
     }

@@ -12,9 +12,11 @@ import java.io.File
 abstract class BaseCustomLogProducer(
     protected val logConfiguration: LogConfiguration,
     override val dispatcher: CoroutineDispatcher = Dispatchers.GIO
-) : BaseLogProducer(logConfiguration.logMetaData.parser) {
+) : BaseLogProducer() {
 
     override val tempFile: File = File(EMPTY_STRING)
+
+    protected val logParser = logConfiguration.logMetaData.parser
 
     protected fun generateLogItems(): List<LogItem> {
         val sampleLog = getSampleLogItem()

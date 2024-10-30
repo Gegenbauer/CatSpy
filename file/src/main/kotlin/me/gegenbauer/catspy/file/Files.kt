@@ -99,3 +99,28 @@ fun isValidFileName(name: String): Boolean {
 }
 
 const val FILE_NAME_INVALID_CHARS = "/\\:*?\"<>|"
+
+val archiveExtensions: Set<String> =
+    setOf("zip", "tar", "gz", "tgz", "tar.gz", "tar.bz2", "tar.xz", "7z", "rar")
+
+val singleFileArchiveExtensions: Set<String> = setOf("gz, bz2, xz")
+
+fun isSingleFileArchive(file: File): Boolean {
+    return file.extension in singleFileArchiveExtensions && !file.nameWithoutExtension.endsWith(".tar")
+}
+
+/**
+ * Get the files from a list of files, recursively
+ */
+fun List<File>?.getFiles(): List<File> {
+    if (this == null) return emptyList()
+    val files = mutableListOf<File>()
+    forEach {
+        if (it.isDirectory) {
+            files.addAll(it.listFiles()?.toList().getFiles())
+        } else if (it.isFile) {
+            files.add(it)
+        }
+    }
+    return files
+}

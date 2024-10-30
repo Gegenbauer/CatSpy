@@ -114,10 +114,6 @@ class ScriptTabPanel : BaseTabPanel() {
         deviceManager.tryStopMonitor()
     }
 
-    override fun getTabContent(): JComponent {
-        return this
-    }
-
     private fun updateCardContent() {
         focusedActivityCard.updateContent()
     }

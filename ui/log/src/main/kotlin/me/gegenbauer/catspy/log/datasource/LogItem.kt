@@ -10,6 +10,8 @@ class LogItem(
         return if (index >= parts.size) EMPTY_STRING else parts[index]
     }
 
+    constructor(tag: String, content: String): this(0, listOf(tag, content))
+
     override fun toString(): String {
         return parts.joinToString(" ")
     }

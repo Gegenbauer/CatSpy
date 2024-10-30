@@ -17,7 +17,6 @@ class LogMetadata(
     val logType: String,
     val parser: LogParser,
     val columns: List<Column>,
-    val supportedFileExtensions: Set<String>,
     val isDeviceLog: Boolean = false,
     val isBuiltIn: Boolean = true,
     val description: String = EMPTY_STRING,
@@ -38,7 +37,7 @@ class LogMetadata(
         const val KEY = "logMetaData"
         const val VERSION = 2
 
-        val default = LogMetadata(EMPTY_STRING, LogParser.empty, emptyList(), emptySet())
+        val default = LogMetadata(EMPTY_STRING, LogParser.empty, emptyList())
     }
 }
 

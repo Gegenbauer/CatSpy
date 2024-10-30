@@ -46,7 +46,7 @@ import kotlin.system.measureTimeMillis
 
 class LogViewModel(
     override val contexts: Contexts = Contexts.default
-) : Context, LogProducerManager, LogFilterable {
+) : LogProducerManager, ILogViewModel {
     override val eventFlow: SharedFlow<Event>
         get() = _eventFlow
 
@@ -58,10 +58,6 @@ class LogViewModel(
 
     override val logFilter: LogFilter
         get() = logConf.getCurrentFilter()
-
-    override var fullTableSelectedRows: List<Int> = emptyList()
-
-    override var filteredTableSelectedRows: List<Int> = emptyList()
 
     override val tempLogFile: File
         get() = produceLogTask.logProducer.tempFile
@@ -327,15 +323,15 @@ class LogViewModel(
             Log.d(TAG, "[observeLogProducerState]")
             producer.state.collect { state ->
                 eventFlow.emit(state.toTaskState())
-                Log.d(TAG, "[observeLogProducerState] state=$state")
+                Log.d(TAG, "[observeLogProducerState] state=${state.javaClass.simpleName}")
             }
         }
 
         private fun LogProducer.State.toTaskState(): TaskState {
             return when (this) {
-                LogProducer.State.RUNNING -> TaskState.RUNNING
-                LogProducer.State.PAUSED -> TaskState.PAUSED
-                LogProducer.State.COMPLETE -> TaskState.IDLE
+                is LogProducer.State.Running -> TaskState.RUNNING
+                LogProducer.State.Paused -> TaskState.PAUSED
+                LogProducer.State.Complete -> TaskState.IDLE
                 else -> TaskState.IDLE
             }
         }
@@ -451,15 +447,19 @@ class LogViewModel(
                     producer.get().takeIf { producerRunning.get() }?.resume()
                 }
 
-                launch { playFakeLoadingAnimation() }
+                val loadingAnimTask = async { playFakeLoadingAnimation() }
 
                 Log.d(TAG, "[updateFilter] producerRunning=${producerRunning.get()}")
                 producer.get().pause()
                 logUpdater.updateFilteredLogTriggerCount(true)
                 filterLog(newComposedFilter)
+                loadingAnimTask.await()
             }
         }
 
+        /**
+         * It won't take too much time to filter the log items, so we need to play a fake loading animation
+         */
         private suspend fun playFakeLoadingAnimation() {
             delay(FILTER_LOADING_ANIM_MIN_DURATION)
             filteredLogRepo.submitLogItems()

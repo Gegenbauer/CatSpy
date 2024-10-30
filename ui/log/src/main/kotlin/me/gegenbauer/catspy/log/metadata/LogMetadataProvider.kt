@@ -38,7 +38,7 @@ class StandardLogcatFileLogMetadataProvider(dispatcher: CoroutineDispatcher = Di
     override val metadataFilePath: String = LOG_METADATA_FILE_PATH
 
     companion object {
-        private const val LOG_METADATA_FILE_PATH = "log/metadata/standard_logcat_file_log_metadata.json"
+        private const val LOG_METADATA_FILE_PATH = "log/metadata/standard_logcat_file_log.json"
     }
 }
 
@@ -48,7 +48,7 @@ class StandardDeviceLogMetadataProvider(dispatcher: CoroutineDispatcher = Dispat
     override val metadataFilePath: String = LOG_METADATA_FILE_PATH
 
     companion object {
-        private const val LOG_METADATA_FILE_PATH = "log/metadata/standard_logcat_device_log_metadata.json"
+        private const val LOG_METADATA_FILE_PATH = "log/metadata/standard_logcat_device_log.json"
     }
 }
 
@@ -58,7 +58,7 @@ class DefaultRawLogMetadataProvider(dispatcher: CoroutineDispatcher = Dispatcher
     override val metadataFilePath: String = LOG_METADATA_FILE_PATH
 
     companion object {
-        private const val LOG_METADATA_FILE_PATH = "log/metadata/raw_log_metadata.json"
+        private const val LOG_METADATA_FILE_PATH = "log/metadata/raw_log.json"
     }
 }
 

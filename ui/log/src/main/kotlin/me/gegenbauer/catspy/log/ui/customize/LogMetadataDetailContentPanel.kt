@@ -147,7 +147,6 @@ class LogMetadataDetailContentPanel : ScrollConstrainedScrollablePanel(horizonta
             isBuiltIn = old.isBuiltIn,
             columns = columns,
             parser = parser,
-            supportedFileExtensions = old.supportedFileExtensions,
             levels = levelPanel.items,
             isDeviceLog = old.isDeviceLog,
             colorScheme = colorScheme,

@@ -1,0 +1,129 @@
+{
+  "logType": "FileGroupSearchResult",
+  "parser": {
+    "splitToPartsOp": {
+      "name": "EmptySplitToParts",
+      "type": 0,
+      "splitPostProcessOps": []
+    },
+    "trimOps": []
+  },
+  "columns": [
+    {
+      "name": "File",
+      "supportFilter": false,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 1,
+          "charLen": 200,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "",
+          "layoutWidth": -2.0,
+          "position": {
+            "columnIndex": 0,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 0,
+      "isMessage": false,
+      "isLevel": false
+    },
+    {
+      "name": "Line",
+      "supportFilter": true,
+      "isParsed": true,
+      "uiConf": {
+        "column": {
+          "index": 0,
+          "charLen": 600,
+          "isHidden": false
+        },
+        "filter": {
+          "name": "Line",
+          "layoutWidth": -1.0,
+          "position": {
+            "columnIndex": 0,
+            "rowIndex": 0
+          }
+        }
+      },
+      "partIndex": 1,
+      "isMessage": true,
+      "isLevel": false
+    }
+  ],
+  "levels": [
+    {
+      "level": {
+        "value": 0,
+        "name": "Verbose",
+        "abbreviation": "V",
+        "keyword": "V"
+      },
+      "logForeground": {
+        "color": "#ff000000",
+        "darkThemeColor": "#ffbbbbbb"
+      },
+      "levelColumnForeground": {
+        "color": "#ff000000",
+        "darkThemeColor": "#ff000000"
+      },
+      "levelColumnBackground": {
+        "color": "#ffd6d6d6",
+        "darkThemeColor": "#ffd6d6d6"
+      }
+    }
+  ],
+  "colorScheme": {
+    "searchContentBackground": {
+      "color": "#fffcd47e",
+      "darkThemeColor": "#ffccccff"
+    },
+    "searchContentForeground": {
+      "color": "#ff000000",
+      "darkThemeColor": "#e4000000"
+    },
+    "filterContentBackground": {
+      "color": "#a320b020",
+      "darkThemeColor": "#ff00a000"
+    },
+    "filterContentForeground": {
+      "color": "#ffffffff",
+      "darkThemeColor": "#ff000000"
+    },
+    "indexColumnSeparatorColor": {
+      "color": "#c0cccccc",
+      "darkThemeColor": "#3ecccccc"
+    },
+    "indexColumnForeground": {
+      "color": "#ff111111",
+      "darkThemeColor": "#ffa1b2be"
+    },
+    "normalLogBackground": {
+      "color": "#ffffffff",
+      "darkThemeColor": "#ff1e1f22"
+    },
+    "selectedLogBackground": {
+      "color": "#ffccff99",
+      "darkThemeColor": "#7032593d"
+    },
+    "bookmarkedLogBackground": {
+      "color": "#ffffcccc",
+      "darkThemeColor": "#31ffcccc"
+    },
+    "bookmarkedAndSelectedLogBackground": {
+      "color": "#ffff9999",
+      "darkThemeColor": "#6affcccc"
+    }
+  },
+  "supportedFileExtensions": [],
+  "isDeviceLog": false,
+  "isBuiltIn": false,
+  "description": "Treat whole line as a single part and use the default raw log parser which does not parse the log message and just displays the raw log message.",
+  "sample": "06-05 17:36:15.905  2083  4016 D CompatibilityChangeReporter: Compat change id reported: 161252188; UID 10541; state: DISABLED",
+  "version": 2
+}

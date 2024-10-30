@@ -1,9 +1,13 @@
 package me.gegenbauer.catspy.log.ui.tab
 
 import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.ServiceManager
+import me.gegenbauer.catspy.file.archiveExtensions
+import me.gegenbauer.catspy.file.isSingleFileArchive
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.metadata.LogMetadata
+import me.gegenbauer.catspy.log.metadata.LogMetadataManager
 import me.gegenbauer.catspy.log.recent.RecentLogFiles
 import me.gegenbauer.catspy.log.serialize.LogMetadataModel
 import me.gegenbauer.catspy.log.serialize.toLogMetadata
@@ -14,14 +18,14 @@ import me.gegenbauer.catspy.utils.persistence.Preferences
 import me.gegenbauer.catspy.utils.ui.Key
 import me.gegenbauer.catspy.utils.ui.registerStroke
 import me.gegenbauer.catspy.utils.ui.showWarningDialog
+import me.gegenbauer.catspy.view.panel.FileDropHandler
 import me.gegenbauer.catspy.view.panel.StatusBar
 import java.awt.Component
 import java.io.File
 import javax.swing.JComponent
-import javax.swing.TransferHandler
 
 open class FileLogMainPanel : BaseLogMainPanel() {
-    override val tag: String = "FileLogMainPanel"
+    override val tag: String = TAG
 
     protected val templateSelector = LogMetadataTemplateComboBox()
 
@@ -33,6 +37,9 @@ open class FileLogMainPanel : BaseLogMainPanel() {
         onFileSelected = { file ->
             openFile(file.absolutePath)
         }
+    }
+    private val logMetadataManager: LogMetadataManager by lazy {
+        ServiceManager.getContextService(LogMetadataManager::class.java)
     }
     private val logMetadataChangeListener = object : OnMetadataChangedListener {
         override fun onLogMetadataSelected(metadata: LogMetadataModel) {
@@ -46,9 +53,14 @@ open class FileLogMainPanel : BaseLogMainPanel() {
         }
     }
 
-    private val pendingLogFiles = mutableListOf<File>()
-
     private var currentLogFile = EMPTY_STRING
+
+    override fun fetchLogMetadata(): LogMetadata {
+        val lastUsedLogType = Preferences.getString(LogMetadata.KEY)
+         val metadata = logMetadataManager.getMetadata(lastUsedLogType)
+            ?: logMetadataManager.getMetadata(LogMetadataManager.LOG_TYPE_RAW)!!
+        return metadata.toLogMetadata()
+    }
 
     override fun onInitialMetadataAcquired(metadata: LogMetadata) {
         super.onInitialMetadataAcquired(metadata)
@@ -144,40 +156,21 @@ open class FileLogMainPanel : BaseLogMainPanel() {
         }
     }
 
-    override fun isDataImportSupported(info: TransferHandler.TransferSupport): Boolean {
-        return true
+    override fun handleFileDrop(files: List<File>) {
+        openFile(files.first().absolutePath)
     }
 
-    override fun pendingOpenFiles(files: List<File>) {
-        if (isVisible) {
-            handleFileImport(files)
-        } else {
-            pendingLogFiles.clear()
-            pendingLogFiles.addAll(files)
-        }
+    override fun onOpenFileRequested(files: List<File>) {
+        handleFileImport(files.first())
     }
 
-    override fun handleDataImport(info: TransferHandler.TransferSupport): Boolean {
-        handleFileImport(getDroppedFiles(info))
-        return true
-    }
-
-    private fun handleFileImport(files: List<File>) {
-        pendingLogFiles.clear()
-        if (files.isEmpty()) {
-            return
-        }
-
-        fun openFileLog(files: List<File>) {
-            files.firstOrNull()?.let { openFile(it.absolutePath) }
-        }
-
+    private fun handleFileImport(file: File) {
         fun isLogEmpty(): Boolean {
             return fullTableModel.dataSize == 0
         }
 
         if (isLogEmpty()) {
-            openFileLog(files)
+            openFile(file.absolutePath)
             return
         }
 
@@ -189,6 +182,16 @@ open class FileLogMainPanel : BaseLogMainPanel() {
                 STRINGS.ui.open to { true },
                 STRINGS.ui.cancel to { false }
             )
-        ).takeIf { it }?.let { openFileLog(files) }
+        ).takeIf { it }?.let { openFile(file.absolutePath) }
+    }
+
+    companion object : FileDropHandler {
+        private const val TAG = "FileLogMainPanel"
+
+        override fun isFileAcceptable(files: List<File>): Boolean {
+            if (files.size != 1) return false
+            val file = files.first()
+            return file.isFile && (file.extension !in archiveExtensions || isSingleFileArchive(file))
+        }
     }
 }

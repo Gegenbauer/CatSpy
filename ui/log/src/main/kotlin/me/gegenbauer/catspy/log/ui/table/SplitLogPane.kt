@@ -42,7 +42,7 @@ class SplitLogPane(
         orientation = HORIZONTAL_SPLIT
 
         filterStatefulPanel.setContent(filteredLogPanel)
-        filterStatefulPanel.listState = ListState.NORMAL
+        filterStatefulPanel.listState = ListState.Normal
         observeListState(filteredTableModel)
         observeFullPanelVisibility()
 
@@ -54,7 +54,7 @@ class SplitLogPane(
         scope.launch {
             filteredTableModel.logObservables.listState.collect {
                 filterStatefulPanel.listState =
-                    if (it == ListState.LOADING) ListState.LOADING else ListState.NORMAL
+                    if (it is ListState.Loading) it else ListState.Normal
             }
         }
     }
@@ -129,6 +129,7 @@ class SplitLogPane(
         super.configureContext(context)
         filteredLogPanel.setParent(this)
         fullLogPanel.setParent(this)
+        filterStatefulPanel.setParent(this)
     }
 
     private fun resetWithCurrentRotation() {

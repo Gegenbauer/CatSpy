@@ -33,7 +33,7 @@ import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 import javax.swing.event.TableModelEvent
 
-abstract class LogPanel(
+open class LogPanel(
     val tableModel: LogTableModel,
     override val contexts: Contexts = Contexts.default,
     val table: LogTable = LogTable(tableModel)

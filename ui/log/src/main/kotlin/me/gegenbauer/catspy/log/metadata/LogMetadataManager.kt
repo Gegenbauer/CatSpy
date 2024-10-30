@@ -179,7 +179,7 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
         updateCache(logMetadataModel)
         metadataDir.mkdirs()
         jsonFileManager.write(
-            generateJsonFileKey(logMetadataModel.logType),
+            generateJsonFileKey(logMetadataModel.logType.hashCode().toString()),
             logMetadataModelSerializer.serialize(logMetadataModel)
         )
     }
@@ -263,6 +263,7 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
 
         const val LOG_TYPE_RAW = "DefaultRawLog"
         const val LOG_TYPE_DEVICE = "StandardLogcatDeviceLog"
+        const val LOG_TYPE_FILE_GROUP_SEARCH_RESULT = "FileGroupSearchResult"
 
         private const val CUSTOMIZED_METADATA_FILE_PATH = "metadata"
     }

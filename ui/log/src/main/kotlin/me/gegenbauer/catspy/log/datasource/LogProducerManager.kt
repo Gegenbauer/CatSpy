@@ -10,10 +10,6 @@ interface LogProducerManager {
 
     val eventFlow: SharedFlow<Event>
 
-    val fullLogObservables: LogObservables
-
-    val filteredLogObservables: LogObservables
-
     val tempLogFile: File
 
     val device: String

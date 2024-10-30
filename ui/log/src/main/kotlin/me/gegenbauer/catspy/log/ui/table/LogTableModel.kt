@@ -14,9 +14,9 @@ import me.gegenbauer.catspy.databinding.bind.ObservableValueProperty
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.BookmarkManager
+import me.gegenbauer.catspy.log.datasource.ILogViewModel
 import me.gegenbauer.catspy.log.datasource.LogItem
 import me.gegenbauer.catspy.log.datasource.LogProducerManager
-import me.gegenbauer.catspy.log.datasource.LogViewModel
 import me.gegenbauer.catspy.log.filter.LogFilter
 import me.gegenbauer.catspy.log.metadata.Column
 import me.gegenbauer.catspy.log.ui.LogConfiguration
@@ -37,7 +37,7 @@ fun interface LogTableModelListener {
 }
 
 open class LogTableModel(
-    val viewModel: LogViewModel,
+    val viewModel: ILogViewModel,
     override val contexts: Contexts = Contexts.default
 ) : AbstractTableModel(), Context, Searchable, Pageable<LogItem>, ILogTableModel {
     override var searchFilterItem: FilterItem = FilterItem.EMPTY_ITEM
@@ -59,11 +59,7 @@ open class LogTableModel(
     override val dataSize: Int
         get() = _pageMetadata.dataSize
 
-    override var selectedLogRows: List<Int>
-        get() = viewModel.fullTableSelectedRows
-        set(value) {
-            viewModel.fullTableSelectedRows = value
-        }
+    override var selectedLogRows: List<Int> = emptyList()
     override val logObservables: LogProducerManager.LogObservables
         get() = viewModel.fullLogObservables
 

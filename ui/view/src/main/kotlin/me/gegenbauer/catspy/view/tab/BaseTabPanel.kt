@@ -27,7 +27,7 @@ abstract class BaseTabPanel(override val contexts: Contexts = Contexts.default) 
         hasSetUp = true
     }
 
-    abstract fun onSetup(bundle: Bundle?)
+    protected abstract fun onSetup(bundle: Bundle?)
 
     override fun setTabNameController(controller: (String) -> Unit) {
         tabNameController = controller

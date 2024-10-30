@@ -1,9 +1,13 @@
 package me.gegenbauer.catspy.view.state
 
+import me.gegenbauer.catspy.context.Context
+import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.view.button.CloseButton
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Dimension
+import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -11,7 +15,7 @@ import javax.swing.JProgressBar
 import javax.swing.SwingUtilities
 import javax.swing.TransferHandler
 
-class StatefulPanel : JPanel() {
+class StatefulPanel(override val contexts: Contexts = Contexts.default) : JPanel(), Context {
     var listState: ListState = ListState.NONE
         set(value) {
             if (value == field) return
@@ -25,7 +29,7 @@ class StatefulPanel : JPanel() {
     private var emptyContent: JComponent = JPanel()
 
     private val loadingProgress = JProgressBar().apply {
-        preferredSize = Dimension(200, 20)
+        preferredSize = Dimension(300, 20)
         string = STRINGS.ui.loading
         isStringPainted = true
     }
@@ -35,9 +39,28 @@ class StatefulPanel : JPanel() {
     private val emptyContentContainer = JPanel().apply {
         layout = BorderLayout()
     }
-    private val loadingProgressContainer = JPanel().apply {
+    private val cancelButton = CloseButton().apply {
+        addActionListener {
+
+        }
+    }
+    private val loadingContentContainer = JPanel().apply {
         layout = GridBagLayout()
-        add(loadingProgress)
+        val gbc = GridBagConstraints().apply {
+            gridx = 0
+            gridy = 0
+            weightx = 0.0
+            weighty = 0.0
+            fill = GridBagConstraints.NONE
+        }
+        add(loadingProgress, gbc)
+
+        gbc.apply {
+            gridx = 1
+            weightx = 0.0
+            fill = GridBagConstraints.NONE
+        }
+        add(cancelButton, gbc)
     }
 
     init {
@@ -46,10 +69,10 @@ class StatefulPanel : JPanel() {
         add(content, "content")
         add(container, "empty")
 
-        container.add(loadingProgressContainer, "loadingProgress")
+        container.add(loadingContentContainer, "loadingProgress")
         container.add(emptyContentContainer, "emptyImage")
 
-        listState = ListState.EMPTY
+        listState = ListState.Empty
     }
 
     fun hideEmptyContent() {
@@ -66,15 +89,15 @@ class StatefulPanel : JPanel() {
 
     private fun setStateInternal(listState: ListState) {
         when (listState) {
-            ListState.NORMAL -> {
+            ListState.Normal -> {
                 setContentVisible(true)
             }
 
-            ListState.EMPTY -> {
+            ListState.Empty -> {
                 setContentVisible(false)
             }
 
-            ListState.LOADING -> {
+            is ListState.Loading -> {
                 setContentVisible(false)
             }
 
@@ -84,12 +107,15 @@ class StatefulPanel : JPanel() {
             }
         }
 
-        if (listState == ListState.LOADING) {
+        if (listState is ListState.Loading) {
+            loadingProgress.isIndeterminate = listState.isIntermediate
+            cancelButton.isVisible = !listState.isIntermediate
+            loadingProgress.value = listState.progress
+            loadingProgress.maximum = listState.max
             emptyContainerLayout.show(container, "loadingProgress")
-        } else if (listState == ListState.EMPTY) {
+        } else if (listState == ListState.Empty) {
             emptyContainerLayout.show(container, "emptyImage")
         }
-        loadingProgress.isIndeterminate = listState == ListState.LOADING
 
         SwingUtilities.updateComponentTreeUI(this)
     }
@@ -120,6 +146,19 @@ class StatefulPanel : JPanel() {
     }
 }
 
-enum class ListState {
-    NORMAL, EMPTY, LOADING, NONE
+sealed class ListState {
+    object Normal : ListState()
+    object Empty : ListState()
+    class Loading(val isIntermediate: Boolean = false, val progress: Int = 0, val max: Int = 100) : ListState()
+    object NONE : ListState()
+
+    companion object {
+        fun loading(progress: Int, max: Int): ListState {
+            return Loading(isIntermediate = false, progress = progress, max = max)
+        }
+
+        fun intermediateLoading(): ListState {
+            return Loading(isIntermediate = true)
+        }
+    }
 }

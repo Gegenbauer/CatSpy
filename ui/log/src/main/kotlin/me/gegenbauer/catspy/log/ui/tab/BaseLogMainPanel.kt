@@ -122,8 +122,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     private var updateSearchFilterJob: Job? = null
 
     override fun onSetup(bundle: Bundle?) {
-        val logMetaData =
-            bundle?.get<LogMetadata>(LogMetadata.KEY) ?: throw IllegalArgumentException("LogMetaData not found")
+        val logMetaData = fetchLogMetadata()
         logConf.setLogMetadata(logMetaData)
         onInitialMetadataAcquired(logMetaData)
 
@@ -135,6 +134,8 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
 
         bind(logMainBinding)
     }
+
+    protected abstract fun fetchLogMetadata(): LogMetadata
 
     protected open fun onInitialMetadataAcquired(metadata: LogMetadata) {
         // no-op
@@ -148,6 +149,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
 
         logConf.setParent(this)
         splitLogPane.setParent(this)
+        splitLogWithStatefulPanel.setParent(this)
     }
 
     protected open fun createUI() {
@@ -520,7 +522,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     protected open fun clearAllLogs() {
         logViewModel.clear()
         if (logViewModel.isActive().not()) {
-            setLogPanelState(ListState.EMPTY)
+            setLogPanelState(ListState.Empty)
         }
     }
 
@@ -567,10 +569,6 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
         logViewModel.destroy()
         clearAllLogs()
         splitLogPane.destroy()
-    }
-
-    override fun getTabContent(): JComponent {
-        return this
     }
 
     protected open fun afterLogStatusChanged(status: StatusBar.LogStatus) {

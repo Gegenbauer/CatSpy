@@ -1,7 +1,9 @@
 package me.gegenbauer.catspy.log.datasource
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import me.gegenbauer.catspy.log.ui.LogConfiguration
 
 class CustomFileLogProducer(
@@ -9,11 +11,14 @@ class CustomFileLogProducer(
 ) : BaseCustomLogProducer(logConfiguration) {
 
     override fun start(): Flow<Result<LogItem>> {
-        return channelFlow {
+        return flow {
             generateLogItems().forEach { log ->
-                send(Result.success(log))
+                emit(Result.success(log))
             }
-            invokeOnClose { moveToState(LogProducer.State.COMPLETE) }
+        }.onCompletion {
+            moveToState(LogProducer.State.Complete)
+        }.onStart {
+            moveToState(LogProducer.State.intermediateRunning())
         }
     }
 }

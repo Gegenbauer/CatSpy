@@ -26,6 +26,8 @@ internal interface LogRepo {
 
     fun onLoadingStart()
 
+    fun onLoadingProgressChanged(progress: Int, max: Int)
+
     fun onLoadingEnd()
 
     fun getLogItemCount(): Int
@@ -42,7 +44,7 @@ abstract class BaseLogRepo : LogRepo {
     abstract val name: String
 
     private val _logItemsFlow = MutableStateFlow(emptyList<LogItem>())
-    private val _listState = MutableStateFlow(ListState.EMPTY)
+    private val _listState = MutableStateFlow<ListState>(ListState.Empty)
     private val _logRepaintEventFlow = MutableSharedFlow<Event>(extraBufferCapacity = 1)
     private val _logObservables = LogProducerManager.LogObservables(_logItemsFlow, _listState, _logRepaintEventFlow)
     private val logItemsAccessLock = ReentrantReadWriteLock()
@@ -78,11 +80,15 @@ abstract class BaseLogRepo : LogRepo {
     }
 
     override fun onLoadingStart() {
-        _listState.value = ListState.LOADING
+        _listState.value = ListState.intermediateLoading()
+    }
+
+    override fun onLoadingProgressChanged(progress: Int, max: Int) {
+        _listState.value = ListState.loading(progress, max)
     }
 
     override fun onLoadingEnd() {
-        _listState.value = ListState.NORMAL
+        _listState.value = ListState.Normal
     }
 
     override fun getLogItemCount(): Int {

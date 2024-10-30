@@ -3,8 +3,6 @@ package me.gegenbauer.catspy.log.ui.customize
 import com.alexandriasoftware.swing.JInputValidator
 import com.alexandriasoftware.swing.JInputValidatorPreferences
 import com.alexandriasoftware.swing.Validation
-import me.gegenbauer.catspy.file.FILE_NAME_INVALID_CHARS
-import me.gegenbauer.catspy.file.isValidFileName
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
@@ -74,8 +72,6 @@ open class NameVerifier : ParamVerifier {
         val logType = input.text
         return if (logType.isBlank()) {
             ParamVerifier.Result.Invalid(STRINGS.toolTip.contentBlankWarning)
-        } else if (!isValidFileName(logType)) {
-            ParamVerifier.Result.Invalid(STRINGS.toolTip.nameInvalidWarning.get(FILE_NAME_INVALID_CHARS))
         } else {
             ParamVerifier.Result.Valid
         }

@@ -9,7 +9,7 @@ class LogMetadataSerializerTest {
 
     @Test
     fun `should return correct metadata when parse common metadata json file`() {
-        val jsonFilePath = "standard_logcat_device_log_metadata.json"
+        val jsonFilePath = "standard_logcat_device_log.json"
         val json = Resources.loadResourceAsStream(jsonFilePath).readBytes().decodeToString()
         val metadata = LogMetadataSerializer().deserialize(json)
         assertEquals(1, metadata.version)

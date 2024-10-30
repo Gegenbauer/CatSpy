@@ -87,6 +87,24 @@ object ApacheLogging {
     val log4jApi = Dependency(groupName, "log4j-api", version)
 }
 
+object ApacheCommons {
+    val groupName = "org.apache.commons"
+
+    val compress = Dependency(groupName, "commons-compress", "1.27.1")
+}
+
+object Junrar {
+    val groupName = "com.github.junrar"
+
+    val junrar = Dependency(groupName, "junrar", "7.5.5")
+}
+
+object Tukaani {
+    val groupName = "org.tukaani"
+
+    val xz = Dependency(groupName, "xz", "1.9")
+}
+
 object Fifesoft {
     val groupName = "com.fifesoft"
 

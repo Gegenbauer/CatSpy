@@ -136,7 +136,9 @@ class LogMetadataTemplateComboBox : JComboBox<LogMetadataModel>(),
         removeItemListener(selectionChangeListener)
         val selected = selectedItem as? LogMetadataModel
         removeAllItems()
-        model.addAll(metadataGroup.filter { it.logType != excludedLogType})
+        model.addAll(metadataGroup.filter {
+            it.logType != excludedLogType && it.logType != LogMetadataManager.LOG_TYPE_FILE_GROUP_SEARCH_RESULT
+        })
         ensureCurrentSelection(selected, metadataGroup)
         addItemListener(selectionChangeListener)
     }

@@ -23,6 +23,7 @@ import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.java.ext.Bundle
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.binding.LogMainBinding
+import me.gegenbauer.catspy.log.metadata.LogMetadata
 import me.gegenbauer.catspy.log.metadata.LogMetadataChangeListener
 import me.gegenbauer.catspy.log.metadata.LogMetadataManager
 import me.gegenbauer.catspy.log.serialize.LogMetadataModel
@@ -72,6 +73,12 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
         }
 
         logMetadataManager.addOnMetadataChangeListener(this)
+    }
+
+    override fun fetchLogMetadata(): LogMetadata {
+        val logMetadataModel = logMetadataManager.getMetadata(LogMetadataManager.LOG_TYPE_DEVICE)
+            ?: error("LogMetadataModel for ${LogMetadataManager.LOG_TYPE_DEVICE} not found")
+        return logMetadataModel.toLogMetadata()
     }
 
     override fun createUI() {

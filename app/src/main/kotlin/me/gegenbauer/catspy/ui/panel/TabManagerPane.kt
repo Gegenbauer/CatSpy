@@ -6,32 +6,29 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.context.Contexts
-import me.gegenbauer.catspy.context.ServiceManager
-import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.GIcons
-import me.gegenbauer.catspy.java.ext.Bundle
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
-import me.gegenbauer.catspy.log.metadata.LogMetadata
-import me.gegenbauer.catspy.log.metadata.LogMetadataManager
-import me.gegenbauer.catspy.log.serialize.toLogMetadata
 import me.gegenbauer.catspy.log.ui.tab.DeviceLogMainPanel
-import me.gegenbauer.catspy.log.ui.tab.FileLogMainPanel
-import me.gegenbauer.catspy.platform.currentPlatform
-import me.gegenbauer.catspy.script.ui.ScriptTabPanel
+import me.gegenbauer.catspy.log.ui.tab.FileLogCommonPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.menu.TabSelectorPopupMenu
-import me.gegenbauer.catspy.utils.persistence.Preferences
 import me.gegenbauer.catspy.utils.ui.Key
 import me.gegenbauer.catspy.utils.ui.TAB_ICON_SIZE
 import me.gegenbauer.catspy.utils.ui.registerStroke
 import me.gegenbauer.catspy.view.button.ClosableTabHeader
+import me.gegenbauer.catspy.view.panel.FileDropPanelWrapper
 import me.gegenbauer.catspy.view.tab.FunctionTab
 import me.gegenbauer.catspy.view.tab.TabManager
 import me.gegenbauer.catspy.view.tab.TabPanel
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
-import javax.swing.*
+import javax.swing.AbstractAction
+import javax.swing.Action
+import javax.swing.JButton
+import javax.swing.JTabbedPane
+import javax.swing.JToolBar
+import javax.swing.SwingUtilities
 
 class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabManager, JTabbedPane() {
 
@@ -52,7 +49,7 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
             FunctionTab(
                 STRINGS.ui.tabLogFile,
                 GIcons.Tab.FileLog.get(TAB_ICON_SIZE, TAB_ICON_SIZE),
-                FileLogMainPanel::class.java,
+                FileLogCommonPanel::class.java,
                 STRINGS.toolTip.tabLogFile
             ),
             FunctionTab(
@@ -69,24 +66,6 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
     private val addTabButton = JButton().apply {
         icon = AllIcons.Action.Add.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
         addActionListener(createNewTabAction())
-    }
-
-    private val logMetadataManager: LogMetadataManager by lazy {
-        ServiceManager.getContextService(LogMetadataManager::class.java)
-    }
-
-    private val dataTransferHandler = object : TransferHandler() {
-        override fun canImport(info: TransferSupport): Boolean {
-            return getSelectedTab().isDataImportSupported(info)
-        }
-
-        override fun importData(info: TransferSupport): Boolean {
-            GLog.d(
-                TAG, "os:$currentPlatform, drop:${info.dropAction}, " +
-                        "sourceDrop:${info.sourceDropActions},userDrop:${info.userDropAction}"
-            )
-            return getSelectedTab().handleDataImport(info)
-        }
     }
 
     init {
@@ -112,8 +91,6 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
         putClientProperty(TABBED_PANE_TABS_POPUP_POLICY, TABBED_PANE_POLICY_AS_NEEDED)
 
         addTabSelectStroke()
-
-        transferHandler = dataTransferHandler
     }
 
     private fun loadHomeTab() {
@@ -164,8 +141,8 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
     }
 
     override fun addTab(tabInfo: FunctionTab): TabPanel {
-        val tabPanel = tabInfo.clazz.getConstructor().newInstance()
-        tabPanel.setup(getTabBundle(tabPanel))
+        val tabPanel = FileDropPanelWrapper(tabInfo.clazz.getConstructor().newInstance())
+        tabPanel.setup(null)
         add(tabInfo.name, tabPanel.getTabContent())
         tabPanel.setParent(this)
         selectTab(tabPanel)
@@ -180,20 +157,6 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
         val tabInfo = supportedTabs.firstOrNull { it.clazz == tableClazz }
             ?: throw IllegalArgumentException("${tableClazz.name} not supported")
         return addTab(tabInfo)
-    }
-
-    private fun getTabBundle(tabPanel: TabPanel): Bundle? {
-        val metadata = when (tabPanel) {
-            is FileLogMainPanel -> {
-                val lastUsedLogType = Preferences.getString(LogMetadata.KEY)
-                logMetadataManager.getMetadata(lastUsedLogType)
-                    ?: logMetadataManager.getMetadata(LogMetadataManager.LOG_TYPE_RAW)
-            }
-
-            is DeviceLogMainPanel -> logMetadataManager.getMetadata(LogMetadataManager.LOG_TYPE_DEVICE)
-            else -> null
-        }
-        return metadata?.let { Bundle().apply { put(LogMetadata.KEY, it.toLogMetadata()) } }
     }
 
     private fun createTabHeader(tabPanel: TabPanel, tabInfo: FunctionTab): ClosableTabHeader {

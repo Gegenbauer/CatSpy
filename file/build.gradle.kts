@@ -7,4 +7,8 @@ plugins {
 dependencies {
     implementation(projects.javaext)
     api(Gson.gson)
+    api(Squareup.okio)
+    api(ApacheCommons.compress)
+    api(Junrar.junrar)
+    api(Tukaani.xz)
 }
