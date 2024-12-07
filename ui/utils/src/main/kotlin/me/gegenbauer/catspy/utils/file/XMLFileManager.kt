@@ -90,7 +90,7 @@ class XMLFileManager : KeyValuesFileManager() {
                     element.appendChild(document.createTextNode(value.toString()))
                     root.appendChild(element)
                 }.onFailure {
-                    GLog.e(TAG, "Failed to add element to XML document, key=$key", it)
+                    GLog.e(TAG, "[serialize] Failed to add element to XML document, key=$key", it)
                 }
             }
         }

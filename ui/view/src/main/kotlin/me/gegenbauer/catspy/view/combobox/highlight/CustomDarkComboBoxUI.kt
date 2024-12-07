@@ -5,7 +5,7 @@ import me.gegenbauer.catspy.utils.ui.DefaultFocusListener
 import java.awt.event.FocusEvent
 import javax.swing.ComboBoxEditor
 
-class CustomEditorDarkComboBoxUI(private val customEditor: ComboBoxEditor): FlatComboBoxUI() {
+class CustomDarkComboBoxUI(private val customEditor: ComboBoxEditor): FlatComboBoxUI() {
 
     override fun createEditor(): ComboBoxEditor {
         val comboBoxEditor = customEditor
