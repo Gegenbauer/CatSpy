@@ -12,7 +12,7 @@ import me.gegenbauer.catspy.utils.ui.DefaultDocumentListener
 import me.gegenbauer.catspy.utils.ui.Key
 import me.gegenbauer.catspy.utils.ui.applyTooltip
 import me.gegenbauer.catspy.utils.ui.registerStrokeWhenFocused
-import me.gegenbauer.catspy.view.combobox.highlight.CustomEditorDarkComboBoxUI
+import me.gegenbauer.catspy.view.combobox.highlight.CustomDarkComboBoxUI
 import me.gegenbauer.catspy.view.combobox.highlight.HighlighterEditor
 import me.gegenbauer.catspy.view.filter.FilterItem
 import me.gegenbauer.catspy.view.filter.FilterItem.Companion.isEmpty
@@ -94,7 +94,7 @@ class FilterComboBox(
         } else {
             BasicComboBoxEditor.UIResource()
         }
-        super.setUI(CustomEditorDarkComboBoxUI(newEditor.apply {
+        super.setUI(CustomDarkComboBoxUI(newEditor.apply {
             if (getEditor() != null) {
                 Bindings.rebind(getEditor().editorComponent as JComponent, newEditor.editorComponent as JComponent)
             }

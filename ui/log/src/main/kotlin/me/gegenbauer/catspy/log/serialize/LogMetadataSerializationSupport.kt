@@ -5,6 +5,7 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
@@ -36,11 +37,17 @@ class LogMetadataSerializer : Serializer<LogMetadata, String> {
 
 private class LogParserAdapter : JsonDeserializer<LogParser>, JsonSerializer<LogParser> {
     override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): LogParser {
+        if (json is JsonPrimitive) {
+            return LogParser.empty
+        }
         return parserSerializer.deserialize(json)
     }
 
     override fun serialize(src: LogParser, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
-        return parserSerializer.serialize(src as SerializableLogParser)
+        if (src !is SerializableLogParser) {
+            return JsonPrimitive(EMPTY_STRING)
+        }
+        return parserSerializer.serialize(src)
     }
 
     companion object {

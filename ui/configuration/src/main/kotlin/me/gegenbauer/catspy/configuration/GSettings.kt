@@ -101,11 +101,16 @@ data class GSettings(
         var size: Int = DEFAULT_FONT_SIZE
     ) : ISettings {
 
+        val nativeFont: java.awt.Font
+            get() = _nativeFont ?: toNativeFont()
+
         @Transient
-        var nativeFont = toNativeFont()
+        private var _nativeFont: java.awt.Font? = null
 
         private fun toNativeFont(): java.awt.Font {
-            return java.awt.Font(family, style, size)
+            val font = java.awt.Font(family, style, size)
+            _nativeFont = font
+            return font
         }
 
         fun update(font: java.awt.Font) {
@@ -113,7 +118,7 @@ data class GSettings(
             style = font.style
             size = font.size
 
-            nativeFont = font
+            _nativeFont = font
         }
 
         override fun resetToDefault() {
@@ -121,7 +126,7 @@ data class GSettings(
             style = DEFAULT_FONT_STYLE
             size = DEFAULT_FONT_SIZE
 
-            nativeFont = toNativeFont()
+            _nativeFont = toNativeFont()
         }
     }
 

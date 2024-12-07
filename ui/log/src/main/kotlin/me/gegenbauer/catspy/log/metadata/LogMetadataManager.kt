@@ -16,6 +16,7 @@ import me.gegenbauer.catspy.log.serialize.toLogMetadata
 import me.gegenbauer.catspy.log.serialize.toLogMetadataModel
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.utils.file.JsonFileManager
+import me.gegenbauer.catspy.utils.file.StringFileManager.Companion.JSON_PREFIX
 import java.io.File
 import java.lang.ref.WeakReference
 
@@ -64,7 +65,7 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
     private val dispatcher = Dispatchers.GIO
 
     private val builtInMetadataGroup = mutableMapOf<String, LogMetadataModel>()
-    private val customizedMetadataGroup = mutableMapOf<String, LogMetadataModel>()
+    private val customizedMetadataGroup = mutableMapOf<String, MetadataWithFilename>()
     private val mergedMetadataGroup = mutableMapOf<String, LogMetadataModel>()
 
     private val logMetadataModelSerializer = LogMetadataModelSerializer()
@@ -92,9 +93,9 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
         updateCustomizedCacheAll(customizedMetadata)
 
         customizedMetadata.forEach {
-            logMetadataMap[it.logType] = it.copy(isBuiltIn = true)
+            logMetadataMap[it.metadata.logType] = it.metadata.copy(isBuiltIn = true)
                 .takeIf { logMetadataMap.containsKey(it.logType) }
-                ?: it
+                ?: it.metadata
         }
         updateMergedCacheAll(logMetadataMap.values.toList())
 
@@ -107,7 +108,7 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
         }
     }
 
-    private suspend fun loadCustomizedMetadata(): List<LogMetadataModel> {
+    private suspend fun loadCustomizedMetadata(): List<MetadataWithFilename> {
         return withContext(dispatcher) {
             metadataDir.mkdirs()
             metadataDir.listFiles()?.filter { it.extension == "json" }?.mapNotNull { file ->
@@ -118,7 +119,10 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
                         GLog.w(TAG, "Failed to migrate metadata file: ${file.name}, discard it")
                         return@runCatching null
                     }
-                    LogMetadataSerializer().deserialize(file.readText()).toLogMetadataModel()
+                    MetadataWithFilename(
+                        LogMetadataSerializer().deserialize(file.readText()).toLogMetadataModel(),
+                        file.nameWithoutExtension
+                    )
                 }.onFailure {
                     GLog.w(TAG, "Failed to load customized metadata from file: ${file.name}", it)
                 }.getOrNull()
@@ -139,7 +143,7 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
         val customizedMetadata = customizedMetadataGroup[logType]
             ?: throw IllegalArgumentException("No customized metadata found for $logType")
         deleteInternal(logType)
-        notifyMetadataChange(customizedMetadata, builtInMetadata)
+        notifyMetadataChange(customizedMetadata.metadata, builtInMetadata)
         return builtInMetadata
     }
 
@@ -159,12 +163,15 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
     }
 
     private fun deleteInternal(logType: String) {
+        val filename = customizedMetadataGroup[logType]?.filename
         deleteCache(logType)
-        jsonFileManager.delete(generateJsonFileKey(logType))
+        filename?.let {
+            jsonFileManager.delete(CUSTOMIZED_METADATA_FILE_PATH.appendPath(it.removePrefix(JSON_PREFIX)))
+        }
     }
 
     override fun getUniqueLogType(logType: String): String {
-        val usedNames = (customizedMetadataGroup.values.toSet() + builtInMetadataGroup.values)
+        val usedNames = (customizedMetadataGroup.values.map { it.metadata }.toSet() + builtInMetadataGroup.values)
             .map { it.logType }
             .toSet()
         return getUniqueName(logType, usedNames)
@@ -220,12 +227,14 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
     }
 
     private fun generateJsonFileKey(key: String): String {
-        return CUSTOMIZED_METADATA_FILE_PATH.appendPath(key.replace(" ", "_"))
+        return CUSTOMIZED_METADATA_FILE_PATH.appendPath(key.hashCode().toString())
     }
 
     @Synchronized
     private fun updateCache(logMetadata: LogMetadataModel) {
-        customizedMetadataGroup[logMetadata.logType] = logMetadata
+        val existingMetadata = customizedMetadataGroup[logMetadata.logType]
+        customizedMetadataGroup[logMetadata.logType] =
+            MetadataWithFilename(logMetadata, existingMetadata?.filename ?: "")
         mergedMetadataGroup[logMetadata.logType] = logMetadata
     }
 
@@ -241,9 +250,9 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
     }
 
     @Synchronized
-    private fun updateCustomizedCacheAll(metadata: List<LogMetadataModel>) {
+    private fun updateCustomizedCacheAll(metadata: List<MetadataWithFilename>) {
         customizedMetadataGroup.clear()
-        customizedMetadataGroup.putAll(metadata.associateBy { it.logType })
+        customizedMetadataGroup.putAll(metadata.associateBy { it.metadata.logType })
     }
 
     @Synchronized
@@ -257,6 +266,8 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
         mergedMetadataGroup.clear()
         mergedMetadataGroup.putAll(metadata.associateBy { it.logType })
     }
+
+    private data class MetadataWithFilename(var metadata: LogMetadataModel, val filename: String)
 
     companion object {
         private const val TAG = "LogMetadataManager"

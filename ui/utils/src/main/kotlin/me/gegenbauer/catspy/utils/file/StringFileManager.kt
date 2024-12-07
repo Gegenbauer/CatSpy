@@ -37,12 +37,12 @@ abstract class StringFileManager : ContextService {
             jsonFile.parentFile.mkdirs()
             val backupFile = getBackupFile(key)
             if (backupFile.exists()) {
-                GLog.w(TAG, "backup file $backupFile exists. Last write may not be completed, recovery it.")
+                GLog.w(TAG, "[read] backup file $backupFile exists. Last write may not be completed, recovery it.")
                 jsonFile.delete()
                 backupFile.renameTo(jsonFile)
             }
             if (jsonFile.exists() && jsonFile.canRead().not()) {
-                GLog.w(TAG, "Attempt to read json file $jsonFile without read permission")
+                GLog.w(TAG, "[read] Attempt to read json file $jsonFile without read permission")
             }
 
             if (jsonFile.exists().not()) {
@@ -53,7 +53,7 @@ abstract class StringFileManager : ContextService {
             val content = kotlin.runCatching {
                 jsonFile.readText()
             }.onFailure {
-                GLog.e(TAG, "Failed to read json file $jsonFile", it)
+                GLog.e(TAG, "[read] Failed to read json file $jsonFile", it)
             }.getOrNull() ?: EMPTY_STRING
 
             jsonCache[key] = content
@@ -100,7 +100,7 @@ abstract class StringFileManager : ContextService {
             jsonFile.parentFile.mkdirs()
             val backupFile = getBackupFile(key)
             if (backupFile.exists()) {
-                GLog.w(TAG, "backup file $backupFile exists. Last write may not be completed, deleting it.")
+                GLog.w(TAG, "[write] backup file $backupFile exists. Last write may not be completed, deleting it.")
                 backupFile.delete()
             }
             if (jsonFile.exists()) {
@@ -112,9 +112,10 @@ abstract class StringFileManager : ContextService {
                 }
                 jsonFile.writeText(content)
             }.onFailure {
-                GLog.e(TAG, "Failed to write json file $jsonFile", it)
+                GLog.e(TAG, "[write] Failed to write json file $jsonFile", it)
             }
             backupFile.delete()
+            GLog.i(TAG, "[write] Wrote json file $jsonFile")
             jsonCache[key] = content
         }
     }
@@ -125,7 +126,10 @@ abstract class StringFileManager : ContextService {
             val jsonFile = getJsonFile(key)
             val backupFile = getBackupFile(key)
             if (jsonFile.exists()) {
+                GLog.i(TAG, "[delete] Deleting json file $jsonFile")
                 jsonFile.delete()
+            } else {
+                GLog.w(TAG, "[delete] json file $jsonFile does not exist")
             }
             if (backupFile.exists()) {
                 backupFile.delete()
