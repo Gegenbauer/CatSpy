@@ -2,42 +2,12 @@
   "logType": "TimeFormatLogcatFileLog",
   "parser": {
     "splitToPartsOp": {
-      "maxParts": 5,
-      "splitPostProcessOps": [
-        {
-          "from": 0,
-          "to": 1,
-          "name": "MergeNearbyParts",
-          "type": 11
-        },
-        {
-          "splitChar": "/",
-          "partIndex": 1,
-          "name": "SplitPartWithChar",
-          "type": 10
-        }
-      ],
-      "name": "SplitByWordSeparator",
-      "type": 1
+      "clazz": "me.gegenbauer.catspy.log.parse.TimeFormatLogcatLogParser",
+      "jarPath": "",
+      "isBuiltIn": true,
+      "type": 2
     },
-    "trimOps": [
-      {
-        "partIndex": 2,
-        "trailing": "(",
-        "name": "TrimWithChar",
-        "type": 100
-      },
-      {
-        "partIndex": 3,
-        "removedLeadingCharCount": 0,
-        "removedTrailingCharCount": 2,
-        "name": "TrimWithIndex",
-        "type": 101
-      }
-    ],
-    "partCount": 5,
-    "levelPartIndex": 1,
-    "defaultLevelTag": "V"
+    "trimOps": []
   },
   "columns": [
     {

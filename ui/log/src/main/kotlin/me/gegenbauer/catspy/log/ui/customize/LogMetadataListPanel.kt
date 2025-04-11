@@ -257,7 +257,7 @@ class LogMetadataListPanel : JPanel(), LogMetadataListController, ListSelectionL
 
         private fun showCreatingWarning(): Boolean {
             val actions = listOf(
-                STRINGS.ui.createNewMetadata to {
+                STRINGS.ui.discardEditedAndSwitchMetadata to {
                     detailController.cancelEdit()
                     deleteLogMetadata(logMetadataList.selectedValue)
                     true

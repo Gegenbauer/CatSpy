@@ -1,7 +1,12 @@
 package me.gegenbauer.catspy.log.ui.customize
 
 import info.clearthought.layout.TableLayout
+import me.gegenbauer.catspy.concurrency.GlobalMessageManager
+import me.gegenbauer.catspy.concurrency.Message
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.java.ext.WORD_REGEX
+import me.gegenbauer.catspy.log.Log
+import me.gegenbauer.catspy.log.parse.LogParser
 import me.gegenbauer.catspy.log.serialize.*
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.OnScrollToEndListener
@@ -11,7 +16,6 @@ import me.gegenbauer.catspy.utils.ui.adjustScrollPaneHeight
 import me.gegenbauer.catspy.view.panel.ScrollConstrainedScrollablePanel
 import me.gegenbauer.catspy.view.panel.VerticalFlexibleWidthLayout
 import java.awt.Component
-import java.awt.Dimension
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.ItemEvent
@@ -33,6 +37,7 @@ data class ParseOpContext(
     val parseOp: ParseOp?,
     val previousOp: ParseOp?,
     val parentOp: ParseOp?,
+    val parseMetadata: LogParser.ParseMetadata
 ) {
     fun isSplitToPartsOp(): Boolean {
         return parentOp == null && previousOp == null
@@ -116,7 +121,7 @@ class ParseOpItemEditPanel(
         updateParseResult(parts)
 
         val maxParts = (getParseOp() as? SplitByWordSeparatorOp)?.maxParts ?: SplitByWordSeparatorOp.DEFAULT_MAX_PARTS
-        postProcessOpsPanel.parsedLogParts = parts.flatMap { it.split(WORD_SEPARATOR_REGEX, maxParts) }
+        postProcessOpsPanel.parsedLogParts = parts.flatMap { it.split(WORD_REGEX, maxParts) }
     }
 
     override fun getParseOp(): ParseOp {
@@ -145,7 +150,13 @@ class ParseOpItemEditPanel(
 
     private fun updateParseResult(previousOpParsedResult: List<String>) {
         val op = getParseOp()
-        val parsedLogParts = op.process(previousOpParsedResult.asSequence()).toList()
+        val parsedLogParts = runCatching {
+            op.process(previousOpParsedResult.asSequence(), parseOpContext.parseMetadata)
+                .toList()
+        }.onFailure {
+            Log.e(TAG, "Error processing parse op.", it)
+            GlobalMessageManager.publish(Message.Error("parse failed, error message:${it.localizedMessage}"))
+        }.getOrDefault(emptyList())
         parseResultPanel.setResults(parsedLogParts)
     }
 
@@ -197,7 +208,7 @@ class ParseOpItemEditPanel(
 
     private fun updateOpSelectOptions() {
         val supportedOps = if (parseOpContext.isSplitToPartsOp()) {
-            listOf(SplitByWordSeparatorOp(), EmptySplitToPartsOp())
+            listOf(SplitByWordSeparatorOp(), EmptySplitToPartsOp(), ExistedParserOp())
         } else if (parseOpContext.isSplitPostProcessOp()) {
             listOf(
                 MergeNearbyPartsOp(0, 0),
@@ -219,7 +230,7 @@ class ParseOpItemEditPanel(
     }
 
     private fun setSplitPostProcessOps(ops: List<SplitPostProcessOp>) {
-        postProcessOpsPanel.setParseOps(ops)
+        postProcessOpsPanel.setParseOps(ops, parseOpContext.parseMetadata)
         editor.subParseOpContainer.isVisible = ops.isNotEmpty()
     }
 
@@ -403,6 +414,7 @@ class ParseOpItemEditPanel(
             return when (parseOp) {
                 is EmptySplitToPartsOp -> EmptyOpParamsEditor(parseOp)
                 is SplitByWordSeparatorOp -> SplitByWordSeparatorOpParamsEditor(parseOp.maxParts)
+                is ExistedParserOp -> ExistedParserOpParamsEditor(parseOp.clazz, parseOp.jarPath, parseOp.isBuiltIn)
                 is SplitPartWithCharOp -> SplitPartWithCharOpParamsEditor(
                     parseOp.splitChar,
                     parseOp.partIndex,
@@ -517,6 +529,6 @@ class ParseOpItemEditPanel(
     }
 
     companion object {
-        private val WORD_SEPARATOR_REGEX = "\\s+".toRegex()
+        private const val TAG = "ParseOpItemEditPanel"
     }
 }

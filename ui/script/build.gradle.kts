@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     kotlin("jvm")
     `java-library`
@@ -19,11 +17,4 @@ dependencies {
     implementation(projects.context)
     implementation(projects.ddmlib)
     implementation(Weisj.darklafCore)
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
-    }
 }

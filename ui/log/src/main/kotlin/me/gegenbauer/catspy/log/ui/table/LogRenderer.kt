@@ -1,5 +1,8 @@
 package me.gegenbauer.catspy.log.ui.table
 
+import kotlinx.coroutines.Dispatchers
+import me.gegenbauer.catspy.concurrency.GIO
+import me.gegenbauer.catspy.concurrency.IgnoreFastCallbackScheduler
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
@@ -23,6 +26,8 @@ interface ILogRenderer {
 
     fun configureColumn(table: LogTable)
 
+    fun cancel()
+
     suspend fun buildDetailRendererComponent(logTable: LogTable, rows: List<Int>): JTextComponent
 }
 
@@ -41,6 +46,7 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
     private val logCellRendererProvider = LabelRendererProvider()
     private val detailRendererProvider = TextPaneRendererProvider()
     private val columnWidthManager = ColumnWidthManager()
+    private val ignoreFastCallbackScheduler = IgnoreFastCallbackScheduler(Dispatchers.GIO, COLUMN_SAVE_MIN_INTERVAL)
 
     override fun setColumns(logMetadata: LogMetadata) {
         if (logMetadata.columns.isEmpty()) return
@@ -70,7 +76,9 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
             val logTable = renderer.logTable ?: return
             val maxLength = getMaxLength(newWidth, logTable.getFontMetrics(logTable.font))
             renderer.maxLength = maxLength
-            columnWidthManager.setMaxLength(logType, columns[column.modelIndex], maxLength)
+            ignoreFastCallbackScheduler.schedule {
+                columnWidthManager.setMaxLength(logType, columns[column.modelIndex], maxLength)
+            }
         }
     }
 
@@ -153,8 +161,17 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
         configureColumnWidth(table)
     }
 
+    override fun cancel() {
+        ignoreFastCallbackScheduler.cancel()
+    }
+
     override suspend fun buildDetailRendererComponent(logTable: LogTable, rows: List<Int>): JTextComponent {
         return detailRendererProvider.buildDetailRendererComponent(logTable, rows)
+    }
+
+    override fun destroy() {
+        super.destroy()
+        ignoreFastCallbackScheduler.destroy()
     }
 
     private class ColumnWidthManager {
@@ -183,5 +200,6 @@ class LogRenderer(override val contexts: Contexts = Contexts.default) : ILogRend
         private const val COLUMN_INDEX_CHAR_LEN = 7
         private const val PROPERTY_WIDTH = "width"
         private const val BASE_CHAR = 'a'
+        private const val COLUMN_SAVE_MIN_INTERVAL = 500L
     }
 }

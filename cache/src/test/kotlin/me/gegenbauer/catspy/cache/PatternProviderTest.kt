@@ -21,7 +21,7 @@ class PatternProviderTest {
     }
 
     @Test
-    fun `should return cached pattern when requested key is alreaady in cache`() {
+    fun `should return cached pattern when requested key is already in cache`() {
         // Given
         val patternProvider = PatternProvider()
         val patternKey = PatternKey("test")

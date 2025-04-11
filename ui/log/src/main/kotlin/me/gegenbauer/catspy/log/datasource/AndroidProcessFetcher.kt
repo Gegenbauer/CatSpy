@@ -6,6 +6,7 @@ import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.java.ext.WORD_REGEX
 import me.gegenbauer.catspy.log.Log
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -112,7 +113,7 @@ class AndroidProcessFetcher(private val device: String) {
     }
 
     private fun parseLineToPidPackage(line: String): Pair<String, String>? {
-        val columns = line.split(splitRegex)
+        val columns = line.split(WORD_REGEX)
         if (columns.size != 9) {
             return null
         }
@@ -161,7 +162,6 @@ class AndroidProcessFetcher(private val device: String) {
         private const val DELAY_FOR_PROCESS_NAME_UPDATE = 100L
         private const val INVALID_TIME = "99-99 99:99:99.999"
 
-        private val splitRegex by lazy { "\\s+".toRegex() }
         private val INTERMEDIATE_PROCESS_NAMES = setOf(
             "<pre-initialized>",
             "zygote",

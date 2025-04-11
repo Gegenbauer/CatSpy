@@ -8,6 +8,7 @@ import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.event.FullLogVisibilityChangedEvent
+import me.gegenbauer.catspy.log.ui.LogConfiguration
 import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
 import me.gegenbauer.catspy.utils.event.EventManager
 import me.gegenbauer.catspy.view.state.ListState
@@ -36,6 +37,10 @@ class SplitLogPane(
                 ?: error("No BaseLogMainPanel found in contexts")
             ServiceManager.getContextService(logMainPanel, EventManager::class.java)
         }
+
+    private val logConf: LogConfiguration
+        get() = contexts.getContext(LogConfiguration::class.java)
+            ?: throw IllegalStateException("No LogConfiguration found in contexts")
 
     init {
         continuousLayout = true
@@ -129,6 +134,8 @@ class SplitLogPane(
         super.configureContext(context)
         filteredLogPanel.setParent(this)
         fullLogPanel.setParent(this)
+
+        filterStatefulPanel.isVisible = logConf.isPreviewMode.not()
     }
 
     private fun resetWithCurrentRotation() {

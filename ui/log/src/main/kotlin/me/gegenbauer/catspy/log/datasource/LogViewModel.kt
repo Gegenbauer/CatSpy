@@ -28,10 +28,11 @@ import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.java.ext.formatDuration
+import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.filter.LogFilter
-import me.gegenbauer.catspy.log.parse.LogParser
 import me.gegenbauer.catspy.log.ui.LogConfiguration
+import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
 import me.gegenbauer.catspy.utils.file.writeLinesWithProgress
@@ -249,15 +250,12 @@ class LogViewModel(
         private val suspender = CoroutineSuspender("ProduceLogTask")
         private var startProducerTask: Job? = null
 
-        private val logParser: LogParser
-            get() = logConf.logMetaData.parser
-
         fun startProduceDeviceLog(device: String) {
-            startProduce(DeviceLogProducer(device, logParser))
+            startProduce(DeviceLogProducer(device, logConf))
         }
 
         fun startProduceFileLog(file: String) {
-            startProduce(FileLogProducer(file, logParser))
+            startProduce(FileLogProducer(file, logConf))
         }
 
         fun startProduceCustomFileLog() {
@@ -304,14 +302,27 @@ class LogViewModel(
                     observeJob.cancel()
                     Log.d(TAG, "[startProduce] startProduceInternal completed")
                 }
-                delay(PRODUCE_LOADING_ANIM_MIN_DURATION)
+                if (logConf.isPreviewMode.not()) {
+                    delay(PRODUCE_LOADING_ANIM_MIN_DURATION)
+                }
                 fullLogRepo.onLoadingEnd()
             }
+        }
+
+        private fun clearBookmark() {
+            val mainUI = contexts.getContext(BaseLogMainPanel::class.java)
+            mainUI ?: run {
+                Log.w(TAG, "[clearBookmark] mainUI is null")
+                return
+            }
+            val bookmarkManager = ServiceManager.getContextService(mainUI, BookmarkManager::class.java)
+            bookmarkManager.clear()
         }
 
         private fun onProduceStart() {
             logUpdater.updateFilteredLogTriggerCount(true)
             logUpdater.updateFullLogTriggerCount(true)
+            clearBookmark()
             fullLogRepo.clear()
             filteredLogRepo.clear()
         }

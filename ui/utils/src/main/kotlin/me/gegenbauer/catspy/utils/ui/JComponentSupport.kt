@@ -8,6 +8,7 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.io.File
 import java.util.*
+import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JFileChooser
 import javax.swing.TransferHandler
@@ -111,4 +112,21 @@ fun JComponent.verticalPadding(): Int {
     } else {
         0
     }
+}
+
+fun createSpace(width: Int = 0, height: Int = 0): JComponent {
+    return object : JComponent() {
+        override fun getPreferredSize(): Dimension {
+            return Dimension(width, height)
+        }
+    }
+}
+
+fun createBorder(
+    top: Int = 0,
+    left: Int = 0,
+    bottom: Int = 0,
+    right: Int = 0
+): Border {
+    return BorderFactory.createEmptyBorder(top, left, bottom, right)
 }

@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     kotlin("jvm")
     `java-library`
@@ -23,13 +21,7 @@ dependencies {
     implementation(projects.ui.render)
     implementation(projects.ui.databinding)
     implementation(Squareup.okio)
+    implementation(ClassGraph.classGraph)
 
     testImplementation(kotlinTestApi())
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
-    }
 }

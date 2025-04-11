@@ -4,6 +4,7 @@ import me.gegenbauer.catspy.cache.CacheableObject
 import me.gegenbauer.catspy.cache.ObjectPool
 import me.gegenbauer.catspy.cache.use
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.java.ext.SPACE_STRING
 import me.gegenbauer.catspy.utils.string.CacheableStringBuilder
 import me.gegenbauer.catspy.utils.string.SimpleStringBuilder
 import me.gegenbauer.catspy.utils.ui.toHtml
@@ -365,7 +366,7 @@ class LabelRenderer : StringRenderer {
         private val invalidHtmlChars = mapOf(
             "<".toRegex() to "&lt;",
             ">".toRegex() to "&gt;",
-            " ".toRegex() to "&nbsp;"
+            SPACE_STRING.toRegex() to "&nbsp;"
         )
 
         private val pool = ObjectPool.createMemoryAwarePool(1000) { LabelRenderer() }

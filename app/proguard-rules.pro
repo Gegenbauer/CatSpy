@@ -3,6 +3,10 @@
 -keep class me.gegenbauer.catspy.view.combobox.FilterComboBox { *; }
 -keep class me.gegenbauer.catspy.view.combobox.FilterComboBoxModel { *; }
 -keep class me.gegenbauer.catspy.log.ui.table.SplitLogPane { *; }
+-keep class me.gegenbauer.catspy.log.LogParser { *; }
+-keep class me.gegenbauer.catspy.log.parse.* { *; }
+-keep class me.gegenbauer.catspy.log.LogParser$ParseMetadata { *; }
+-keep class me.gegenbauer.catspy.log.SequenceLogParser { *; }
 # CatSpy End
 
 # occupies 9.3mb
@@ -98,3 +102,8 @@
 # jna Start
 -keep class com.sun.jna.** { *; }
 # jna End
+
+# classgraph Start
+-keep class nonapi.io.github.classgraph.** { *; }
+-keep class io.github.classgraph.** { *; }
+# classgraph End

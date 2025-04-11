@@ -59,6 +59,11 @@ open class FileLogMainPanel : BaseLogMainPanel() {
         return listOf(templateSelector)
     }
 
+    override fun createUI() {
+        super.createUI()
+        templateSelector.isVisible = logConf.isPreviewMode.not()
+    }
+
     override fun configureContext(context: Context) {
         super.configureContext(context)
         filePopupMenu.setParent(this)

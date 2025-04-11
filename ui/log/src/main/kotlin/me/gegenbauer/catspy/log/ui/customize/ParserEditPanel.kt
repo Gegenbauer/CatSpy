@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.log.ui.customize
 
 import info.clearthought.layout.TableLayout
+import me.gegenbauer.catspy.log.metadata.toParseMetadata
 import me.gegenbauer.catspy.log.serialize.*
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.OnScrollToEndListener
@@ -81,7 +82,7 @@ class ParserEditPanel : JPanel(), LogMetadataEditor, ParseOpEventListener, Scrol
         lastValidParser = metadata.model.parser
 
         val ops = metadata.model.parser.opList
-        parseOpGroupEditor.setParseOps(ops)
+        parseOpGroupEditor.setParseOps(ops, logMetadata.model.toLogMetadata().toParseMetadata())
         val sample = rawLogPanel.value
         parseOpGroupEditor.parsedLogParts = listOf(sample)
     }

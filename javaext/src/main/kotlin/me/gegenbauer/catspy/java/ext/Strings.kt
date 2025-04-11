@@ -2,6 +2,10 @@ package me.gegenbauer.catspy.java.ext
 
 const val EMPTY_STRING: String = ""
 
+const val SPACE_STRING: String = " "
+
+val WORD_REGEX = "\\s+".toRegex()
+
 fun String.capitalize() = this.replaceFirstChar { it.uppercase() }
 
 private val stringBuilder = ThreadLocal.withInitial { StringBuilder() }

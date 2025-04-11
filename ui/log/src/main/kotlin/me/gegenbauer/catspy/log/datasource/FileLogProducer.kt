@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOn
 import me.gegenbauer.catspy.concurrency.GIO
-import me.gegenbauer.catspy.log.parse.LogParser
+import me.gegenbauer.catspy.log.ui.LogConfiguration
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
 import okio.Path.Companion.toPath
@@ -18,9 +18,9 @@ import java.io.File
 
 class FileLogProducer(
     private val logPath: String,
-    logParser: LogParser,
+    logConfiguration: LogConfiguration,
     override val dispatcher: CoroutineDispatcher = Dispatchers.GIO
-) : BaseLogProducer(logParser) {
+) : BaseLogProducer(logConfiguration) {
 
     override val tempFile: File = File(logPath)
 
@@ -40,25 +40,34 @@ class FileLogProducer(
                 val files = zipFileSystem.listOrNull("/".toPath())
                 if (files != null) {
                     zipFileSystem.read(files.first()) {
-                        readUtf8().lineSequence().forEach { line ->
-                            suspender.checkSuspend()
-                            val num = logNum.getAndIncrement()
-                            send(Result.success(LogItem(num, logParser.parse(line))))
-                        }
+                        processLines(readUtf8().lineSequence())
                     }
                 }
             } else {
                 tempFile.inputStream().bufferedReader().use { reader ->
-                    reader.lineSequence().forEach { line ->
-                        suspender.checkSuspend()
-                        val num = logNum.getAndIncrement()
-                        send(Result.success(LogItem(num, logParser.parse(line))))
-                    }
+                    processLines(reader.lineSequence())
                 }
             }
             invokeOnClose { moveToState(LogProducer.State.COMPLETE) }
         }.flowOn(dispatcher)
     }
+
+    private suspend fun ProducerScope<Result<LogItem>>.processLines(lines: Sequence<String>) {
+        lines.forEach { line ->
+            suspender.checkSuspend()
+            if (line.isBlank()) {
+                return@forEach
+            }
+            val num = logNum.getAndIncrement()
+            send(Result.success(LogItem(num, parseLog(line))))
+        }
+    }
+
+    private val File.isZipFile: Boolean
+        get() = extension.equals("zip", true)
+
+    private val File.isGzipFile: Boolean
+        get() = tempFile.extension.equals("gz", true)
 
     override fun cancel() {
         super.cancel()
