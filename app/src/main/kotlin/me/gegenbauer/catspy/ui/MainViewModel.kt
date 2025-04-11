@@ -3,6 +3,8 @@ package me.gegenbauer.catspy.ui
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -22,6 +24,8 @@ import me.gegenbauer.catspy.context.MemoryState
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.glog.GLog
+import me.gegenbauer.catspy.log.metadata.LogMetadataManager
+import me.gegenbauer.catspy.log.parse.ParserManager
 import me.gegenbauer.catspy.network.update.GithubUpdateServiceFactory
 import me.gegenbauer.catspy.network.update.ReleaseEvent
 import me.gegenbauer.catspy.network.update.data.Release
@@ -79,7 +83,10 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
         scope.launch {
             val latestReleaseResult = updateService.getLatestRelease()
             if (latestReleaseResult.isFailure) {
-                GLog.w(TAG, "[checkUpdate] failed to get latest release, error=${latestReleaseResult.exceptionOrNull()}")
+                GLog.w(
+                    TAG,
+                    "[checkUpdate] failed to get latest release, error=${latestReleaseResult.exceptionOrNull()}"
+                )
                 if (force) {
                     _eventFlow.emit(ReleaseEvent.ErrorEvent(latestReleaseResult.exceptionOrNull()))
                 }
@@ -145,7 +152,10 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
         return withContext(Dispatchers.GIO) {
             val logFile = getLastModifiedLog()
             logFile?.let { sourceFile ->
-                GLog.d(TAG, "[exportLog] targetLogFile=${targetFile.absolutePath}, sourceLogFile=${sourceFile.absolutePath}")
+                GLog.d(
+                    TAG,
+                    "[exportLog] targetLogFile=${targetFile.absolutePath}, sourceLogFile=${sourceFile.absolutePath}"
+                )
 
                 val taskName = STRINGS.ui.exportFileTaskTitle.get(targetFile.absolutePath)
                 val task = Task(taskName, object : TaskHandle {
@@ -173,6 +183,21 @@ class MainViewModel(override val contexts: Contexts = Contexts.default) : Contex
                     Result.failure<String>(it)
                 }.getOrDefault(Result.failure(Exception(STRINGS.ui.unknownError)))
             } ?: Result.success(null)
+        }
+    }
+
+    fun loadData() {
+        scope.launch {
+            listOf(
+                async {
+                    val logMetadataManager = ServiceManager.getContextService(LogMetadataManager::class.java)
+                    logMetadataManager.loadAllMetadata()
+                },
+                async {
+                    val parserManager = ServiceManager.getContextService(ParserManager::class.java)
+                    parserManager.loadParsers()
+                }
+            ).awaitAll()
         }
     }
 

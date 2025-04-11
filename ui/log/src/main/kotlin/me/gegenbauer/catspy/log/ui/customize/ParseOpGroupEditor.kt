@@ -1,5 +1,6 @@
 package me.gegenbauer.catspy.log.ui.customize
 
+import me.gegenbauer.catspy.log.parse.LogParser
 import me.gegenbauer.catspy.log.serialize.ParseOp
 import me.gegenbauer.catspy.utils.ui.OnScrollToEndListener
 import me.gegenbauer.catspy.utils.ui.ScrollToEndListenerSupport
@@ -53,6 +54,7 @@ class ParseOpGroupEditor(
         }
 
     private var ops: List<ParseOp> = emptyList()
+    private var parseMetadata: LogParser.ParseMetadata = LogParser.defaultParseMetadata
 
     private val parseOpPanels = mutableListOf<ParseOpItemEditPanel>()
     private val parseOpEventListeners = mutableListOf<ParseOpEventListener>()
@@ -66,8 +68,9 @@ class ParseOpGroupEditor(
         return parseOpPanels.map { it.getParseOp() }
     }
 
-    fun setParseOps(ops: List<ParseOp>) {
+    fun setParseOps(ops: List<ParseOp>, parseMetadata: LogParser.ParseMetadata) {
         this.ops = ops
+        this.parseMetadata = parseMetadata
         buildParseOpPanels()
     }
 
@@ -85,9 +88,9 @@ class ParseOpGroupEditor(
     private fun createParseOpPanel(
         previousOp: ParseOp?,
         parentOp: ParseOp?,
-        op: ParseOp? = null
+        op: ParseOp? = null,
     ): ParseOpItemEditPanel {
-        return ParseOpItemEditPanel(ParseOpContext(op, previousOp, parentOp))
+        return ParseOpItemEditPanel(ParseOpContext(op, previousOp, parentOp, parseMetadata))
     }
 
     private fun addParseOpPanel(panel: ParseOpItemEditPanel, index: Int = parseOpPanels.size) {

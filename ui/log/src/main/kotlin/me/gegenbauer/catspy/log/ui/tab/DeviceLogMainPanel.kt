@@ -81,6 +81,7 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
         splitLogWithStatefulPanel.hideEmptyContent()
         deviceCombo.isVisible = true
         saveBtn.isVisible = true
+        logConf.getLogBufferSelectPanel().isVisible = logConf.isPreviewMode.not()
     }
 
     override fun getCustomToolbarComponents(): List<Component> {
@@ -168,30 +169,25 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
 
     override fun afterTaskStateChanged(state: TaskUIState) {
         super.afterTaskStateChanged(state)
+        deviceCombo.isEnabled = state is TaskIdle
+        logConf.setLogBufferSelectorEnabled(state is TaskIdle)
         when (state) {
             is TaskStarted -> {
-                logStatus =
-                    StatusBar.LogStatusRunning(
-                        STRINGS.ui.adb,
-                        logViewModel.tempLogFile.absolutePath ?: EMPTY_STRING
-                    )
-                deviceCombo.isEnabled = false
+                logStatus = StatusBar.LogStatusRunning(
+                    STRINGS.ui.adb,
+                    logViewModel.tempLogFile.absolutePath ?: EMPTY_STRING
+                )
             }
 
             is TaskIdle -> {
-                if (isLogTableEmpty) {
-                    logStatus = StatusBar.LogStatusIdle(idleStatus)
+                logStatus = if (isLogTableEmpty) {
+                    StatusBar.LogStatusIdle(idleStatus)
                 } else {
-                    logStatus = StatusBar.LogStatusIdle(
+                    StatusBar.LogStatusIdle(
                         idleStatus,
                         logViewModel.tempLogFile.absolutePath ?: EMPTY_STRING
                     )
                 }
-                deviceCombo.isEnabled = true
-            }
-
-            is TaskPaused -> {
-                deviceCombo.isEnabled = false
             }
         }
     }

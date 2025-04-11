@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.file.MB
+import me.gegenbauer.catspy.java.ext.SPACE_STRING
 import java.io.BufferedInputStream
 import java.io.File
 import java.util.*
@@ -119,5 +120,5 @@ class CommandProcessBuilder(
 }
 
 fun String.toCommandArray(): Array<String> {
-    return this.split(" ").toTypedArray()
+    return this.split(SPACE_STRING).toTypedArray()
 }

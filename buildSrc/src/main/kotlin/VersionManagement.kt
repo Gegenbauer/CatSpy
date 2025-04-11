@@ -145,6 +145,13 @@ object Oshi {
     val oshiCore = Dependency(GROUP_NAME, "oshi-core", VERSION)
 }
 
+object ClassGraph {
+    private const val GROUP_NAME = "io.github.classgraph"
+    private const val VERSION = "4.8.179"
+
+    val classGraph = Dependency(GROUP_NAME, "classgraph", VERSION)
+}
+
 data class Dependency(
     val group: String,
     val artifact: String,

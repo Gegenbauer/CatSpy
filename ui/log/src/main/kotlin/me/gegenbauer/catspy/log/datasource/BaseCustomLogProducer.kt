@@ -10,9 +10,9 @@ import me.gegenbauer.catspy.log.ui.LogConfiguration
 import java.io.File
 
 abstract class BaseCustomLogProducer(
-    protected val logConfiguration: LogConfiguration,
+    logConfiguration: LogConfiguration,
     override val dispatcher: CoroutineDispatcher = Dispatchers.GIO
-) : BaseLogProducer(logConfiguration.logMetaData.parser) {
+) : BaseLogProducer(logConfiguration) {
 
     override val tempFile: File = File(EMPTY_STRING)
 
@@ -23,7 +23,7 @@ abstract class BaseCustomLogProducer(
     }
 
     protected open fun getSampleLogItem(): LogItem {
-        return LogItem(0, logParser.parse(logConfiguration.logMetaData.sample))
+        return LogItem(0, parseLog(logConfiguration.logMetaData.sample))
     }
 
     private fun getAllLevelLogs(sampleLog: LogItem): List<LogItem> {

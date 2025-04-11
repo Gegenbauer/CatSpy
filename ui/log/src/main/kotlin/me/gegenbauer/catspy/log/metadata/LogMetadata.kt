@@ -42,6 +42,15 @@ class LogMetadata(
     }
 }
 
+fun LogMetadata.toParseMetadata(): LogParser.ParseMetadata {
+    val parsedColumns = columns.filter { it.isParsed }
+    val messageColumnIndex = parsedColumns.indexOfFirst { it is Column.MessageColumn }
+    val levelColumnIndex = parsedColumns.indexOfFirst { it is Column.LevelColumn }
+    val defaultLevelTag = levels.minByOrNull { it.level.value }?.level?.keyword ?: EMPTY_STRING
+    val columnCount = parsedColumns.size
+    return LogParser.ParseMetadata(columnCount, messageColumnIndex, levelColumnIndex, defaultLevelTag)
+}
+
 interface Column {
     val id: Int
 

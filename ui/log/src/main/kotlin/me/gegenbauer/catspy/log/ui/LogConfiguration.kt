@@ -24,17 +24,21 @@ class LogConfiguration(
     private val filterManager: FilterManager = FilterManager(),
     private val searchFilterController: SearchFilterController = SearchFilterController(),
     private val searchPanel: SearchPanel = SearchPanel(),
+    private val bufferSelectPanel: ILogcatLogBufferSelectPanel = LogcatLogBufferSelectPanel(),
     private val logRenderer: LogRenderer = LogRenderer(),
     private val observableLogMetadata: ObservableProperty<LogMetadata> = ObservableProperty(),
     override val contexts: Contexts = Contexts.default,
 ) : IFilterManager by filterManager,
     IFavoriteFilterPanel by filterManager,
     ILogRenderer by logRenderer,
+    ILogcatLogBufferSelectPanel by bufferSelectPanel,
     Observable<LogMetadata> by observableLogMetadata,
     ISearchFilterController by searchFilterController,
     ISearchPanel by searchPanel,
     Context,
     LogMetadataOwner {
+
+    var isPreviewMode = false
 
     private val logMetadataObservers = mutableListOf<Observer<LogMetadata>>()
 
@@ -60,6 +64,7 @@ class LogConfiguration(
         this.logMetaData = logMetaData
         reAddExistingObservers()
         filterManager.setLogMetadata(logMetaData)
+        logRenderer.cancel()
         logRenderer.setColumns(logMetaData)
         this.observableLogMetadata.forceUpdateValue(logMetaData)
     }
@@ -69,6 +74,7 @@ class LogConfiguration(
         searchPanel.setParent(this)
         logRenderer.setParent(this)
         filterPanel.setParent(this)
+        bufferSelectPanel.setParent(this)
     }
 
     override fun addObserver(observer: Observer<LogMetadata>) {

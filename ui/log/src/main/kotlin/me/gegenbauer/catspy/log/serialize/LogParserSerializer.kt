@@ -1,13 +1,13 @@
 package me.gegenbauer.catspy.log.serialize
 
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
+import com.google.gson.*
+import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.java.ext.SPACE_STRING
+import me.gegenbauer.catspy.java.ext.WORD_REGEX
+import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.parse.LogParser
+import me.gegenbauer.catspy.log.parse.ParserManager
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.file.Serializer
 import java.lang.reflect.Type
@@ -65,6 +65,25 @@ class LogParserSerializer : Serializer<SerializableLogParser, JsonElement> {
         }
     }
 
+    class ExistedParserOpAdapter : JsonDeserializer<ExistedParserOp>, JsonSerializer<ExistedParserOp> {
+        override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): ExistedParserOp {
+            val jsonObject = json.asJsonObject
+            val clazz = jsonObject["clazz"].asString
+            val jarPath = jsonObject["jarPath"].asString
+            val isBuiltIn = jsonObject["isBuiltIn"].asBoolean
+            return ExistedParserOp(clazz, jarPath, isBuiltIn)
+        }
+
+        override fun serialize(src: ExistedParserOp, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+            val jsonObject = JsonObject()
+            jsonObject.addProperty("clazz", src.clazz)
+            jsonObject.addProperty("jarPath", src.jarPath)
+            jsonObject.addProperty("isBuiltIn", src.isBuiltIn)
+            jsonObject.addProperty(JSON_KEY_TYPE, src.type)
+            return jsonObject
+        }
+    }
+
     class TrimOpAdapter : JsonDeserializer<TrimOp>, JsonSerializer<TrimOp> {
         override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): TrimOp {
             val jsonObject = json.asJsonObject
@@ -91,11 +110,13 @@ class LogParserSerializer : Serializer<SerializableLogParser, JsonElement> {
             .registerTypeAdapter(SplitToPartsOp::class.java, PreProcessOpAdapter())
             .registerTypeAdapter(SplitPostProcessOp::class.java, PreProcessPostOpAdapter())
             .registerTypeAdapter(TrimOp::class.java, TrimOpAdapter())
+            .registerTypeAdapter(ExistedParserOp::class.java, ExistedParserOpAdapter())
             .create()
 
         init {
             splitToPartsOps[OP_SPLIT_BY_WORD_SEPARATOR] = SplitByWordSeparatorOp::class.java
             splitToPartsOps[OP_EMPTY_SPLIT_TO_PARTS] = EmptySplitToPartsOp::class.java
+            splitToPartsOps[OP_EXISTED_PARSER] = ExistedParserOp::class.java
             preProcessPostOps[OP_SPLIT_PART_WITH_CHAR] = SplitPartWithCharOp::class.java
             preProcessPostOps[OP_MERGE_NEARBY_PARTS] = MergeNearbyPartsOp::class.java
             preProcessPostOps[OP_REMOVE_BLANK_PART] = RemoveBlankPartOp::class.java
@@ -112,60 +133,60 @@ class SerializableLogParser(
 ) : LogParser {
 
     @Transient
-    private var partCount: Int = 0
-    @Transient
-    private var levelPartIndex: Int = 0
-    @Transient
-    private lateinit var defaultLevelKeyword: String
-    @Transient
     private lateinit var levelKeywords: Set<String>
 
+    @Transient
+    private lateinit var parseResult: Array<String>
+
+    @Transient
+    private lateinit var defaultParseResult: Array<String>
+
     fun setLogMetadata(logMetadataModel: LogMetadataModel) {
-        val parsedColumns = logMetadataModel.columns.sortedBy { it.partIndex }.filter { it.isParsed }
-        val columnCount = parsedColumns.size
-        val levelPartIndex = parsedColumns.indexOfFirst { it.isLevel }
-        val defaultLevelTag = logMetadataModel.levels.minByOrNull { it.level.value }?.level?.keyword ?: EMPTY_STRING
         val levelKeywords = logMetadataModel.levels.map { it.level.keyword }.toSet()
-        configure(columnCount, levelPartIndex, defaultLevelTag, levelKeywords)
-    }
-
-    private fun configure(partCount: Int, levelPartIndex: Int, defaultLevelTag: String, levelKeywords: Set<String>) {
-        this.partCount = partCount
-        this.levelPartIndex = levelPartIndex
-        this.defaultLevelKeyword = defaultLevelTag
+        val columnCount = logMetadataModel.columns.filter { it.isParsed }.size
         this.levelKeywords = levelKeywords
+        parseResult = Array(columnCount) { EMPTY_STRING }
+        defaultParseResult = Array(columnCount) { EMPTY_STRING }
     }
 
-    override fun parse(line: String): List<String> {
-        val splitResult = splitToPartsOp.process(sequenceOf(line))
-        val defaultResult = Array(partCount) { EMPTY_STRING }.apply {
-            if (levelPartIndex > 0) this[levelPartIndex] = defaultLevelKeyword
-            this[this.size - 1] = line
-        }
+    override fun parse(
+        line: String,
+        parseMetadata: LogParser.ParseMetadata
+    ): List<String> {
+        resetCache()
+        val splitResult = splitToPartsOp.process(sequenceOf(line), parseMetadata)
+        if (parseMetadata.levelColumn > 0) defaultParseResult[parseMetadata.levelColumn] = parseMetadata.defaultLevelTag
+        defaultParseResult[defaultParseResult.size - 1] = line
 
-        val parsedResult = kotlin.runCatching {
+        val parsedResult = applyTrimOps(splitResult, defaultParseResult, parseMetadata)
+        val isValidLog = (parseMetadata.levelColumn > 0)
+                && (parsedResult.size > parseMetadata.levelColumn)
+                && levelKeywords.contains(parsedResult[parseMetadata.levelColumn])
+        if (isValidLog) {
+            return parsedResult
+        }
+        return defaultParseResult.toList()
+    }
+
+    private fun resetCache() {
+        parseResult.fill(EMPTY_STRING)
+        defaultParseResult.fill(EMPTY_STRING)
+    }
+
+    private fun applyTrimOps(
+        lastResult: Sequence<String>,
+        default: Array<String>,
+        parseMetadata: LogParser.ParseMetadata
+    ): List<String> {
+        return kotlin.runCatching {
             if (trimOps.isEmpty()) {
-                splitResult
+                lastResult
             } else {
-                trimOps.fold(splitResult) { parts, op ->
-                    op.process(parts)
+                trimOps.fold(lastResult) { parts, op ->
+                    op.process(parts, parseMetadata)
                 }
             }.toList()
-        }.getOrDefault(defaultResult.toList())
-        val isValidLog = (levelPartIndex > 0) && (parsedResult.size > levelPartIndex)
-                && levelKeywords.contains(parsedResult[levelPartIndex])
-        if (isValidLog) {
-            // fill default result with parsed parts
-            parsedResult.forEachIndexed { index, part ->
-                if (index < partCount) {
-                    defaultResult[index] = part
-                }
-            }
-            for (i in parsedResult.size until partCount) {
-                defaultResult[i] = EMPTY_STRING
-            }
-        }
-        return defaultResult.toList()
+        }.getOrDefault(default.toList())
     }
 
     override fun equals(other: Any?): Boolean {
@@ -186,7 +207,10 @@ interface ParseOp {
 
     val type: Int
 
-    fun process(parts: Sequence<String>): Sequence<String>
+    fun process(
+        parts: Sequence<String>,
+        parseMetadata: LogParser.ParseMetadata
+    ): Sequence<String>
 }
 
 /**
@@ -208,6 +232,7 @@ private const val TYPE_EMPTY = -1
 
 private const val OP_EMPTY_SPLIT_TO_PARTS = 0
 private const val OP_SPLIT_BY_WORD_SEPARATOR = 1
+private const val OP_EXISTED_PARSER = 2
 
 private const val OP_SPLIT_PART_WITH_CHAR = 10
 private const val OP_MERGE_NEARBY_PARTS = 11
@@ -226,7 +251,10 @@ class EmptyParseOp : ParseOp {
     override val description: String
         get() = STRINGS.parser.emptyParser
 
-    override fun process(parts: Sequence<String>): Sequence<String> {
+    override fun process(
+        parts: Sequence<String>,
+        parseMetadata: LogParser.ParseMetadata
+    ): Sequence<String> {
         return parts
     }
 }
@@ -242,7 +270,10 @@ class EmptySplitToPartsOp : SplitToPartsOp {
     override val description: String
         get() = STRINGS.parser.emptySplitToParts
 
-    override fun process(parts: Sequence<String>): Sequence<String> {
+    override fun process(
+        parts: Sequence<String>,
+        parseMetadata: LogParser.ParseMetadata
+    ): Sequence<String> {
         return parts
     }
 
@@ -268,10 +299,13 @@ class SplitByWordSeparatorOp(
     override val description: String
         get() = STRINGS.parser.splitByWordSeparator
 
-    override fun process(parts: Sequence<String>): Sequence<String> {
-        var result: Sequence<String> = parts.flatMap { it.splitToSequence(regex, maxParts) }
+    override fun process(
+        parts: Sequence<String>,
+        parseMetadata: LogParser.ParseMetadata
+    ): Sequence<String> {
+        var result: Sequence<String> = parts.flatMap { it.splitToSequence(WORD_REGEX, maxParts) }
         splitPostProcessOps.forEach {
-            result = it.process(result)
+            result = it.process(result, parseMetadata)
         }
         return result
     }
@@ -288,7 +322,53 @@ class SplitByWordSeparatorOp(
 
     companion object {
         const val DEFAULT_MAX_PARTS = 20
-        private val regex = "\\s+".toRegex()
+    }
+}
+
+class ExistedParserOp(
+    val clazz: String = EMPTY_STRING,
+    val jarPath: String = EMPTY_STRING,
+    val isBuiltIn: Boolean = true
+) : SplitToPartsOp {
+    override val splitPostProcessOps: List<SplitPostProcessOp>
+        get() = emptyList()
+    override val name: String
+        get() = "ExistedParser"
+    override val description: String
+        get() = EMPTY_STRING
+    override val type: Int
+        get() = OP_EXISTED_PARSER
+    private val parserManager by lazy {
+        ServiceManager.getContextService(ParserManager::class.java)
+    }
+
+    override fun process(
+        parts: Sequence<String>,
+        parseMetadata: LogParser.ParseMetadata
+    ): Sequence<String> {
+        val parser = parserManager.getParser(clazz, jarPath, isBuiltIn)
+        return runCatching {
+            if (parser == null) {
+                Log.e(name, "[process] Parser not found: $clazz")
+                return parts
+            }
+            val line = parts.firstOrNull() ?: return@runCatching parts
+            val result = parser.parse(line, parseMetadata)
+            result.asSequence()
+        }.onFailure {
+            Log.e(name, "[process] Error parsing with existed parser.", it)
+        }.getOrDefault(parts)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is ExistedParserOp
+                && other.clazz == clazz
+                && other.jarPath == jarPath
+                && other.isBuiltIn == isBuiltIn
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(javaClass.name, clazz, jarPath, isBuiltIn)
     }
 }
 
@@ -301,7 +381,10 @@ class SplitPartWithCharOp(val splitChar: Char?, val partIndex: Int, val maxPart:
     override val description: String
         get() = STRINGS.parser.splitPartWithChar
 
-    override fun process(parts: Sequence<String>): Sequence<String> {
+    override fun process(
+        parts: Sequence<String>,
+        parseMetadata: LogParser.ParseMetadata
+    ): Sequence<String> {
         splitChar ?: return parts
         return sequence {
             parts.forEachIndexed { index, s ->
@@ -340,14 +423,17 @@ class MergeNearbyPartsOp(val from: Int, val to: Int) : SplitPostProcessOp {
     override val description: String
         get() = STRINGS.parser.mergeNearbyParts
 
-    override fun process(parts: Sequence<String>): Sequence<String> = sequence {
+    override fun process(
+        parts: Sequence<String>,
+        parseMetadata: LogParser.ParseMetadata
+    ): Sequence<String> = sequence {
         val mergedPart = StringBuilder()
         var index = 0
 
         parts.forEach { part ->
             when {
                 index < from -> yield(part)
-                index in from until to -> mergedPart.append(part).append(" ")
+                index in from until to -> mergedPart.append(part).append(SPACE_STRING)
                 index == to -> {
                     mergedPart.append(part)
                     yield(mergedPart.toString())
@@ -380,7 +466,10 @@ class MergeUntilCharOp(val start: Int, val targetChar: Char?) : SplitPostProcess
     override val description: String
         get() = STRINGS.parser.mergeUntilChar
 
-    override fun process(parts: Sequence<String>): Sequence<String> {
+    override fun process(
+        parts: Sequence<String>,
+        parseMetadata: LogParser.ParseMetadata
+    ): Sequence<String> {
         return sequence {
             val mergedPart = StringBuilder()
             if (targetChar == null) {
@@ -443,7 +532,10 @@ class RemoveBlankPartOp : SplitPostProcessOp {
     override val description: String
         get() = STRINGS.parser.removeBlankPart
 
-    override fun process(parts: Sequence<String>): Sequence<String> {
+    override fun process(
+        parts: Sequence<String>,
+        parseMetadata: LogParser.ParseMetadata
+    ): Sequence<String> {
         return parts.filter { it.isNotBlank() }
     }
 
@@ -475,7 +567,10 @@ class TrimWithCharOp(
     override val description: String
         get() = STRINGS.parser.trimWithChar
 
-    override fun process(parts: Sequence<String>): Sequence<String> {
+    override fun process(
+        parts: Sequence<String>,
+        parseMetadata: LogParser.ParseMetadata
+    ): Sequence<String> {
         if (leading == null && trailing == null) return parts
         return parts.mapIndexed { index, s ->
             var result = s
@@ -520,7 +615,10 @@ class TrimWithIndexOp(
     override val description: String
         get() = STRINGS.parser.trimWithIndex
 
-    override fun process(parts: Sequence<String>): Sequence<String> {
+    override fun process(
+        parts: Sequence<String>,
+        parseMetadata: LogParser.ParseMetadata
+    ): Sequence<String> {
         return parts.mapIndexed { index, s ->
             if (index == partIndex) {
                 if (removedTrailingCharCount + removedLeadingCharCount > s.length) {

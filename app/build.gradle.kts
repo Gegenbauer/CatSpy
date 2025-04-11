@@ -34,10 +34,6 @@ dependencies {
     testImplementation(Mockk.mockk)
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
-
 // TODO 更改应用安装后的图标
 compose.desktop {
     application {

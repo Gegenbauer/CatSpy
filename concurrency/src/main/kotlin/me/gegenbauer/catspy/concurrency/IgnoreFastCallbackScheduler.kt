@@ -24,6 +24,10 @@ class IgnoreFastCallbackScheduler(
     }
 
     override fun cancel() {
+        job?.cancel()
+    }
+
+    override fun destroy() {
         scope.cancel()
     }
 }
@@ -32,6 +36,8 @@ interface CallbackSchedule {
     fun schedule(callback: Callback)
 
     fun cancel()
+
+    fun destroy()
 }
 
 fun interface Callback {

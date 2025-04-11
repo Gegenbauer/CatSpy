@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.java.ext.SPACE_STRING
 import me.gegenbauer.catspy.script.model.Script
 import me.gegenbauer.catspy.task.CommandTask
 import me.gegenbauer.catspy.task.TaskManager
@@ -47,5 +48,5 @@ class CommandExecutor(
 }
 
 fun String.toCommand(): Array<String> {
-    return this.split(" ").toTypedArray()
+    return this.split(SPACE_STRING).toTypedArray()
 }

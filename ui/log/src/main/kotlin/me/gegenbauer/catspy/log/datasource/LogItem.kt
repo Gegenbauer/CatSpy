@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.log.datasource
 
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.java.ext.SPACE_STRING
 
 class LogItem(
     val num: Int,
@@ -11,6 +12,6 @@ class LogItem(
     }
 
     override fun toString(): String {
-        return parts.joinToString(" ")
+        return parts.joinToString(SPACE_STRING)
     }
 }

@@ -6,6 +6,20 @@ import me.gegenbauer.catspy.utils.file.JsonFileManager
 import me.gegenbauer.catspy.utils.file.KeyValuesFileManager
 import me.gegenbauer.catspy.utils.file.XMLFileManager
 
+/**
+ * A simple key-value store for user preferences.
+ * The implementation is backed by a file on disk.
+ * The file format is determined by the [KeyValuesFileManager] implementation.
+ * The default implementation uses JSON.
+ * The preferences are loaded from disk when the class is instantiated.
+ * The preferences are saved to disk asynchronously when updated.
+ *
+ * The preferences are stored in a map with a key-value pair.
+ * The key compose of a file name and a key in the file, which is separated by "/". Default file name is "default".
+ * eg: "filename/preference_key"
+ * If the key passed in does not contain a file name, the default file name will be used.
+ * A new file will be created if the file name does not exist.
+ */
 interface UserPreferences {
 
     suspend fun loadFromDisk()

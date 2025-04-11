@@ -1,6 +1,7 @@
 package me.gegenbauer.catspy.glog
 
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.java.ext.SPACE_STRING
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -38,7 +39,7 @@ object ColoredLogFormatter : BaseLogFormatter() {
         builder.append("]")
         builder.append(ANSI_BOLD_OFF)
         builder.append(getMessageColor(record))
-        builder.append(" ")
+        builder.append(SPACE_STRING)
         builder.append(record.message)
         builder.append(ANSI_RESET)
         builder.append(ANSI_RESET)

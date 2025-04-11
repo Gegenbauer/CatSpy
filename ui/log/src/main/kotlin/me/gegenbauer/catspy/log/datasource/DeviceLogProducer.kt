@@ -16,7 +16,7 @@ import me.gegenbauer.catspy.file.appendName
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.metadata.LogcatLogSupport
-import me.gegenbauer.catspy.log.parse.LogParser
+import me.gegenbauer.catspy.log.ui.LogConfiguration
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.LOG_DIR
 import me.gegenbauer.catspy.platform.currentPlatform
@@ -32,9 +32,9 @@ import java.time.format.DateTimeFormatter
 
 class DeviceLogProducer(
     val device: String,
-    logParser: LogParser,
+    logConfiguration: LogConfiguration,
     override val dispatcher: CoroutineDispatcher = Dispatchers.GIO
-) : BaseLogProducer(logParser) {
+) : BaseLogProducer(logConfiguration) {
     override val tempFile: File by lazy { getTempLogFile() }
     private val tempFileStream: OutputStream by lazy { BufferedOutputStream(tempFile.outputStream()) }
     private val processFetcher = AndroidProcessFetcher(device)
@@ -42,7 +42,9 @@ class DeviceLogProducer(
 
     private val commandExecutor by lazy {
         val logcatCommand = LogcatLogSupport.getLogcatCommand(SettingsManager.adbPath, device)
-        CommandExecutorImpl(CommandProcessBuilder(logcatCommand.toCommandArray()))
+        val bufferCommand = logConfiguration.getLogBuffers().joinToString(" ") { "-b $it" }
+        val logcatCommandWithBuffer = "$logcatCommand $bufferCommand"
+        CommandExecutorImpl(CommandProcessBuilder(logcatCommandWithBuffer.toCommandArray()))
     }
 
     override fun start(): Flow<Result<LogItem>> {
@@ -54,7 +56,7 @@ class DeviceLogProducer(
                 suspender.checkSuspend()
                 writeToFile(line)
                 val num = logNum.getAndIncrement()
-                val parts = logParser.parse(line).toMutableList()
+                val parts = parseLog(line).toMutableList()
                 val packageName = processFetcher.queryPackageName(parts[PART_INDEX_PID], parts[PART_INDEX_TIME])
                 parts.add(PART_INDEX_PACKAGE, packageName)
                 LogItem(num, parts)

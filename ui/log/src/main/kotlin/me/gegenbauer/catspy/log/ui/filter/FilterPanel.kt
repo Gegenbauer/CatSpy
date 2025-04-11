@@ -111,7 +111,7 @@ class FilterPanel(override val contexts: Contexts = Contexts.default) : JPanel()
 
     override fun destroy() {
         super.destroy()
-        ignoreFastCallbackScheduler.cancel()
+        ignoreFastCallbackScheduler.destroy()
     }
 
     private interface FilterGroup {

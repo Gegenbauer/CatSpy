@@ -1,13 +1,7 @@
 package me.gegenbauer.catspy.ui
 
 import kotlinx.coroutines.*
-import me.gegenbauer.catspy.concurrency.FileSaveEvent
-import me.gegenbauer.catspy.concurrency.GIO
-import me.gegenbauer.catspy.concurrency.GlobalEventManager
-import me.gegenbauer.catspy.concurrency.GlobalMessageManager
-import me.gegenbauer.catspy.concurrency.Message
-import me.gegenbauer.catspy.concurrency.NormalEvent
-import me.gegenbauer.catspy.concurrency.OpenAdbPathSettingsEvent
+import me.gegenbauer.catspy.concurrency.*
 import me.gegenbauer.catspy.conf.GlobalConfSync
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.configuration.currentSettings
@@ -20,8 +14,8 @@ import me.gegenbauer.catspy.ddmlib.adb.AdbConf
 import me.gegenbauer.catspy.ddmlib.device.AdamDeviceMonitor
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.appIcons
-import me.gegenbauer.catspy.java.ext.*
-import me.gegenbauer.catspy.log.metadata.LogMetadataManager
+import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.java.ext.KotlinReflectionPreTrigger
 import me.gegenbauer.catspy.network.update.ReleaseEvent
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
@@ -81,7 +75,7 @@ class MainFrame(
 
         preTriggerKotlinReflection()
 
-        loadLogMetadata()
+        loadData()
     }
 
     private fun createUI() {
@@ -151,12 +145,8 @@ class MainFrame(
         }
     }
 
-    private fun loadLogMetadata() {
-        scope.launch {
-            withContext(Dispatchers.GIO) {
-                ServiceManager.getContextService(LogMetadataManager::class.java).loadAllMetadata()
-            }
-        }
+    private fun loadData() {
+        mainViewModel.loadData()
     }
 
     private fun observeEventFlow() {

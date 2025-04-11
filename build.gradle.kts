@@ -1,4 +1,5 @@
-// build.gradle.kts 文件
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
     // in each subproject's classloader
@@ -14,5 +15,13 @@ allprojects {
         google()
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    }
+
+    tasks.withType<KotlinCompile> {
+        kotlinOptions {
+            jvmTarget = "17"
+            freeCompilerArgs += "-Xdebug"
+            freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+        }
     }
 }

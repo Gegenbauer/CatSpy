@@ -2,6 +2,8 @@ package me.gegenbauer.catspy.ddmlib.adb
 
 import me.gegenbauer.catspy.ddmlib.log.DdmLog
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.java.ext.SPACE_STRING
+import me.gegenbauer.catspy.java.ext.WORD_REGEX
 import java.util.*
 
 class AdbDeviceInfo(info: String, host: String, port: Int) {
@@ -26,8 +28,8 @@ class AdbDeviceInfo(info: String, host: String, port: Int) {
         adbHost = host
         adbPort = port
 
-        val infoFields = info.split("\\s+")
-        allInfo = infoFields.joinToString(" ")
+        val infoFields = info.split(WORD_REGEX)
+        allInfo = infoFields.joinToString(SPACE_STRING)
         if (infoFields.size > 2) {
             serial = infoFields[0]
             state = infoFields[1]

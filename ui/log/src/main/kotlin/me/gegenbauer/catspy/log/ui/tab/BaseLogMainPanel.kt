@@ -151,6 +151,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     }
 
     protected open fun createUI() {
+        logToolBar.addRight(logConf.getLogBufferSelectPanel())
         getCustomToolbarComponents().forEach { logToolBar.addRight(it) }
         logToolBar.addRight(clearViewsBtn)
         logToolBar.addRight(rotateLogPanelBtn)
@@ -159,6 +160,10 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
         logToolBar.addRight(startBtn)
         logToolBar.addRight(resetFilterBtn)
         logToolBar.border = BorderFactory.createEmptyBorder(0, 0, 0, 20)
+
+        logConf.getLogBufferSelectPanel().isVisible = false
+        logToolBar.isVisible = logConf.isPreviewMode.not()
+        logConf.getFavoriteFilterPanel().isVisible = logConf.isPreviewMode.not()
 
         saveBtn.isVisible = false
 

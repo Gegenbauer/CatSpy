@@ -32,6 +32,7 @@ class JsonFileManager: KeyValuesFileManager() {
         return jsonObject
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun serializeValue(value: Any?): JsonElement {
         return when (value) {
             is String -> JsonPrimitive(value)

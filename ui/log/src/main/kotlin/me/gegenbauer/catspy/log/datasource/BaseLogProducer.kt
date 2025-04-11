@@ -3,14 +3,19 @@ package me.gegenbauer.catspy.log.datasource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import me.gegenbauer.catspy.concurrency.CoroutineSuspender
+import me.gegenbauer.catspy.log.datasource.LogProducer.State
+import me.gegenbauer.catspy.log.metadata.LogMetadata
+import me.gegenbauer.catspy.log.metadata.toParseMetadata
 import me.gegenbauer.catspy.log.parse.LogParser
+import me.gegenbauer.catspy.log.ui.LogConfiguration
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
-import me.gegenbauer.catspy.log.datasource.LogProducer.State
 
-abstract class BaseLogProducer(protected val logParser: LogParser) : LogProducer {
+abstract class BaseLogProducer(
+    protected val logConfiguration: LogConfiguration,
+) : LogProducer {
 
     override val state: StateFlow<State>
         get() = sync.read { _state }
@@ -23,6 +28,15 @@ abstract class BaseLogProducer(protected val logParser: LogParser) : LogProducer
     private val _state: MutableStateFlow<State> = MutableStateFlow(State.CREATED)
 
     private val sync = ReentrantReadWriteLock()
+
+    private val logMetadata: LogMetadata
+        get() = logConfiguration.logMetaData
+    protected open val logParser: LogParser
+        get() = logMetadata.parser
+
+    protected open fun parseLog(line: String): List<String> {
+        return logParser.parse(line, logMetadata.toParseMetadata())
+    }
 
     override fun pause() {
         suspender.enable()

@@ -19,10 +19,7 @@ class LogMetadataPreviewPanel : FileLogMainPanel() {
     override val tag: String = "PreviewPanel"
 
     init {
-        templateSelector.isVisible = false
-        logToolBar.isVisible = false
-        splitLogPane.fullLogPanel.isVisible = false
-        logConf.getFavoriteFilterPanel().isVisible = false
+        logConf.isPreviewMode = true
         configureContext(this)
         onSetup(Bundle().apply {
             put(LogMetadata.KEY, LogMetadataModel.default.toLogMetadata())

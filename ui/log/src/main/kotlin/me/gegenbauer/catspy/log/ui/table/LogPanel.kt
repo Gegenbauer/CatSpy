@@ -9,6 +9,7 @@ import me.gegenbauer.catspy.databinding.property.support.selectedProperty
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.log.BookmarkChangeListener
 import me.gegenbauer.catspy.log.BookmarkManager
+import me.gegenbauer.catspy.log.ui.LogConfiguration
 import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.utils.ui.applyTooltip
@@ -60,6 +61,10 @@ abstract class LogPanel(
 
     private var lastPosition = -1
     private var lastPageMetaData: PageMetadata = PageMetadata()
+
+    private val logConf: LogConfiguration
+        get() = contexts.getContext(LogConfiguration::class.java)
+            ?: throw IllegalStateException("No LogConfiguration found in contexts")
 
     init {
         registerEvent()
@@ -117,6 +122,7 @@ abstract class LogPanel(
         vStatusPanel.setParent(this)
 
         getBookmarkManager()?.addBookmarkEventListener(bookmarkHandler)
+        ctrlMainPanel.isVisible = logConf.isPreviewMode.not()
     }
 
     private fun getBookmarkManager(): BookmarkManager? {

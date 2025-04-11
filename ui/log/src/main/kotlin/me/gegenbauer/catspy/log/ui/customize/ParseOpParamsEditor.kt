@@ -1,11 +1,17 @@
 package me.gegenbauer.catspy.log.ui.customize
 
+import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
+import me.gegenbauer.catspy.log.parse.ParserManager
 import me.gegenbauer.catspy.log.serialize.*
 import me.gegenbauer.catspy.strings.STRINGS
+import me.gegenbauer.catspy.view.panel.HorizontalFlexibleHeightLayout
+import me.gegenbauer.catspy.view.panel.VerticalFlexibleWidthLayout
 import java.awt.Dimension
+import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.JTextField
 
 fun interface EditEventListener {
     fun onEditDone(component: JComponent)
@@ -41,7 +47,7 @@ abstract class ParseOpParamsEditor<T : ParseOp> : JPanel(), EditEventSource, Edi
         // do nothing by default
     }
 
-    private fun notifyEditListeners() {
+    protected fun notifyEditListeners() {
         editListeners.forEach { it.onEditDone(this) }
     }
 
@@ -478,4 +484,90 @@ class TrimWithIndexOpParamsEditor(
     override fun getEditEventObservables(): List<EditEventSource> {
         return listOf(targetPartIndexEditor, removedLeadingCharCountEditor, removedTrailingCharCountEditor)
     }
+}
+
+class ExistedParserOpParamsEditor(
+    clazz: String = EMPTY_STRING,
+    jarPath: String = EMPTY_STRING,
+    isBuiltIn: Boolean = true
+) : ParseOpParamsEditor<ParseOp>() {
+
+    override val parseOp: ParseOp
+        get() = run {
+            val selectedParser = parsers[selectedIndex]
+            ExistedParserOp(selectedParser.clazzName, selectedParser.jarPath, selectedParser.isBuiltIn)
+        }
+
+
+    private val parserManager by lazy {
+        ServiceManager.getContextService(ParserManager::class.java)
+    }
+
+    private val parsers by lazy {
+        parserManager.getAllParsers().sortedBy { it.isBuiltIn }
+    }
+    private val existedParserSelector = JComboBox<String>()
+    private val sourceRow =
+        Row(STRINGS.ui.existParserSource, if (isBuiltIn) STRINGS.ui.existParserSourceBuiltIn else jarPath)
+    private val clazzRow = Row(STRINGS.ui.existParserClass, clazz)
+
+    private val selectedIndex: Int
+        get() = existedParserSelector.selectedIndex.takeIf { it > 0 } ?: 0
+
+    init {
+        layout = VerticalFlexibleWidthLayout()
+        add(existedParserSelector)
+        add(sourceRow)
+        add(clazzRow)
+
+        existedParserSelector.addActionListener {
+            if (parsers.isEmpty()) {
+                return@addActionListener
+            }
+            val selectedParser = parsers[selectedIndex]
+            sourceRow.setContent(if (selectedParser.isBuiltIn) STRINGS.ui.existParserSourceBuiltIn else selectedParser.jarPath)
+            clazzRow.setContent(selectedParser.clazzName)
+            notifyEditListeners()
+        }
+        initExistedParserSelector()
+        existedParserSelector.selectedIndex = if (clazz.isEmpty()) {
+            0
+        } else {
+            parsers.indexOfFirst { it.clazzName == clazz && it.jarPath == jarPath }
+        }
+    }
+
+    private fun initExistedParserSelector() {
+        existedParserSelector.removeAllItems()
+        parsers.map { parser ->
+            "${parser.clazzName.substringAfterLast(".")}(${STRINGS.ui.existParserSourceBuiltIn.takeIf { parser.isBuiltIn } 
+                ?: STRINGS.ui.existParserSourceExternal})"
+        }.forEach {
+            existedParserSelector.addItem(it)
+        }
+    }
+
+    private class Row(label: String, content: String) : JPanel() {
+        private val contentLabel = JTextField(content)
+
+        init {
+            layout = HorizontalFlexibleHeightLayout()
+            add(EditorLabel(label))
+            add(contentLabel)
+            contentLabel.isEditable = false
+        }
+
+        fun setContent(content: String) {
+            this.contentLabel.text = content
+        }
+    }
+
+    override fun getEditEventObservables(): List<EditEventSource> {
+        return emptyList()
+    }
+
+    override fun onPartCountChanged(partCount: Int) {
+        // do nothing
+    }
+
 }
