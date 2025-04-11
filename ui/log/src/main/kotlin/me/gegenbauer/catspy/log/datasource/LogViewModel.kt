@@ -40,6 +40,7 @@ import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.panel.Task
 import me.gegenbauer.catspy.view.panel.TaskHandle
 import java.io.File
+import java.util.HashSet
 import java.util.Objects
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -60,9 +61,9 @@ class LogViewModel(
     override val logFilter: LogFilter
         get() = logConf.getCurrentFilter()
 
-    override var fullTableSelectedRows: List<Int> = emptyList()
+    override val fullTableSelectedRows: MutableSet<Int> = HashSet()
 
-    override var filteredTableSelectedRows: List<Int> = emptyList()
+    override val filteredTableSelectedRows: MutableSet<Int> = HashSet()
 
     override val tempLogFile: File
         get() = produceLogTask.logProducer.tempFile
@@ -138,9 +139,10 @@ class LogViewModel(
     /**
      * save full log to file
      */
-    suspend fun saveLog(targetFile: File): Result<File?> {
+    suspend fun saveLog(targetFile: File, isFilteredLog: Boolean): Result<File?> {
         return withContext(Dispatchers.GIO) {
-            val logs = fullLogRepo.readLogItems { it.toList() }
+            val repo = if (isFilteredLog) filteredLogRepo else fullLogRepo
+            val logs = repo.readLogItems { it.toList() }
             Log.d(TAG, "[saveLog] targetLogFile=${targetFile.absolutePath}, logSize=${logs.size}")
             val taskName = STRINGS.ui.exportFileTaskTitle.get(targetFile.absolutePath)
             val task = Task(taskName, object : TaskHandle {

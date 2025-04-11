@@ -9,7 +9,31 @@ import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JOptionPane
 
-fun showOptionDialog(
+fun showMultiOptionsDialog(
+    parent: Component?,
+    title: String,
+    message: String,
+    actions: List<Pair<String, () -> Int>> = emptyList(),
+    defaultChoice: Int = 0,
+    messageType: Int = JOptionPane.PLAIN_MESSAGE
+): Int {
+    JOptionPane.showOptionDialog(
+        parent,
+        message,
+        title,
+        JOptionPane.YES_NO_CANCEL_OPTION,
+        messageType,
+        null,
+        actions.map { it.first }.toTypedArray(),
+        actions.getOrNull(defaultChoice)?.first
+    ).takeIf { it != JOptionPane.CLOSED_OPTION }?.let {
+        return actions[it].second.invoke()
+    }
+
+    return -1
+}
+
+fun showTwoOptionsDialog(
     parent: Component?,
     title: String,
     message: String,
@@ -40,7 +64,7 @@ fun showWarningDialog(
     actions: List<Pair<String, () -> Boolean>> = emptyList(),
     defaultChoice: Int = 0
 ): Boolean {
-    return showOptionDialog(
+    return showTwoOptionsDialog(
         parent,
         title,
         message,
@@ -59,7 +83,7 @@ fun showInfoDialog(
     val actions = listOf(
         STRINGS.ui.ok to { true },
     )
-    return showOptionDialog(
+    return showTwoOptionsDialog(
         parent,
         title,
         message,

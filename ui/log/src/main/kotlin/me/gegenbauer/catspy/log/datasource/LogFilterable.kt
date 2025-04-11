@@ -5,9 +5,9 @@ import me.gegenbauer.catspy.log.filter.LogFilter
 interface LogFilterable {
     val logFilter: LogFilter
 
-    var fullTableSelectedRows: List<Int>
+    val fullTableSelectedRows: MutableSet<Int>
 
-    var filteredTableSelectedRows: List<Int>
+    val filteredTableSelectedRows: MutableSet<Int>
 
     fun updateFilter(filter: LogFilter)
 }

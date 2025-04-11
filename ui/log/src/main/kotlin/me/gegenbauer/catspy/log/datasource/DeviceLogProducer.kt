@@ -19,7 +19,6 @@ import me.gegenbauer.catspy.log.metadata.LogcatLogSupport
 import me.gegenbauer.catspy.log.ui.LogConfiguration
 import me.gegenbauer.catspy.platform.GlobalProperties
 import me.gegenbauer.catspy.platform.LOG_DIR
-import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.task.CommandExecutorImpl
 import me.gegenbauer.catspy.task.CommandProcessBuilder

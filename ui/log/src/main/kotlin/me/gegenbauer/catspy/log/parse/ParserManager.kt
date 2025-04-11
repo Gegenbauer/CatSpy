@@ -85,21 +85,25 @@ class ParserManager : ContextService {
 
     suspend fun loadImplementationsFromJars(directory: String, interfaceClass: Class<*>): List<Pair<String, Class<*>>> {
         return withContext(Dispatchers.GIO) {
-            val jarFiles = File(directory).listFiles { file -> file.extension == PARSER_FILE_EXTENSION }
-                ?: return@withContext emptyList()
-            ClassGraph()
-                .enableClassInfo()
-                .overrideClasspath(*jarFiles.map { it.absolutePath }.toTypedArray())
-                .scan()
-                .use { scanResult ->
-                    runCatching {
-                        scanResult.getClassesImplementing(interfaceClass.name)
-                            .loadClasses(interfaceClass)
-                            .toList().map { scanResult.classpath to it }
-                    }.onFailure {
-                        Log.e(TAG, "[loadImplementationsFromJars] Error loading implementations from jars.", it)
-                    }.getOrDefault(emptyList())
-                }
+            runCatching {
+                val jarFiles = File(directory).listFiles { file -> file.extension == PARSER_FILE_EXTENSION }
+                    ?: return@withContext emptyList()
+                ClassGraph()
+                    .enableClassInfo()
+                    .overrideClasspath(*jarFiles.map { it.absolutePath }.toTypedArray())
+                    .scan()
+                    .use { scanResult ->
+                        runCatching {
+                            scanResult.getClassesImplementing(interfaceClass.name)
+                                .loadClasses(interfaceClass)
+                                .toList().map { scanResult.classpath to it }
+                        }.onFailure {
+                            Log.e(TAG, "[loadImplementationsFromJars] Error loading implementations from jars.", it)
+                        }.getOrDefault(emptyList())
+                    }
+            }.onFailure {
+                Log.e(TAG, "[loadImplementationsFromJars] Error loading implementations from jars.", it)
+            }.getOrDefault(emptyList())
         }
     }
 

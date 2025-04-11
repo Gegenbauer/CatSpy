@@ -251,6 +251,8 @@
     "logPath": "日志路径",
     "logSampleLabel": "样本",
     "logTypeLabel": "日志类型",
+    "logTypeSelectContent": "选择需要保存的日志类型",
+    "logTypeSelectTitle": "日志类型选择",
     "lowerFilterOrder": "移动到上一行",
     "maxPartsLabel": "最大分割数",
     "menuAbout": "关于",

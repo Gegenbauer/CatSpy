@@ -5,7 +5,7 @@ import me.gegenbauer.catspy.log.filter.LogFilter
 import me.gegenbauer.catspy.log.datasource.LogItem
 
 interface ILogTableModel {
-    var selectedLogRows: List<Int>
+    val selectedLogRows: MutableSet<Int>
 
     val logObservables: LogProducerManager.LogObservables
 
@@ -17,4 +17,5 @@ interface ILogTableModel {
 
     fun getRowIndexInAllPages(lineNumber: Int): Int
 
+    fun getRowIndexInCurrentPage(lineNumber: Int): Int
 }

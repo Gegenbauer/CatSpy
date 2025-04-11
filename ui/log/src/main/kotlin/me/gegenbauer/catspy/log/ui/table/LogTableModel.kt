@@ -59,11 +59,9 @@ open class LogTableModel(
     override val dataSize: Int
         get() = _pageMetadata.dataSize
 
-    override var selectedLogRows: List<Int>
+    override val selectedLogRows: MutableSet<Int>
         get() = viewModel.fullTableSelectedRows
-        set(value) {
-            viewModel.fullTableSelectedRows = value
-        }
+
     override val logObservables: LogProducerManager.LogObservables
         get() = viewModel.fullLogObservables
 
@@ -130,7 +128,6 @@ open class LogTableModel(
                     TableModelEvent.INSERT
                 )
             )
-            resetSelectedRows()
         }
 
         pageMetadata.updateValue(_pageMetadata)
@@ -147,24 +144,7 @@ open class LogTableModel(
     }
 
     private fun clearSelectedRows() {
-        selectedLogRows = emptyList()
-    }
-
-    private fun resetSelectedRows() {
-        if (selectedLogRows.isNotEmpty() && selectedLogRows.firstOrNull() in 0 until rowCount
-            && selectedLogRows.lastOrNull() in 0 until rowCount
-        ) {
-            val selectedRowStart = selectedLogRows.first()
-            val selectedRowEnd = selectedLogRows.last()
-            runCatching {
-                getLogTable()?.setRowSelectionInterval(selectedRowStart, selectedRowEnd)
-            }.onFailure {
-                GLog.e(
-                    TAG, "[collectLogItems] selectedRows=$selectedLogRows, " +
-                            "rowCount=$rowCount, itemsSize=${logItems.size}", it
-                )
-            }
-        }
+        selectedLogRows.clear()
     }
 
     private fun getLogTable(): LogTable? {
@@ -293,6 +273,17 @@ open class LogTableModel(
         for (logItem in logItems) {
             if (logItem.num >= lineNumber) {
                 return logItems.indexOf(logItem)
+            }
+        }
+        return -1
+    }
+
+    override fun getRowIndexInCurrentPage(lineNumber: Int): Int {
+        val start = currentPage * pageSize
+        val end = minOf((currentPage + 1) * pageSize, logItems.size)
+        for (i in start until end) {
+            if (logItems[i].num >= lineNumber) {
+                return i - start
             }
         }
         return -1

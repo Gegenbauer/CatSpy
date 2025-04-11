@@ -90,6 +90,10 @@ class FilteredLogPanel(
         if (selectedLogNum != baseSelectedLogNum) {
             val targetRow = basePanel.tableModel.getRowIndexInAllPages(selectedLogNum)
             basePanel.goToRowIndex(targetRow)
+            val targetSelectRow = basePanel.tableModel.getRowIndexInCurrentPage(selectedLogNum)
+            basePanel.tableModel.selectedLogRows.clear()
+            basePanel.tableModel.selectedLogRows.add(targetSelectRow)
+            basePanel.table.repaint()
 
             if (table.isLastRowSelected()) {
                 setGoToLast(true)
