@@ -121,10 +121,6 @@ class FilterRecordActionsPanel : JPanel(), OnAddRequestListener {
             if (filterName.isEmpty()) {
                 return@ParamVerifier ParamVerifier.Result.Invalid(STRINGS.toolTip.contentBlankWarning)
             }
-            if (filterName.length > 20) {
-                val message = STRINGS.toolTip.nameLengthExceedLimitWarning.get(MAX_NAME_LENGTH.toString())
-                return@ParamVerifier ParamVerifier.Result.Invalid(message)
-            }
             return@ParamVerifier ParamVerifier.Result.Valid
         }
 

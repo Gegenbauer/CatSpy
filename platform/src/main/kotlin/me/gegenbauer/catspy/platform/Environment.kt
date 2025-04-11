@@ -23,9 +23,6 @@ interface IPlatform {
     val vkMask: Int
         get() = KeyEvent.CTRL_DOWN_MASK
 
-    val wifiAdbIpPortSeparator: String
-        get() = "/"
-
     fun getFileDropAction(transferSupport: TransferSupport): Int {
         return transferSupport.sourceDropActions
     }
@@ -62,9 +59,6 @@ enum class Platform : IPlatform {
     WINDOWS {
         override val adbExecutable: String
             get() = "adb.exe"
-
-        override val wifiAdbIpPortSeparator: String
-            get() = ":"
 
         override fun getFileDropAction(transferSupport: TransferSupport): Int {
             return transferSupport.dropAction

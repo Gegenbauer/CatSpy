@@ -43,6 +43,7 @@ class FilterRecordChipsPanel : ScrollConstrainedScrollablePanel(verticalScrollab
 
     private fun createFilterChip(filterRecord: FilterRecord): Chip {
         return Chip(filterRecord.name).apply {
+            setText(filterRecord.name)
             setTooltip(filterRecord.toString())
             setOnDeleteClicked {
                 removeRecord(filterRecord)

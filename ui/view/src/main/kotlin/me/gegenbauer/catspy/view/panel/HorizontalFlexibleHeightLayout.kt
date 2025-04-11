@@ -32,7 +32,10 @@ class HorizontalFlexibleHeightLayout(hGap: Int = 0) : LayoutManager {
             for (comp in parent.components) {
                 if (comp.isVisible) {
                     val d = comp.preferredSize
-                    width += d.width + hGap
+                    width += d.width
+                    if (comp != parent.components.last()) {
+                        width += hGap
+                    }
                     height = maxOf(height, d.height)
                 }
             }

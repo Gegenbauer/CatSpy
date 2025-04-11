@@ -7,6 +7,7 @@ import me.gegenbauer.catspy.utils.ui.isLeftClick
 import me.gegenbauer.catspy.utils.ui.verticalPadding
 import me.gegenbauer.catspy.view.border.RoundedBorder
 import me.gegenbauer.catspy.view.button.CloseButton
+import me.gegenbauer.catspy.view.label.EllipsisLabel
 import me.gegenbauer.catspy.view.panel.HorizontalFlexibleHeightLayout
 import me.gegenbauer.catspy.view.panel.HoverStateAwarePanel
 import java.awt.Color
@@ -15,12 +16,11 @@ import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
-import javax.swing.JLabel
 import javax.swing.UIManager
 
 class Chip(text: String, deleteButtonVisible: Boolean = true) : HoverStateAwarePanel(),
     MouseListener {
-    private val label = JLabel(text)
+    private val label = EllipsisLabel(text, maxWidth = 200)
     private val border = RoundedBorder(20, normalBackgroundColor)
     private val deleteButton = CloseButton()
 
@@ -45,6 +45,12 @@ class Chip(text: String, deleteButtonVisible: Boolean = true) : HoverStateAwareP
 
     private var onFilterChipClickedListener: OnChipClickedListener? = null
 
+    private var _text: String = text
+        set(value) {
+            field = value
+            label.text = value
+        }
+
     init {
         layout = HorizontalFlexibleHeightLayout(2)
         isOpaque = false
@@ -63,12 +69,13 @@ class Chip(text: String, deleteButtonVisible: Boolean = true) : HoverStateAwareP
     }
 
     fun setText(text: String) {
-        label.text = text
+        this._text = text
     }
 
     fun setTooltip(tooltip: String) {
-        label.toolTipText = tooltip
-        toolTipText = tooltip
+        val composedTooltip = "$_text: $tooltip"
+        label.toolTipText = composedTooltip
+        toolTipText = composedTooltip
     }
 
     fun setOnDeleteClicked(onDeleteClicked: () -> Unit) {
@@ -93,8 +100,9 @@ class Chip(text: String, deleteButtonVisible: Boolean = true) : HoverStateAwareP
     override fun getPreferredSize(): Dimension {
         val labelSize = label.getSizeWithPadding(label.preferredSize)
         val deleteButtonSize = deleteButton.getSizeWithPadding(deleteButton.preferredSize)
+        val horizontalGap = if (deleteButton.isVisible) 2 else 0
         return Dimension(
-            labelSize.width + deleteButtonSize.width + horizontalPadding(),
+            labelSize.width + deleteButtonSize.width + horizontalPadding() + horizontalGap,
             labelSize.height + verticalPadding()
         )
     }

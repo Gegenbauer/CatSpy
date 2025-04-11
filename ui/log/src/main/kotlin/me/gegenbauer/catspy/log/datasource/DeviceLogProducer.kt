@@ -38,7 +38,6 @@ class DeviceLogProducer(
     override val tempFile: File by lazy { getTempLogFile() }
     private val tempFileStream: OutputStream by lazy { BufferedOutputStream(tempFile.outputStream()) }
     private val processFetcher = AndroidProcessFetcher(device)
-    private val ipPortSeparator = currentPlatform.wifiAdbIpPortSeparator
 
     private val commandExecutor by lazy {
         val logcatCommand = LogcatLogSupport.getLogcatCommand(SettingsManager.adbPath, device)
@@ -122,7 +121,7 @@ class DeviceLogProducer(
      * And file name can not contain `:` character on windows, and it needs to be handled.
      */
     private fun getFormalizedDeviceName(device: String): String {
-        return device.split(ipPortSeparator).first().trim()
+        return device.replace(INVALID_CHARS_FOR_FILE_NAME, "_")
     }
 
     companion object {
@@ -133,5 +132,6 @@ class DeviceLogProducer(
         private const val PART_INDEX_PACKAGE = 2
         private const val LOG_FILE_SUFFIX = "txt"
         private const val LOG_FILE_NAME_TIME_FORMAT = "yyyyMMdd_HH_mm_ss"
+        private const val INVALID_CHARS_FOR_FILE_NAME = "[\\\\/:*?\"<>|]"
     }
 }

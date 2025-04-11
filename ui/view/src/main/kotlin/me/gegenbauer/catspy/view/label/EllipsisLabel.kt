@@ -45,8 +45,9 @@ class EllipsisLabel(
 
     private fun paintText(g: Graphics) {
         if (measureInfo.hasChanged(font, text, width)) {
-            updateDisplayText(text)
-            measureInfo = MeasureInfo(font, text, width)
+            if (updateDisplayText(text)) {
+                measureInfo = MeasureInfo(font, text, width)
+            }
         }
         val fm: FontMetrics = getFontMetrics(font)
         val x = insets.left + (icon?.iconWidth ?: 0) + iconTextGap
@@ -54,10 +55,12 @@ class EllipsisLabel(
         g.drawString(displayText, x, y)
     }
 
-    private fun updateDisplayText(text: String) {
-        font ?: return
+    private fun updateDisplayText(text: String): Boolean {
+        font ?: return false
+        if (width == 0) return false
         val fm: FontMetrics = getFontMetrics(font)
         val iconWidth = icon?.iconWidth ?: 0
+        val iconTextGap = iconTextGap.takeIf { icon != null } ?: 0
         val availableWidth = min(width - insets.left - insets.right - iconWidth - iconTextGap, maxWidth)
         displayText = text
 
@@ -77,6 +80,7 @@ class EllipsisLabel(
                 displayText = ellipsis + text.substring(text.length - maxLength)
             }
         }
+        return true
     }
 
     override fun getMaximumSize(): Dimension {
@@ -87,7 +91,7 @@ class EllipsisLabel(
 
     override fun getPreferredSize(): Dimension {
         val size = super.getPreferredSize()
-        size.width = min(size.width, maxWidth)
+        size.width = min(size.width + 2, maxWidth)
         return size
     }
 
