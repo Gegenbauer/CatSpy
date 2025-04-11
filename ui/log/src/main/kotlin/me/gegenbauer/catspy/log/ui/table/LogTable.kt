@@ -20,10 +20,7 @@ import me.gegenbauer.catspy.log.ui.tab.BaseLogMainPanel
 import me.gegenbauer.catspy.log.ui.table.LogTableModel.Companion.COLUMN_NUM
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.get
-import me.gegenbauer.catspy.utils.ui.Key
-import me.gegenbauer.catspy.utils.ui.findFrameFromParent
-import me.gegenbauer.catspy.utils.ui.isDoubleClick
-import me.gegenbauer.catspy.utils.ui.keyEventInfo
+import me.gegenbauer.catspy.utils.ui.*
 import me.gegenbauer.catspy.view.table.RowNavigation
 import me.gegenbauer.catspy.view.table.lastPage
 import java.awt.Component
@@ -83,7 +80,7 @@ class LogTable(
         intercellSpacing = Dimension(0, 0)
         getTableHeader().resizingAllowed = true
         getTableHeader().reorderingAllowed = false
-        setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION)
+        setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION)
         setRowSelectionAllowed(true)
         setAutoResizeMode(AUTO_RESIZE_OFF)
         columnSelectionAllowed = false
@@ -91,13 +88,9 @@ class LogTable(
         addMouseListener(MouseHandler())
         addKeyListener(TableKeyHandler())
 
-        selectionModel.addListSelectionListener {
-            selectedRows.takeIf { it.isNotEmpty() }?.let {
-                tableModel.selectedLogRows = it.toList()
-                repaint()
-            }
-        }
         updateConfigure()
+
+        addMouseListener(RowSelectionHandler(this, tableModel))
     }
 
     override fun getFont(): Font {
@@ -258,7 +251,7 @@ class LogTable(
         scrollRectToVisible(targetRect)
     }
 
-    private fun showSelected(rows: IntArray) {
+    private fun showSelected(rows: List<Int>) {
         if (rows.isEmpty()) {
             return
         }
@@ -267,13 +260,13 @@ class LogTable(
             return logConf.buildDetailRendererComponent(this@LogTable, rows.toList())
         }
 
-        fun realShowSelected(rows: IntArray) {
+        fun realShowSelected(rows: List<Int>) {
             val displayedRows = if (rows.size > 1) {
                 rows.toList()
             } else {
                 ((rows[0] - 2).coerceAtLeast(0)..(rows[0] + 3)
                     .coerceAtMost(rowCount - 1)).toList()
-            }
+            }.sorted()
             scope.launch {
                 val component = buildRendererComponent(displayedRows)
                 showComponentInDialog(this@LogTable, component, logDetailPopupActionsProvider.invoke())
@@ -282,7 +275,7 @@ class LogTable(
 
         if (rows.size > MAX_LOG_COUNT_SHOWS_IN_DIALOG) {
             showExceedMaxLogCount(rows.size, MAX_LOG_COUNT_SHOWS_IN_DIALOG) {
-                realShowSelected(rows.take(MAX_LOG_COUNT_SHOWS_IN_DIALOG).toIntArray())
+                realShowSelected(rows.take(MAX_LOG_COUNT_SHOWS_IN_DIALOG))
             }
         } else {
             realShowSelected(rows)
@@ -342,7 +335,7 @@ class LogTable(
             }
         }
 
-        fun realCopyRow(rows: IntArray) {
+        fun realCopyRow(rows: List<Int>) {
             scope.launch {
                 val content = collectRowsContent(rows.toList())
                 toolkit.systemClipboard.setContents(
@@ -352,10 +345,10 @@ class LogTable(
             }
         }
 
-        val rows = selectedRows
+        val rows = tableModel.selectedLogRows.toList().sorted()
         if (rows.size > MAX_LOG_COUNT_CAN_BE_COPIED) {
             showExceedMaxLogCount(rows.size, MAX_LOG_COUNT_CAN_BE_COPIED) {
-                realCopyRow(rows.take(MAX_LOG_COUNT_CAN_BE_COPIED).toIntArray())
+                realCopyRow(rows.take(MAX_LOG_COUNT_CAN_BE_COPIED))
             }
             return
         } else {
@@ -423,11 +416,11 @@ class LogTable(
                     }
 
                     event.source == showEntireItem -> {
-                        showSelected(selectedRows)
+                        showSelected(tableModel.selectedLogRows.toList())
                     }
 
                     event.source == bookmarkItem -> {
-                        updateBookmark(selectedNums())
+                        updateBookmark(selectedNumbers())
                     }
 
                     (action in customPopupActions.map { it.first }) -> {
@@ -458,17 +451,17 @@ class LogTable(
             if (SwingUtilities.isLeftMouseButton(event) && event.isDoubleClick) {
                 // 双击第一列更新书签，双击第二列显示详细日志
                 if (columnAtPoint(event.point) == COLUMN_NUM) {
-                    updateBookmark(selectedNums())
+                    updateBookmark(selectedNumbers())
                 } else {
-                    showSelected(selectedRows)
+                    showSelected(tableModel.selectedLogRows.toList())
                 }
             }
             super.mouseClicked(event)
         }
     }
 
-    private fun selectedNums(): List<Int> {
-        val selectedRows = selectedRows
+    private fun selectedNumbers(): List<Int> {
+        val selectedRows = tableModel.selectedLogRows
         return if (selectedRows.isEmpty()) {
             emptyList()
         } else {
@@ -494,18 +487,70 @@ class LogTable(
     internal inner class TableKeyHandler : KeyAdapter() {
         override fun keyPressed(event: KeyEvent) {
             when (event.keyEventInfo) {
-                KEY_UPDATE_BOOKMARK -> updateBookmark(selectedNums())
+                KEY_UPDATE_BOOKMARK -> updateBookmark(selectedNumbers())
                 KEY_PAGE_DOWN -> moveToNextSeveralRows()
                 KEY_PAGE_UP -> moveToPreviousSeveralRows()
                 KEY_NEXT_ROW -> moveToNextRow()
                 KEY_PREVIOUS_ROW -> moveToPreviousRow()
-                KEY_SHOW_LOGS_IN_DIALOG -> showSelected(selectedRows)
-                KEY_DELETE_BOOKMARK -> deleteBookmark(selectedNums())
+                KEY_SHOW_LOGS_IN_DIALOG -> showSelected(tableModel.selectedLogRows.toList())
+                KEY_DELETE_BOOKMARK -> deleteBookmark(selectedNumbers())
                 KEY_LAST_ROW -> moveToLastRow()
                 KEY_FIRST_ROW -> moveToFirstRow()
                 KEY_COPY -> copySelectedRows()
             }
             super.keyPressed(event)
+        }
+    }
+
+    private class RowSelectionHandler(
+        private val table: JTable,
+        private val model: ILogTableModel
+    ) : MouseAdapter() {
+        private var startRow = -1
+        private var shiftSelectStartRow = -1
+
+        override fun mousePressed(e: MouseEvent) {
+            val row = table.rowAtPoint(e.point)
+            if (row != -1) {
+                if (e.isLeftClick.not()) {
+                    return
+                }
+                startRow = row
+                if (shiftSelectStartRow == -1) {
+                    shiftSelectStartRow = row
+                }
+                if (e.isControlDown) {
+                    if (model.selectedLogRows.contains(row)) {
+                        model.selectedLogRows.remove(row)
+                    } else {
+                        model.selectedLogRows.add(row)
+                    }
+                    updateSelection()
+                } else if (e.isShiftDown) {
+                    val minRow = minOf(shiftSelectStartRow, row)
+                    val maxRow = maxOf(shiftSelectStartRow, row)
+
+                    model.selectedLogRows.clear()
+                    for (i in minRow..maxRow) {
+                        model.selectedLogRows.add(i)
+                    }
+                    updateSelection()
+                } else {
+                    startRow = -1
+                    shiftSelectStartRow = row
+                    model.selectedLogRows.clear()
+                    model.selectedLogRows.add(row)
+                    updateSelection()
+                }
+            }
+        }
+
+        override fun mouseReleased(e: MouseEvent) {
+            startRow = -1
+        }
+
+        private fun updateSelection() {
+            table.repaint()
         }
     }
 

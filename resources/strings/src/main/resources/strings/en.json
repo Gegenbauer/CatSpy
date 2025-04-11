@@ -255,6 +255,8 @@
     "logPath": "Log Path",
     "logSampleLabel": "Sample",
     "logTypeLabel": "Log Type",
+    "logTypeSelectContent": "Select the log types to save",
+    "logTypeSelectTitle": "Log Type Selection",
     "lowerFilterOrder": "Move to Previous Row",
     "maxPartsLabel": "Maximum Number of Splits",
     "menuAbout": "About",

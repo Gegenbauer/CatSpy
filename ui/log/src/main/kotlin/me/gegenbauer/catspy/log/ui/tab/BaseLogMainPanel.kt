@@ -46,6 +46,7 @@ import me.gegenbauer.catspy.utils.event.EventManager
 import me.gegenbauer.catspy.utils.ui.Key
 import me.gegenbauer.catspy.utils.ui.findFrameFromParent
 import me.gegenbauer.catspy.utils.ui.registerStroke
+import me.gegenbauer.catspy.utils.ui.showMultiOptionsDialog
 import me.gegenbauer.catspy.view.button.IconBarButton
 import me.gegenbauer.catspy.view.dialog.FileSaveHandler
 import me.gegenbauer.catspy.view.panel.StatusBar
@@ -164,8 +165,6 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
         logConf.getLogBufferSelectPanel().isVisible = false
         logToolBar.isVisible = logConf.isPreviewMode.not()
         logConf.getFavoriteFilterPanel().isVisible = logConf.isPreviewMode.not()
-
-        saveBtn.isVisible = false
 
         topPanel.border = BorderFactory.createEmptyBorder(4, 6, 4, 0)
         topPanel.layout = VerticalFlexibleWidthLayout(4)
@@ -534,11 +533,32 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     }
 
     private fun saveLog() {
+        val logType = showLogTypeSelectDialog()
+        if (logType <= 0) {
+            return
+        }
+        val isFilteredLog = logType == LOG_TYPE_FILTERED
         FileSaveHandler.Builder(this)
-            .onFileSpecified(logViewModel::saveLog)
+            .onFileSpecified { logViewModel.saveLog(it, isFilteredLog) }
             .setDefaultName(logStatus.path.fileName)
             .build()
             .show()
+    }
+
+    private fun showLogTypeSelectDialog(): Int {
+        val actions = listOf(
+            STRINGS.ui.fullLog to { LOG_TYPE_FULL },
+            STRINGS.ui.filteredLog to { LOG_TYPE_FILTERED }
+        )
+        val res = showMultiOptionsDialog(
+            findFrameFromParent(),
+            STRINGS.ui.logTypeSelectTitle,
+            STRINGS.ui.logTypeSelectContent,
+            actions,
+            1,
+            JOptionPane.QUESTION_MESSAGE
+        )
+        return res
     }
 
     private fun showLogPanelInWindow() {
@@ -656,5 +676,12 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
             ui ?: return
             ui.logMainBinding.pauseAll.updateValue(false)
         }
+    }
+
+    companion object {
+        private const val tag = "BaseLogMainPanel"
+        private const val LOG_TYPE_NONE = 0
+        private const val LOG_TYPE_FULL = 1
+        private const val LOG_TYPE_FILTERED = 2
     }
 }

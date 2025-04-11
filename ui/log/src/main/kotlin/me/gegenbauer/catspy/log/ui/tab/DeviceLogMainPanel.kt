@@ -80,7 +80,6 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
 
         splitLogWithStatefulPanel.hideEmptyContent()
         deviceCombo.isVisible = true
-        saveBtn.isVisible = true
         logConf.getLogBufferSelectPanel().isVisible = logConf.isPreviewMode.not()
     }
 
