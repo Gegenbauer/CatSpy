@@ -14,6 +14,7 @@ import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.file.appendExtension
 import me.gegenbauer.catspy.file.appendName
 import me.gegenbauer.catspy.file.appendPath
+import me.gegenbauer.catspy.file.getValidFileName
 import me.gegenbauer.catspy.log.Log
 import me.gegenbauer.catspy.log.metadata.LogcatLogSupport
 import me.gegenbauer.catspy.log.ui.LogConfiguration
@@ -99,7 +100,7 @@ class DeviceLogProducer(
 
     private fun getTempLogFile(): File {
         val dtf = DateTimeFormatter.ofPattern(LOG_FILE_NAME_TIME_FORMAT)
-        val deviceName = getFormalizedDeviceName(device)
+        val deviceName = getValidFileName(device)
         val filePath = filesDir
             .appendPath(LOG_DIR)
             .appendPath(deviceName)
@@ -115,14 +116,6 @@ class DeviceLogProducer(
         }
     }
 
-    /**
-     * When device is connected via TCP/IP, the device name is in the format of `ip:port`.
-     * And file name can not contain `:` character on windows, and it needs to be handled.
-     */
-    private fun getFormalizedDeviceName(device: String): String {
-        return device.replace(INVALID_CHARS_FOR_FILE_NAME, "_")
-    }
-
     companion object {
         private const val TAG = "DeviceLogProducer"
 
@@ -131,6 +124,5 @@ class DeviceLogProducer(
         private const val PART_INDEX_PACKAGE = 2
         private const val LOG_FILE_SUFFIX = "txt"
         private const val LOG_FILE_NAME_TIME_FORMAT = "yyyyMMdd_HH_mm_ss"
-        private const val INVALID_CHARS_FOR_FILE_NAME = "[\\\\/:*?\"<>|]"
     }
 }

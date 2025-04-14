@@ -98,4 +98,9 @@ fun isValidFileName(name: String): Boolean {
     return name.matches(Regex("^[^/\\\\:*?\"<>|]*$"))
 }
 
+fun getValidFileName(filename: String, replacement: Char = '_'): String {
+    val illegalCharsRegex = "[\\\\/:*?\"<>|;$&' ]" // \ / : * ? " < > | ; $ & ' (space)
+    return filename.replace(illegalCharsRegex.toRegex(), replacement.toString())
+}
+
 const val FILE_NAME_INVALID_CHARS = "/\\:*?\"<>|"
