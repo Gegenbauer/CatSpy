@@ -102,7 +102,7 @@ fun showSelectSingleFileDialog(
         frame,
         title,
         dir,
-        false,
+        true,
     )
 }
 

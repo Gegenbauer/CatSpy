@@ -3,6 +3,20 @@ package me.gegenbauer.catspy.log.ui.tab
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.file.toHumanReadableSize
 import me.gegenbauer.catspy.iconset.GIcons
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
@@ -26,6 +40,7 @@ import java.awt.event.ActionListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
+import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.swing.BorderFactory
@@ -76,16 +91,93 @@ class FileLogGuidancePanel(
         recentFilesPanel.setFiles(files)
     }
 
+    // 核心协程版实现
+    private suspend fun mergeFilesWithCoroutine(
+        sourceFiles: List<File>,
+        targetFile: File,
+        startMarkerTemplate: String = "── %s START ──", // 允许自定义标记格式
+        endMarkerTemplate: String = "── %s END ──",
+        markerCharset: String = "UTF-8"
+    ) = coroutineScope {
+        require(sourceFiles.isNotEmpty()) { "Source files cannot be empty" }
+
+        // 准备目标文件
+        targetFile.apply {
+            parentFile?.mkdirs()
+            delete()
+        }
+
+        val channel = Channel<ByteArray>(capacity = 1024)
+        val charset = Charset.forName(markerCharset)
+
+        // 启动单个写入协程
+        val writerJob = launch(Dispatchers.IO) {
+            targetFile.outputStream().buffered().use { os ->
+                for (bytes in channel) {
+                    os.write(bytes)
+                }
+            }
+        }
+
+        sourceFiles.asReversed().forEach { file ->
+            launch(Dispatchers.IO) {
+                try {
+                    // 写入开始标记
+                    val startMarker = startMarkerTemplate.format(file.name)
+                    channel.send(startMarker.toByteArray(charset))
+                    channel.send("\n".toByteArray(charset))
+
+                    // 写入文件内容
+                    file.inputStream().buffered().use { ins ->
+                        val buffer = ByteArray(8192)
+                        var bytesRead: Int
+                        while (ins.read(buffer).also { bytesRead = it } != -1) {
+                            channel.send(buffer.copyOf(bytesRead))
+                        }
+                    }
+
+                    // 写入结束标记
+                    val endMarker = endMarkerTemplate.format(file.name)
+                    channel.send("\n".toByteArray(charset))
+                    channel.send(endMarker.toByteArray(charset))
+                    channel.send("\n\n".toByteArray(charset)) // 文件间空行
+                } catch (e: Exception) {
+                    // 错误标记
+                    channel.send("[ERROR processing ${file.name}: ${e.message}]".toByteArray(charset))
+                    throw e
+                }
+            }.join() // 保证文件顺序处理
+        }
+
+        channel.close()
+        writerJob.join()
+    }
+
     private fun onClickFileOpen() {
         val files = showSelectSingleFileDialog(
             findFrameFromParent(),
             STRINGS.ui.openFile,
             RecentLogFiles.getLastOpenDir(),
         )
-        files.firstOrNull()?.let {
-            onOpenFile(it)
-            RecentLogFiles.onNewFileOpen(it.absolutePath)
+        runBlocking {
+            var openFile = File(files.first().absolutePath)
+            if (files.size >=2){
+                // 获取files第一个文件的地址
+                openFile = File(files.first().parentFile.absolutePath+File.separator+"merge.log")
+
+                val mergeJob = GlobalScope.launch(Dispatchers.IO) {
+                    mergeFilesWithCoroutine(files, openFile)
+                }
+                mergeJob.join()
+                print(">>> after last file size:"+openFile.length())
+            }
+
+            files.firstOrNull()?.let {
+                onOpenFile(openFile)
+                RecentLogFiles.onNewFileOpen(openFile.absolutePath)
+            }
         }
+
     }
 
     private inner class RecentFilesPanel : ScrollConstrainedScrollablePanel(
