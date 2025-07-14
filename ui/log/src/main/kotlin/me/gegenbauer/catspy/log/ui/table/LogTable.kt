@@ -162,7 +162,7 @@ class LogTable(
         val rowIdx = rowIndex % tableModel.pageSize
 
         if (setSelected) {
-            setRowSelectionInterval(rowIdx, rowIdx)
+            setInternalSelectedRows(listOf(rowIdx))
         }
 
         val viewPort = parent as JViewport
@@ -205,14 +205,16 @@ class LogTable(
     }
 
     fun isLastRowSelected(): Boolean {
+        val selectedRow = getInternalSelectedRow()
         return selectedRow == tableModel.rowCount - 1 && tableModel.currentPage == tableModel.pageCount - 1
     }
-
+    
     private fun updateRowHeight() {
         setRowHeight(getFontMetrics(font).height + 4)
     }
 
     override fun moveToNextSeveralRows() {
+        val selectedRow = getInternalSelectedRow()
         if (selectedRow < 0) {
             return
         }
@@ -220,6 +222,7 @@ class LogTable(
     }
 
     override fun moveToPreviousSeveralRows() {
+        val selectedRow = getInternalSelectedRow()
         if (selectedRow < 0) {
             return
         }
@@ -227,6 +230,7 @@ class LogTable(
     }
 
     override fun moveToNextRow() {
+        val selectedRow = getInternalSelectedRow()
         if (selectedRow < 0) {
             return
         }
@@ -234,6 +238,7 @@ class LogTable(
     }
 
     override fun moveToPreviousRow() {
+        val selectedRow = getInternalSelectedRow()
         if (selectedRow < 0) {
             return
         }
@@ -280,6 +285,16 @@ class LogTable(
         } else {
             realShowSelected(rows)
         }
+    }
+
+    private fun getInternalSelectedRow(): Int {
+        return tableModel.selectedLogRows.firstOrNull() ?: -1
+    }
+
+    private fun setInternalSelectedRows(rows: List<Int>) {
+        tableModel.selectedLogRows.clear()
+        tableModel.selectedLogRows.addAll(rows)
+        repaint()
     }
 
     private fun showComponentInDialog(
