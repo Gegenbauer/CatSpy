@@ -111,6 +111,7 @@ object Key {
     val C_END = getKeyEventInfo(KeyEvent.VK_END, vkMask)
     val C_HOME = getKeyEventInfo(KeyEvent.VK_HOME, vkMask)
 
+    val C_A = getKeyEventInfo(KeyEvent.VK_A, vkMask)
     val C_F = getKeyEventInfo(KeyEvent.VK_F, vkMask)
     val C_L = getKeyEventInfo(KeyEvent.VK_L, vkMask)
     val C_G = getKeyEventInfo(KeyEvent.VK_G, vkMask)

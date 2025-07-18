@@ -342,6 +342,10 @@ class LogTable(
         rows.forEach(bookmarkManager::removeBookmark)
     }
 
+    private fun selectAllRowsInCurrentPage() {
+        tableModel.selectedLogRows.addAll(0 until rowCount)
+    }
+
     private fun copySelectedRows() {
 
         suspend fun collectRowsContent(rows: List<Int>): String {
@@ -512,6 +516,7 @@ class LogTable(
                 KEY_LAST_ROW -> moveToLastRow()
                 KEY_FIRST_ROW -> moveToFirstRow()
                 KEY_COPY -> copySelectedRows()
+                KEY_SELECT_ALL -> selectAllRowsInCurrentPage()
             }
             super.keyPressed(event)
         }
@@ -584,6 +589,7 @@ class LogTable(
         private val KEY_LAST_ROW = Key.C_END
         private val KEY_FIRST_ROW = Key.C_HOME
         private val KEY_COPY = Key.C_C
+        private val KEY_SELECT_ALL = Key.C_A
         private val disabledKeys = listOf(
             KEY_PREVIOUS_ROW, KEY_NEXT_ROW,
             KEY_SHOW_LOGS_IN_DIALOG, KEY_PAGE_UP,
