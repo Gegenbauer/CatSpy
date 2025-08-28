@@ -227,7 +227,7 @@ data class GSettings(
         const val DEFAULT_LOG_FONT_SIZE = 13
         const val DEFAULT_FONT_STYLE = 0
         const val DEFAULT_FONT_FAMILY = "Dialog"
-        const val DEFAULT_THEME = "One Dark"
+        const val DEFAULT_THEME = "FlatLaf macOS Dark"
         const val SETTINGS_VERSION = 2
 
 

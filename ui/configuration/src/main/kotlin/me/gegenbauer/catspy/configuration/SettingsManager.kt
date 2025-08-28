@@ -20,7 +20,8 @@ val currentSettings by lazy { SettingsManager.settings }
 object SettingsManager {
     private const val TAG = "SettingsManager"
 
-    private const val KEY_SETTINGS_FILE = "conf/settings"
+    private const val SETTINGS_FILE_DIR = "conf"
+    private const val KEY_SETTINGS_FILE_NAME = "settings"
 
     val settings: GSettings by lazy { loadSettings() }
     val string: String
@@ -39,9 +40,9 @@ object SettingsManager {
 
     private suspend fun ensureSettingsFile() {
         withContext(Dispatchers.GIO) {
-            val settingsJson = jsonFileManager.read(KEY_SETTINGS_FILE)
+            val settingsJson = jsonFileManager.read(KEY_SETTINGS_FILE_NAME, SETTINGS_FILE_DIR)
             if (settingsJson.isEmpty()) {
-                jsonFileManager.write(KEY_SETTINGS_FILE, gson.toJson(GSettings()))
+                jsonFileManager.write(KEY_SETTINGS_FILE_NAME, SETTINGS_FILE_DIR, gson.toJson(GSettings()))
             }
         }
     }
@@ -62,7 +63,7 @@ object SettingsManager {
 
     private fun loadSettings(): GSettings {
         return kotlin.runCatching {
-            val settingsJsonStr = jsonFileManager.read(KEY_SETTINGS_FILE)
+            val settingsJsonStr = jsonFileManager.read(KEY_SETTINGS_FILE_NAME, SETTINGS_FILE_DIR)
             val settingsJsonObj = JsonParser.parseString(settingsJsonStr).asJsonObject
             val migratedJsonObj = SettingsMigrations.migrate(settingsJsonObj, GSettings.SETTINGS_VERSION)
             if (migratedJsonObj == null) {
@@ -109,7 +110,7 @@ object SettingsManager {
 
     private suspend fun saveInternal() {
         withContext(Dispatchers.GIO) {
-            jsonFileManager.write(KEY_SETTINGS_FILE, gson.toJson(settings))
+            jsonFileManager.write(KEY_SETTINGS_FILE_NAME, SETTINGS_FILE_DIR, gson.toJson(settings))
         }
     }
 

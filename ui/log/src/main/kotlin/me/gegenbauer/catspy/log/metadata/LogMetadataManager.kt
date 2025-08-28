@@ -9,11 +9,7 @@ import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.file.appendPath
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.getUniqueName
-import me.gegenbauer.catspy.log.serialize.LogMetadataModel
-import me.gegenbauer.catspy.log.serialize.LogMetadataModelSerializer
-import me.gegenbauer.catspy.log.serialize.LogMetadataSerializer
-import me.gegenbauer.catspy.log.serialize.toLogMetadata
-import me.gegenbauer.catspy.log.serialize.toLogMetadataModel
+import me.gegenbauer.catspy.log.serialize.*
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.utils.file.JsonFileManager
 import me.gegenbauer.catspy.utils.file.StringFileManager.Companion.JSON_PREFIX
@@ -186,7 +182,8 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
         updateCache(logMetadataModel)
         metadataDir.mkdirs()
         jsonFileManager.write(
-            generateJsonFileKey(logMetadataModel.logType),
+            logMetadataModel.logType,
+            CUSTOMIZED_METADATA_FILE_PATH,
             logMetadataModelSerializer.serialize(logMetadataModel)
         )
     }
@@ -224,10 +221,6 @@ class LogMetadataManager : ContextService, ILogMetadataManager {
         onLogMetadataChangeListener.forEach {
             it.get()?.onMetadataDeleted(logType)
         }
-    }
-
-    private fun generateJsonFileKey(key: String): String {
-        return CUSTOMIZED_METADATA_FILE_PATH.appendPath(key.hashCode().toString())
     }
 
     @Synchronized

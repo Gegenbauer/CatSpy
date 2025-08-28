@@ -73,7 +73,7 @@ fun File.copy(targetFile: File) {
     Files.copy(toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
 }
 
-fun getFilePath(key: String): FilePath {
+fun parseFilePath(key: String): FilePath {
     val lastSeparator = key.lastIndexOf(File.separator)
     return if (lastSeparator == -1) {
         FilePath(EMPTY_STRING, key)

@@ -6,7 +6,7 @@ import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.file.appendPath
-import me.gegenbauer.catspy.file.getFilePath
+import me.gegenbauer.catspy.file.parseFilePath
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.utils.file.KeyValuesFileManager
@@ -78,7 +78,7 @@ abstract class BaseUserPreferences : UserPreferences {
     private fun getCachedKey(key: String): Key {
         if (key.contains(KEY_SEPARATOR)) {
             val storeKey = key.substringAfterLast(KEY_SEPARATOR)
-            val filePath = getFilePath(key.substringBeforeLast(KEY_SEPARATOR))
+            val filePath = parseFilePath(key.substringBeforeLast(KEY_SEPARATOR))
             return Key(filePath.parentDir, filePath.fileName, storeKey)
         }
         return Key(EMPTY_STRING, DEFAULT_FILE_NAME, key)
@@ -174,20 +174,19 @@ abstract class BaseUserPreferences : UserPreferences {
         return preferenceGroup[cachedKey.path]?.containsKey(cachedKey.storeKey) ?: false
     }
 
-    private fun saveToDisk(key: String, preferences: Map<String, Any?>?) {
+    private fun saveToDisk(filePath: String, preferences: Map<String, Any?>?) {
         scope.launch {
             withContext(Dispatchers.GIO) {
-                val path = getFilePath(key)
+                val path = parseFilePath(filePath)
                 val file = File(rootDir, path.parentDir)
                 if (!file.exists()) {
                     file.mkdirs()
                 }
-                val saveKey = PREFERENCES_DIR.appendPath(key)
                 if (preferences == null) {
-                    keyValuesFileManager.delete(saveKey)
+                    keyValuesFileManager.delete(path.fileName, path.parentDir)
                 } else {
                     val xmlString = keyValuesFileManager.serialize(preferences)
-                    keyValuesFileManager.write(saveKey, xmlString)
+                    keyValuesFileManager.write(path.fileName, path.parentDir, xmlString)
                 }
             }
         }

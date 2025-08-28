@@ -86,8 +86,8 @@ fun installKeyStrokeEscClosing(container: RootPaneContainer) {
 object Key {
     private val vkMask: Int = currentPlatform.vkMask
 
-    val C_B = getKeyEventInfo(KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK)
-    val C_C = getKeyEventInfo(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK)
+    val C_B = getKeyEventInfo(KeyEvent.VK_B, vkMask)
+    val C_C = getKeyEventInfo(KeyEvent.VK_C, vkMask)
 
     val DELETE = getKeyEventInfo(KeyEvent.VK_DELETE)
     val C_DELETE = getKeyEventInfo(KeyEvent.VK_DELETE, currentPlatform.vkMask)

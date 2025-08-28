@@ -375,6 +375,11 @@ class LogTable(
         }
     }
 
+    private fun selectAllRowsInCurrentPage() {
+        tableModel.selectAllRowsInCurrentPage()
+        repaint()
+    }
+
     /**
      * Set the log right-click menu
      * @param popupItemsProvider Menu items, Pair<String, () -> Unit>,
@@ -594,7 +599,7 @@ class LogTable(
             KEY_PREVIOUS_ROW, KEY_NEXT_ROW,
             KEY_SHOW_LOGS_IN_DIALOG, KEY_PAGE_UP,
             KEY_PAGE_DOWN, KEY_LAST_ROW, KEY_FIRST_ROW,
-            KEY_COPY
+            KEY_COPY, KEY_SELECT_ALL
         )
     }
 }

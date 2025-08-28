@@ -18,4 +18,6 @@ interface ILogTableModel {
     fun getRowIndexInAllPages(lineNumber: Int): Int
 
     fun getRowIndexInCurrentPage(lineNumber: Int): Int
+
+    fun selectAllRowsInCurrentPage()
 }

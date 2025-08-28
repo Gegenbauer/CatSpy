@@ -4,7 +4,6 @@ import me.gegenbauer.catspy.context.ContextService
 import me.gegenbauer.catspy.context.MemoryAware
 import me.gegenbauer.catspy.file.appendExtension
 import me.gegenbauer.catspy.file.appendPath
-import me.gegenbauer.catspy.file.getFilePath
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.platform.filesDir
@@ -26,16 +25,21 @@ abstract class StringFileManager : ContextService {
 
     abstract val fileExtension: String
 
-    fun read(key: String): String {
+    /**
+     * Read a string from the file corresponding to the key.
+     * If the key contains a file separator, it will be treated as a directory structure, or it will be treated as a file name.
+     */
+    fun read(filename: String, parentDir: String = ""): String {
+        val key = parentDir.appendPath(filename)
         val lock = getLock(key)
         synchronized(lock) {
             val json = jsonCache[key]
             if (json != null) {
                 return json
             }
-            val jsonFile = getJsonFile(key)
+            val jsonFile = getJsonFile(filename, parentDir)
             jsonFile.parentFile.mkdirs()
-            val backupFile = getBackupFile(key)
+            val backupFile = getBackupFile(filename, parentDir)
             if (backupFile.exists()) {
                 GLog.w(TAG, "[read] backup file $backupFile exists. Last write may not be completed, recovery it.")
                 jsonFile.delete()
@@ -68,23 +72,21 @@ abstract class StringFileManager : ContextService {
             .removeSuffix(".${fileExtension}")
         val filename = key.substringAfterLast(File.separator)
         val dir = key.substringBeforeLast(File.separator)
-        return read(dir.appendPath(filename.removePrefix(JSON_PREFIX)))
+        return read(filename.removePrefix(JSON_PREFIX), dir)
     }
 
-    private fun getJsonFile(key: String): File {
-        val filePath = getFilePath(key)
+    private fun getJsonFile(filename: String, parentDir: String): File {
         val absolutePath = filesDir
-            .appendPath(filePath.parentDir)
-            .appendPath("$JSON_PREFIX${filePath.fileName}")
+            .appendPath(parentDir)
+            .appendPath("$JSON_PREFIX${filename}")
             .appendExtension(fileExtension)
         return File(absolutePath)
     }
 
-    private fun getBackupFile(key: String): File {
-        val filePath = getFilePath(key)
+    private fun getBackupFile(filename: String, parentDir: String): File {
         val absolutePath = filesDir
-            .appendPath(filePath.parentDir)
-            .appendPath("$JSON_PREFIX${filePath.fileName}$BACKUP_FILE_SUFFIX")
+            .appendPath(parentDir)
+            .appendPath("$JSON_PREFIX${filename}$BACKUP_FILE_SUFFIX")
         return File(absolutePath)
     }
 
@@ -93,12 +95,13 @@ abstract class StringFileManager : ContextService {
         return locks.getOrPut(key) { Any() }
     }
 
-    fun write(key: String, content: String) {
+    fun write(filename: String, parentDir: String = "", content: String) {
+        val key = parentDir.appendPath(filename)
         val lock = getLock(key)
         synchronized(lock) {
-            val jsonFile = getJsonFile(key)
+            val jsonFile = getJsonFile(filename, parentDir)
             jsonFile.parentFile.mkdirs()
-            val backupFile = getBackupFile(key)
+            val backupFile = getBackupFile(filename, parentDir)
             if (backupFile.exists()) {
                 GLog.w(TAG, "[write] backup file $backupFile exists. Last write may not be completed, deleting it.")
                 backupFile.delete()
@@ -120,11 +123,15 @@ abstract class StringFileManager : ContextService {
         }
     }
 
-    fun delete(key: String) {
+    fun delete(filename: String, parentDir: String = "") {
+        require(filename.contains(File.separator)) {
+            "Filename must contain a file separator to avoid conflicts with directory structure"
+        }
+        val key = parentDir.appendPath(filename)
         val lock = getLock(key)
         synchronized(lock) {
-            val jsonFile = getJsonFile(key)
-            val backupFile = getBackupFile(key)
+            val jsonFile = getJsonFile(filename, parentDir)
+            val backupFile = getBackupFile(filename, parentDir)
             if (jsonFile.exists()) {
                 GLog.i(TAG, "[delete] Deleting json file $jsonFile")
                 jsonFile.delete()

@@ -5,8 +5,8 @@ import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 object DarkLightThemes {
     private val lightToDarkThemes = mapOf(
         "FlatLaf Light" to "FlatLaf Dark",
-        "FlatLaf macOS Light" to "FlatLaf macOS Dark",
         "FlatLaf IntelliJ" to "FlatLaf Darcula",
+        "FlatLaf macOS Light" to "FlatLaf macOS Dark",
         "Arc" to "Arc Dark",
         "Arc - Orange" to "Arc Dark - Orange",
         "Light Flat" to "Dark Flat",
@@ -16,6 +16,7 @@ object DarkLightThemes {
         "Light Owl (Material)" to "Night Owl (Material)",
         "Solarized Light (Material)" to "Solarized Dark (Material)",
         "Material Lighter (Material)" to "Material Darker (Material)",
+        "Atom One Light (Material)" to "Atom One Dark (Material)",
     )
 
     fun getLightTheme(darkTheme: String): String {

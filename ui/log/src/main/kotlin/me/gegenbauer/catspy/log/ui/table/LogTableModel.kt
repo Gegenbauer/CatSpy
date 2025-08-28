@@ -289,6 +289,14 @@ open class LogTableModel(
         return -1
     }
 
+    override fun selectAllRowsInCurrentPage() {
+        val start = currentPage * pageSize
+        val end = minOf((currentPage + 1) * pageSize, logItems.size)
+        for (i in start until end) {
+            selectedLogRows.add(i)
+        }
+    }
+
     override fun <R> accessPageData(page: Int, action: (List<LogItem>) -> R): R {
         if (pageLogCache.containsKey(page)) {
             return action(pageLogCache.getOrDefault(page, emptyList()))
