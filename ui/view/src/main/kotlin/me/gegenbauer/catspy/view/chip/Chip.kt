@@ -25,9 +25,9 @@ class Chip(text: String, deleteButtonVisible: Boolean = true) : HoverStateAwareP
     private val deleteButton = CloseButton()
 
     private val hoverBackgroundColor: Color
-        get() = UIManager.getColor("Chip.hoverBackground") ?: Color.WHITE
+        get() = UIManager.getColor("Chip.hoverBg") ?: Color.WHITE
     private val normalBackgroundColor: Color
-        get() = UIManager.getColor("Chip.background") ?: Color.WHITE
+        get() = UIManager.getColor("Chip.bg") ?: Color.WHITE
     private val focusBorderColor: Color
         get() = SettingsManager.settings.themeSettings.getAccentColor()
 

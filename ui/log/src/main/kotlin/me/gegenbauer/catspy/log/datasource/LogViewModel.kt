@@ -246,7 +246,7 @@ class LogViewModel(
 
         var filterProvider: () -> LogFilter = { LogFilter.default }
         var filterLogTaskCancellationHandle: suspend () -> Unit = {}
-        var logProducer: LogProducer = EmptyLogProducer
+        var logProducer: LogProducer = EmptyLogProducer()
 
         private val logConf by lazy { contexts.getContext(LogConfiguration::class.java)!! }
         private val suspender = CoroutineSuspender("ProduceLogTask")
@@ -332,7 +332,7 @@ class LogViewModel(
         private fun onProduceEnd() {
             logUpdater.updateFilteredLogTriggerCount(false)
             logUpdater.updateFullLogTriggerCount(false)
-            logProducer = EmptyLogProducer
+            logProducer = EmptyLogProducer(logProducer.tempFile)
             eventFlow.tryEmit(TaskState.IDLE)
         }
 
@@ -413,7 +413,7 @@ class LogViewModel(
     ) : Task {
         var logFilter: LogFilter = LogFilter.default
 
-        var logProducerProvider: () -> LogProducer = { EmptyLogProducer }
+        var logProducerProvider: () -> LogProducer = { EmptyLogProducer() }
 
         private val fullModeState = FullModeFilterState(contexts)
         private val bookmarkModeState = BookmarkFilterState(contexts)

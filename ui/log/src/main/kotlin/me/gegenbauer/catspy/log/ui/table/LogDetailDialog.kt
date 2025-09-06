@@ -9,23 +9,8 @@ import me.gegenbauer.catspy.utils.ui.keyEventInfo
 import me.gegenbauer.catspy.view.panel.ScrollConstrainedScrollablePanel
 import me.gegenbauer.catspy.view.panel.VerticalFlexibleWidthLayout
 import java.awt.Dimension
-import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
-import java.awt.event.WindowEvent
-import java.awt.event.WindowFocusListener
-import javax.swing.BorderFactory
-import javax.swing.JDialog
-import javax.swing.JFrame
-import javax.swing.JMenuItem
-import javax.swing.JPopupMenu
-import javax.swing.JScrollPane
-import javax.swing.SwingUtilities
+import java.awt.event.*
+import javax.swing.*
 import javax.swing.text.JTextComponent
 
 open class LogDetailDialog(
@@ -33,7 +18,7 @@ open class LogDetailDialog(
     private val textComponent: JTextComponent,
     private val popupActions: List<PopupAction> = emptyList(),
     logMetadata: LogMetadata
-) : JDialog(parent, false) {
+) : JFrame() {
 
     private val contentContainer = ScrollConstrainedScrollablePanel(false)
     private val scrollPane = JScrollPane(contentContainer)
@@ -42,15 +27,12 @@ open class LogDetailDialog(
     init {
         contentContainer.layout = VerticalFlexibleWidthLayout()
         contentContainer.add(textComponent)
-        isUndecorated = true
         textComponent.isEditable = false
         textComponent.caret.isVisible = true
 
         textComponent.addKeyListener(KeyHandler())
         textComponent.addMouseListener(MouseHandler())
-        textComponent.addFocusListener(FocusHandler())
         textComponent.selectionColor = logMetadata.colorScheme.selectedLogBackground
-        isModal = true
         var width = parent.width - 100
         if (width < 960) {
             width = 960
@@ -70,16 +52,6 @@ open class LogDetailDialog(
         pack()
 
         installKeyStrokeEscClosing(this)
-
-        addWindowFocusListener(object : WindowFocusListener {
-            override fun windowGainedFocus(e: WindowEvent) {
-                textComponent.requestFocus()
-            }
-
-            override fun windowLostFocus(e: WindowEvent) {
-                dispose()
-            }
-        })
     }
 
     override fun dispose() {
@@ -93,15 +65,6 @@ open class LogDetailDialog(
         override fun keyPressed(event: KeyEvent) {
             if (event.keyEventInfo == Key.ENTER) {
                 textComponent.copy()
-                dispose()
-            }
-        }
-    }
-
-    internal inner class FocusHandler : FocusAdapter() {
-        override fun focusLost(event: FocusEvent) {
-            super.focusLost(event)
-            if (!popupMenu.isVisible) {
                 dispose()
             }
         }

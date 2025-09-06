@@ -48,10 +48,8 @@ class KeyEventInterceptor(
     }
 }
 
-fun installKeyStroke(container: RootPaneContainer, stroke: KeyStroke?, actionMapKey: String?, action: Action?) {
-    val rootPane = container.rootPane
-    rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(stroke, actionMapKey)
-    rootPane.actionMap.put(actionMapKey, action)
+fun RootPaneContainer.installKeyStroke(key: KeyEventInfo, strokeName: String, action: KeyStrokeAction) {
+    rootPane.registerStroke(key, strokeName, action)
 }
 
 fun installKeyStrokeEscClosing(container: RootPaneContainer, action: () -> Unit) {
@@ -121,6 +119,14 @@ object Key {
     val C_S = getKeyEventInfo(KeyEvent.VK_S, vkMask)
     val C_Y = getKeyEventInfo(KeyEvent.VK_Y, vkMask)
     val C_Z = getKeyEventInfo(KeyEvent.VK_Z, vkMask)
+    val C_J = getKeyEventInfo(KeyEvent.VK_J, vkMask)
+
+    val C_1 = getKeyEventInfo(KeyEvent.VK_1, vkMask)
+    val C_2 = getKeyEventInfo(KeyEvent.VK_2, vkMask)
+    val C_3 = getKeyEventInfo(KeyEvent.VK_3, vkMask)
+    val C_4 = getKeyEventInfo(KeyEvent.VK_4, vkMask)
+    val C_5 = getKeyEventInfo(KeyEvent.VK_5, vkMask)
+    val C_6 = getKeyEventInfo(KeyEvent.VK_6, vkMask)
 
     val C_M = getKeyEventInfo(KeyEvent.VK_M, vkMask)
     val ESCAPE = getKeyEventInfo(KeyEvent.VK_ESCAPE)

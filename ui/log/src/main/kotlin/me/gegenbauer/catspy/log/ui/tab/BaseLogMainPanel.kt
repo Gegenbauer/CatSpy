@@ -3,10 +3,14 @@ package me.gegenbauer.catspy.log.ui.tab
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ErrorEvent
 import me.gegenbauer.catspy.configuration.Rotation
@@ -22,6 +26,7 @@ import me.gegenbauer.catspy.java.ext.Bundle
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.log.BookmarkManager
 import me.gegenbauer.catspy.log.Log
+import me.gegenbauer.catspy.log.LogConfSync
 import me.gegenbauer.catspy.log.binding.LogMainBinding
 import me.gegenbauer.catspy.log.datasource.LogViewModel
 import me.gegenbauer.catspy.log.datasource.TaskState
@@ -62,6 +67,7 @@ import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JFrame
@@ -104,12 +110,9 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
 
     protected val logMainBinding by lazy { ServiceManager.getContextService(this, LogMainBinding::class.java) }
     protected val eventManager by lazy { ServiceManager.getContextService(this, EventManager::class.java) }
-    protected var taskState: TaskUIState = TaskNone()
-        set(value) {
-            field = value
-            value.updateUI()
-            afterTaskStateChanged(value)
-        }
+    protected val taskState: StateFlow<TaskUIState>
+        get() = _taskState
+    private val _taskState: MutableStateFlow<TaskUIState> = MutableStateFlow(TaskIdle(this))
     protected val logViewModel = LogViewModel()
     protected open val fullTableModel = LogTableModel(logViewModel)
     protected open val filteredTableModel = FilteredLogTableModel(logViewModel)
@@ -129,8 +132,6 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
         onInitialMetadataAcquired(logMetaData)
 
         createUI()
-
-        taskState = TaskIdle(this)
 
         registerEvent()
 
@@ -215,8 +216,10 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
 
         observeFullLogListState()
         observeLogEvent()
+        observeTaskUIState()
         observeOtherEvent()
         observeViewModelValue()
+        observeViewSettingsChanges()
     }
 
     protected open fun registerStrokes() {
@@ -254,6 +257,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
             logConf.moveToNextSearchResult()
         }
         registerStroke(Key.C_S, "Save Log") { saveLog() }
+        registerStroke(Key.C_J, "Reset All Filters") { resetFilterBtn.doClick() }
     }
 
     private fun goToLine(lineNumber: Int) {
@@ -397,7 +401,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     }
 
     private fun handleTaskStateEvent(taskState: TaskState) {
-        this.taskState = when (taskState) {
+        val taskState = when (taskState) {
             TaskState.IDLE -> {
                 TaskIdle(this)
             }
@@ -410,6 +414,30 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
                 TaskPaused(this)
             }
         }
+        setTaskUIState(taskState)
+    }
+
+    @OptIn(FlowPreview::class)
+    private fun observeTaskUIState() {
+        scope.launch {
+            val isFirst = AtomicBoolean(true)
+            _taskState.debounce {
+                if (isFirst.get()) {
+                    isFirst.set(false)
+                    0L
+                } else {
+                    TASK_UI_STATE_CHANGE_DEBOUNCE
+                }
+            } .collect { state ->
+                state.updateUI()
+                afterTaskStateChanged(state)
+            }
+        }
+    }
+
+    protected fun setTaskUIState(state: TaskUIState) {
+        GLog.d(tag, "[setTaskUIState] $state")
+        _taskState.value = state
     }
 
     private fun observeOtherEvent() {
@@ -485,15 +513,35 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
         }
     }
 
+    private fun observeViewSettingsChanges() {
+        scope.launch {
+            LogConfSync.showLogToolbar.addObserver {
+                logToolBar.isVisible = it == true && logConf.isPreviewMode.not()
+            }
+            LogConfSync.showFilterPanel.addObserver {
+                logConf.filterPanel.isVisible = it == true
+                logConf.getFavoriteFilterPanel().isVisible = it == true && logConf.isPreviewMode.not()
+            }
+            LogConfSync.showLogPanelToolbar.addObserver {
+                splitLogPane.fullLogPanel.setToolbarVisible(it == true)
+                splitLogPane.filteredLogPanel.setToolbarVisible(it == true)
+            }
+            LogConfSync.showLogTableColumnNames.addObserver {
+                splitLogPane.setLogTableColumnHeaderVisible(it == true)
+            }
+        }
+    }
+
     private inner class ActionHandler : ActionListener {
         override fun actionPerformed(event: ActionEvent) {
             when (event.source) {
                 resetFilterBtn -> {
                     logConf.applyFilterRecord(FilterRecord.EMPTY)
+                    splitLogPane.resetFilter()
                 }
 
                 startBtn -> {
-                    taskState.onStartClicked()
+                    taskState.value.onStartClicked()
                 }
 
                 stopBtn -> {
@@ -621,16 +669,6 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
         }
     }
 
-    private class TaskNone : TaskUIState(null) {
-        override fun updateUI() {
-            // no-op
-        }
-
-        override fun onStartClicked() {
-            // no-op
-        }
-    }
-
     protected open class TaskStarted(ui: BaseLogMainPanel) : TaskUIState(ui) {
         override fun updateUI() {
             ui ?: return
@@ -679,9 +717,8 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     }
 
     companion object {
-        private const val tag = "BaseLogMainPanel"
-        private const val LOG_TYPE_NONE = 0
         private const val LOG_TYPE_FULL = 1
         private const val LOG_TYPE_FILTERED = 2
+        private const val TASK_UI_STATE_CHANGE_DEBOUNCE = 20L
     }
 }

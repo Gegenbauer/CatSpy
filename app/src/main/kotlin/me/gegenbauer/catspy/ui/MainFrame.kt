@@ -2,7 +2,8 @@ package me.gegenbauer.catspy.ui
 
 import kotlinx.coroutines.*
 import me.gegenbauer.catspy.concurrency.*
-import me.gegenbauer.catspy.conf.GlobalConfSync
+import me.gegenbauer.catspy.conf.MainConfSync
+import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.configuration.currentSettings
 import me.gegenbauer.catspy.context.Context
@@ -16,6 +17,7 @@ import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.iconset.appIcons
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.java.ext.KotlinReflectionPreTrigger
+import me.gegenbauer.catspy.log.LogConfSync
 import me.gegenbauer.catspy.network.update.ReleaseEvent
 import me.gegenbauer.catspy.platform.currentPlatform
 import me.gegenbauer.catspy.strings.STRINGS
@@ -25,15 +27,17 @@ import me.gegenbauer.catspy.ui.dialog.GThemeSettingsDialog.Companion.GROUP_INDEX
 import me.gegenbauer.catspy.ui.dialog.UpdateDialog
 import me.gegenbauer.catspy.ui.menu.HelpMenu
 import me.gegenbauer.catspy.ui.menu.SettingsMenu
+import me.gegenbauer.catspy.ui.menu.ViewMenu
 import me.gegenbauer.catspy.ui.panel.MemoryStatusBar
 import me.gegenbauer.catspy.ui.panel.TabManagerPane
+import me.gegenbauer.catspy.utils.ui.Key
 import me.gegenbauer.catspy.utils.ui.dismissOnClickOutsideWindows
+import me.gegenbauer.catspy.utils.ui.installKeyStroke
 import me.gegenbauer.catspy.utils.ui.registerDismissOnClickOutsideListener
 import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.tab.OnTabChangeListener
 import me.gegenbauer.catspy.view.tab.TabManager
 import java.awt.BorderLayout
-import java.awt.Frame
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File
@@ -51,9 +55,11 @@ class MainFrame(
     //region menu
     private val helpMenu = HelpMenu()
     private val settingsMenu = SettingsMenu()
+    private val viewMenu = ViewMenu()
     private val menuBar = JMenuBar().apply {
         add(this@MainFrame.settingsMenu)
         add(this@MainFrame.helpMenu)
+        add(this@MainFrame.viewMenu)
     }
     //endregion
 
@@ -92,12 +98,18 @@ class MainFrame(
     }
 
     private fun bindGlobalProperties() {
-        selectedProperty(settingsMenu.globalDebug) bindDual GlobalConfSync.globalDebug
-        selectedProperty(settingsMenu.bindingDebug) bindDual GlobalConfSync.dataBindingDebug
-        selectedProperty(settingsMenu.taskDebug) bindDual GlobalConfSync.taskDebug
-        selectedProperty(settingsMenu.ddmDebug) bindDual GlobalConfSync.ddmDebug
-        selectedProperty(settingsMenu.cacheDebug) bindDual GlobalConfSync.cacheDebug
-        selectedProperty(settingsMenu.logDebug) bindDual GlobalConfSync.logDebug
+        selectedProperty(settingsMenu.globalDebug) bindDual MainConfSync.globalDebug
+        selectedProperty(settingsMenu.bindingDebug) bindDual MainConfSync.dataBindingDebug
+        selectedProperty(settingsMenu.taskDebug) bindDual MainConfSync.taskDebug
+        selectedProperty(settingsMenu.ddmDebug) bindDual MainConfSync.ddmDebug
+        selectedProperty(settingsMenu.cacheDebug) bindDual MainConfSync.cacheDebug
+        selectedProperty(settingsMenu.logDebug) bindDual MainConfSync.logDebug
+        // view
+        selectedProperty(viewMenu.showLogToolbar) bindDual LogConfSync.showLogToolbar
+        selectedProperty(viewMenu.showFilterPanel) bindDual LogConfSync.showFilterPanel
+        selectedProperty(viewMenu.showLogPanelToolbar) bindDual LogConfSync.showLogPanelToolbar
+        selectedProperty(viewMenu.showLogTableColumnNames) bindDual LogConfSync.showLogTableColumnNames
+        selectedProperty(viewMenu.showStatusBar) bindDual MainConfSync.showStatusBar
     }
 
     private fun configureAdbPath() {
@@ -126,15 +138,11 @@ class MainFrame(
                 unfocusedTabs.forEach { (it as? OnTabChangeListener)?.onTabFocusChanged(false) }
             }
         }
-        addWindowFocusListener(object : WindowAdapter() {
-            override fun windowLostFocus(e: WindowEvent) {
-                getWindows().filter { it.type == Type.POPUP }.forEach { it.dispose() }
-            }
-        })
         observeEventFlow()
         observeGlobalMessage()
         observeGlobalEvent()
-        registerDismissOnClickOutsideListener { it.javaClass.simpleName in dismissOnClickOutsideWindows }
+        observeStatusbarVisibility()
+        registerGlobalKeyEvents()
     }
 
     private fun preTriggerKotlinReflection() {
@@ -279,10 +287,34 @@ class MainFrame(
         }
     }
 
+    private fun observeStatusbarVisibility() {
+        MainConfSync.showStatusBar.addObserver {
+            globalStatus.isVisible = it == true
+        }
+    }
+
+    private fun registerGlobalKeyEvents() {
+        installKeyStroke(Key.C_1, GlobalStrings.FUNC_SHOW_LOG_TOOLBAR) {
+            LogConfSync.showLogToolbar.updateValue(!(LogConfSync.showLogToolbar.value ?: true))
+        }
+        installKeyStroke(Key.C_2, GlobalStrings.FUNC_SHOW_FILTER_PANEL) {
+            LogConfSync.showFilterPanel.updateValue(!(LogConfSync.showFilterPanel.value ?: true))
+        }
+        installKeyStroke(Key.C_3, GlobalStrings.FUNC_SHOW_LOG_PANEL_TOOLBAR) {
+            LogConfSync.showLogPanelToolbar.updateValue(!(LogConfSync.showLogPanelToolbar.value ?: true))
+        }
+        installKeyStroke(Key.C_4, GlobalStrings.FUNC_SHOW_LOG_TABLE_COLUMN_NAMES) {
+            LogConfSync.showLogTableColumnNames.updateValue(!(LogConfSync.showLogTableColumnNames.value ?: true))
+        }
+        installKeyStroke(Key.C_5, GlobalStrings.FUNC_SHOW_STATUS_BAR) {
+            MainConfSync.showStatusBar.updateValue(!(MainConfSync.showStatusBar.value ?: true))
+        }
+    }
+
     private fun configureWindow() {
         iconImages = appIcons
 
-        currentSettings.windowSettings.loadWindowSettings(this, Frame.MAXIMIZED_BOTH)
+        currentSettings.windowSettings.loadWindowSettings(this, MAXIMIZED_BOTH)
     }
 
     override fun destroy() {

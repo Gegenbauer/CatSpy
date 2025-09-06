@@ -46,13 +46,11 @@ interface LogProducer {
     }
 }
 
-object EmptyLogProducer : LogProducer {
+class EmptyLogProducer(override val tempFile: File = File(EMPTY_STRING)) : LogProducer {
     override val dispatcher: CoroutineDispatcher
         get() = throw IllegalStateException("EmptyLogProducer should not use dispatcher")
 
     override val state: StateFlow<LogProducer.State> = MutableStateFlow(LogProducer.State.CREATED)
-
-    override val tempFile: File = File(EMPTY_STRING)
 
     override fun start(): Flow<Result<LogItem>> {
         return emptyFlow()

@@ -198,7 +198,7 @@ class DeviceLogMainPanel : BaseLogMainPanel(), LogMetadataChangeListener {
 
     override fun clearAllLogs() {
         super.clearAllLogs()
-        if (taskState is TaskIdle) {
+        if (taskState.value is TaskIdle) {
             logStatus = StatusBar.LogStatusIdle(idleStatus)
         }
     }

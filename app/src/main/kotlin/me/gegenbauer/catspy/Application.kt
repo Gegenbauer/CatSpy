@@ -10,7 +10,6 @@ import me.gegenbauer.catspy.concurrency.AppScope
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.concurrency.UI
 import me.gegenbauer.catspy.conf.DebugConfiguration
-import me.gegenbauer.catspy.conf.GlobalConfSync
 import me.gegenbauer.catspy.configuration.GlobalStrings
 import me.gegenbauer.catspy.configuration.SettingsManager
 import me.gegenbauer.catspy.context.ServiceManager
@@ -50,7 +49,6 @@ object Application : WindowAdapter() {
                 GLog.i(TAG, "[main] start")
                 Preferences.loadFromDisk()
                 SettingsManager.init()
-                GlobalConfSync.init()
                 DebugConfiguration.apply()
                 GLog.i(TAG, "[currentPlatform] $currentPlatform")
                 registerGlobalService()

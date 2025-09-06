@@ -58,6 +58,7 @@ class LogTable(
         }
 
     private val popupMenu: JPopupMenu = PopUp()
+    private var detailDialog: LogDetailDialog? = null
     private var logPopupActionsProvider: () -> List<Pair<String, () -> Unit>> = { emptyList() }
     private var logDetailPopupActionsProvider: () -> List<LogDetailDialog.PopupAction> = { emptyList() }
 
@@ -302,10 +303,12 @@ class LogTable(
         textComponent: JTextComponent,
         popupActions: List<LogDetailDialog.PopupAction>
     ) {
+        detailDialog?.dispose()
         val frame = logTable.contexts.getContext(JFrame::class.java) ?: return
         val logViewDialog = LogDetailDialog(frame, textComponent, popupActions, logConf.logMetaData)
         logViewDialog.setLocationRelativeTo(frame)
         logViewDialog.isVisible = true
+        detailDialog = logViewDialog
     }
 
     fun setLogDetailPopupActionsProvider(actionsProvider: () -> List<LogDetailDialog.PopupAction>) {

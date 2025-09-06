@@ -165,6 +165,17 @@ abstract class LogPanel(
         binding.scrollToEnd.updateValue(value)
     }
 
+    fun setToolbarVisible(visible: Boolean) {
+        ctrlMainPanel.isVisible = visible
+    }
+
+    fun setLogTableColumnHeaderVisible(isVisible: Boolean) {
+        val target = table.tableHeader.parent ?: return
+        target.isVisible = isVisible
+        table.revalidate()
+        table.repaint()
+    }
+
     override fun scrollToEnd() {
         scrollPane.verticalScrollBar.removeAdjustmentListener(adjustmentHandler)
         table.scrollToEnd()

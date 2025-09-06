@@ -143,7 +143,7 @@ open class FileLogMainPanel : BaseLogMainPanel() {
 
     override fun clearAllLogs() {
         super.clearAllLogs()
-        if (taskState is TaskIdle) {
+        if (taskState.value is TaskIdle) {
             logStatus = StatusBar.LogStatus.NONE
             currentLogFile = EMPTY_STRING
         }

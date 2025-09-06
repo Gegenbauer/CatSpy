@@ -54,9 +54,9 @@ class FilterComboBoxModel<T>(items: List<T> = emptyList()) : AbstractListModel<T
     override fun removeElementAt(index: Int) {
         if (getElementAt(index) == selectedItem) {
             if (index == 0) {
-                setSelectedItem(getElementAt(1).takeIf { items.size > 1 })
+                selectedItem = getElementAt(1).takeIf { items.size > 1 }
             } else {
-                setSelectedItem(getElementAt(index - 1))
+                selectedItem = getElementAt(index - 1)
             }
         }
         items.removeAt(index)
@@ -71,11 +71,11 @@ class FilterComboBoxModel<T>(items: List<T> = emptyList()) : AbstractListModel<T
         items.add(item)
         fireIntervalAdded(this, items.size - 1, items.size - 1)
         if (items.size == 1 && selectedItem == null && item != null) {
-            setSelectedItem(item)
+            selectedItem = item
         }
     }
 
     companion object {
-        private const val MAX_SIZE = 40
+        private const val MAX_SIZE = 80
     }
 }

@@ -130,6 +130,16 @@ class SplitLogPane(
         SwingUtilities.updateComponentTreeUI(this)
     }
 
+    fun resetFilter() {
+        filteredLogPanel.binding.fullMode.updateValue(false)
+        filteredLogPanel.binding.bookmarkMode.updateValue(false)
+    }
+
+    fun setLogTableColumnHeaderVisible(isVisible: Boolean) {
+        fullLogPanel.setLogTableColumnHeaderVisible(isVisible)
+        filteredLogPanel.setLogTableColumnHeaderVisible(isVisible)
+    }
+
     override fun configureContext(context: Context) {
         super.configureContext(context)
         filteredLogPanel.setParent(this)
