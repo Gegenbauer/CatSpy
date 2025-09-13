@@ -34,6 +34,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.lang.ref.WeakReference
 import javax.swing.JFrame
 import javax.swing.JMenuItem
 import javax.swing.JOptionPane
@@ -303,9 +304,9 @@ class LogTable(
         textComponent: JTextComponent,
         popupActions: List<LogDetailDialog.PopupAction>
     ) {
-        detailDialog?.dispose()
         val frame = logTable.contexts.getContext(JFrame::class.java) ?: return
         val logViewDialog = LogDetailDialog(frame, textComponent, popupActions, logConf.logMetaData)
+        DetailDialogHolder.onPreShowDialog(logTable, logViewDialog)
         logViewDialog.setLocationRelativeTo(frame)
         logViewDialog.isVisible = true
         detailDialog = logViewDialog
@@ -503,7 +504,9 @@ class LogTable(
         super.destroy()
         SettingsManager.removeSettingsChangeListener(this)
         logConf.removeObserver(logMetadataObserver)
+        tableModel.destroy()
         scope.cancel()
+        DetailDialogHolder.onLogTableDestroy(this)
     }
 
     internal inner class TableKeyHandler : KeyAdapter() {
@@ -574,6 +577,40 @@ class LogTable(
 
         private fun updateSelection() {
             table.repaint()
+        }
+    }
+
+    private data class DetailDialogHolder(
+        val owner: Int,
+        val dialog: WeakReference<LogDetailDialog>
+    ) {
+        fun disposeIfMatch(logTable: LogTable) {
+            if (owner == System.identityHashCode(logTable)) {
+                dialog.get()?.dispose()
+            }
+        }
+
+        fun dispose() {
+            dialog.get()?.dispose()
+        }
+
+        companion object {
+            private var globalDialogHolder: DetailDialogHolder? = null
+
+            fun onLogTableDestroy(logTable: LogTable) {
+                globalDialogHolder?.disposeIfMatch(logTable)
+                if (globalDialogHolder?.owner == System.identityHashCode(logTable)) {
+                    globalDialogHolder = null
+                }
+            }
+
+            fun onPreShowDialog(logTable: LogTable, dialog: LogDetailDialog) {
+                globalDialogHolder?.dispose()
+                globalDialogHolder = DetailDialogHolder(
+                    System.identityHashCode(logTable),
+                    WeakReference(dialog)
+                )
+            }
         }
     }
 

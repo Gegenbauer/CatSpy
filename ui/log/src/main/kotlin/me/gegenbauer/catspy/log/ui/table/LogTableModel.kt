@@ -340,6 +340,7 @@ open class LogTableModel(
     override fun destroy() {
         super.destroy()
         scope.cancel()
+        viewModel.destroy()
         pageLogCache.clear()
         logItems.clear()
         eventListeners.clear()

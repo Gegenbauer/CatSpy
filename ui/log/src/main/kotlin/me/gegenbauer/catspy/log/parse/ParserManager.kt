@@ -88,6 +88,10 @@ class ParserManager : ContextService {
             runCatching {
                 val jarFiles = File(directory).listFiles { file -> file.extension == PARSER_FILE_EXTENSION }
                     ?: return@withContext emptyList()
+                if (jarFiles.isEmpty()) {
+                    Log.d(TAG, "[loadImplementationsFromJars] No jar files found in directory: $directory")
+                    return@withContext emptyList()
+                }
                 ClassGraph()
                     .enableClassInfo()
                     .overrideClasspath(*jarFiles.map { it.absolutePath }.toTypedArray())

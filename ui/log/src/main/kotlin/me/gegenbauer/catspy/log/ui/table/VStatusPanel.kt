@@ -31,6 +31,11 @@ class VStatusPanel(override val contexts: Contexts = Contexts.default) : JPanel(
         (getUI() as? VStatusPanelUI)?.setParent(this)
     }
 
+    override fun destroy() {
+        super.destroy()
+        (getUI() as? VStatusPanelUI)?.destroy()
+    }
+
     override fun updateUI() {
         if (ui != null) {
             setUI(VStatusPanelUI().apply { setParent(this@VStatusPanel) })

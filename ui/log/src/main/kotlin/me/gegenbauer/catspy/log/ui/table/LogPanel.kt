@@ -193,6 +193,8 @@ abstract class LogPanel(
 
     override fun destroy() {
         super.destroy()
+        table.destroy()
+        vStatusPanel.destroy()
         getBookmarkManager()?.removeBookmarkEventListener(bookmarkHandler)
     }
 

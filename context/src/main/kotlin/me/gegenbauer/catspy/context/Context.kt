@@ -15,10 +15,6 @@ interface Context: Disposable {
      */
     val contexts: Contexts
 
-    var parentContext: Context?
-        get() = null
-        set(value) = Unit
-
     fun getId(): Long {
         return hashCode().toLong()
     }
@@ -28,7 +24,6 @@ interface Context: Disposable {
      * It will put all ancestor contexts of the parent context into this context as well as the parent context itself.
      */
     fun setParent(context: Context) {
-        parentContext = context
         this.contexts.set(context.contexts)
         configureContext(this)
     }
@@ -49,7 +44,6 @@ interface Context: Disposable {
      * It will also dispose all services that are scoped to this context.
      */
     override fun destroy() {
-        contexts.getAllContexts().filter { it.parentContext == this }.forEach { it.destroy() }
         ServiceManager.dispose(this)
     }
 

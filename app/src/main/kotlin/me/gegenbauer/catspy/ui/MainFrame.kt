@@ -31,15 +31,11 @@ import me.gegenbauer.catspy.ui.menu.ViewMenu
 import me.gegenbauer.catspy.ui.panel.MemoryStatusBar
 import me.gegenbauer.catspy.ui.panel.TabManagerPane
 import me.gegenbauer.catspy.utils.ui.Key
-import me.gegenbauer.catspy.utils.ui.dismissOnClickOutsideWindows
 import me.gegenbauer.catspy.utils.ui.installKeyStroke
-import me.gegenbauer.catspy.utils.ui.registerDismissOnClickOutsideListener
 import me.gegenbauer.catspy.view.panel.StatusPanel
 import me.gegenbauer.catspy.view.tab.OnTabChangeListener
 import me.gegenbauer.catspy.view.tab.TabManager
 import java.awt.BorderLayout
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
 import java.io.File
 import javax.swing.JFrame
 import javax.swing.JMenuBar
@@ -320,6 +316,11 @@ class MainFrame(
     override fun destroy() {
         super.destroy()
         scope.cancel()
+        tabbedPane.getAllTabs().forEach { it.destroy() }
+        settingsMenu.destroy()
+        mainViewModel.destroy()
+        memoryStatusBar.destroy()
+        helpMenu.destroy()
         ServiceManager.dispose(Context.process)
         saveSettings()
         dispose()

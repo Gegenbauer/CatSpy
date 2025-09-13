@@ -69,6 +69,11 @@ open class FileLogMainPanel : BaseLogMainPanel() {
         filePopupMenu.setParent(this)
     }
 
+    override fun destroy() {
+        super.destroy()
+        filePopupMenu.destroy()
+    }
+
     override fun registerEvent() {
         super.registerEvent()
         templateSelector.addOnSelectedMetadataChangedListener(logMetadataChangeListener)
