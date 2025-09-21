@@ -56,6 +56,15 @@ open class ModelScope : CoroutineScope {
     }
 }
 
+class UIScope : CoroutineScope {
+    override val coroutineContext: CoroutineContext
+        = CoroutineName(TAG) + Dispatchers.UI + loggingExceptionHandler + SupervisorJob()
+
+    private companion object {
+        private const val TAG = "UIScope"
+    }
+}
+
 /**
  * Scope of ViewModel. Use [Dispatchers.UI] as default. Its lifecycle is as long as ViewModel.
  */

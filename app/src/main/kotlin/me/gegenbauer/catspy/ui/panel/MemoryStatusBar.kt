@@ -1,10 +1,10 @@
 package me.gegenbauer.catspy.ui.panel
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.CPU
+import me.gegenbauer.catspy.concurrency.UIScope
 import me.gegenbauer.catspy.context.*
 import me.gegenbauer.catspy.file.GB
 import me.gegenbauer.catspy.file.KB
@@ -18,7 +18,7 @@ import java.awt.event.MouseEvent
 import javax.swing.JProgressBar
 
 class MemoryStatusBar(override val contexts: Contexts = Contexts.default) : JProgressBar(), Context {
-    private val scope = MainScope()
+    private val scope = UIScope()
     private val memoryLimit by lazy {
         (Runtime.getRuntime().maxMemory() - MemoryMonitor.minFreeMemory).also {
             GLog.d(TAG, "[memoryLimit] ${it / GB} GB")

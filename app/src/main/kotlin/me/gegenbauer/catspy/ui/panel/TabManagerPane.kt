@@ -2,9 +2,9 @@ package me.gegenbauer.catspy.ui.panel
 
 import com.formdev.flatlaf.FlatClientProperties.*
 import com.github.weisj.darklaf.iconset.AllIcons
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import me.gegenbauer.catspy.concurrency.UIScope
 import me.gegenbauer.catspy.context.Contexts
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.glog.GLog
@@ -17,7 +17,6 @@ import me.gegenbauer.catspy.log.serialize.toLogMetadata
 import me.gegenbauer.catspy.log.ui.tab.DeviceLogMainPanel
 import me.gegenbauer.catspy.log.ui.tab.FileLogMainPanel
 import me.gegenbauer.catspy.platform.currentPlatform
-import me.gegenbauer.catspy.script.ui.ScriptTabPanel
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.ui.MainFrame
 import me.gegenbauer.catspy.ui.menu.TabSelectorPopupMenu
@@ -65,7 +64,7 @@ class TabManagerPane(override val contexts: Contexts = Contexts.default) : TabMa
     }
 
     private val selectMenu = TabSelectorPopupMenu()
-    private val scope = MainScope()
+    private val scope = UIScope()
     private val addTabButton = JButton().apply {
         icon = AllIcons.Action.Add.get(TAB_ICON_SIZE, TAB_ICON_SIZE)
         addActionListener(createNewTabAction())

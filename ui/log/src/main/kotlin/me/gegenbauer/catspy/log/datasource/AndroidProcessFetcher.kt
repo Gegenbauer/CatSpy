@@ -94,18 +94,20 @@ class AndroidProcessFetcher(private val device: String) {
 
     private suspend fun updatePidToPackageMap(reason: String) {
         withContext(Dispatchers.GIO) {
-            kotlin.runCatching {
+            runCatching {
                 if (device.isEmpty()) {
                     return@withContext
                 }
                 Log.d(TAG, "[updatePidToPackageMap] $reason, query package info from device.")
                 val process = Runtime.getRuntime().exec("${SettingsManager.adbPath} -s $device shell ps")
-                val reader = BufferedReader(InputStreamReader(process.inputStream))
-                reader.forEachLine {
-                    parseLineToPidPackage(it)?.let { (pid, packageName) ->
-                        packageNameCache[pid] = packageName
+                BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+                    reader.forEachLine {
+                        parseLineToPidPackage(it)?.let { (pid, packageName) ->
+                            packageNameCache[pid] = packageName
+                        }
                     }
                 }
+                process.errorStream.bufferedReader().use { it.readText() }
             }.onFailure {
                 Log.e(TAG, "[updatePidToPackageMap] failed", it)
             }
@@ -135,7 +137,7 @@ class AndroidProcessFetcher(private val device: String) {
      * adb shell "date +'%m-%d %H:%M:%S' | awk '{printf \"%s.\", \$0}'; date +'%N' | cut -c1-3"
      */
     private fun fetchTimeOnDevice(): String {
-        return kotlin.runCatching {
+        return runCatching {
             val dateTimeProcess = Runtime.getRuntime().exec(
                 "${SettingsManager.adbPath} -s " +
                         "$device shell date +'%m-%d %H:%M:%S'"

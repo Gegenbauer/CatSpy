@@ -5,7 +5,6 @@ import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.concurrency.ErrorEvent
+import me.gegenbauer.catspy.concurrency.UIScope
 import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.ServiceManager
@@ -121,7 +121,7 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
     protected val isLogTableEmpty: Boolean
         get() = logViewModel.fullLogObservables.itemsFlow.value.isEmpty()
 
-    protected val scope = MainScope()
+    protected val scope = UIScope()
 
     private var updateSearchFilterJob: Job? = null
 
@@ -666,6 +666,10 @@ abstract class BaseLogMainPanel : BaseTabPanel() {
 
         open fun onStartClicked() {
             // no-op
+        }
+
+        override fun toString(): String {
+            return this::class.simpleName ?: "Unknown"
         }
     }
 

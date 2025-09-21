@@ -1,11 +1,11 @@
 package me.gegenbauer.catspy.log.ui.table
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.CPU
+import me.gegenbauer.catspy.concurrency.UIScope
 import me.gegenbauer.catspy.configuration.GSettings
 import me.gegenbauer.catspy.configuration.SettingsChangeListener
 import me.gegenbauer.catspy.configuration.SettingsManager
@@ -65,7 +65,7 @@ class LogTable(
 
     private val logConf: LogConfiguration
         get() = contexts.getContext(LogConfiguration::class.java) ?: LogConfiguration.default
-    private val scope = MainScope()
+    private val scope = UIScope()
 
     private val logMetadataObserver = Observer<LogMetadata> {
         scope.launch {

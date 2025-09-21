@@ -91,7 +91,7 @@ class EllipsisLabel(
 
     override fun getPreferredSize(): Dimension {
         val size = super.getPreferredSize()
-        size.width = min(size.width + 2, maxWidth)
+        size.width = min(size.width + 4, maxWidth)
         return size
     }
 

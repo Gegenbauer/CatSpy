@@ -1,8 +1,8 @@
 package me.gegenbauer.catspy.view.dialog
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import me.gegenbauer.catspy.concurrency.UIScope
 import me.gegenbauer.catspy.glog.GLog
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.platform.currentPlatform
@@ -23,7 +23,7 @@ class FileSaveHandler private constructor(
 ) {
 
     private val fileChooser = getDefaultFileChooser()
-    private val scope = MainScope()
+    private val scope = UIScope()
 
     init {
         fileChooser.dialogTitle = STRINGS.ui.saveFileTitle

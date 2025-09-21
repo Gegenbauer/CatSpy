@@ -1,8 +1,8 @@
 package me.gegenbauer.catspy.log.ui.table
 
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import me.gegenbauer.catspy.concurrency.UIScope
 import me.gegenbauer.catspy.configuration.Rotation
 import me.gegenbauer.catspy.context.Context
 import me.gegenbauer.catspy.context.Contexts
@@ -30,7 +30,7 @@ class SplitLogPane(
             changeRotation(value)
         }
     private val filterStatefulPanel = StatefulPanel()
-    private val scope = MainScope()
+    private val scope = UIScope()
     private val eventManager: EventManager
         get() = kotlin.run {
             val logMainPanel = contexts.getContext(BaseLogMainPanel::class.java)

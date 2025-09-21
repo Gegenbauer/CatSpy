@@ -1,6 +1,5 @@
 package me.gegenbauer.catspy.ui.dialog
 
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.configuration.*
@@ -8,6 +7,7 @@ import me.gegenbauer.catspy.file.gson
 import me.gegenbauer.catspy.java.ext.EMPTY_STRING
 import me.gegenbauer.catspy.concurrency.GlobalMessageManager
 import me.gegenbauer.catspy.concurrency.Message
+import me.gegenbauer.catspy.concurrency.UIScope
 import me.gegenbauer.catspy.java.ext.copyFields
 import me.gegenbauer.catspy.strings.STRINGS
 import me.gegenbauer.catspy.strings.globalLocale
@@ -26,14 +26,15 @@ class GThemeSettingsDialog(
     private var tree = SettingsTree()
 
     private var startSettings = SettingsManager.string
-    private val scope = MainScope()
+    private val scope = UIScope()
 
     init {
         title = STRINGS.ui.preferences
 
         initUI()
 
-        defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
+        defaultCloseOperation = DISPOSE_ON_CLOSE
+        installKeyStrokeEscClosing(this)
         modalityType = ModalityType.APPLICATION_MODAL
         pack()
 

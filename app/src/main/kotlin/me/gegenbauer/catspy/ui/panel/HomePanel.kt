@@ -3,8 +3,8 @@ package me.gegenbauer.catspy.ui.panel
 import info.clearthought.layout.TableLayout
 import info.clearthought.layout.TableLayoutConstants.FILL
 import info.clearthought.layout.TableLayoutConstants.PREFERRED
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import me.gegenbauer.catspy.concurrency.UIScope
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.java.ext.Bundle
 import me.gegenbauer.catspy.log.ui.tab.DeviceLogGuidancePanel
@@ -30,7 +30,7 @@ class HomePanel : BaseTabPanel() {
     private val tabManager: TabManager
         get() = contexts.getContext(MainFrame::class.java)!!
     private val statusBar = ServiceManager.getContextService(StatusPanel::class.java)
-    private val scope = MainScope()
+    private val scope = UIScope()
 
     override fun onSetup(bundle: Bundle?) {
         layout = TableLayout(

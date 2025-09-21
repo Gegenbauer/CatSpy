@@ -18,6 +18,7 @@ class XMLFileManager : KeyValuesFileManager() {
 
     override val fileExtension: String = FILE_EXTENSION
 
+    @Suppress("UNCHECKED_CAST")
     override fun deserialize(raw: String): Map<String, Any?> {
         val resultMap = HashMap<String, Any>()
         if (raw.isEmpty()) return resultMap

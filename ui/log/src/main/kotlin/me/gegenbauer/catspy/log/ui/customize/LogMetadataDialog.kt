@@ -1,12 +1,11 @@
 package me.gegenbauer.catspy.log.ui.customize
 
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import me.gegenbauer.catspy.concurrency.UIScope
 import me.gegenbauer.catspy.context.ServiceManager
 import me.gegenbauer.catspy.log.metadata.LogMetadataManager
 import me.gegenbauer.catspy.log.serialize.toLogMetadataModel
 import me.gegenbauer.catspy.strings.STRINGS
-import me.gegenbauer.catspy.utils.ui.installKeyStrokeEscClosing
 import me.gegenbauer.catspy.utils.ui.setSizePercentage
 import java.awt.Frame
 import javax.swing.JDialog
@@ -15,7 +14,7 @@ import javax.swing.WindowConstants
 
 class LogMetadataDialog(parent: Frame): JDialog(parent) {
 
-    private val scope = MainScope()
+    private val scope = UIScope()
 
     private val metadataManager: LogMetadataManager
         get() = ServiceManager.getContextService(LogMetadataManager::class.java)

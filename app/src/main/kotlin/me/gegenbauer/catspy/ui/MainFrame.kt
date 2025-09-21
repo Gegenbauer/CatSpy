@@ -1,6 +1,9 @@
 package me.gegenbauer.catspy.ui
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.gegenbauer.catspy.concurrency.*
 import me.gegenbauer.catspy.conf.MainConfSync
 import me.gegenbauer.catspy.configuration.GlobalStrings
@@ -62,7 +65,7 @@ class MainFrame(
     private val globalStatus = ServiceManager.getContextService(StatusPanel::class.java)
     private val mainViewModel = ServiceManager.getContextService(this, MainViewModel::class.java)
     private val memoryStatusBar = MemoryStatusBar()
-    private val scope = MainScope()
+    private val scope = UIScope()
 
     init {
         configureWindow()

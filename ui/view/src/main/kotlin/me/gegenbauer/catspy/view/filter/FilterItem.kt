@@ -85,12 +85,19 @@ data class FilterItem(
 private const val PATTERN_SPLITTER = "|"
 private const val NEGATIVE_PATTERN_PREFIX = '-'
 
+private val filterCache by lazy {
+    ServiceManager.getContextService(FilterCache::class.java)
+}
+
 fun String.getOrCreateFilterItem(matchCase: Boolean = false): FilterItem {
     if (this.isEmpty()) {
         return FilterItem.EMPTY_ITEM
     }
-    val filterCache = ServiceManager.getContextService(FilterCache::class.java)
     return filterCache[toFilterKey(matchCase)] ?: FilterItem.EMPTY_ITEM
+}
+
+private val patternProvider by lazy {
+    ServiceManager.getContextService(PatternProvider::class.java)
 }
 
 internal fun String.toFilterItem(matchCase: Boolean = false): FilterItem {
@@ -98,7 +105,6 @@ internal fun String.toFilterItem(matchCase: Boolean = false): FilterItem {
         return FilterItem.EMPTY_ITEM
     }
     val patterns = parsePattern(this)
-    val patternProvider = ServiceManager.getContextService(PatternProvider::class.java)
     var errorMessage = EMPTY_STRING
     val positiveFilter = runCatching {
         patternProvider[patterns.first.toPatternKey(matchCase)] ?: PatternProvider.EMPTY_PATTERN
