@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.flowOn
 import me.gegenbauer.catspy.concurrency.GIO
 import me.gegenbauer.catspy.file.MB
 import me.gegenbauer.catspy.java.ext.SPACE_STRING
+import me.gegenbauer.catspy.java.ext.toCommandArray
 import java.io.BufferedInputStream
 import java.io.File
 import java.util.*
@@ -117,8 +118,4 @@ class CommandProcessBuilder(
             .directory(workingDir)
             .also { it.environment().putAll(envVars) }
     }
-}
-
-fun String.toCommandArray(): Array<String> {
-    return this.split(SPACE_STRING).toTypedArray()
 }
