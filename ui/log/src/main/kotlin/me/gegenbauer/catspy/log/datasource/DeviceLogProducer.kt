@@ -23,7 +23,7 @@ import me.gegenbauer.catspy.platform.LOG_DIR
 import me.gegenbauer.catspy.platform.filesDir
 import me.gegenbauer.catspy.task.CommandExecutorImpl
 import me.gegenbauer.catspy.task.CommandProcessBuilder
-import me.gegenbauer.catspy.task.toCommandArray
+import me.gegenbauer.catspy.java.ext.toCommandArray
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.OutputStream

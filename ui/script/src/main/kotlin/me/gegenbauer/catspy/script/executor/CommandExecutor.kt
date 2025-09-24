@@ -13,6 +13,7 @@ import me.gegenbauer.catspy.java.ext.SPACE_STRING
 import me.gegenbauer.catspy.script.model.Script
 import me.gegenbauer.catspy.task.CommandTask
 import me.gegenbauer.catspy.task.TaskManager
+import me.gegenbauer.catspy.java.ext.toCommandArray
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
 
@@ -48,5 +49,5 @@ class CommandExecutor(
 }
 
 fun String.toCommand(): Array<String> {
-    return this.split(SPACE_STRING).toTypedArray()
+    return this.toCommandArray()
 }

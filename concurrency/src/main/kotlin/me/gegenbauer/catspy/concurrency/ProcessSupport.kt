@@ -2,9 +2,10 @@ package me.gegenbauer.catspy.concurrency
 
 import kotlinx.coroutines.launch
 import me.gegenbauer.catspy.java.ext.SPACE_STRING
+import me.gegenbauer.catspy.java.ext.toCommandArray
 
 fun String.runCommandIgnoreResult() {
-    split(SPACE_STRING).runCommandIgnoreResult()
+    toCommandArray().toList().runCommandIgnoreResult()
 }
 
 fun List<String>.runCommandIgnoreResult() {
